@@ -1,11 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { SlideProps } from "../../deck/contract";
 import type { PhotoId } from "../../deck/media";
 import { SlideRoot } from "../root";
-import { type Ground, LitPhoto, Readout, ROOM } from "../system";
+import { type Ground, LitPhoto, ROOM } from "../system";
 import { inkOf, useTake } from "../take";
 import { FitLines, SpecRows } from "./a-parts";
 import { Label, useMeasure } from "./parts";
@@ -28,7 +28,7 @@ const PHOTO: PhotoId = "party-dj";
 const ROUND_TWO: readonly (readonly [string, string])[] = [
   [
     "No spectrum.",
-    "Where there is no photograph, the house lights as one dusk sky.",
+    "Where there is no photograph, the house light is the icon's own ember.",
   ],
   [
     "Three hues at most,",
@@ -52,8 +52,8 @@ function useRule(): readonly (readonly [string, string])[] {
 /** Round two's lines: a lead in the full ink, the rest in the muted. */
 function useRoundTwo(): readonly (readonly [string, ReactNode])[] {
   const t = inkOf(useTake(), "paper");
-  return ROUND_TWO.map(([lead, rest], i) => [
-    String(i + 1).padStart(2, "0"),
+  return ROUND_TWO.map(([lead, rest]) => [
+    "",
     <span key={lead} style={{ color: t.muted }}>
       <span style={{ color: t.fg, fontWeight: 600 }}>{lead}</span> {rest}
     </span>,
@@ -157,16 +157,13 @@ export function IdeaSlide({ screen }: SlideProps) {
           className="absolute"
           style={{ left: m.pad, top: m.top, width: lw }}
         >
-          <Readout style={{ color: t.faint, display: "block" }}>
-            The idea
-          </Readout>
           <FitLines
             lines={take.words.headline}
             max={54}
             width={lw}
             color={t.fg}
             read="the take's headline"
-            style={{ marginTop: 18, letterSpacing: "-0.034em" }}
+            style={{ letterSpacing: "-0.034em" }}
           />
           <p
             className="ag-lede"
@@ -190,7 +187,7 @@ export function IdeaSlide({ screen }: SlideProps) {
           <Label ground="paper" style={{ marginBottom: 14 }}>
             Round two, in every take
           </Label>
-          <SpecRows ground="paper" rows={roundTwo} label={34} />
+          <SpecRows ground="paper" rows={roundTwo} label={0} />
         </div>
 
         <div className="absolute" style={{ left: rx, top: m.top }}>
@@ -209,6 +206,11 @@ export function IdeaSlide({ screen }: SlideProps) {
             The rule on paper · {take.name}
           </Label>
           <SpecRows ground="paper" rows={rule} label={104} />
+          {/* In the column's flow, under the rule, so a take's longer lines
+              push it down rather than run into it. */}
+          {take.words.borrow ? (
+            <Borrow text={take.words.borrow} style={{ marginTop: 30 }} />
+          ) : null}
         </div>
       </SlideRoot>
     );
@@ -222,12 +224,10 @@ export function IdeaSlide({ screen }: SlideProps) {
         className="absolute flex flex-col"
         style={{ left: m.pad, top: m.top, width: m.inner }}
       >
-        <Readout style={{ color: t.faint, display: "block" }}>The idea</Readout>
         <h2
           className="ag-title"
           data-bd-read="the take's headline"
           style={{
-            marginTop: 14,
             fontSize: 32,
             color: t.fg,
             letterSpacing: "-0.032em",
@@ -251,25 +251,50 @@ export function IdeaSlide({ screen }: SlideProps) {
         >
           {take.words.argument}
         </p>
-        <div style={{ marginTop: 40 }}>
+        <div style={{ marginTop: 52 }}>
           <Demo
             room={m.inner}
             paper={m.inner}
-            ch={236}
+            ch={252}
             pw={226}
-            gap={28}
+            gap={36}
             stack
           />
         </div>
-        <Label ground="paper" style={{ marginTop: 44, marginBottom: 12 }}>
+        <Label ground="paper" style={{ marginTop: 60, marginBottom: 12 }}>
           The rule on paper · {take.name}
         </Label>
         <SpecRows ground="paper" rows={rule} />
-        <Label ground="paper" style={{ marginTop: 44, marginBottom: 12 }}>
+        <Label ground="paper" style={{ marginTop: 60, marginBottom: 12 }}>
           Round two, in every take
         </Label>
-        <SpecRows ground="paper" rows={roundTwo} />
+        <SpecRows ground="paper" rows={roundTwo} label={0} />
+        {take.words.borrow ? (
+          <Borrow text={take.words.borrow} style={{ marginTop: 52 }} />
+        ) : null}
       </div>
     </SlideRoot>
+  );
+}
+
+/**
+ * THE TOUCH WORTH BORROWING: the creative director's one line on what this
+ * take would take from a neighbour (the brief asks it per take), set apart
+ * from the take's own rule so it reads as advice, never as the take.
+ */
+function Borrow({ text, style }: { text: string; style?: CSSProperties }) {
+  const t = inkOf(useTake(), "paper");
+  return (
+    <div style={style}>
+      <Label ground="paper" style={{ marginBottom: 8 }}>
+        Worth borrowing from a neighbour
+      </Label>
+      <p
+        className="ag-body"
+        style={{ fontSize: 14.5, color: t.muted, textWrap: "pretty" }}
+      >
+        {text}
+      </p>
+    </div>
   );
 }

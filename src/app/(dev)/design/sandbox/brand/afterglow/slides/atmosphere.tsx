@@ -14,7 +14,7 @@ import {
   VOICE,
 } from "../system";
 import { groundOf, inkOf, useTake } from "../take";
-import { Heading, Label, useMeasure } from "./parts";
+import { Heading, useMeasure } from "./parts";
 
 /**
  * 06 WITHOUT MEDIA: BEFORE THE FIRST PHOTOGRAPH, THE SEED IS THE LIGHT.
@@ -23,8 +23,9 @@ import { Heading, Label, useMeasure } from "./parts";
  * feels right on a screen with no media. The slide is the room with a sheet
  * of paper in its corner: the guest's empty album on a phone (the seed glowing
  * where the photograph will be, the Ring lit by it), the handover from the
- * seed to the photographs as three moments on one line, and the host's light
- * dashboard, where each event's cover is its seed in the take's paper form.
+ * seed to the photographs as three moments on one line, and the host's app in
+ * its light theme (its bar, the wordmark and her own orb), where each event's
+ * cover is its seed in the take's paper form and its name in the take's ink.
  *
  * ★ THE PAPER CORNER IS WHERE THE TAKES DIFFER, so it is a ground, never a
  * panel inside the room: it runs off the slide's right and bottom edges, and
@@ -277,9 +278,12 @@ function EventCard({
   const t = inkOf(take, "paper");
   const { SeedCover } = take.light;
   const cover = <SeedCover seed={e.seed} ground="paper" style={{ width: w, height: h, borderRadius: 3 }} />;
+  // An event's name on paper is set in the take's print ink for its source
+  // (Ink's album colour), else the paper's own ink.
+  const name = take.inkFor?.({ seed: e.seed }) ?? t.fg;
   const words = (
     <div>
-      <p className="ag-subtitle" style={{ fontSize: row ? 17 : 18, color: t.fg }}>
+      <p className="ag-subtitle" style={{ fontSize: row ? 17 : 18, color: name }}>
         {e.name}
       </p>
       <p className="ag-num" style={{ fontSize: 13, color: t.muted, marginTop: 3 }}>
@@ -316,6 +320,24 @@ function EventsHead() {
   );
 }
 
+/**
+ * The host app's bar across the top of the paper: the wordmark and the host's
+ * own seeded orb, so the sheet reads as the light theme of the app, not a
+ * panel on a slide. `inset` is where the app's content column starts.
+ */
+function AppBar({ inset, right, h }: { inset: number; right: number; h: number }) {
+  const t = inkOf(useTake(), "paper");
+  return (
+    <div
+      className="absolute inset-x-0 top-0 flex items-center justify-between"
+      style={{ height: h, paddingLeft: inset, paddingRight: right, borderBottom: `1px solid ${alpha(t.fg, 9)}` }}
+    >
+      <Wordmark height={16} color={t.fg} read="wordmark in the host app" />
+      <Seeded seed={PARTY.hostSeed} style={{ width: 28, height: 28 }} />
+    </div>
+  );
+}
+
 /* ── the slide ─────────────────────────────────────────────────────────────── */
 
 export function AtmosphereSlide({ screen }: SlideProps) {
@@ -329,7 +351,8 @@ export function AtmosphereSlide({ screen }: SlideProps) {
     // the paper corner share one column line to its right.
     const phoneW = 344;
     const col = 476;
-    const cut = 540;
+    const cut = 518;
+    const bar = 56;
     const sheetX = col - 44;
     const colW = m.w - m.pad - col;
     const gap = 44;
@@ -349,19 +372,16 @@ export function AtmosphereSlide({ screen }: SlideProps) {
             width={760}
           />
         </div>
-        <div className="absolute" style={{ left: col - 24, top: 272 }}>
+        <div className="absolute" style={{ left: col - 24, top: 260 }}>
           <Handover w={colW + 48} frameW={176} frameH={112} ring={34} compact={false} />
         </div>
-        {/* The paper corner: the host's dashboard on the take's own stock. */}
-        <div className="absolute right-0 bottom-0" style={{ left: sheetX, top: cut, background: paperHex }} />
-        <div className="absolute" style={{ left: col, top: cut + 34, width: colW }}>
+        {/* The paper corner: the host's app in its light theme, on the take's own stock. */}
+        <div className="absolute right-0 bottom-0" style={{ left: sheetX, top: cut, background: paperHex }}>
+          <AppBar inset={col - sheetX} right={m.pad} h={bar} />
+        </div>
+        <div className="absolute" style={{ left: col, top: cut + bar + 26, width: colW }}>
           <div className="flex items-start justify-between">
-            <div>
-              <Label ground="paper">On paper · {take.name}</Label>
-              <div style={{ marginTop: 8 }}>
-                <EventsHead />
-              </div>
-            </div>
+            <EventsHead />
             <p
               className="ag-body"
               data-bd-contrast="the paper caption"
@@ -370,7 +390,7 @@ export function AtmosphereSlide({ screen }: SlideProps) {
               {take.words.seedPaper}
             </p>
           </div>
-          <div className="flex" style={{ gap, marginTop: 24 }}>
+          <div className="flex" style={{ gap, marginTop: 22 }}>
             {EVENTS.map((e) => (
               <EventCard key={e.seed} e={e} w={cardW} h={Math.round(cardW * 0.5)} />
             ))}
@@ -380,9 +400,10 @@ export function AtmosphereSlide({ screen }: SlideProps) {
     );
   }
 
-  // The phone: stacked, the room above, the paper's own band below.
+  // The phone: stacked, the room above, the host app's light theme below.
   const phoneW = 262;
-  const cut = 1080;
+  const cut = 1050;
+  const bar = 52;
   return (
     <SlideRoot screen={screen} ground="room">
       <div className="absolute" style={{ left: m.pad, top: m.top, width: m.inner }}>
@@ -393,18 +414,14 @@ export function AtmosphereSlide({ screen }: SlideProps) {
           <EmptyAlbum />
         </PhoneView>
       </div>
-      <div className="absolute" style={{ left: m.pad, top: 826 }}>
-        <Label ground="room">The handover</Label>
-      </div>
-      <div className="absolute" style={{ left: m.pad - 6, top: 856 }}>
+      <div className="absolute" style={{ left: m.pad - 6, top: 830 }}>
         <Handover w={m.inner + 12} frameW={100} frameH={68} ring={26} compact />
       </div>
-      <div className="absolute inset-x-0 bottom-0" style={{ top: cut, background: paperHex }} />
-      <div className="absolute" style={{ left: m.pad, top: cut + 32, width: m.inner }}>
-        <Label ground="paper">On paper · {take.name}</Label>
-        <div style={{ marginTop: 8 }}>
-          <EventsHead />
-        </div>
+      <div className="absolute inset-x-0 bottom-0" style={{ top: cut, background: paperHex }}>
+        <AppBar inset={m.pad} right={m.pad} h={bar} />
+      </div>
+      <div className="absolute" style={{ left: m.pad, top: cut + bar + 24, width: m.inner }}>
+        <EventsHead />
         <div className="flex flex-col" style={{ gap: 24, marginTop: 24 }}>
           {EVENTS.map((e) => (
             <EventCard key={e.seed} e={e} w={150} h={100} row />

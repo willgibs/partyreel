@@ -2,23 +2,27 @@
 
 import type { CSSProperties, ReactNode } from "react";
 
+import { orbFor } from "@/lib/avatar/gradient";
 import { cn } from "@/lib/utils";
 
 import { AnswerReel } from "../afterglow/kit";
 import { RingIcon, RingSymbol } from "../afterglow/marks";
 import {
+  alpha,
   conicOf,
   duskGradient,
+  lampTone,
   LightChips,
   lightOf,
+  ROOM,
   RoomBloom,
   RoomRing,
   RoomSeam,
-  RoomSeed,
   RoomWallSeam,
   SAMPLED,
   withDepth,
 } from "../afterglow/system";
+import { Seeded } from "../deck/media";
 import type {
   BloomProps,
   IconProps,
@@ -61,12 +65,21 @@ export const PLATE = {
   edge: "rgb(255 255 255 / 0.07)",
 } as const;
 
-/** A piece of the room on paper: its gradient, its lit top edge and its lift. */
-export function plateStyle(radius: number): CSSProperties {
+/**
+ * A piece of the room on paper: flat near-black with a lit top edge and a
+ * print's lift. ★ FLAT, NEVER A GLOSSY BALL (the creative director's pass):
+ * a shaded, shadowed disc beside the wordmark outweighed it, so a piece of the
+ * room is matte, and a disc (`flat`) carries no lift at all.
+ */
+export function plateStyle(radius: number, flat = false): CSSProperties {
   return {
-    background: `linear-gradient(180deg, ${PLATE.top} 0%, ${PLATE.foot} 100%)`,
+    background: flat
+      ? PLATE.foot
+      : `linear-gradient(180deg, ${PLATE.top} 0%, ${PLATE.foot} 100%)`,
     borderRadius: radius,
-    boxShadow: `inset 0 1px 0 ${PLATE.edge}, 0 1px 2px rgb(0 0 0 / 0.12), 0 14px 30px -14px rgb(0 0 0 / 0.45)`,
+    boxShadow: flat
+      ? `inset 0 0 0 1px ${PLATE.edge}`
+      : `inset 0 1px 0 ${PLATE.edge}, 0 1px 2px rgb(0 0 0 / 0.1), 0 10px 24px -14px rgb(0 0 0 / 0.38)`,
   };
 }
 
@@ -74,11 +87,13 @@ export function plateStyle(radius: number): CSSProperties {
 function Behind({
   out,
   radius,
+  flat = false,
   children,
   className,
 }: {
   out: number;
   radius: number;
+  flat?: boolean;
   children?: ReactNode;
   className?: string;
 }) {
@@ -86,7 +101,7 @@ function Behind({
     <span
       aria-hidden
       className={cn("ap-behind", className)}
-      style={{ inset: -out, ...plateStyle(radius) }}
+      style={{ inset: -out, ...plateStyle(radius, flat) }}
     >
       {children}
     </span>
@@ -115,6 +130,7 @@ function Ring({
       breathe={breathe}
       label={label}
       face="room"
+      flat={ground === "paper"}
     />
   );
   if (ground === "room")
@@ -123,15 +139,16 @@ function Ring({
         {ring}
       </span>
     );
-  // On paper the ring brings its own dark: a puck a third wider than the
-  // face, so the band and its glow have the room they need, clipped inside.
-  const out = Math.round(size * 0.31);
+  // On paper the ring brings its own dark: a flat disc a quarter wider than
+  // the face, so the band and its glow have the room they need, clipped
+  // inside it, and nothing glossy.
+  const out = Math.round(size * 0.26);
   return (
     <span
       className={cn("ap-holder", className)}
       style={{ width: size, height: size, ...style }}
     >
-      <Behind out={out} radius={size}>
+      <Behind out={out} radius={size} flat>
         <span className="ap-centre">{ring}</span>
       </Behind>
     </span>
@@ -246,13 +263,19 @@ function Bloom({
     );
   // On paper the subject stands on its plate: a black mount a ninth of the
   // subject wider all round, square-cornered like a print's mount (never a
-  // device), its light hugging the subject and spent before the mount's edge,
-  // so the plate reads as dark with light in it, never a lit frame.
+  // device). ★ HOT AT THE EDGE, BLACK BY THE MOUNT'S EDGE (the creative
+  // director's pass: an even tan band read as a bronze bevel, browner and
+  // dimmer than the room): a tight core at the seam register right at the
+  // subject's edge, and a short halo spent within about forty pixels.
   const out = Math.max(16, Math.round(size * 0.11));
+  const halo = Math.min(40, Math.round(out * 0.62));
   const vars: Vars = {
+    "--ap-core": conicOf(light, "roomSeam"),
     "--ap-conic": conicOf(light, "room"),
-    "--ap-blur": `${Math.round(out * 0.42)}px`,
-    "--ap-in": `${Math.round(out * 0.72)}px`,
+    "--ap-core-in": `${out - 2}px`,
+    "--ap-core-blur": `${Math.max(3, Math.round(out * 0.08))}px`,
+    "--ap-in": `${out - Math.round(halo * 0.3)}px`,
+    "--ap-blur": `${Math.round(halo * 0.42)}px`,
     "--ap-radius": `${radius + 2}px`,
     ...style,
   };
@@ -264,6 +287,7 @@ function Bloom({
     >
       <Behind out={out} radius={Math.max(4, radius + Math.round(out * 0.12))}>
         <span className="ap-plate-light" />
+        <span className="ap-plate-core" />
       </Behind>
       <div className="ap-subject">{children}</div>
     </div>
@@ -323,21 +347,36 @@ function ReelBloom({
 /* ── the seed ──────────────────────────────────────────────────────────────── */
 
 function SeedCover({ seed, ground, children, className, style }: SeedProps) {
-  // The album's well is the room on every ground (production's own rule), so
-  // the seed glows in its own dark on paper too, a lit top edge on it there.
+  // The album's well is the room on every ground (production's own rule), and
+  // in it the seed is a lamp: production's own hashvatar orb, defined and
+  // saturated, its light round it in the dark. ★ NEVER FOG (the creative
+  // director's pass: soft smudges in the dashboard's wells read as images that
+  // failed to load), so the orb is a thing, the light its glow.
+  const o = orbFor(seed);
+  const glow = lampTone({ h: o.hue, w: 1 }, "room").oklch;
   return (
-    <RoomSeed
-      seed={seed}
-      className={className}
+    <div
+      data-bd-seed={seed}
+      className={cn("ap-seed", className)}
       style={{
+        background: ROOM.card.hex,
         ...(ground === "paper"
           ? { boxShadow: `inset 0 1px 0 ${PLATE.edge}` }
           : null),
         ...style,
       }}
     >
+      <span aria-hidden className="ap-seed-lamp">
+        <span
+          className="ap-seed-glow"
+          style={{
+            background: `radial-gradient(closest-side, ${alpha(glow, 70)}, transparent)`,
+          }}
+        />
+        <Seeded seed={seed} className="ap-seed-orb" />
+      </span>
       {children}
-    </RoomSeed>
+    </div>
   );
 }
 
@@ -383,14 +422,15 @@ function Mark({ size = 40, ground, className, style }: SymbolProps) {
         style={style}
       />
     );
-  // On paper the symbol stands in its puck, the light inside its own dark.
-  const out = Math.round(size * 0.12);
+  // On paper the symbol stands in a flat dark disc, the light inside its own
+  // dark, no larger than the ring needs.
+  const out = Math.round(size * 0.08);
   return (
     <span
       className={cn("ap-holder", className)}
       style={{ width: size, height: size, ...style }}
     >
-      <Behind out={out} radius={size}>
+      <Behind out={out} radius={size} flat>
         <span className="ap-centre">
           <RingSymbol size={Math.round(size * 0.88)} appearance="room" />
         </span>

@@ -43,6 +43,41 @@
   opacity: 0.92;
 }
 
+/* The plate's core: the subject's light at its hottest, right at its edge. */
+.ap-plate-core {
+  position: absolute;
+  inset: var(--ap-core-in);
+  border-radius: var(--ap-radius);
+  background: var(--ap-core);
+  filter: blur(var(--ap-core-blur));
+  opacity: 0.95;
+}
+
+/* The seed in its dark well: a lamp, the orb defined, its glow round it. */
+.ap-seed {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+/* A round lamp whatever the well's shape: sized by the well's height. */
+.ap-seed-lamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 42%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+.ap-seed-glow {
+  position: absolute;
+  inset: -90%;
+  border-radius: 9999px;
+}
+.ap-seed-orb {
+  position: absolute;
+  inset: 0;
+}
+
 .ap-subject {
   position: relative;
   z-index: 1;
@@ -69,7 +104,10 @@
   gap: 8px;
   overflow: hidden;
   color: rgb(245 245 246 / 0.86);
-  font: 600 9.5px/12px var(--font-sans), ui-sans-serif, sans-serif;
+  font:
+    600 9.5px/12px var(--font-sans),
+    ui-sans-serif,
+    sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;

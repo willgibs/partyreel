@@ -52,8 +52,8 @@ const SHARED: Record<SlideId, (p: SlideProps) => ReactNode> = {
 
 /** Each slide's height on a phone (375 wide). */
 export const PHONE_HEIGHT: Partial<Record<SlideId, number>> = {
-  cover: 1180,
-  idea: 1840,
+  cover: 940,
+  idea: 1910,
   marks: 1600,
   color: 1760,
   signature: 2260,

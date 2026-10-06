@@ -9,12 +9,12 @@ import {
   useState,
 } from "react";
 
-import { contrast, orbFor } from "@/lib/avatar/gradient";
+import { contrast } from "@/lib/avatar/gradient";
 import { MARKETING_REELS } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 import { AnswerReel, reelShots } from "../afterglow/kit";
-import { iconOptics, RingIcon, RingSymbol, SQUIRCLE } from "../afterglow/marks";
+import { RingIcon, RingSymbol } from "../afterglow/marks";
 import {
   conicOf,
   depths,
@@ -52,25 +52,26 @@ import type { ReelId } from "../deck/media";
  * INK'S LIGHT: ONE COLOUR, TWO PHYSICS.
  *
  * Every album keeps one colour, its strongest light (`keyOf`: the heaviest
- * sampled hue by intensity, the seed's hue before a photograph, the dusk key
- * for the house). In the room that colour is emitted: the shared room forms,
- * fed the key at three depths, so every glow is one hue. On paper it is
- * printed: the same colour as an ink at full strength, laid down in small,
- * exact amounts (a rule, a band, a fine screen of dots), the way a press has
- * always drawn light. A press never prints a glow as a pale tint; it prints
- * dots of full-strength ink that shrink, and that is the escape from round
- * one's washed-out middle.
+ * sampled hue by intensity, the seed's hue before a photograph, the ember's
+ * key for the house). In the room that colour is emitted: the shared room
+ * forms, fed the key at three depths, so every glow is one hue. On paper it
+ * is printed: the same colour as one ink at full strength, laid down solid in
+ * a few crisp forms (a mat behind the one subject, a band round the Add, a
+ * rule where the photographs end), the way stationery is printed.
  *
  * ★ NOTHING ON PAPER IS PALER THAN ITS INK. Every printed mark is the ink
- * itself, opaque; where there is less light there is less ink (a smaller dot,
- * a thinner rule), never a lighter one.
+ * itself, opaque and solid: no blur, no tint, no pattern of dots. Round two's
+ * first draft printed the Bloom as a halftone screen, and the creative
+ * director's pass saw what any screen does from a distance: it averages into
+ * the pale tint this take exists to refuse. Where there is less light there
+ * is less ink (a thinner rule), never a lighter one.
  *
  * ★ TWO INKS, LIKE A TWO-COLOUR JOB: the page's own black (the stock's `fg`,
- * the disc of every ring) and the album's one colour. Nothing else prints.
+ * the disc of every printed ring) and the album's one colour. Nothing else
+ * prints.
  *
- * ★ A FORM'S BOX IS ITS SUBJECT'S (the take contract): the screen and the
- * band extend outside it, absolutely, so a slide lays every take out the same
- * way.
+ * ★ A FORM'S BOX IS ITS SUBJECT'S (the take contract): the mat and the band
+ * extend outside it, absolutely, so a slide lays every take out the same way.
  */
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
@@ -90,7 +91,7 @@ export const STOCK: Paper = {
   faint: tone(0.6, 0.012, 72),
 };
 
-/** The die-cut edge of a sheet of stock laid on stock (a tile, a cover): a hairline. */
+/** The die-cut edge of a sheet of stock laid on stock (a cover): a hairline. */
 const KEYLINE = tone(0.84, 0.01, 76);
 
 /**
@@ -139,8 +140,8 @@ const inks = new Map<string, Tone>();
  * THE INK REGISTER: a light's hue printed deep and saturated on the stock.
  * Its chroma follows the light's own a little (a soft daylight prints a
  * quieter ink, never a greyer one), and its lightness is the press's for the
- * hue, then deepened until it holds 4.6:1 on the stock, so the event's
- * credits can be set in it as type.
+ * hue, then deepened until it holds 4.6:1 on the stock, so the event's name
+ * and its credits can be set in it as type (`INK.inkFor`).
  */
 export function INK_PRINT(h: number, c = 0.13): Tone {
   const id = `${Math.round(h * 10)}:${Math.round(c * 1000)}`;
@@ -159,10 +160,10 @@ export function INK_PRINT(h: number, c = 0.13): Tone {
 }
 
 /**
- * ★ THE HOUSE PRINTS AT ITS SKY'S WARMER SIDE. Its key (coral, h 34) printed
- * at an ink's depth is a brick red too near Fault's red, and the brand's own
- * mark must never read as a failure; so the house prints at h 42, a deep
- * coral-amber still inside its own sky (amber at the lit edge, then coral).
+ * ★ THE HOUSE PRINTS AT ITS EMBER'S WARMER SIDE. Its key (coral, h 34)
+ * printed at an ink's depth is a brick red too near Fault's red, and the
+ * brand's own mark must never read as a failure; so the house prints at h 42,
+ * a deep coral-amber still inside its own ember (amber to coral).
  */
 const HOUSE_PRINT_HUE = 42;
 
@@ -173,7 +174,7 @@ export function inkOf(source: Source): Tone {
   return INK_PRINT(k.h, k.c);
 }
 
-/** The house's ink: the dusk key printed, a deep coral-amber. */
+/** The house's ink: the ember's key printed, a deep coral-amber. */
 export const HOUSE_INK = inkOf({ house: true });
 
 /** A source's one light in the room: its key at three depths, never a second hue. */
@@ -182,218 +183,66 @@ function roomLight(source: Source): Light {
   return depths(k.h, k.c);
 }
 
-/* ── the screen: how a press prints a glow ─────────────────────────────────── */
+/* ── the mat: the Bloom printed ────────────────────────────────────────────── */
 
 /**
- * A fixed threshold per lattice point, for the screen's last, smallest dots.
- * Hashed, never ordered: an ordered matrix thins a band of tiny dots into a
- * regular sub-lattice, which reads as a dotted line round the screen.
+ * How far the mat reaches past its subject: a tenth of the subject, inside
+ * the contract's eighth. A wide strip's mat is capped at two fifths of the
+ * strip's height top and bottom (`.ik-mat`), so a thin print never sits in a
+ * slot of colour three times its height.
  */
-function grain(m: number, k: number) {
-  let h = (Math.imul(m, 374761393) + Math.imul(k, 668265263)) | 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-}
+const marginOf = (size: number) => Math.max(10, Math.round(size / 10));
 
-/** A point's distance outside a rounded rectangle at the origin (negative inside). */
-function outside(x: number, y: number, w: number, h: number, r: number) {
-  const qx = Math.abs(x - w / 2) - (w / 2 - r);
-  const qy = Math.abs(y - h / 2) - (h / 2 - r);
-  return (
-    Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) +
-    Math.min(Math.max(qx, qy), 0) -
-    r
-  );
-}
+/** The fillet: the hairline of paper between a subject and its mat. */
+const filletOf = (size: number) => (size >= 240 ? 2 : 1.5);
 
 /**
- * What a screen prints: a frame round a subject; light poured in from one
- * point of a box (`x`, `y` as fractions of it, `reach` as a fraction of its
- * width); or a flat tint, a press's even screen.
+ * THE MAT, a solid field of one ink behind the one live subject, the way a
+ * print is mounted on coloured card: crisp at its edge, square-ish at its
+ * corners (a printed block, never a soft card), with a fillet of the lighter
+ * stock between it and the subject so a warm photograph never melts into a
+ * warm mat. The fillet also adds to a code's quiet zone. Mount it as the first
+ * children of an isolated box the subject's size (`.ik-holder`).
  */
-type Shape =
-  | { kind: "frame"; radius: number; reach: number; gap: number }
-  | { kind: "pour"; x: number; y: number; reach: number }
-  | { kind: "flat"; cover: number };
-
-/**
- * The screen's peak coverage, the share of paper the dots at the subject's
- * edge cover: 0.6 where the screen has room for its fall, easing to 0.48 for
- * a small subject whose screen is only a few dots deep, so its rim never
- * outweighs the subject.
- */
-const peakOf = (rows: number) =>
-  0.48 + 0.12 * Math.min(1, Math.max(0, (rows - 6) / 10));
-
-/** The screen's coverage at a point of the subject's box (layout px). */
-function coverage(shape: Shape, w: number, h: number, rows: number) {
-  if (shape.kind === "frame") {
-    const { radius, reach, gap } = shape;
-    const peak = peakOf(rows);
-    // ★ THE DOT'S RADIUS FALLS IN A STRAIGHT LINE from the subject's edge to
-    // `reach` (coverage as its square): the most ink at the edge, falling
-    // fastest there, as light born at an edge does, and spent smoothly. A
-    // curve that holds its density off the edge prints an even band, which
-    // reads as a dotted mat; one that falls too fast leaves a thin rim and a
-    // long dust of tiny dots.
-    return (x: number, y: number) => {
-      const d = outside(x, y, w, h, radius) - gap;
-      if (d < 0 || d > reach) return 0;
-      return peak * (1 - d / reach) ** 2;
-    };
-  }
-  if (shape.kind === "flat") return () => shape.cover;
-  // Light poured in from one point, by the frame's own law (the radius falls
-  // in a straight line), densest where it enters and spent well inside the
-  // box, so most of it stays paper.
-  const ox = shape.x * w;
-  const oy = shape.y * h;
-  const reach = shape.reach * w;
-  return (x: number, y: number) => {
-    const d = Math.hypot(x - ox, (y - oy) * 1.15);
-    return d > reach ? 0 : 0.62 * (1 - d / reach) ** 2;
-  };
-}
-
-/**
- * PAINTS A SCREEN of one ink onto a canvas behind its subject. The dots sit on
- * a 45 degree lattice whose step is a whole number of DEVICE pixels, measured
- * through any scale the page is shown at (a page drawn at its own size and
- * shrunk into a browser), so every dot rasterises alike and the screen keeps
- * its fine, even pitch at every size it is shown, instead of melting into a
- * tint. A dot's AREA is the coverage, so the tone is true; below the smallest
- * dot the press can hold, dots drop out (`grain`) rather than fade, so the
- * screen dissolves at its edge instead of ending on a line.
- */
-function paint(
-  cv: HTMLCanvasElement,
-  host: HTMLElement,
-  out: number,
-  ink: string,
-  shape: Shape,
-) {
-  const w = host.offsetWidth;
-  const h = host.offsetHeight;
-  if (!w || !h) return;
-  const shown = host.getBoundingClientRect().width / w || 1;
-  // The frame's own window: a slide is portalled into a frame, and the lab's
-  // zoom reaches only the frame's device pixel ratio, never the page's.
-  const dpr = (cv.ownerDocument.defaultView ?? window).devicePixelRatio || 1;
-  const W = w + 2 * out;
-  const H = h + 2 * out;
-  const dev = Math.min(shown * dpr, 4096 / Math.max(W, H));
-  cv.width = Math.max(1, Math.round(W * dev));
-  cv.height = Math.max(1, Math.round(H * dev));
-  const ctx = cv.getContext("2d");
-  if (!ctx) return;
-  ctx.clearRect(0, 0, cv.width, cv.height);
-  ctx.fillStyle = ink;
-  ctx.beginPath();
-  // The lattice step (device px): 2.5 CSS px on a retina screen, 3 on a 1x
-  // one, where anything finer is read as a tint.
-  const step = dev >= 1.5 ? 5 : 3;
-  const pitch = step * Math.SQRT2;
-  const least = dev >= 1.5 ? 1.05 : 0.72;
-  const rows = shape.kind === "frame" ? (shape.reach * dev) / pitch : 20;
-  const at = coverage(shape, w, h, rows);
-  for (let m = 0; m * step < cv.width + step; m++)
-    for (let k = m & 1; k * step < cv.height + step; k += 2) {
-      const X = m * step + 0.5;
-      const Y = k * step + 0.5;
-      const c = at(X / dev - out, Y / dev - out);
-      if (c <= 0) continue;
-      let r = pitch * Math.sqrt(c / Math.PI);
-      if (r < least) {
-        // The smallest dot the press holds, kept as often as the tone asks
-        // (so the area stays true), and none below 40%: a wider dissolve
-        // reads as dust, not as the screen's edge.
-        const keep = (r * r) / (least * least);
-        if (keep < 0.4 || grain(m, k) >= keep) continue;
-        r = least;
-      }
-      ctx.moveTo(X + r, Y);
-      ctx.arc(X, Y, r, 0, Math.PI * 2);
-    }
-  ctx.fill();
-}
-
-/**
- * A SCREEN behind its parent (the subject's box), `out` px past it on every
- * side. Drawn on the client, once and again only when the box resizes or the
- * device pixel ratio changes: it is print, so it never moves on its own.
- *
- * ★ THE LAB'S ZOOM ARRIVES AS A NEW PIXEL RATIO, NEVER AS A RESIZE. The stage
- * fits a frame with CSS `zoom`, which changes the frame's `devicePixelRatio`
- * (2 becomes 1.2) and fires no resize, so the screen repaints on the ratio's
- * own media query; missed, its dots are resampled into a tint under the print.
- */
-function Screen({
+function Mat({
   ink,
-  out,
-  shape,
+  size,
+  radius,
   className,
   style,
 }: {
   ink: string;
-  out: number;
-  shape: Shape;
+  size: number;
+  radius: number;
   className?: string;
   style?: CSSProperties;
 }) {
-  const ref = useRef<HTMLCanvasElement | null>(null);
-  // The shape as a string, so a parent's re-render never repaints the dots.
-  const spec = JSON.stringify(shape);
-  useEffect(() => {
-    const cv = ref.current;
-    const host = cv?.parentElement;
-    if (!cv || !host) return;
-    const s = JSON.parse(spec) as Shape;
-    // The frame's own window watches the frame's own elements (the lab's rule).
-    const win = cv.ownerDocument.defaultView ?? window;
-    const draw = () => paint(cv, host, out, ink, s);
-    draw();
-    const ro = new win.ResizeObserver(draw);
-    ro.observe(host);
-    let ratio: MediaQueryList | null = null;
-    const watch = () => {
-      ratio?.removeEventListener("change", changed);
-      ratio = win.matchMedia(`(resolution: ${win.devicePixelRatio}dppx)`);
-      ratio.addEventListener("change", changed);
-    };
-    const changed = () => {
-      draw();
-      watch();
-    };
-    watch();
-    return () => {
-      ro.disconnect();
-      ratio?.removeEventListener("change", changed);
-    };
-  }, [ink, out, spec]);
+  const vars: Vars = {
+    "--ik-ink": ink,
+    "--ik-m": `${marginOf(size)}px`,
+    // A printed block's corner: near square for a photograph, softening a
+    // little round a rounded plate so the margin reads even at its corners.
+    "--ik-r": `${Math.round(3 + radius * 0.45)}px`,
+    ...style,
+  };
+  return <span aria-hidden className={cn("ik-mat", className)} style={vars} />;
+}
+
+/** The fillet over the mat: the subject's own shape, a hairline larger, in the lighter stock. */
+function Fillet({ size, radius }: { size: number; radius: number }) {
+  const g = filletOf(size);
   return (
-    <canvas
-      ref={ref}
+    <span
       aria-hidden
-      className={cn("ik-screen", className)}
+      className="ik-fillet"
       style={{
-        left: -out,
-        top: -out,
-        width: `calc(100% + ${out * 2}px)`,
-        height: `calc(100% + ${out * 2}px)`,
-        ...style,
+        inset: -g,
+        borderRadius: radius + g,
+        background: STOCK.card.hex,
       }}
     />
   );
 }
-
-/**
- * How far a subject's screen may reach: the contract's eighth. Its visible
- * dots are spent by about a ninth; the last eighth is where they dissolve.
- */
-const reachOf = (size: number) => Math.round(Math.max(12, size / 8));
-
-/** The hairline of paper between a subject and its screen. */
-const gapOf = (size: number) => (size >= 240 ? 2 : 1.5);
 
 /* ── the Ring: the ink disc and one printed band ───────────────────────────── */
 
@@ -542,7 +391,16 @@ function Ring({
   );
 }
 
-/* ── the Seam: a printed rule where the media ends ─────────────────────────── */
+/* ── the Seam: a printed rule where the photographs end ────────────────────── */
+
+/**
+ * A light's printed rule: a three-hundredth of the width it spans, never under
+ * 2 px, so a share card drawn at 1200 and shown small still prints a line that
+ * reads; a quieter light (a page's footer) prints a thinner one, never a
+ * paler one.
+ */
+const ruleOf = (strength: number, width: number) =>
+  Math.max(2, Math.round((width / 300) * (strength >= 0.8 ? 1 : 0.6)));
 
 /** The small printed triangle between two credits. */
 function Pointer() {
@@ -575,10 +433,9 @@ function Seam({
         style={style}
       />
     );
-  // A quieter light prints a thinner rule, never a paler one.
   const vars: Vars = {
     "--ik-ink": inkOf(source).hex,
-    "--ik-rule": `${strength >= 0.8 ? 2 : 1}px`,
+    "--ik-rule": `${ruleOf(strength, width)}px`,
     "--ik-inset": `${width >= 320 ? 20 : 14}px`,
     ...style,
   };
@@ -628,7 +485,7 @@ function WallSeam({
     <div
       aria-hidden
       className="ik-wallrule"
-      style={{ height: strength >= 0.8 ? 2 : 1, ...style }}
+      style={{ height: ruleOf(strength, width), ...style }}
     >
       {tiles.map((t) => (
         <span
@@ -644,7 +501,7 @@ function WallSeam({
   );
 }
 
-/* ── the Bloom: a fine screen of ink round the one subject ─────────────────── */
+/* ── the Bloom: a solid mat of ink behind the one subject ──────────────────── */
 
 function Bloom({
   source,
@@ -670,18 +527,14 @@ function Bloom({
         {children}
       </RoomBloom>
     );
-  const reach = reachOf(size);
   return (
     <div
       className={cn("ik-holder", className)}
       data-ignite={ignite ? "" : undefined}
       style={style}
     >
-      <Screen
-        ink={inkOf(source).hex}
-        out={reach}
-        shape={{ kind: "frame", radius, reach, gap: gapOf(size) }}
-      />
+      <Mat ink={inkOf(source).hex} size={size} radius={radius} />
+      <Fillet size={size} radius={radius} />
       <div className="ik-subject">{children}</div>
     </div>
   );
@@ -713,8 +566,8 @@ function useShot(box: RefObject<HTMLDivElement | null>, reel: ReelId) {
 }
 
 /**
- * The reel on paper: one screen per ink its shots print in, stacked, only the
- * shot on screen's showing; on the cut the screens crossfade, so the print
+ * The reel on paper: one mat per ink its shots print in, stacked, only the
+ * shot on screen's showing; on the cut the mats crossfade, so the print
  * answers the picture and never moves on its own clock.
  */
 function PaperReel({
@@ -734,23 +587,21 @@ function PaperReel({
 }) {
   const box = useRef<HTMLDivElement | null>(null);
   const shot = useShot(box, reel);
-  const shots = reelShots(reel);
-  const shotInks = shots.map((id) => inkOf({ photo: id }).hex);
+  const shotInks = reelShots(reel).map((id) => inkOf({ photo: id }).hex);
   const now = shotInks[shot] ?? shotInks[0];
-  const reach = reachOf(width);
-  const shape: Shape = { kind: "frame", radius, reach, gap: gapOf(width) };
   return (
     <div ref={box} className={cn("ik-holder", className)} style={style}>
       {[...new Set(shotInks)].map((ink) => (
-        <Screen
+        <Mat
           key={ink}
           ink={ink}
-          out={reach}
-          shape={shape}
-          className="ik-reel-screen"
+          size={width}
+          radius={radius}
+          className="ik-reel-mat"
           style={{ opacity: ink === now ? 1 : 0 }}
         />
       ))}
+      <Fillet size={width} radius={radius} />
       <div className="ik-subject">
         <AnswerReel
           reel={reel}
@@ -803,7 +654,7 @@ function ReelBloom({
   );
 }
 
-/* ── the seed: printed from its lit corner ─────────────────────────────────── */
+/* ── the seed: one solid disc of its ink ───────────────────────────────────── */
 
 function SeedCover({ seed, ground, children, className, style }: SeedProps) {
   if (ground === "room")
@@ -812,13 +663,12 @@ function SeedCover({ seed, ground, children, className, style }: SeedProps) {
         {children}
       </RoomSeed>
     );
-  // Printed, not lit: the seed's ink poured in from the corner nearest where
-  // the hashvatar keeps its light, near solid there and spent by the middle
-  // of the cover, so the cover stays mostly paper and the first photograph
-  // is still the bigger thing. A full field of dots reads as a texture fill.
-  // The cover is a sheet of the lighter stock with a die-cut hairline, so it
-  // reads as the place the photographs will go, as the room's card does.
-  const o = orbFor(seed);
+  // Printed, not lit: the cover is a sheet of the lighter stock with a
+  // die-cut hairline (the place the photographs will go), and the seed is one
+  // solid disc of its ink at its centre, the hashvatar's orb as a press prints
+  // it: flat, a seal, never a ramp. Half the cover's shorter side, so the
+  // first photograph is still the bigger thing. The SVG's square viewBox,
+  // fitted, keeps the disc round at any shape of cover.
   return (
     <div
       data-bd-seed={seed}
@@ -829,22 +679,20 @@ function SeedCover({ seed, ground, children, className, style }: SeedProps) {
         ...style,
       }}
     >
-      <Screen
-        ink={inkOf({ seed }).hex}
-        out={0}
-        shape={{
-          kind: "pour",
-          x: (o.light.x * 0.4) / 100,
-          y: (o.light.y * 0.3) / 100,
-          reach: 0.62,
-        }}
-      />
+      <svg
+        aria-hidden
+        viewBox="0 0 100 100"
+        preserveAspectRatio="xMidYMid meet"
+        className="ik-seed-disc"
+      >
+        <circle cx={50} cy={50} r={26} fill={inkOf({ seed }).hex} />
+      </svg>
       {children}
     </div>
   );
 }
 
-/* ── the marks: the sky in the room, a seal in print ───────────────────────── */
+/* ── the marks: the lit tile everywhere, a seal beside the wordmark ────────── */
 
 /** The printed seal at any size: the ink disc, a hairline of paper, one band. */
 function Seal({
@@ -883,70 +731,6 @@ function Seal({
   );
 }
 
-/**
- * The icon printed: a stock tile cut to the squircle (its edge a hairline),
- * the ink disc and one band in the house ink, no glow. The band keeps the
- * room's sharp band's weight, a tenth heavier, since in print it carries the
- * light alone; at a small cut the optics thicken it as they do in the room.
- */
-function PrintedIcon({
-  size,
-  optics,
-  read,
-  className,
-  style,
-}: {
-  size: number;
-  optics?: number;
-  read?: string;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  const raw = useId();
-  const id = `ik${raw.replace(/[^a-zA-Z0-9]/g, "")}i`;
-  const o = iconOptics(optics ?? size);
-  const px = 1024 / size;
-  const rD = o.rDisc * 1024;
-  const gap = Math.max(o.gap * 1024, 1.5 * px);
-  const band = Math.max(o.band * 1024 * 1.1, 2.5 * px);
-  return (
-    <svg
-      role="img"
-      aria-label="Partyreel"
-      viewBox="0 0 1024 1024"
-      width={size}
-      height={size}
-      className={className}
-      style={{ display: "block", flexShrink: 0, ...style }}
-      data-bd-read={read}
-    >
-      <defs>
-        <clipPath id={id}>
-          <path d={SQUIRCLE} />
-        </clipPath>
-      </defs>
-      {/* The keyline is stroked twice its width and clipped, so the whole
-          hairline falls inside the cut. */}
-      <path
-        d={SQUIRCLE}
-        fill={STOCK.card.hex}
-        stroke={KEYLINE.hex}
-        strokeWidth={2 * px}
-        clipPath={`url(#${id})`}
-      />
-      <circle
-        cx={512}
-        cy={512}
-        r={rD + gap + band / 2}
-        fill="none"
-        stroke={HOUSE_INK.hex}
-        strokeWidth={band}
-      />
-      <circle cx={512} cy={512} r={rD} fill={STOCK.fg.hex} />
-    </svg>
-  );
-}
-
 function AppIcon({
   size = 180,
   appearance = "room",
@@ -955,22 +739,15 @@ function AppIcon({
   className,
   style,
 }: IconProps) {
-  if (appearance === "paper")
-    return (
-      <PrintedIcon
-        size={size}
-        optics={optics}
-        read={read}
-        className={className}
-        style={style}
-      />
-    );
-  // In the room and tinted the icon is the shared sky ring: the house's light
-  // is one sky, and its key is what the seal prints.
+  // ★ THE ICON IS THE LIT TILE ON EVERY GROUND, ON A SCREEN OR IN PRINT: an
+  // app's icon is a picture people learn, so a card prints the lit tile as it
+  // is, flat (no lift: print has none). Only the lockup's small mark beside
+  // the wordmark is drawn in ink (`Symbol`). The house's light is the ember
+  // the icon is keyed in, and its key is what that mark prints.
   return (
     <RingIcon
       size={size}
-      appearance={appearance}
+      appearance={appearance === "tinted" ? "tinted" : "room"}
       optics={optics}
       read={read}
       className={className}
@@ -994,7 +771,7 @@ function Mark({ size = 40, ground, className, style }: SymbolProps) {
   );
 }
 
-/* ── the receipt: one ink, its depths as a press shows them ────────────────── */
+/* ── the receipt: the one ink, solid ───────────────────────────────────────── */
 
 function Receipt({
   source,
@@ -1010,23 +787,14 @@ function Receipt({
         <LightChips light={roomLight(source)} height={height} />
       </div>
     );
-  // A press's colour bar for the one ink: the solid, then two of its screens
-  // on the same device-true lattice as the Bloom's, so its depths are dots
-  // of the full ink (the room's three depths, as print makes them).
-  const ink = inkOf(source).hex;
+  // On paper the room's three depths become one: the ink, solid, the way a
+  // press's colour bar proves an ink.
   return (
     <div
+      aria-hidden
       className={cn("ik-bar", className)}
-      style={{ width, height, ...style }}
-    >
-      <span style={{ flex: "6 1 0", background: ink }} />
-      <span style={{ flex: "3 1 0" }}>
-        <Screen ink={ink} out={0} shape={{ kind: "flat", cover: 0.5 }} />
-      </span>
-      <span style={{ flex: "2 1 0" }}>
-        <Screen ink={ink} out={0} shape={{ kind: "flat", cover: 0.24 }} />
-      </span>
-    </div>
+      style={{ width, height, background: inkOf(source).hex, ...style }}
+    />
   );
 }
 

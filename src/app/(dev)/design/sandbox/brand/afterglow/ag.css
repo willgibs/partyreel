@@ -149,11 +149,12 @@
     );
 }
 
-/* The source line: the edge itself, lit. */
+/* The source line: the edge itself, lit, bright enough to read as the light's
+   source rather than a scratch. */
 .ag-seam-line {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 1px;
+  height: 1.5px;
   background: var(--ag-line);
   -webkit-mask-image: linear-gradient(
     90deg,
@@ -283,6 +284,12 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.18),
     0 6px 14px -6px rgb(0 0 0 / 0.4);
+}
+
+/* A matte face: no shading, no lift (a flat disc on paper, never a glossy ball). */
+.ag-ring[data-flat] .ag-ring-face {
+  background: #151517;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
 }
 
 /* ── STATUS: a point and its word ───────────────────────────────────────── */

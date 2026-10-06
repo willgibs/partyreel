@@ -15,7 +15,7 @@ import { Label, useMeasure } from "./parts";
 /**
  * 14 ON A HOME SCREEN: the icon at its true size (60 px, the system's own cut
  * for its size) among plain neighbours, on two real photographs, a night and
- * a day; then the 60 px cut enlarged twice, the tinted appearance among tinted
+ * a day; then the icon at 60 px enlarged twice, the tinted appearance among tinted
  * neighbours, the icon at true size with the take's line, and the mark
  * printed, the take's paper answer for it.
  *
@@ -632,7 +632,7 @@ function TrueSize({ width, style }: { width: number; style?: CSSProperties }) {
   return (
     <div className="flex items-start" style={{ width, gap: 22, ...style }}>
       <AppIcon size={SIZE} appearance="room" read="the icon at true size" />
-      <Note ground="room" label="At true size, 60 px" style={{ flex: 1 }}>
+      <Note ground="room" label="At true size" style={{ flex: 1 }}>
         {take.words.notes.home}
       </Note>
     </div>
@@ -640,9 +640,10 @@ function TrueSize({ width, style }: { width: number; style?: CSSProperties }) {
 }
 
 export function HomeScreenSlide({ screen }: SlideProps) {
-  const take = useTake();
   const m = useMeasure();
-  const printed = `Printed, on ${take.paper.name.toLowerCase()}`;
+  // A label only where a reader would be lost without it: the white card on a
+  // dark slide is the mark in print, which nothing else on the slide says.
+  const printed = "In print";
 
   if (m.desk) {
     const s = 0.88;
@@ -667,7 +668,7 @@ export function HomeScreenSlide({ screen }: SlideProps) {
           }}
         />
         <div className="absolute" style={{ left: rx, top: m.top, width: rw }}>
-          <Label ground="room">The 60 px cut, enlarged twice</Label>
+          <Label ground="room">The icon at 60 px, enlarged twice</Label>
           <Detail screen={DAY} w={rw} h={212} style={{ marginTop: 12 }} />
           <Label ground="room" style={{ marginTop: 28 }}>
             Tinted, among tinted neighbours

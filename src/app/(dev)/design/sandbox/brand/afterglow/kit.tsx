@@ -572,12 +572,14 @@ export function SiteFooter({
         ...style,
       }}
     >
-      {/* Quieter than the opener's light: a page opens lit and ramps down. */}
+      {/* Shorter than the opener's light, never weaker: a page opens lit and
+          ramps down, and a seam drawn faint reads as smoke (the creative
+          director's pass), so the foot's light is short and full. */}
       <Seam
         source={source}
         ground={ground}
-        reach={desk ? 130 : 88}
-        strength={0.55}
+        reach={desk ? 104 : 72}
+        strength={0.9}
         width={desk ? 1440 : 375}
       />
       <div

@@ -7,7 +7,7 @@ import { WORDMARK_ASPECT } from "@/lib/brand/wordmark";
 import type { SlideProps } from "../../deck/contract";
 import { Wordmark, WORDMARK_GEOMETRY as G } from "../marks";
 import { SlideRoot } from "../root";
-import { type Ground, Readout } from "../system";
+import type { Ground } from "../system";
 import { groundOf, inkOf, useTake } from "../take";
 import { CUT, usePaperTop } from "./a-parts";
 import { Label, useMeasure } from "./parts";
@@ -17,21 +17,52 @@ import { Label, useMeasure } from "./parts";
  *
  * The room on the left, paper on the right, cut where the cover cut, so each
  * mark meets its paper form across the line: the icon at its full size beside
- * its paper appearance, the wordmark (Will's v1, never lit) beside the lockup
- * on paper. The room side carries what every take shares (the icon's sizes
- * and its tinted appearance, the wordmark's construction); the paper side is
- * where the takes differ, so it is drawn as large as the room's.
+ * its paper appearance, the wordmark (your v1, never lit) beside the lockup on
+ * paper. The room side carries what every take shares (the icon's sizes and
+ * its tinted appearance, the wordmark's construction); the paper side is where
+ * the takes differ, so it is drawn as large as the room's.
+ *
+ * ★ A LABEL ONLY WHERE A READER WOULD BE LOST WITHOUT IT (the creative
+ * director's pass): the grounds say which side is which, so the columns carry
+ * no heads; the icons keep their appearance and size, and the constructions
+ * are annotated in small lines, as a draughtsman writes on a drawing.
  */
 
 /** A line's lead (up to its first colon) in the full ink, the rest in the muted. */
 function Led({ text, ground }: { text: string; ground: Ground }) {
   const t = inkOf(useTake(), ground);
-  const at = text.indexOf(":");
-  if (at < 0 || at > 40) return <span style={{ color: t.muted }}>{text}</span>;
+  const at = text.search(/[:.]/);
+  if (at < 0 || at > 44) return <span style={{ color: t.muted }}>{text}</span>;
   return (
     <span style={{ color: t.muted }}>
       <span style={{ color: t.fg }}>{text.slice(0, at + 1)}</span>
       {text.slice(at + 1)}
+    </span>
+  );
+}
+
+/** A note on a drawing: a small line in the ground's faint ink. */
+function Note({
+  ground,
+  children,
+  style,
+}: {
+  ground: Ground;
+  children: ReactNode;
+  style?: CSSProperties;
+}) {
+  const t = inkOf(useTake(), ground);
+  return (
+    <span
+      className="ag-caption"
+      style={{
+        position: "absolute",
+        color: t.faint,
+        whiteSpace: "nowrap",
+        ...style,
+      }}
+    >
+      {children}
     </span>
   );
 }
@@ -68,7 +99,6 @@ function Construction({ height }: { height: number }) {
     vectorEffect: "non-scaling-stroke",
     strokeWidth: 1,
   } as const;
-  const label: CSSProperties = { position: "absolute", color: t.faint };
   return (
     <div className="relative" style={{ width: w, height }}>
       <svg
@@ -81,23 +111,9 @@ function Construction({ height }: { height: number }) {
         fill="none"
         stroke={t.faint}
       >
-        <g opacity={0.55}>
-          <line
-            x1={-8}
-            x2={316}
-            y1={G.baseline}
-            y2={G.baseline}
-            strokeDasharray="1.6 1.6"
-            {...line}
-          />
-          <line
-            x1={-8}
-            x2={316}
-            y1={G.xHeight}
-            y2={G.xHeight}
-            strokeDasharray="1.6 1.6"
-            {...line}
-          />
+        <g opacity={0.55} strokeDasharray="1.6 1.6">
+          <line x1={-8} x2={316} y1={G.baseline} y2={G.baseline} {...line} />
+          <line x1={-8} x2={316} y1={G.xHeight} y2={G.xHeight} {...line} />
         </g>
         <g opacity={0.8}>
           <line
@@ -126,13 +142,12 @@ function Construction({ height }: { height: number }) {
             {...line}
           />
         </g>
-        <g opacity={0.4}>
+        <g opacity={0.4} strokeDasharray="1 1.4">
           <line
             x1={G.bar.x0}
             x2={G.bar.x0}
             y1={dim + 2.2}
             y2={G.bar.y}
-            strokeDasharray="1 1.4"
             {...line}
           />
           <line
@@ -140,7 +155,6 @@ function Construction({ height }: { height: number }) {
             x2={G.bar.x1}
             y1={dim + 2.2}
             y2={G.bar.y}
-            strokeDasharray="1 1.4"
             {...line}
           />
         </g>
@@ -151,21 +165,21 @@ function Construction({ height }: { height: number }) {
         read="the wordmark in the room"
         style={{ position: "relative" }}
       />
-      <Readout style={{ ...label, left: G.bar.x0 * s, top: dim * s - 22 }}>
-        One bar: r, t, y
-      </Readout>
-      <Readout style={{ ...label, left: 0, top: G.baseline * s + 14 }}>
+      <Note ground="room" style={{ left: G.bar.x0 * s, top: dim * s - 22 }}>
+        One bar for r, t and y
+      </Note>
+      <Note ground="room" style={{ left: 0, top: G.baseline * s + 12 }}>
         14° cuts
-      </Readout>
-      <Readout
+      </Note>
+      <Note
+        ground="room"
         style={{
-          ...label,
-          left: slantAt(G.baseline) * s - 92,
-          top: G.baseline * s + 14,
+          left: slantAt(G.baseline) * s - 64,
+          top: G.baseline * s + 12,
         }}
       >
         12° slant
-      </Readout>
+      </Note>
     </div>
   );
 }
@@ -173,17 +187,20 @@ function Construction({ height }: { height: number }) {
 /**
  * THE LOCKUP: the symbol and the word. ★ THE RULE (round one's, kept): the
  * symbol's centre stands on the middle of the word's x-height band, and a
- * third of the word's height lies between them. The symbol is the take's own
- * (its paper form on paper); the word takes the ground's ink and never glows.
+ * third of the word's height lies between them. ★ THE SYMBOL IS AS TALL AS THE
+ * WORD'S CAPITALS, never its full height (the creative director's pass): a
+ * ring sized to the descender reads as a ball heavier than the word. The
+ * symbol is the take's own (its paper form on paper); the word takes the
+ * ground's ink and never glows.
  */
 function Lockup({ h, ground }: { h: number; ground: Ground }) {
   const take = useTake();
   const { Symbol } = take.light;
   const t = inkOf(take, ground);
-  const ring = Math.round(h * 0.94);
+  const at = (u: number) => (u / 64) * h;
+  const ring = Math.round(at(G.baseline - G.capTop));
   const gap = Math.round(h / 3);
   const word = Math.round(h * WORDMARK_ASPECT * 10) / 10;
-  const at = (u: number) => (u / 64) * h;
   const band = at((G.xHeight + G.baseline) / 2);
   const w = ring + gap + word;
   // The rule drawn as its own construction, the way the room draws the
@@ -194,7 +211,6 @@ function Lockup({ h, ground }: { h: number; ground: Ground }) {
     strokeWidth: 1,
     shapeRendering: "geometricPrecision",
   } as const;
-  const label: CSSProperties = { position: "absolute", color: t.faint };
   return (
     <div
       className="relative"
@@ -255,19 +271,19 @@ function Lockup({ h, ground }: { h: number; ground: Ground }) {
         color={t.fg}
         style={{ position: "absolute", left: ring + gap, top: 0 }}
       />
-      <Readout
+      <Note
+        ground={ground}
         style={{
-          ...label,
           left: ring + gap / 2,
-          top: dim - 26,
+          top: dim - 24,
           transform: "translateX(-50%)",
         }}
       >
-        ⅓ height
-      </Readout>
-      <Readout style={{ ...label, left: 0, top: h + 16 }}>
-        Centred on the x-height
-      </Readout>
+        A third of its height
+      </Note>
+      <Note ground={ground} style={{ left: 0, top: h + 14 }}>
+        Centred on the x-height, as tall as the capitals
+      </Note>
     </div>
   );
 }
@@ -295,6 +311,18 @@ function Sized({
   );
 }
 
+/** The wordmark's one line, under it: what it is, and that it never glows. */
+function MarkLine({ style }: { style?: CSSProperties }) {
+  return (
+    <p className="ag-body" style={{ fontSize: 15, ...style }}>
+      <Led
+        text="Your v1, untouched. The one mark that never glows: paper in the room, ink on paper."
+        ground="room"
+      />
+    </p>
+  );
+}
+
 export function MarksSlide({ screen }: SlideProps) {
   const take = useTake();
   const m = useMeasure();
@@ -304,14 +332,12 @@ export function MarksSlide({ screen }: SlideProps) {
     const px = CUT + m.pad;
     const pw = m.w - m.pad - px;
     const hero = 300;
-    const iconTop = m.top + 32;
-    const foot = iconTop + hero;
-    const words = foot + 54;
-    const second = words + 108;
+    const foot = m.top + hero;
+    const words = foot + 62;
     const mark = 124;
-    const markTop = second + 66;
-    // The lockup stands level with the room's word across the cut, its
-    // measured gap where the room's measured bar is.
+    // The two marks stand level across the cut, each with its construction
+    // annotated above it on one line.
+    const markTop = words + 138;
     const lock = 72;
     return (
       <SlideRoot screen={screen} ground="room">
@@ -329,13 +355,7 @@ export function MarksSlide({ screen }: SlideProps) {
         {/* The room: the icon at its sizes, the 180 in its tinted
             appearance (the room's other home screen), so the three
             appearances meet across the cut: room, tinted, paper. */}
-        <Label
-          ground="room"
-          style={{ position: "absolute", left: m.pad, top: m.top }}
-        >
-          The icon
-        </Label>
-        <div className="absolute" style={{ left: m.pad, top: iconTop }}>
+        <div className="absolute" style={{ left: m.pad, top: m.top }}>
           <Sized size={hero} label="Room" read="the icon in the room" />
         </div>
         <div
@@ -370,24 +390,20 @@ export function MarksSlide({ screen }: SlideProps) {
         </p>
 
         {/* The room: the wordmark, with its construction. */}
-        <Label
-          ground="room"
-          style={{ position: "absolute", left: m.pad, top: second }}
-        >
-          The wordmark · your v1, untouched
-        </Label>
         <div className="absolute" style={{ left: m.pad, top: markTop }}>
           <Construction height={mark} />
         </div>
+        <MarkLine
+          style={{
+            position: "absolute",
+            left: m.pad,
+            top: markTop + mark + 38,
+            width: 620,
+          }}
+        />
 
         {/* Paper: the icon's paper appearance, and the lockup. */}
-        <Label
-          ground="paper"
-          style={{ position: "absolute", left: px, top: m.top }}
-        >
-          On paper · {take.name}
-        </Label>
-        <div className="absolute" style={{ left: px, top: iconTop }}>
+        <div className="absolute" style={{ left: px, top: m.top }}>
           <Sized
             size={hero}
             appearance="paper"
@@ -408,12 +424,6 @@ export function MarksSlide({ screen }: SlideProps) {
         >
           <Led text={take.words.iconPaper} ground="paper" />
         </p>
-        <Label
-          ground="paper"
-          style={{ position: "absolute", left: px, top: second }}
-        >
-          The lockup
-        </Label>
         <div className="absolute" style={{ left: px, top: markTop }}>
           <Lockup h={lock} ground="paper" />
         </div>
@@ -423,7 +433,7 @@ export function MarksSlide({ screen }: SlideProps) {
 
   // The phone: the room above (the icon, its sizes, the wordmark), the cut,
   // and paper below (the paper appearance, the lockup).
-  const cut = 950;
+  const cut = 944;
   const hero = 232;
   return (
     <SlideRoot screen={screen} ground="room">
@@ -435,10 +445,7 @@ export function MarksSlide({ screen }: SlideProps) {
         className="absolute flex flex-col"
         style={{ left: m.pad, top: m.top, width: m.inner }}
       >
-        <Label ground="room">The icon</Label>
-        <div style={{ marginTop: 16 }}>
-          <Sized size={hero} label="Room" read="the icon in the room" />
-        </div>
+        <Sized size={hero} label="Room" read="the icon in the room" />
         <div className="flex items-end" style={{ marginTop: 30, gap: 24 }}>
           <Sized size={180} appearance="tinted" label="Tinted · 180 px" />
           <Sized size={60} label="60 px" />
@@ -450,39 +457,31 @@ export function MarksSlide({ screen }: SlideProps) {
         >
           <Led text={take.words.icon} ground="room" />
         </p>
-        <Label ground="room" style={{ marginTop: 44 }}>
-          The wordmark · your v1
-        </Label>
-        <div style={{ marginTop: 44 }}>
+        <div style={{ marginTop: 74 }}>
           <Construction
             height={Math.floor((m.inner / WORDMARK_ASPECT) * 0.94)}
           />
         </div>
+        <MarkLine style={{ marginTop: 36, fontSize: 14.5 }} />
       </div>
       <div
         className="absolute flex flex-col"
         style={{ left: m.pad, top: cut + 40, width: m.inner }}
       >
-        <Label ground="paper">On paper · {take.name}</Label>
-        <div style={{ marginTop: 18 }}>
-          <Sized
-            size={hero}
-            appearance="paper"
-            ground="paper"
-            label="Paper"
-            read="the icon on paper"
-          />
-        </div>
+        <Sized
+          size={hero}
+          appearance="paper"
+          ground="paper"
+          label="Paper"
+          read="the icon on paper"
+        />
         <p
           className="ag-body"
           style={{ marginTop: 24, fontSize: 14.5, textWrap: "pretty" }}
         >
           <Led text={take.words.iconPaper} ground="paper" />
         </p>
-        <Label ground="paper" style={{ marginTop: 40 }}>
-          The lockup
-        </Label>
-        <div style={{ marginTop: 56, marginLeft: 12 }}>
+        <div style={{ marginTop: 76, marginLeft: 12 }}>
           <Lockup h={44} ground="paper" />
         </div>
       </div>

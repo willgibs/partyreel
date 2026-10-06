@@ -3,13 +3,13 @@
 import type { CSSProperties } from "react";
 
 import type { SlideProps } from "../../deck/contract";
-import { PARTY, Photo, Qr } from "../../deck/media";
+import { PARTY, Photo } from "../../deck/media";
 import { Note, Scaled, Wall } from "../kit";
 import { Wordmark } from "../marks";
 import { SlideRoot } from "../root";
-import { type Ground, ROOM, type RowSpec, wallOf } from "../system";
+import { type Ground, ROOM, type RowSpec, type Source, wallOf } from "../system";
 import { inkOf, useTake } from "../take";
-import { LitCode } from "./d-parts";
+import { LitCode, SEED } from "./d-parts";
 import { Label, useMeasure } from "./parts";
 
 /**
@@ -17,14 +17,16 @@ import { Label, useMeasure } from "./parts";
  * photograph.
  *
  * ★ THE TABLE CARD IS PRINTED, so its ground is the take's `onPaper.print`
- * (Aperture: an ink card, a piece of the room printed; Ink and Cast: the
- * take's paper as card stock), and the code stands on its white plate in the
- * take's Bloom on that ground, lit by the seed (the card is printed before the
- * first photograph). It clips what it holds, so no light leaves the card.
+ * (in every take now the take's paper as card stock), and the code stands on
+ * its white plate in the take's Bloom on that ground, lit by the seed (the
+ * card is printed before the first photograph). It clips what it holds, so no
+ * light leaves the card.
  *
- * ★ THE SHARE CARD IS IN THE ROOM IN EVERY TAKE: it is a picture in a thread,
- * and photographs play in the room. Its one light is the album's own Seam,
- * born under its four photographs; the code on it is never lit.
+ * ★ THE SHARE CARD IS THE LINK ITSELF, so it carries no code: it is the album
+ * once it has filled, a picture in a thread, standing on the take's
+ * `onPaper.subject` (Aperture: the room; Ink and Cast: their paper), its one
+ * light the take's own Seam born under its four photographs. A share card is
+ * read small, so its smallest words are set to read at a phone's width.
  *
  * The table card is drawn at A6 (105 by 148 mm, 397 by 559 at 96 to the inch)
  * and shown at its true proportion, as large as the slide allows.
@@ -39,6 +41,9 @@ function TableCard() {
   const print = take.onPaper.print;
   const t = inkOf(take, print);
   const dark = print === "room";
+  // The event's name in the ink the take prints type in (Ink: the seed's one
+  // ink, the way stationery prints a name); else the stock's own black.
+  const nameInk = dark ? t.fg : (take.inkFor?.(SEED) ?? t.fg);
   return (
     <div
       className="relative flex flex-col items-center overflow-hidden text-center"
@@ -55,7 +60,7 @@ function TableCard() {
       <p
         className="ag-title"
         data-bd-read="the card's name"
-        style={{ fontSize: 38, letterSpacing: "-0.035em", color: t.fg }}
+        style={{ fontSize: 38, letterSpacing: "-0.035em", color: nameInk }}
       >
         {PARTY.name}
       </p>
@@ -166,33 +171,53 @@ const SHARE_ROW: readonly RowSpec[] = [
   ],
 ];
 
+/** The share card's photographs, as a light's source (the album's own). */
+const ALBUM: Source = {
+  photos: SHARE_ROW[0].map((t) => t.id),
+};
+
 /** A Seam's box, opaque at its edge and spent by its foot. */
 const SPENT = "linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%)";
 
-/** The link's card, 1200 by 630, once the album has filled, in the room. */
+/**
+ * ★ A SHARE CARD IS READ SMALL: a thread shows it about 335 px wide on a
+ * phone, a quarter of its size, so its smallest words are drawn at 36 px or
+ * more (9 px or more as a thread shows them) and it carries only three things
+ * besides the photographs: the name, the count, the wordmark.
+ */
+const SMALLEST = 36;
+
+/** The link's card, 1200 by 630, once the album has filled, on the take's `onPaper.subject`. */
 function ShareCard() {
   const take = useTake();
-  const t = inkOf(take, "room");
+  const sub = take.onPaper.subject;
+  const t = inkOf(take, sub);
+  const nameInk = sub === "paper" ? (take.inkFor?.(ALBUM) ?? t.fg) : t.fg;
   const { WallSeam } = take.light;
   const wall = wallOf(SHARE_ROW, 1200, 6);
-  const reach = 96;
+  // In the room the Seam's glow needs its reach; on paper a take's form is a
+  // short, hard thing (a printed rule, a short fall) and asks for less.
+  const reach = sub === "room" ? 96 : 56;
   return (
     <div
       className="relative overflow-hidden"
+      data-bd-card={sub}
       style={{
         width: 1200,
         height: 630,
-        background: ROOM.room.hex,
+        background: sub === "room" ? ROOM.room.hex : take.paper.card.hex,
         color: t.fg,
       }}
     >
+      {/* The photographs are printed into the card, never lifted off it: no
+          print's shadow under them to muddy the take's own Seam. */}
       <div className="absolute inset-x-0 top-0" style={{ height: wall.height }}>
         <Wall tiles={wall.tiles} />
       </div>
       {/* ★ The Seam is spent before the name, whatever a take's light does
           past its reach: its lower half fades to nothing, so no take's light
           can end in a hard line at the foot of its box. Where a take's light
-          is already spent there (Aperture, Ink), this changes nothing. */}
+          is already spent there, this changes nothing. */}
       <div
         className="absolute inset-x-0"
         style={{
@@ -202,55 +227,39 @@ function ShareCard() {
           maskImage: SPENT,
         }}
       >
-        <WallSeam tiles={wall.bottom} width={1200} ground="room" reach={reach} />
+        <WallSeam tiles={wall.bottom} width={1200} ground={sub} reach={reach} />
       </div>
-      <div
-        className="absolute"
-        style={{ left: 64, top: wall.height + reach - 6 }}
-      >
+      <div className="absolute" style={{ left: 64, bottom: 52 }}>
         <p
           className="ag-title"
           data-bd-read="the share card's name"
-          style={{ fontSize: 86, letterSpacing: "-0.04em", color: t.fg }}
+          style={{ fontSize: 96, letterSpacing: "-0.04em", color: nameInk }}
         >
           {PARTY.name}
         </p>
         <p
-          className="ag-readout"
+          data-bd-read="the share card's count"
           style={{
-            fontSize: 17,
+            fontSize: SMALLEST,
+            fontWeight: 500,
+            lineHeight: 1.2,
+            letterSpacing: "-0.012em",
             color: t.muted,
-            marginTop: 14,
-            letterSpacing: "0.08em",
+            marginTop: 12,
           }}
         >
           {PARTY.photos.toLocaleString("en-US")} photos from {PARTY.guests}{" "}
           guests
         </p>
       </div>
-      <div className="absolute" style={{ left: 64, bottom: 50 }}>
-        <Wordmark height={26} color={t.fg} read="the share card's wordmark" />
-      </div>
-      <div
-        className="absolute flex items-end"
-        style={{ right: 56, bottom: 46, gap: 22 }}
-      >
-        <p
-          style={{
-            fontSize: 19,
-            color: t.muted,
-            textAlign: "right",
-            lineHeight: 1.35,
-            paddingBottom: 4,
-          }}
-        >
-          See everyone&apos;s photos,
-          <br />
-          and add yours.
-        </p>
-        <div style={{ background: "#ffffff", padding: 12, borderRadius: 14 }}>
-          <Qr size={128} color="#121214" />
-        </div>
+      {/* On the count's baseline: the y's tail sits as deep as the count's
+          descenders, so the two boxes share a foot. */}
+      <div className="absolute" style={{ right: 64, bottom: 53 }}>
+        <Wordmark
+          height={SMALLEST + 4}
+          color={t.fg}
+          read="the share card's wordmark"
+        />
       </div>
     </div>
   );
@@ -344,7 +353,7 @@ export function ShareSlide({ screen }: SlideProps) {
         />
         <Note
           ground={ground}
-          label="Printed for the table, shared in the room"
+          label="Printed for the table, shared as a link"
           width={rw - 64}
           size={16}
           style={{ position: "absolute", left: rx, top: cardTop }}
@@ -397,7 +406,7 @@ export function ShareSlide({ screen }: SlideProps) {
         <ShareShown w={m.inner} style={{ marginTop: 14 }} />
         <Note
           ground={ground}
-          label="Printed for the table, shared in the room"
+          label="Printed for the table, shared as a link"
           style={{ marginTop: 44 }}
         >
           {take.words.notes.share}

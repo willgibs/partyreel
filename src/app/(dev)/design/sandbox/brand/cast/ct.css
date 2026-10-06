@@ -71,10 +71,10 @@
 
 /* ── the Seam ───────────────────────────────────────────────────────────── */
 
-/* Its box is its reach under the edge. The field filling it is the edge's
-   own last rows, stretched down and flipped, so the light at the top is the
-   edge itself; its own mask spends it (`decayOf`), so it can never run out
-   partway down. */
+/* Its box is its reach under the edge (in the room) or its band (on paper).
+   The field filling it is the edge's own last rows, stretched down and
+   flipped, so the light at the top is the edge itself; its own mask spends
+   it, so it can never run out partway down. */
 .ct-seam {
   position: absolute;
   top: 0;
@@ -91,6 +91,7 @@
 .ct-edge {
   position: absolute;
   inset: 0;
+  transform: scaleY(-1);
 }
 .ct-seam[data-ground="paper"] .ct-edge {
   mix-blend-mode: multiply;
@@ -157,6 +158,7 @@
   border-radius: 9999px;
 }
 .ct-ring-light,
+.ct-ring-disc,
 .ct-ring-band,
 .ct-ring-shade {
   position: absolute;
@@ -168,8 +170,12 @@
   opacity: 0.6;
 }
 .ct-ring[data-ground="paper"] .ct-ring-light {
-  opacity: 0.92;
+  opacity: 0.94;
   mix-blend-mode: multiply;
+}
+/* On paper, the dark the band needs: the disc runs to the band's outer edge. */
+.ct-ring-disc {
+  background: #111113;
 }
 .ct-ring-band,
 .ct-ring-shade {
@@ -206,7 +212,7 @@
 .ct-ring[data-state="sending"] .ct-ring-band[data-part="track"] {
   opacity: 0.26;
 }
-/* Lit from above: the band falls toward its ground on its underside. */
+/* Lit from above (the room): the band falls toward its ground on its underside. */
 .ct-ring-shade {
   background: linear-gradient(
     to bottom,
@@ -214,15 +220,9 @@
     rgb(10 10 12 / 0.5) 100%
   );
 }
-.ct-ring[data-ground="paper"] .ct-ring-shade {
-  background: linear-gradient(
-    to bottom,
-    transparent 45%,
-    rgb(10 10 12 / 0.26) 100%
-  );
-}
-/* The face: dark on every ground, lit along its top edge. On paper it keeps a
-   hair of contact shadow only; its light does the rest. */
+/* The face: dark on every ground. In the room it is lit along its top edge;
+   on paper it is printed flat, a step lighter than its disc so the gap reads,
+   with no gloss and no lift (the cast is its only shadow). */
 .ct-ring-face {
   position: relative;
   display: flex;
@@ -243,27 +243,20 @@
     0 8px 20px -8px rgb(0 0 0 / 0.85);
 }
 .ct-ring[data-ground="paper"] .ct-ring-face {
-  background: radial-gradient(
-    120% 120% at 40% 18%,
-    #34343a 0%,
-    #19191c 52%,
-    #0f0f11 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.18),
-    0 1px 1.5px rgb(0 0 0 / 0.2);
+  background: #1d1d20;
+  box-shadow: none;
 }
 
-/* ── the seed on paper: an orb and its coloured shadow ──────────────────── */
+/* ── the seed on paper: a flat disc and its coloured shadow ─────────────── */
 
-/* The empty cover: a quiet slot in the card, no hue of its own. */
+/* The empty cover: white card, no hue of its own. */
 .ct-seed {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #f4f4f5 0%, #efeff0 100%);
-  box-shadow: inset 0 0 0 1px rgb(20 20 22 / 0.04);
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgb(20 20 22 / 0.07);
 }
-.ct-seed-orb,
+.ct-seed-disc,
 .ct-seed-fall {
   position: absolute;
   top: 46%;
@@ -272,43 +265,36 @@
   translate: -50% -50%;
   pointer-events: none;
 }
-.ct-seed-orb {
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.32),
-    0 1px 1.5px rgb(20 20 22 / 0.16);
-}
 /* Its colour, through the take's filter, down and to the right. */
 .ct-seed-fall {
-  opacity: 0.92;
+  opacity: 0.94;
   mix-blend-mode: multiply;
 }
 
-/* ── the symbol on paper ────────────────────────────────────────────────── */
+/* ── the marks on paper ─────────────────────────────────────────────────── */
 
+/* The printed symbol: its box is the ring's. */
 .ct-mark {
   position: relative;
   display: inline-block;
   flex-shrink: 0;
 }
-.ct-mark-fall {
-  position: absolute;
-  inset: 0;
-  border-radius: 9999px;
-  background: var(--ct-fall);
-  translate: 7% 13%;
-  filter: blur(var(--ct-soft));
-  opacity: 0.9;
-  mix-blend-mode: multiply;
-  /* It lands only outside the ring: the gap between band and face stays paper. */
-  -webkit-mask-image: var(--ct-hole);
-  mask-image: var(--ct-hole);
+
+/* The icon on paper: its dark room tile over the warm colour it casts. */
+.ct-icon {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
 }
-.ct-centre {
+.ct-icon-cast {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  opacity: 0.94;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.ct-icon-tile {
+  position: relative;
 }
 
 /* ── the receipt ────────────────────────────────────────────────────────── */
@@ -316,13 +302,6 @@
 .ct-receipt {
   position: relative;
   flex-shrink: 0;
-}
-.ct-receipt-fall {
-  position: absolute;
-  inset: 0;
-  opacity: 0.9;
-  mix-blend-mode: multiply;
-  pointer-events: none;
 }
 .ct-receipt-strip {
   position: absolute;
@@ -382,8 +361,7 @@
   .ct-seam-lines,
   .ct-ring-light,
   .ct-seed-fall,
-  .ct-mark-fall,
-  .ct-receipt-fall,
+  .ct-icon-cast,
   .ct-reel .ag-ambient-lights {
     display: none;
   }

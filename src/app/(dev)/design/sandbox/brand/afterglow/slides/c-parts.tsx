@@ -75,8 +75,11 @@ export function DeskStage({
   /** The phone page's whole height, when it scrolls. */
   phonePage?: number;
   phoneScroll?: number;
-  /** What the phone shows, said under it. */
-  phoneCaption: string;
+  /**
+   * What the phone shows, said under it, only where a reader would otherwise
+   * be lost (a later scroll); the same first screen needs no label.
+   */
+  phoneCaption?: string;
   label: string;
   note: ReactNode;
   /** A small drawing beside the note, under the browser's right side. */
@@ -108,18 +111,20 @@ export function DeskStage({
       >
         {phone}
       </PhoneView>
-      <Readout
-        className="absolute"
-        style={{
-          right: PHONE.right,
-          top: under,
-          width: PHONE.width,
-          textAlign: "center",
-          color: t.faint,
-        }}
-      >
-        {phoneCaption}
-      </Readout>
+      {phoneCaption ? (
+        <Readout
+          className="absolute"
+          style={{
+            right: PHONE.right,
+            top: under,
+            width: PHONE.width,
+            textAlign: "center",
+            color: t.faint,
+          }}
+        >
+          {phoneCaption}
+        </Readout>
+      ) : null}
       <Note
         ground={ground}
         label={label}

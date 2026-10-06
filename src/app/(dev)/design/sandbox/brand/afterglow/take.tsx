@@ -187,6 +187,11 @@ export type TakeWords = {
   /** Dark and light: round one's paper beside this take's, a caption each. */
   readonly roundOne: string;
   readonly thisTake: string;
+  /**
+   * The one touch worth borrowing from a neighbouring take (the creative
+   * director's pass), a line: "From Ink: ...". Printed on the idea slide.
+   */
+  readonly borrow?: string;
   /** Each touchpoint's note: what it proves. */
   readonly notes: {
     readonly hero: string;
@@ -221,6 +226,13 @@ export type Take = {
     readonly print: Ground;
   };
   readonly light: TakeLight;
+  /**
+   * The colour this take prints a source's TYPE in on paper (Ink: the album's
+   * one ink, for the event's name on a printed card and the price on the one
+   * live subject, the way stationery prints in one ink); absent, type stays
+   * the paper's own ink. A slide reads it as `take.inkFor?.(source) ?? fg`.
+   */
+  readonly inkFor?: (source: Source) => string;
   readonly words: TakeWords;
   /** A slide this take draws its own way, replacing the shared composition. */
   readonly slides?: Partial<

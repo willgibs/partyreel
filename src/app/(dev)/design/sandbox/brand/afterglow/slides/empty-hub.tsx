@@ -3,7 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { SlideProps } from "../../deck/contract";
-import { PARTY, Seeded } from "../../deck/media";
+import { PARTY } from "../../deck/media";
 import {
   BrowserWindow,
   Btn,
@@ -22,7 +22,7 @@ import {
   VOICE,
 } from "../system";
 import { cardOf, groundOf, inkOf, useTake } from "../take";
-import { LitCode, plateOf } from "./d-parts";
+import { HostOrb, LitCode, plateOf, SEED } from "./d-parts";
 import { useMeasure } from "./parts";
 
 /**
@@ -239,7 +239,7 @@ function DeskBar({ ground }: { ground: Ground }) {
         style={{ gap: 22, fontSize: 14.5, color: t.muted }}
       >
         Help
-        <Seeded seed={PARTY.hostSeed} style={{ width: 32, height: 32 }} />
+        <HostOrb size={32} />
       </span>
     </div>
   );
@@ -276,7 +276,7 @@ function PhoneBar({ ground, title }: { ground: Ground; title?: string }) {
           <Wordmark height={16} color={t.fg} read="wordmark in the phone's bar" />
         )}
       </span>
-      <Seeded seed={PARTY.hostSeed} style={{ width: 30, height: 30 }} />
+      <HostOrb size={30} />
     </div>
   );
 }
@@ -306,10 +306,22 @@ function AlbumActions({ ground }: { ground: Ground }) {
 
 /* ── the pages ────────────────────────────────────────────────────────────── */
 
+/**
+ * The event's name in the ink a take prints type in on paper (Ink: the
+ * seed's one ink, before the first photograph); everywhere else the
+ * ground's own.
+ */
+function useNameInk(ground: Ground) {
+  const take = useTake();
+  const t = inkOf(take, ground);
+  return ground === "paper" ? (take.inkFor?.(SEED) ?? t.fg) : t.fg;
+}
+
 /** The hub at a desk, drawn at 1440 by 900 on `ground`. */
 function HubDesk({ ground }: { ground: Ground }) {
   const take = useTake();
   const t = inkOf(take, ground);
+  const nameInk = useNameInk(ground);
   const card = 352;
   return (
     <div
@@ -328,7 +340,7 @@ function HubDesk({ ground }: { ground: Ground }) {
         <h1
           className="ag-title"
           data-bd-contrast="the event's name on the page"
-          style={{ fontSize: 68, marginTop: 12, color: t.fg }}
+          style={{ fontSize: 68, marginTop: 12, color: nameInk }}
         >
           {PARTY.name}
         </h1>
@@ -364,7 +376,7 @@ function HubDesk({ ground }: { ground: Ground }) {
             className="flex items-center"
             style={{ gap: 8, fontSize: 13.5, color: t.muted }}
           >
-            <Seeded seed={PARTY.hostSeed} style={{ width: 20, height: 20 }} />
+            <HostOrb size={20} />
             Hosted by {PARTY.host}
           </span>
         </div>
@@ -373,7 +385,8 @@ function HubDesk({ ground }: { ground: Ground }) {
         <Checklist ground={ground} width={360} height={card} />
       </div>
       {/* The album to come is the ground itself, and says so in words: a
-          second field of colour here would be a second light. */}
+          second field of colour here would be a second light. Its line is
+          centred in the album's own space, under the head's rule. */}
       <div
         className="absolute"
         style={{
@@ -385,15 +398,8 @@ function HubDesk({ ground }: { ground: Ground }) {
         }}
       />
       <div
-        className="absolute flex justify-between"
-        style={{ left: 96, right: 96, top: 540 }}
-      >
-        <Readout style={{ color: t.faint }}>The album</Readout>
-        <Readout style={{ color: t.faint }}>No photos yet</Readout>
-      </div>
-      <div
         className="absolute inset-x-0 flex flex-col items-center text-center"
-        style={{ top: 628 }}
+        style={{ top: 622 }}
       >
         <h2
           className="ag-title"
@@ -426,6 +432,7 @@ function HubDesk({ ground }: { ground: Ground }) {
 function HubPhone({ ground }: { ground: Ground }) {
   const take = useTake();
   const t = inkOf(take, ground);
+  const nameInk = useNameInk(ground);
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -444,7 +451,7 @@ function HubPhone({ ground }: { ground: Ground }) {
         </Readout>
         <h1
           className="ag-title"
-          style={{ fontSize: 38, marginTop: 8, color: t.fg }}
+          style={{ fontSize: 38, marginTop: 8, color: nameInk }}
         >
           {PARTY.name}
         </h1>
@@ -511,24 +518,11 @@ function HubPhoneSending({ ground }: { ground: Ground }) {
       style={{ background: groundOf(take, ground).hex, color: t.fg }}
     >
       <PhoneBar ground={ground} title={PARTY.name} />
-      <div
-        className="absolute flex justify-between"
-        style={{
-          left: 20,
-          right: 20,
-          top: 118,
-          paddingBottom: 12,
-          borderBottom: `1px solid ${hairline(ground)}`,
-        }}
-      >
-        <Readout style={{ color: t.faint }}>The album</Readout>
-        <Readout style={{ color: t.faint }}>No photos yet</Readout>
-      </div>
-      {/* Centred in the album's own space, between its rule and the line
-          that says what is sending: the empty album is the ground itself. */}
+      {/* Centred in the album's own space, between the bar and the line that
+          says what is sending: the empty album is the ground itself. */}
       <div
         className="absolute flex flex-col items-center text-center"
-        style={{ left: 32, right: 32, top: 344 }}
+        style={{ left: 32, right: 32, top: 334 }}
       >
         <h2
           className="ag-title"
@@ -559,7 +553,7 @@ function HubPhoneSending({ ground }: { ground: Ground }) {
         </StatusLight>
         <div style={{ marginTop: 22 }}>
           <Ring
-            source={{ seed: PARTY.seed }}
+            source={SEED}
             ground={ground}
             size={66}
             progress={0.66}
@@ -619,20 +613,11 @@ export function EmptyHubSlide({ screen }: SlideProps) {
         >
           <HubPhoneSending ground="room" />
         </PhoneView>
-        <Under
-          style={{
-            position: "absolute",
-            left: m.w - m.pad - pw,
-            top: top + 660,
-            width: pw,
-            textAlign: "center",
-          }}
-        >
-          Her phone, a scroll later
-        </Under>
+        {/* One label says both screens: what a reader would be lost without
+            is that the phone is dark by her choice, and a scroll later. */}
         <Note
           ground="room"
-          label="Light at her desk, dark on her phone"
+          label="Light at her desk; dark on her phone, a scroll later"
           width={600}
           style={{ position: "absolute", left: m.pad, top: top + 660 }}
         >
@@ -649,13 +634,10 @@ export function EmptyHubSlide({ screen }: SlideProps) {
   const bezel = Math.round(pw * 0.03);
   const ph = Math.round(812 * ((pw - 2 * bezel) / 375)) + 2 * bezel;
   const gap = 92;
-  const p1 = m.top + 28;
+  const p1 = m.top + 4;
   const p2 = p1 + ph + gap;
   return (
     <SlideRoot screen={screen} ground="room">
-      <Under style={{ position: "absolute", left: m.pad, top: m.top }}>
-        Light, a minute old
-      </Under>
       <PhoneView
         width={pw}
         ground="paper"
@@ -664,8 +646,8 @@ export function EmptyHubSlide({ screen }: SlideProps) {
       >
         <HubPhone ground="paper" />
       </PhoneView>
-      <Under style={{ position: "absolute", left: m.pad, top: p2 - 28 }}>
-        Dark, a scroll later, as her photos send
+      <Under style={{ position: "absolute", left: m.pad, top: p2 - 30 }}>
+        A scroll later, as her photos send
       </Under>
       <PhoneView
         width={pw}

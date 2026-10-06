@@ -27,44 +27,44 @@ const ALBUM: readonly PhotoId[] = [
 
 const CREDITS = ["Maya & Jay", "31 guests", "1,284 photos"] as const;
 
-/** The Ring: an album's foot, the photographs giving way to the ground under the shutter. */
+/**
+ * The Ring: an album's foot, the shutter on the ground under its last row.
+ * ★ THE ALBUM ENDS ON A HARD EDGE, NEVER A WASH (the creative director's
+ * pass): fading the photographs into the ground was a wash over them, which
+ * the slide's own never forbids, so the row is cropped and the Ring stands on
+ * clear ground below it.
+ */
 function RingPanel({ ground, w, h }: { ground: Ground; w: number; h: number }) {
   const take = useTake();
   const { Ring } = take.light;
   const bg = ground === "room" ? "#0b0b0d" : cardOf(take, "paper").hex;
-  const tile = Math.floor((w - 6) / 3);
+  const gap = 3;
+  const tile = Math.floor((w - gap * 2) / 3);
+  const row = Math.round(h * 0.42);
+  const size = Math.round(Math.min(w, 420) * 0.14);
   return (
     <div
       className="relative overflow-hidden"
       style={{ width: w, height: h, background: bg, borderRadius: 4 }}
     >
-      <div className="grid grid-cols-3" style={{ gap: 3 }}>
-        {ALBUM.map((id) => (
+      <div className="flex" style={{ gap }}>
+        {ALBUM.slice(0, 3).map((id) => (
           <LitPhoto
             key={id}
             id={id}
             ground={ground}
-            style={{ width: tile, height: tile * 0.72 }}
+            style={{ width: tile, height: row, borderRadius: 0 }}
           />
         ))}
       </div>
-      {/* The album gives way to the ground under the shutter: the Ring
-          stands on its ground, never on a photograph. */}
-      <div
-        className="absolute inset-x-0 bottom-0"
-        style={{
-          height: h * 0.66,
-          background: `linear-gradient(to bottom, transparent 0%, ${bg} 58%)`,
-        }}
-      />
       <div
         className="absolute inset-x-0 flex justify-center"
-        style={{ bottom: Math.round(h * (ground === "room" ? 0.13 : 0.12)) }}
+        style={{ top: row + Math.round((h - row - size) / 2) }}
       >
         <Ring
           source={{ photos: ALBUM }}
           ground={ground}
-          size={Math.round(Math.min(w, 420) * 0.15)}
+          size={size}
           label="Add photos"
         />
       </div>
@@ -135,28 +135,29 @@ function BloomPanel({
   const bg =
     ground === "room" ? groundOf(take, "room").hex : cardOf(take, "paper").hex;
   // A paper form may reach past its subject (a take's mount, its shadow), so
-  // the reel leaves it room: the contract's margin, an eighth of the subject.
-  const rw = Math.round(Math.min(w * 0.56, h * 0.95));
+  // the reel keeps the contract's margin clear on every side (an eighth of its
+  // width) and the caption sits at the panel's foot, below that reach.
+  const rw = Math.round(Math.min(w * 0.5, h * 0.8));
   const rh = Math.round((rw * 9) / 16);
+  const top = Math.round((h - 28 - rh) / 2) - 4;
   return (
     <div
-      className="relative flex flex-col items-center justify-center"
-      style={{
-        width: w,
-        height: h,
-        background: bg,
-        borderRadius: 4,
-        gap: Math.round(rw * 0.13) + 12,
-      }}
+      className="relative"
+      style={{ width: w, height: h, background: bg, borderRadius: 4 }}
     >
-      <ReelBloom
-        reel="hero-candidate-02"
-        ground={ground}
-        width={rw}
-        radius={2}
-        style={{ width: rw, height: rh }}
-      />
-      <Readout style={{ color: t.faint }}>
+      <div className="absolute" style={{ left: Math.round((w - rw) / 2), top }}>
+        <ReelBloom
+          reel="hero-candidate-02"
+          ground={ground}
+          width={rw}
+          radius={2}
+          style={{ width: rw, height: rh }}
+        />
+      </div>
+      <Readout
+        className="absolute inset-x-0 text-center"
+        style={{ bottom: 14, color: t.faint }}
+      >
         The reel, lit by the shot it shows
       </Readout>
     </div>

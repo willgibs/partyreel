@@ -15,10 +15,10 @@ import {
 import { formatBytes } from "@/lib/utils";
 
 import type { SlideProps } from "../../deck/contract";
-import type { PhotoId } from "../../deck/media";
+import { Photo, type PhotoId } from "../../deck/media";
 import { Btn, Glyph, SiteFooter, SiteNav } from "../kit";
 import { SlideRoot } from "../root";
-import { type Ground, LitPhoto, Readout, ROOM, type Source } from "../system";
+import { type Ground, Readout, ROOM, type Source } from "../system";
 import { cardOf, groundOf, inkOf, useInk, useTake } from "../take";
 import { DeskStage, deskOf, PhoneStage, ruleOf } from "./c-parts";
 
@@ -29,10 +29,10 @@ import { DeskStage, deskOf, PhoneStage, ruleOf } from "./c-parts";
  * The page is paper to its edges; Free and the Event Pass are quiet paper
  * cards with ink words; and the one live subject is the Pro card, drawn on the
  * take's `onPaper.subject` (Aperture: a piece of the room; Ink and Cast:
- * paper). It carries the page's one light: a strip of three photographs, three
- * events, inside the take's Bloom on that ground. A scroll later the page ends
- * on its foot, the take's own (`SiteFooter` follows `onPaper.foot`), lit by
- * the same photographs.
+ * paper). It carries the page's one light: one wide strip of three
+ * photographs, three events, inside the take's Bloom on that ground. The page
+ * ends on its footer, the take's own (`SiteFooter` follows `onPaper.foot`),
+ * lit by the same photographs.
  *
  * ★ THE PRO CARD RISES BY ITS PHOTOGRAPHS: the strip stands in a band above
  * the other cards' tops, so every card's name, price and button share one
@@ -40,13 +40,13 @@ import { DeskStage, deskOf, PhoneStage, ruleOf } from "./c-parts";
  *
  * ★ THE PRO CARD CLIPS WHAT IT HOLDS (the lead's rule), its corner kept: a
  * room card's Bloom would otherwise spill its glow onto the page, which is the
- * one thing Aperture forbids. So the strip keeps an eighth of its width clear
- * on every side inside the card (the take contract's margin), and a paper
- * form (a screen, a cast shadow) is spent before the card's edge.
+ * one thing Aperture forbids. So the strip is inset a sixth of the card from
+ * either side and its light's reach plus bare card from the top, and every
+ * take's form (a glow, a printed mat, a cast colour) is spent inside the card.
  *
  * ★ EVERY PRICE AND LIMIT IS READ FROM ITS ONE HOME (`tiers.ts`, the voice's
- * `PRO_LINE`, `holds.ts`), never typed here. A plan is never a status: its
- * ticks are ink, never the Ready green.
+ * `PRO_LINE`, `holds.ts`, `cadence.ts`), never typed here. A plan is never a
+ * status: its ticks are ink, never the Ready green.
  */
 
 const free = planById("free");
@@ -58,14 +58,14 @@ const pro = proSizes[0];
  * Three events (a concert, a golden-hour couple, a toast), cool to warm, so
  * where a take lays its hues round the strip from the top-left key (Aperture's
  * ring puts the warm arc top-right and the cool one left) each hue stands
- * beside the photograph it came from.
+ * beside the photograph it came from. Each frame's crop keeps its subject.
  */
-const STRIP: readonly PhotoId[] = [
-  "concert-confetti",
-  "wedding-golden",
-  "wedding-toast",
+const STRIP: readonly { id: PhotoId; focus?: string }[] = [
+  { id: "concert-confetti" },
+  { id: "wedding-golden", focus: "56% 50%" },
+  { id: "wedding-toast", focus: "64% 50%" },
 ];
-const SOURCE: Source = { photos: STRIP };
+const SOURCE: Source = { photos: STRIP.map((s) => s.id) };
 
 const H1 = "Start free, upgrade for video and more room.";
 
@@ -110,16 +110,21 @@ function Item({
   );
 }
 
-/** "$29 one-time" and "$9/mo": the figure loud, its terms small. */
+/**
+ * "$29 one-time" and "$9/mo": the figure loud, its terms small. `ink` prints
+ * the whole price in a take's own ink (`take.inkFor`), where it gives one.
+ */
 function Price({
   label,
   size,
   ground,
+  ink,
   contrast,
 }: {
   label: string;
   size: number;
   ground: Ground;
+  ink?: string;
   contrast?: string;
 }) {
   const t = useInk(ground);
@@ -129,7 +134,7 @@ function Price({
     <p
       className="ag-title ag-num"
       data-bd-contrast={contrast}
-      style={{ fontSize: size, letterSpacing: "-0.04em", color: t.fg }}
+      style={{ fontSize: size, letterSpacing: "-0.04em", color: ink ?? t.fg }}
     >
       {m ? m[1] : label}
       {terms ? (
@@ -138,7 +143,7 @@ function Price({
             fontSize: Math.round(size * 0.36),
             letterSpacing: "-0.01em",
             marginLeft: terms.startsWith("/") ? 1 : 7,
-            color: t.muted,
+            color: ink ?? t.muted,
           }}
         >
           {terms}
@@ -238,6 +243,8 @@ type Fit = {
   item: number;
   /** The line under the name, held at two lines so every price shares a row. */
   lineH: number;
+  /** Bare card above and below the strip's light. */
+  air: number;
 };
 
 const DESK_FIT: Fit = {
@@ -247,6 +254,7 @@ const DESK_FIT: Fit = {
   price: 50,
   item: 14,
   lineH: 42,
+  air: 20,
 };
 const PHONE_FIT: Fit = {
   pad: 22,
@@ -254,7 +262,8 @@ const PHONE_FIT: Fit = {
   body: 14,
   price: 44,
   item: 14,
-  lineH: 40,
+  lineH: 0,
+  air: 14,
 };
 
 /** The head every plan shares: its name, its line (two lines' room) and its price. */
@@ -264,6 +273,7 @@ function PlanHead({
   name,
   line,
   price,
+  priceInk,
   contrast,
 }: {
   ground: Ground;
@@ -271,6 +281,7 @@ function PlanHead({
   name: string;
   line: string;
   price: string;
+  priceInk?: string;
   contrast?: string;
 }) {
   const t = useInk(ground);
@@ -297,6 +308,7 @@ function PlanHead({
           label={price}
           size={fit.price}
           ground={ground}
+          ink={priceInk}
           contrast={contrast}
         />
       </div>
@@ -332,9 +344,10 @@ function PlanFoot({
   );
 }
 
-function FreeCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
+function FreeCard() {
   const take = useTake();
   const t = inkOf(take, "paper");
+  const fit = DESK_FIT;
   return (
     <div
       className="flex h-full flex-col"
@@ -347,7 +360,7 @@ function FreeCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
     >
       <PlanHead
         ground="paper"
-        fit={compact ? { ...fit, lineH: 0 } : fit}
+        fit={fit}
         name={TIER_NAMES.free}
         line="The full experience, for a dinner or a birthday at home."
         price={free.priceLabel}
@@ -355,25 +368,23 @@ function FreeCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
       <Readout style={{ color: t.faint, marginTop: 8 }}>
         {roomOf(free.storageBytes)} · {MAX_EVENTS.free} event
       </Readout>
-      {compact ? null : (
-        <ul className="flex flex-col" style={{ gap: 6, marginTop: 18 }}>
-          <Item ground="paper" size={fit.item}>
-            {MAX_EVENTS.free} event, every guest, the album and the reel
-          </Item>
-          <Item ground="paper" size={fit.item}>
-            Every gate and a custom link
-          </Item>
-          <Item ground="paper" size={fit.item}>
-            No watermark on photos or the album
-          </Item>
-          <Item ground="paper" size={fit.item} limit>
-            Photos only
-          </Item>
-          <Item ground="paper" size={fit.item} limit>
-            A small mark on clips
-          </Item>
-        </ul>
-      )}
+      <ul className="flex flex-col" style={{ gap: 6, marginTop: 18 }}>
+        <Item ground="paper" size={fit.item}>
+          {MAX_EVENTS.free} event, every guest, the album and the reel
+        </Item>
+        <Item ground="paper" size={fit.item}>
+          Every gate and a custom link
+        </Item>
+        <Item ground="paper" size={fit.item}>
+          No watermark on photos or the album
+        </Item>
+        <Item ground="paper" size={fit.item} limit>
+          Photos only
+        </Item>
+        <Item ground="paper" size={fit.item} limit>
+          A small mark on clips
+        </Item>
+      </ul>
       <PlanFoot
         ground="paper"
         kind="secondary"
@@ -384,9 +395,10 @@ function FreeCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
   );
 }
 
-function PassCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
+function PassCard() {
   const take = useTake();
   const t = inkOf(take, "paper");
+  const fit = DESK_FIT;
   return (
     <div
       className="flex h-full flex-col"
@@ -399,7 +411,7 @@ function PassCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
     >
       <PlanHead
         ground="paper"
-        fit={compact ? { ...fit, lineH: 0 } : fit}
+        fit={fit}
         name={TIER_NAMES.event_pass}
         line={`${passHoldsLine(pass.storageBytes)}, kept a year.`}
         price={pass.priceLabel}
@@ -407,22 +419,20 @@ function PassCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
       <Readout style={{ color: t.faint, marginTop: 8 }}>
         {roomOf(pass.storageBytes)} · {MAX_EVENTS.event_pass} event
       </Readout>
-      {compact ? null : (
-        <ul className="flex flex-col" style={{ gap: 6, marginTop: 18 }}>
-          <Item ground="paper" size={fit.item}>
-            One payment, no subscription
-          </Item>
-          <Item ground="paper" size={fit.item}>
-            Photos and video, like Pro
-          </Item>
-          <Item ground="paper" size={fit.item}>
-            Clips with no watermark
-          </Item>
-          <Item ground="paper" size={fit.item}>
-            Passes stack: each adds an event and {roomOf(pass.storageBytes)}
-          </Item>
-        </ul>
-      )}
+      <ul className="flex flex-col" style={{ gap: 6, marginTop: 18 }}>
+        <Item ground="paper" size={fit.item}>
+          One payment, no subscription
+        </Item>
+        <Item ground="paper" size={fit.item}>
+          Photos and video, like Pro
+        </Item>
+        <Item ground="paper" size={fit.item}>
+          Clips with no watermark
+        </Item>
+        <Item ground="paper" size={fit.item}>
+          Passes stack: each adds an event and {roomOf(pass.storageBytes)}
+        </Item>
+      </ul>
       <PlanFoot
         ground="paper"
         kind="secondary"
@@ -434,75 +444,128 @@ function PassCard({ fit, compact = false }: { fit: Fit; compact?: boolean }) {
 }
 
 /**
- * THE STRIP: three square prints edge to edge, the page's one live subject,
- * inside the take's Bloom on the card's ground. On paper each print keeps a
- * hairline and no lift: a grey shadow under it would muddy whatever the take
- * lays round it.
+ * A QUIET PLAN ON A PHONE, half the column: its name, its price, its room and
+ * its button, so the two quiet plans stand side by side under the one live
+ * subject and the whole page fits a phone's slide.
+ */
+function QuietCard({
+  name,
+  price,
+  room,
+  cta,
+}: {
+  name: string;
+  price: string;
+  room: string;
+  cta: string;
+}) {
+  const take = useTake();
+  const t = inkOf(take, "paper");
+  return (
+    <div
+      className="flex h-full flex-col"
+      style={{
+        ...surface("paper", cardOf(take, "paper").hex),
+        borderRadius: 16,
+        padding: 16,
+        color: t.fg,
+      }}
+    >
+      <p className="ag-subtitle" style={{ fontSize: 19, color: t.fg }}>
+        {name}
+      </p>
+      <div style={{ marginTop: 10 }}>
+        <Price label={price} size={34} ground="paper" />
+      </div>
+      <Readout style={{ color: t.faint, marginTop: 6 }}>{room}</Readout>
+      <div style={{ marginTop: "auto", paddingTop: 12 }}>
+        <Btn ground="paper" kind="secondary" size="sm" wide>
+          {cta}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ── the one live subject ─────────────────────────────────────────────────── */
+
+/** The strip's height at a width: three square frames. */
+const stripH = (width: number) => Math.round(width / 3);
+
+/** How far a take's light may reach past the strip: the take contract's eighth of its larger side. */
+const reachOf = (width: number) => Math.round(width / 8);
+
+/** The strip's width in a card: inset a sixth of the card from either side. */
+const stripW = (card: number) => card - 2 * Math.round(card / 6);
+
+/** Above and below the strip: its light's reach, then bare card. */
+const marginOf = (sw: number, fit: Fit) => reachOf(sw) + fit.air;
+
+/** The band the strip stands in at the card's head. */
+const bandOf = (sw: number, fit: Fit) => marginOf(sw, fit) * 2 + stripH(sw);
+
+/** How far the Pro card rises above the row: its band, less the padding the others start with. */
+const riseOf = (card: number, fit: Fit) => bandOf(stripW(card), fit) - fit.pad;
+
+/**
+ * THE STRIP: three photographs joined edge to edge into one wide print, the
+ * page's one live subject, inside the take's Bloom on the card's ground. One
+ * object with one outline and one lit edge (in the room the bevel of light
+ * along its top; on paper a hairline and no lift, since a grey shadow under it
+ * would muddy whatever the take lays round it), so the light is one light round
+ * one thing, never three thumbnails' three halos.
  *
- * ★ SQUARE, NOT 3:2: a light is the subject's own shape blurred, so a thin
- * strip gives a thin, dim light (a 65 px band under a 36 px blur keeps barely
- * two thirds of its peak) and square prints give the Bloom a body to glow
- * from at every take's reach.
+ * ★ EACH FRAME SQUARE, THE STRIP 3:1: a light is its subject's own shape, so a
+ * thin band gives a thin, dim light; three squares joined give the Bloom a
+ * body to glow from at every take's reach and still read as one wide strip.
+ * Each frame overlaps the next by a pixel, so no seam of the print's dark
+ * ground shows between them at a fractional scale.
  */
 function Strip({ ground, width }: { ground: Ground; width: number }) {
   const take = useTake();
   const { Bloom } = take.light;
-  const gap = 4;
-  const pw = (width - gap * (STRIP.length - 1)) / STRIP.length;
-  const ph = Math.round(pw);
+  const h = stripH(width);
+  const edges = STRIP.map((_, i) => Math.round((width * i) / STRIP.length));
   return (
     <Bloom source={SOURCE} ground={ground} size={width} radius={2}>
-      <div className="flex" style={{ gap, width, height: ph }}>
-        {STRIP.map((id) => (
-          <LitPhoto
-            key={id}
-            id={id}
-            ground={ground}
-            style={{
-              width: pw,
-              height: ph,
-              boxShadow:
-                ground === "paper"
-                  ? "0 0 0 1px rgb(20 20 22 / 0.06)"
-                  : undefined,
-            }}
-          />
-        ))}
+      <div
+        className="ag-photo"
+        data-ground={ground}
+        style={{
+          width,
+          height: h,
+          boxShadow:
+            ground === "paper" ? "0 0 0 1px rgb(20 20 22 / 0.08)" : undefined,
+        }}
+      >
+        {STRIP.map((s, i) => {
+          const right = i === STRIP.length - 1 ? width : edges[i + 1] + 1;
+          return (
+            <div
+              key={s.id}
+              className="absolute inset-y-0 overflow-hidden"
+              style={{ left: edges[i], width: right - edges[i] }}
+            >
+              <Photo id={s.id} focus={s.focus} />
+            </div>
+          );
+        })}
       </div>
     </Bloom>
   );
 }
 
-/** The strip's height at a width (three square prints, 4 px apart). */
-const stripH = (width: number) => Math.round((width - 8) / 3);
-
-/** How far a take's light may reach past the strip: the take contract's eighth. */
-const reachOf = (width: number) => Math.round(width / 8);
-
-/**
- * The band the strip stands in: its light's reach clear above and below it,
- * and a breath of bare stock past that (8 px to the card's top, 10 to the
- * plan's name), so a screen or a cast shadow is spent on the card, never cut
- * by its edge, and never reaches a word.
- */
-const bandOf = (width: number) =>
-  reachOf(width) + 8 + stripH(width) + reachOf(width) + 10;
-
-/** The strip's width in a card: an eighth of the card clear on either side. */
-const stripW = (card: number) => card - 2 * Math.round(card / 8);
-
-/** How far the Pro card rises above the row: its band, less the padding the others start with. */
-const riseOf = (card: number, fit: Fit) => bandOf(stripW(card)) - fit.pad;
-
 /**
  * THE PRO CARD, the one live subject: on the take's subject ground, the strip
- * of photographs in its band at the top, then the plan as every card says it.
+ * in its band at the head, then the plan as every card says it. On paper its
+ * price alone prints in the take's own ink, where the take gives one.
  */
 function ProCard({ fit, width }: { fit: Fit; width: number }) {
   const take = useTake();
   const ground = take.onPaper.subject;
   const t = inkOf(take, ground);
   const sw = stripW(width);
+  const priceInk = ground === "paper" ? take.inkFor?.(SOURCE) : undefined;
   return (
     <div
       className="flex h-full flex-col overflow-hidden"
@@ -514,10 +577,10 @@ function ProCard({ fit, width }: { fit: Fit; width: number }) {
     >
       {/* ★ The strip keeps its own box (items-start): a stretched holder
           would hand the take a taller subject, and its light would frame
-          the empty band under the prints. */}
+          the empty band under the print. */}
       <div
         className="flex shrink-0 items-start justify-center"
-        style={{ height: bandOf(sw), paddingTop: reachOf(sw) + 8 }}
+        style={{ height: bandOf(sw, fit), paddingTop: marginOf(sw, fit) }}
       >
         <Strip ground={ground} width={sw} />
       </div>
@@ -531,9 +594,10 @@ function ProCard({ fit, width }: { fit: Fit; width: number }) {
           name={TIER_NAMES.pro}
           line={PRO_LINE}
           price={pro.priceLabel}
+          priceInk={priceInk}
           contrast={fit === DESK_FIT ? "Pro's price on its card" : undefined}
         />
-        <div style={{ marginTop: 14 }}>
+        <div style={{ marginTop: 12 }}>
           <Segments
             ground={ground}
             options={proSizes.map((p) => roomOf(p.storageBytes))}
@@ -542,12 +606,12 @@ function ProCard({ fit, width }: { fit: Fit; width: number }) {
           />
           <p
             className="ag-caption"
-            style={{ color: t.muted, marginTop: 7, textAlign: "center" }}
+            style={{ color: t.muted, marginTop: 5, textAlign: "center" }}
           >
             {partiesLine(pro)}.
           </p>
         </div>
-        <ul className="flex flex-col" style={{ gap: 6, marginTop: 16 }}>
+        <ul className="flex flex-col" style={{ gap: 6, marginTop: 12 }}>
           <Item ground={ground} size={fit.item}>
             Everything in {TIER_NAMES.free}
           </Item>
@@ -595,15 +659,14 @@ function Cadence({ stacked = false }: { stacked?: boolean }) {
 }
 
 /** The cards at a desk. */
-const DESK_CARD = { w: 376, gap: 24, bottom: 884 } as const;
+const DESK_CARD = { w: 376, gap: 24, top: 410, bottom: 884 } as const;
 
 /** The first screen at a desk, drawn at 1440 by 900. */
 function PricingDesk() {
   const take = useTake();
   const t = inkOf(take, "paper");
-  const { w, gap, bottom } = DESK_CARD;
+  const { w, gap, top, bottom } = DESK_CARD;
   const x0 = (1440 - 3 * w - 2 * gap) / 2;
-  const rowTop = 402;
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -612,7 +675,7 @@ function PricingDesk() {
       <SiteNav ground="paper" screen="desk" active="Pricing" />
       <div
         className="absolute inset-x-0 flex flex-col items-center"
-        style={{ top: 112, paddingInline: MARGIN }}
+        style={{ top: 108, paddingInline: MARGIN }}
       >
         <h1
           className="ag-title"
@@ -622,21 +685,21 @@ function PricingDesk() {
         >
           {H1}
         </h1>
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 22 }}>
           <Cadence />
         </div>
       </div>
       <div
         className="absolute"
-        style={{ left: x0, top: rowTop, width: w, bottom: 900 - bottom }}
+        style={{ left: x0, top, width: w, bottom: 900 - bottom }}
       >
-        <FreeCard fit={DESK_FIT} />
+        <FreeCard />
       </div>
       <div
         className="absolute"
         style={{
           left: x0 + w + gap,
-          top: rowTop - riseOf(w, DESK_FIT),
+          top: top - riseOf(w, DESK_FIT),
           width: w,
           bottom: 900 - bottom,
         }}
@@ -647,12 +710,12 @@ function PricingDesk() {
         className="absolute"
         style={{
           left: x0 + 2 * (w + gap),
-          top: rowTop,
+          top,
           width: w,
           bottom: 900 - bottom,
         }}
       >
-        <PassCard fit={DESK_FIT} />
+        <PassCard />
       </div>
     </div>
   );
@@ -665,20 +728,17 @@ const QUESTIONS = [
   "Can I cancel Pro anytime?",
 ] as const;
 
+/** The questions, closed: the heading says what they are, so no label over it. */
 function Questions() {
   const t = useInk("paper");
   return (
     <div>
-      <Readout style={{ color: t.faint }}>Questions</Readout>
-      <h2
-        className="ag-title"
-        style={{ fontSize: 26, marginTop: 10, color: t.fg }}
-      >
+      <h2 className="ag-title" style={{ fontSize: 26, color: t.fg }}>
         The fine print, in plain words.
       </h2>
       <div
         className="flex flex-col"
-        style={{ marginTop: 18, borderTop: `1px solid ${ruleOf("paper")}` }}
+        style={{ marginTop: 16, borderTop: `1px solid ${ruleOf("paper")}` }}
       >
         {QUESTIONS.map((q) => (
           <div
@@ -686,10 +746,11 @@ function Questions() {
             className="flex items-center justify-between"
             style={{
               gap: 16,
-              padding: "15px 0",
+              padding: "12px 0",
               borderBottom: `1px solid ${ruleOf("paper")}`,
               fontSize: 15,
               fontWeight: 500,
+              lineHeight: 1.4,
               color: t.fg,
             }}
           >
@@ -707,28 +768,36 @@ function Questions() {
   );
 }
 
-/** The page on a phone, drawn at 375 wide, to its foot. */
+/**
+ * THE PAGE ON A PHONE, drawn at 375 wide and short enough to stand whole on a
+ * phone's slide: the head, the Pro card, the two quiet plans side by side, the
+ * questions, the footer. Each section's top is set from the measured height
+ * of the one above.
+ */
 const PHONE = {
-  page: 2268,
-  pro: { top: 352, h: 620 },
-  free: 996,
-  pass: 1324,
-  questions: 1656,
-  foot: 1936,
+  /** The Pro card: 28 px under the cadence. */
+  pro: { top: 320, h: 568 },
+  /** The quiet plans: 16 px under the Pro card. */
+  quiet: { top: 904, h: 166 },
+  /** The questions: 28 px under the quiet plans. */
+  questions: 1098,
+  /** The footer: 32 px under the last question. */
+  foot: 1333,
+  /** The page's end: the footer's words and 24 px under its last line. */
+  page: 1657,
 } as const;
-/** Where the last screenful starts. */
-const LAST = PHONE.page - 812;
 
 /**
- * `part` draws only what a window shows: the phone slide shows the page's top
- * and its last screenful in two windows, and a whole second page behind the
- * first would read its words to the deck's caption twice.
+ * ★ THE DESK'S PHONE SHOWS THE LAST SCREENFUL FROM A CLEAN EDGE: scrolled so
+ * the quiet plans stand 8 px under the status bar (a card cut by the bar
+ * reads as a sliver of words), which leaves the footer's last line 21 px
+ * above the screen's foot.
  */
-function PricingPhone({ part = "all" }: { part?: "all" | "top" | "tail" }) {
+const PHONE_SCROLL = PHONE.quiet.top - 54 - 8;
+
+function PricingPhone() {
   const take = useTake();
   const t = inkOf(take, "paper");
-  const top = part !== "tail";
-  const tail = part !== "top";
   return (
     <div
       className="absolute inset-x-0 top-0 overflow-hidden"
@@ -738,76 +807,76 @@ function PricingPhone({ part = "all" }: { part?: "all" | "top" | "tail" }) {
         color: t.fg,
       }}
     >
-      {top ? (
-        <>
-          <SiteNav ground="paper" screen="phone" active="Pricing" />
-          <div
-            className="absolute flex flex-col items-center"
-            style={{ left: 20, right: 20, top: 134 }}
-          >
-            <h1
-              className="ag-title"
-              aria-label={H1}
-              data-bd-read="the phone's H1"
-              style={{
-                fontSize: 34,
-                color: t.fg,
-                textAlign: "center",
-                textWrap: "balance",
-              }}
-            >
-              {H1}
-            </h1>
-            <div style={{ marginTop: 20 }}>
-              <Cadence stacked />
-            </div>
-          </div>
-          <div
-            className="absolute"
-            style={{
-              left: 20,
-              right: 20,
-              top: PHONE.pro.top,
-              height: PHONE.pro.h,
-            }}
-          >
-            <ProCard fit={PHONE_FIT} width={335} />
-          </div>
-        </>
-      ) : null}
-      {part === "all" ? (
-        <>
-          <div
-            className="absolute"
-            style={{ left: 20, right: 20, top: PHONE.free }}
-          >
-            <FreeCard fit={PHONE_FIT} compact />
-          </div>
-          <div
-            className="absolute"
-            style={{ left: 20, right: 20, top: PHONE.pass }}
-          >
-            <PassCard fit={PHONE_FIT} compact />
-          </div>
-        </>
-      ) : null}
-      {tail ? (
-        <>
-          <div
-            className="absolute"
-            style={{ left: 20, right: 20, top: PHONE.questions }}
-          >
-            <Questions />
-          </div>
-          <SiteFooter
-            page="paper"
-            screen="phone"
-            source={SOURCE}
-            height={PHONE.page - PHONE.foot}
-            style={{ top: PHONE.foot }}
-          />
-        </>
-      ) : null}
+      <SiteNav ground="paper" screen="phone" active="Pricing" />
+      <div
+        className="absolute flex flex-col items-center"
+        style={{ left: 20, right: 20, top: 134 }}
+      >
+        <h1
+          className="ag-title"
+          aria-label={H1}
+          data-bd-read="the phone's H1"
+          style={{
+            fontSize: 34,
+            color: t.fg,
+            textAlign: "center",
+            textWrap: "balance",
+          }}
+        >
+          {H1}
+        </h1>
+        <div style={{ marginTop: 20 }}>
+          <Cadence stacked />
+        </div>
+      </div>
+      <div
+        className="absolute"
+        style={{
+          left: 20,
+          right: 20,
+          top: PHONE.pro.top,
+          height: PHONE.pro.h,
+        }}
+      >
+        <ProCard fit={PHONE_FIT} width={335} />
+      </div>
+      <div
+        className="absolute grid"
+        style={{
+          left: 20,
+          right: 20,
+          top: PHONE.quiet.top,
+          height: PHONE.quiet.h,
+          gridTemplateColumns: "1fr 1fr",
+          gap: 12,
+        }}
+      >
+        <QuietCard
+          name={TIER_NAMES.free}
+          price={free.priceLabel}
+          room={`${roomOf(free.storageBytes)} · ${MAX_EVENTS.free} event`}
+          cta="Start free"
+        />
+        <QuietCard
+          name={TIER_NAMES.event_pass}
+          price={pass.priceLabel}
+          room={`${roomOf(pass.storageBytes)} · ${MAX_EVENTS.event_pass} event`}
+          cta="Buy a pass"
+        />
+      </div>
+      <div
+        className="absolute"
+        style={{ left: 20, right: 20, top: PHONE.questions }}
+      >
+        <Questions />
+      </div>
+      <SiteFooter
+        page="paper"
+        screen="phone"
+        source={SOURCE}
+        height={PHONE.page - PHONE.foot}
+        style={{ top: PHONE.foot }}
+      />
     </div>
   );
 }
@@ -816,63 +885,19 @@ const LABEL = "Light on paper";
 
 export function LightPageSlide({ screen }: SlideProps) {
   const take = useTake();
-  const t = inkOf(take, "paper");
   const note = take.words.notes.lightPage;
-  if (screen === "375") {
-    // The first screen and its Pro card, a scroll's break, then the last
-    // screenful: the questions and the foot.
-    const first = PHONE.pro.top + PHONE.pro.h + 20;
-    const gapH = 44;
-    const tail = PHONE.page - (PHONE.questions - 36);
+  if (screen === "375")
     return (
       <SlideRoot screen={screen} ground="paper">
         <PhoneStage
           ground="paper"
-          pageH={first + gapH + tail}
-          page={
-            <>
-              <div
-                className="absolute inset-x-0 top-0 overflow-hidden"
-                style={{ height: first }}
-              >
-                <PricingPhone part="top" />
-              </div>
-              <div
-                className="absolute inset-x-0 flex items-center"
-                style={{
-                  top: first,
-                  height: gapH,
-                  paddingInline: 20,
-                  background: deskOf(take, "paper"),
-                  borderBlock: `1px solid ${ruleOf("paper")}`,
-                }}
-              >
-                <Readout style={{ color: t.faint }}>
-                  A scroll later: its last screenful
-                </Readout>
-              </div>
-              <div
-                className="absolute inset-x-0 overflow-hidden"
-                style={{ top: first + gapH, height: tail }}
-              >
-                <div
-                  className="absolute inset-x-0"
-                  style={{
-                    top: -(PHONE.questions - 36),
-                    height: PHONE.page,
-                  }}
-                >
-                  <PricingPhone part="tail" />
-                </div>
-              </div>
-            </>
-          }
+          pageH={PHONE.page}
+          page={<PricingPhone />}
           label={LABEL}
           note={note}
         />
       </SlideRoot>
     );
-  }
   return (
     <SlideRoot
       screen={screen}
@@ -885,8 +910,8 @@ export function LightPageSlide({ screen }: SlideProps) {
         page={<PricingDesk />}
         phone={<PricingPhone />}
         phonePage={PHONE.page}
-        phoneScroll={LAST}
-        phoneCaption="Its last screenful, 375 wide"
+        phoneScroll={PHONE_SCROLL}
+        phoneCaption="A scroll later"
         label={LABEL}
         note={note}
       />

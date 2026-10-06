@@ -314,7 +314,7 @@ function AlbumPhone() {
   );
 }
 
-const LABEL = "The Seam, in place";
+const LABEL = "The Seam, under the album";
 
 export function DarkPageSlide({ screen }: SlideProps) {
   const take = useTake();
@@ -344,7 +344,7 @@ export function DarkPageSlide({ screen }: SlideProps) {
         phone={<AlbumPhone />}
         phonePage={PHONE.page}
         phoneScroll={PHONE.page - 812}
-        phoneCaption="A scroll later: its foot, 375 wide"
+        phoneCaption="A scroll later"
         label={LABEL}
         note={note}
       />

@@ -68,7 +68,7 @@ export const BRAND = defineExploration({
       "Afterglow is the brand (your desk 4 pick): light, never paint; colour from the photographs, then the event's seed, then the house.",
       "Drawn only as a Ring, a Seam or a Bloom, one to a screen, still until something happens.",
       "Status is a point and its word (Standby half-lit with no hue, Ready, Fault); the room where photographs play, paper where people decide.",
-      "Every take: no spectrum (the house lamps light as one dusk sky, the house sky), at most three hues a light, your v1 wordmark.",
+      "Every take: no spectrum (the house lamps light as one warm glow, the house ember), at most three hues a light, your v1 wordmark.",
     ],
     earlier: [
       "Desk 4, you picked Afterglow: 'This feels so much more like a brand identity than just throwing Aurora everywhere.'",
@@ -94,9 +94,9 @@ export const BRAND = defineExploration({
         "Afterglow's light behind the one live subject of a screen, such as the code or the reel.",
     },
     {
-      term: "house sky",
+      term: "house ember",
       means:
-        "The five house lamps lit as one dusk sky, amber to violet, where there is no photograph and no seed.",
+        "Where there is no photograph and no seed: the house lamps lit as one glow, amber to coral, never side by side.",
     },
     {
       term: "pieces of the room",
@@ -104,9 +104,9 @@ export const BRAND = defineExploration({
         "Aperture's dark objects on a light page: the shutter's puck, the one lit plate, the foot's slab.",
     },
     {
-      term: "fine screen",
+      term: "ink mat",
       means:
-        "Ink's printed glow: dots of the album's one colour, densest at the subject's edge, as a press prints light.",
+        "Ink's form on paper: the one subject mounted on a solid mat of the album's one colour, never a tint.",
     },
     {
       term: "coloured shadow",
@@ -119,7 +119,7 @@ export const BRAND = defineExploration({
       id: "house",
       question: "Where there is no photograph and no seed, what is the light?",
       taken:
-        "The house sky in every take: the five lamps lit as one dusk sky, amber to violet from the top-left, never five chips side by side.",
+        "The house ember in every take: the lamps lit as one glow from the top-left, amber to coral (a dusk sky to violet read as Instagram).",
       overrule:
         "Keep the five as separate lamps, as round one drew them, where there is no photograph.",
     },
@@ -175,7 +175,7 @@ export const BRAND = defineExploration({
           id: "ink",
           label: "Ink: glows in the room, prints on paper",
           means:
-            "One colour per album, its strongest light: a glow in the room; on paper a printed rule, a band and a fine screen, never paler than ink.",
+            "One colour per album, its strongest light: a glow in the room; on paper printed solid, a rule, a band and an ink mat, never paler than ink.",
           gains:
             "The calmest room and an editorial paper: every album prints in its own colour, like stationery.",
           costs:
@@ -194,7 +194,7 @@ export const BRAND = defineExploration({
       ],
       recommended: "aperture",
       because:
-        "Aperture: its light never changes, so it never washes out, and production already half-does it; borrow Cast's coloured shadow for photographs on paper.",
+        "Aperture: its light never changes, so it never washes out, and production half-does it; borrow Ink's printed rule where paper meets a photograph.",
       overrule:
         "If paper should feel printed rather than lit, Ink; if light should land on the page itself, Cast.",
       configs: [SCREEN],

@@ -26,10 +26,11 @@ import { Caption, Heading, Label, useMeasure } from "./parts";
  *
  * Two pictures. The site as a row of real pages, each drawn whole at 1440 and
  * shrunk the way a screenshot is: four in the room (the hero lit by its
- * photographs, the foot's Seam), four on the take's paper (Pricing's one lit
- * subject where the take stands it, every foot where the take puts it). Then
- * the round's whole point, side by side: the same lit card on paper as round
- * one drew it and as this take draws it.
+ * photographs, the footer's Seam), four on the take's paper (Pricing's one lit
+ * subject where the take stands it, every footer where the take puts it), and
+ * one paper footer close up, since a footer's form cannot be judged at a
+ * thumbnail's size. Then the round's whole point, side by side: the same lit
+ * card on paper as round one drew it and as this take draws it.
  *
  * ★ ROUND ONE'S PANEL IS ROUND ONE'S OWN DRAWING, not a strawman: its paper
  * register (`a7d519a79`: the room's light lifted to L 0.85 to read on white)
@@ -505,6 +506,65 @@ function Thumb({ p, w, desk }: { p: (typeof PAGES)[number]; w: number; desk: boo
   );
 }
 
+/**
+ * A PAPER PAGE'S FOOTER, ENLARGED: the same Pricing page as its thumbnail,
+ * drawn at `scale` and cropped to the footer's top-left (the last of the page
+ * above it, the footer's top edge and its light, the wordmark), because at a
+ * thumbnail's size a footer's form cannot be judged. Every paper page shares
+ * the one footer, so one detail speaks for the four.
+ */
+function FootDetail({
+  w,
+  h,
+  scale,
+  thumb,
+  above,
+}: {
+  w: number;
+  h: number;
+  scale: number;
+  /** The thumbnails' width, so the caption says how much closer this is. */
+  thumb: number;
+  /** The share of the crop above the footer's top edge (the page's last section). */
+  above: number;
+}) {
+  const t = inkOf(useTake(), "paper");
+  const x0 = 56;
+  const y0 = PAGE_H - FOOT_H - Math.round((h / scale) * above);
+  const times = Math.round(scale / (thumb / PAGE_W));
+  return (
+    <div style={{ width: w }}>
+      <div
+        className="relative overflow-hidden"
+        style={{
+          width: w,
+          height: h,
+          borderRadius: 4,
+          boxShadow: "0 0 0 1px rgb(20 20 22 / 0.1), 0 1px 2px rgb(20 20 22 / 0.06), 0 10px 22px -14px rgb(20 20 22 / 0.3)",
+        }}
+      >
+        <div
+          className="absolute top-0 left-0"
+          style={{
+            width: PAGE_W,
+            height: PAGE_H,
+            transform: `scale(${scale}) translate(${-x0}px, ${-y0}px)`,
+            transformOrigin: "0 0",
+          }}
+        >
+          <PricingPage />
+        </div>
+      </div>
+      <p className="ag-body" style={{ fontSize: 13.5, fontWeight: 600, color: t.fg, marginTop: 12 }}>
+        A paper page&apos;s footer
+      </p>
+      <p className="ag-caption ag-num" style={{ color: t.faint, marginTop: 1, fontSize: 12, lineHeight: 1.3 }}>
+        Pricing, {times}× its thumbnail
+      </p>
+    </div>
+  );
+}
+
 /* ── round one's paper beside this take's ──────────────────────────────────── */
 
 /**
@@ -578,12 +638,12 @@ function LitSection({ w, mine, stack }: { w: number; mine: boolean; stack: boole
   const take = useTake();
   const t = inkOf(take, "paper");
   const { Bloom } = take.light;
-  const pad = stack ? 34 : 40;
-  const pw = stack ? Math.min(236, w - pad * 2) : Math.round(w * 0.42);
+  const pad = stack ? 28 : 36;
+  const pw = stack ? Math.min(196, w - pad * 2) : Math.round(w * 0.4);
   const ph = Math.round(pw * 0.667);
   // A take's paper form reaches up to an eighth past its subject, and a
   // falling light leans right and down, so the words keep clear of both.
-  const clear = Math.round(pw * 0.2);
+  const clear = Math.round(pw * 0.19);
   const photo = <LitPhoto id={SECTION_PHOTO} ground="paper" style={{ width: pw, height: ph }} />;
   return (
     <div
@@ -662,24 +722,24 @@ export function PagesSlide({ screen }: SlideProps) {
   const title = "Where photographs play, the room. Where people read and decide, paper.";
 
   if (m.desk) {
-    const group = 40;
-    const gap = 16;
-    const tw = Math.floor((m.inner - group - gap * 6) / 8);
+    // Three columns: the room's pages, paper's pages, and one paper footer
+    // close up with the rhythm paragraph under it (it is about that footer).
+    // The comparison sits under the two groups, a panel under each.
+    const group = 36;
+    const gap = 12;
+    const side = 216;
+    const tw = Math.floor((m.inner - group * 2 - side - gap * 6) / 8);
+    const th = Math.round((tw * PAGE_H) / PAGE_W);
+    const groupW = tw * 4 + gap * 3;
+    const sideX = m.pad + groupW * 2 + group * 2;
     const room = PAGES.filter((p) => p.ground === "room");
     const paper = PAGES.filter((p) => p.ground === "paper");
     const row = 250;
-    const low = 524;
+    const low = 544;
     return (
       <SlideRoot screen={screen} ground="paper">
-        <div className="absolute flex items-end justify-between" style={{ left: m.pad, right: m.pad, top: m.top }}>
+        <div className="absolute" style={{ left: m.pad, top: m.top }}>
           <Heading ground="paper" kicker="Dark and light" title={title} width={820} />
-          <p
-            className="ag-body"
-            data-bd-contrast="the rhythm"
-            style={{ width: 392, fontSize: 15, lineHeight: 1.55, color: t.muted, textWrap: "pretty", paddingBottom: 3 }}
-          >
-            {take.words.rhythm}
-          </p>
         </div>
         <div className="absolute flex" style={{ left: m.pad, top: row, gap: group }}>
           {[room, paper].map((g) => (
@@ -690,9 +750,19 @@ export function PagesSlide({ screen }: SlideProps) {
             </div>
           ))}
         </div>
+        <div className="absolute" style={{ left: sideX, top: row }}>
+          <FootDetail w={m.w - m.pad - sideX} h={th} scale={0.44} thumb={tw} above={0.28} />
+        </div>
+        <p
+          className="ag-body absolute"
+          data-bd-contrast="the rhythm"
+          style={{ left: sideX, top: low + 26, width: m.w - m.pad - sideX, fontSize: 14, lineHeight: 1.55, color: t.muted, textWrap: "pretty" }}
+        >
+          {take.words.rhythm}
+        </p>
         <div className="absolute" style={{ left: m.pad, top: low }}>
-          {/* Each panel as wide as a group of pages above it: one grid. */}
-          <Compare w={m.inner} gap={group} stack={false} />
+          {/* A panel under each group of pages: one grid. */}
+          <Compare w={groupW * 2 + group} gap={group} stack={false} />
         </div>
       </SlideRoot>
     );
@@ -711,13 +781,16 @@ export function PagesSlide({ screen }: SlideProps) {
         >
           {take.words.rhythm}
         </p>
-        <div className="grid" style={{ gridTemplateColumns: `repeat(4, ${tw}px)`, columnGap: gap, rowGap: 28, marginTop: 40 }}>
+        <div className="grid" style={{ gridTemplateColumns: `repeat(4, ${tw}px)`, columnGap: gap, rowGap: 22, marginTop: 32 }}>
           {PAGES.map((p) => (
             <Thumb key={p.id} p={p} w={tw} desk={false} />
           ))}
         </div>
-        <div style={{ marginTop: 56 }}>
-          <Compare w={m.inner} gap={52} stack />
+        <div style={{ marginTop: 26 }}>
+          <FootDetail w={m.inner} h={108} scale={0.46} thumb={tw} above={0.1} />
+        </div>
+        <div style={{ marginTop: 40 }}>
+          <Compare w={m.inner} gap={36} stack />
         </div>
       </div>
     </SlideRoot>

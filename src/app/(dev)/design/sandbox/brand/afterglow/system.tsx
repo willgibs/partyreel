@@ -170,28 +170,31 @@ export const LAMPS = [
 ] as const;
 
 /**
- * ★ THE HOUSE LIGHT IS ONE SKY, NEVER A SPECTRUM (round two's first polish,
+ * ★ THE HOUSE LIGHT IS ONE EMBER, NEVER A SPECTRUM (round two's first polish,
  * every take). Round one laid the five lamps side by side wherever there was
  * no photograph (the cover's chips, a paper foot's five segments, a ring of
  * all five), and five hues side by side is the rainbow app Will warned
- * against. Here the house lamps light as the icon lights them: one sky just
- * after sunset, amber at its lit edge, through coral and rose, spent to violet
- * in its shadow, the afterglow itself. A real sky, so a gradient in one
- * direction from the one key light, never a loop of equals.
+ * against. The first draft of this round lit them as a dusk sky, amber through
+ * rose to violet, and the creative director's pass named that the Instagram
+ * gradient, the last rainbow note; so the house light is narrowed to the
+ * icon's own ember: amber where the key light falls, warming through coral to
+ * a deep ember as it turns away, the warm end of the house lamps alone. One
+ * gradient in one direction from the one key light, never a loop of equals.
+ * (`DUSK` keeps its name: it is the light after sunset, the afterglow.)
  */
 export const DUSK: readonly { t: number; l: number; c: number; h: number }[] = [
-  { t: 0, l: 0.86, c: 0.15, h: 78 },
-  { t: 0.3, l: 0.76, c: 0.17, h: 34 },
-  { t: 0.55, l: 0.66, c: 0.16, h: 8 },
-  { t: 1, l: 0.52, c: 0.13, h: 300 },
+  { t: 0, l: 0.87, c: 0.15, h: 80 },
+  { t: 0.35, l: 0.77, c: 0.17, h: 52 },
+  { t: 0.68, l: 0.65, c: 0.18, h: 34 },
+  { t: 1, l: 0.5, c: 0.15, h: 24 },
 ];
 
-/** The house light as lamps (the sky's four stops, its key weighted most). */
+/** The house light as lamps (the ember's four stops, its key weighted most). */
 export const HOUSE: Light = [
-  { h: 78, w: 0.34, dl: 0.06 },
-  { h: 34, w: 0.3 },
-  { h: 8, w: 0.22, dl: -0.04 },
-  { h: 300, w: 0.14, dl: -0.12 },
+  { h: 80, w: 0.34, dl: 0.06 },
+  { h: 52, w: 0.3 },
+  { h: 34, w: 0.22, dl: -0.04 },
+  { h: 24, w: 0.14, dl: -0.1 },
 ];
 
 /** The sky as a CSS gradient along a direction (its lit edge first). */
@@ -644,6 +647,7 @@ export function RoomRing({
   glyph = "add",
   breathe = false,
   face = "room",
+  flat = false,
   className,
   style,
   label,
@@ -655,6 +659,8 @@ export function RoomRing({
   breathe?: boolean;
   /** The face's material: the room's near-black, or paper's ink. */
   face?: Ground;
+  /** A matte face with no shading and no lift (a flat disc, on paper). */
+  flat?: boolean;
   className?: string;
   style?: CSSProperties;
   label?: string;
@@ -677,6 +683,7 @@ export function RoomRing({
       aria-label={label}
       aria-hidden={label ? undefined : true}
       data-face={face}
+      data-flat={flat ? "" : undefined}
       data-state={progress === undefined ? "rest" : "sending"}
       data-breathe={breathe ? "" : undefined}
       className={cn("ag-ring", className)}

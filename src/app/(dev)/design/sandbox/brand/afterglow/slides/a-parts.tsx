@@ -130,7 +130,7 @@ export function SpecRows({
 }: {
   ground: Ground;
   rows: readonly (readonly [ReactNode, ReactNode])[];
-  /** The label column's width at a desk (px). */
+  /** The label column's width at a desk (px); 0 sets the rows bare, with no labels. */
   label?: number;
   /** The line's size (px). */
   size?: number;
@@ -140,29 +140,33 @@ export function SpecRows({
   const { desk } = useMeasure();
   const rule = useHairline(ground, 13);
   const fs = size ?? (desk ? 15 : 14.5);
+  // A list a reader follows without names keeps none: no column, no label.
+  const bare = label === 0;
   return (
     <div style={{ borderBottom: `1px solid ${rule}`, ...style }}>
       {rows.map(([k, v], i) => (
         <div
           key={i}
           style={{
-            display: desk ? "grid" : "block",
-            gridTemplateColumns: desk ? `${label}px 1fr` : undefined,
+            display: desk && !bare ? "grid" : "block",
+            gridTemplateColumns: desk && !bare ? `${label}px 1fr` : undefined,
             columnGap: 20,
             padding: desk ? "13px 0 14px" : "12px 0 13px",
             borderTop: `1px solid ${rule}`,
           }}
         >
-          <Readout
-            style={{
-              color: t.faint,
-              display: "block",
-              paddingTop: desk ? Math.round((fs * 1.5 - 14) / 2) : 0,
-              marginBottom: desk ? 0 : 5,
-            }}
-          >
-            {k}
-          </Readout>
+          {bare ? null : (
+            <Readout
+              style={{
+                color: t.faint,
+                display: "block",
+                paddingTop: desk ? Math.round((fs * 1.5 - 14) / 2) : 0,
+                marginBottom: desk ? 0 : 5,
+              }}
+            >
+              {k}
+            </Readout>
+          )}
           <p
             className="ag-body"
             style={{

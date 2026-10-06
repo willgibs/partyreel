@@ -1,13 +1,13 @@
 "use client";
 
-import { type CSSProperties, useId } from "react";
+import { type CSSProperties, useId, useMemo } from "react";
 
 import { background, blendMode, orbFor } from "@/lib/avatar/gradient";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 import { AnswerReel } from "../afterglow/kit";
-import { iconOptics, KEY, RingIcon, RingSymbol } from "../afterglow/marks";
+import { KEY, RingIcon, RingSymbol, wedges } from "../afterglow/marks";
 import {
   DUSK,
   duskGradient,
@@ -17,6 +17,8 @@ import {
   type Source,
   type Tile,
   tone,
+  unOlive,
+  yellowness,
 } from "../afterglow/system";
 import type {
   BloomProps,
@@ -37,7 +39,7 @@ import type { PhotoId } from "../deck/media";
  * IT FALLS.
  *
  * Every form is drawn from the picture, never from a palette: the photograph
- * (or the event's seed, or the house sky) is laid behind its subject and an
+ * (or the event's seed, or the house ember) is laid behind its subject and an
  * SVG filter turns it into light. In the room the light glows round the
  * subject, a little more below than above because light falls. On paper it
  * falls through the subject, down and to the right from the product's one key
@@ -62,6 +64,11 @@ import type { PhotoId } from "../deck/media";
  *  4. LAND: the field kept only inside the subject's own shape, offset and
  *     softened (paper), or grown and softened (the room).
  *
+ * ★ ON PAPER, DENSE AND SHORT, NEVER PALE AND LONG (the creative director: a
+ * long fade to white is a highlighter smear). Every paper form has a hard edge
+ * where its light leaves the thing that casts it, full colour, and is spent
+ * within a few px; a quieter light is a shorter one, never a paler one.
+ *
  * ★ A FORM'S BOX IS ITS SUBJECT'S (the take contract): the glow and the shadow
  * extend outside it, the shadow down and right by about a sixth of the subject.
  */
@@ -77,7 +84,7 @@ function useFid(): string {
 
 const srcOf = (id: PhotoId) => marketingImage(id).src;
 
-/** A source with no photograph: the seed's orb or the house sky, already one family. */
+/** A source with no photograph: the seed's orb or the house ember, already one family. */
 const designedOf = (s: Source) => photosOf(s).length === 0;
 
 /** The seed as a picture: production's hashvatar, its mesh. */
@@ -90,7 +97,7 @@ function seedField(seed: string): CSSProperties {
 
 /**
  * A SOURCE AS A PICTURE: its photographs themselves, else the seed's orb,
- * else the house sky. `fit` says how a picture covers the box: whole and
+ * else the house ember. `fit` says how a picture covers the box: whole and
  * centred (a Bloom, a Ring), its last row at the box's foot (the Seam's lit
  * line), or squeezed whole into a strip (a receipt). Several photographs
  * stand side by side, each in its own column.
@@ -122,7 +129,7 @@ const EDGE_SLICE = 0.05;
 /**
  * A SOURCE'S EDGE AS A PICTURE: each photograph's last rows stretched down
  * the Seam's whole reach and flipped, so the box's top is the very edge and
- * the colours below it are the edge's own, run on (the sky and the seed run
+ * the colours below it are the edge's own, run on (the ember and the seed run
  * along the edge as they are).
  */
 function edgeOf(source: Source, reach: number): CSSProperties {
@@ -172,22 +179,26 @@ type Register = {
 /** Paper's: every region lifted into one band below the page. */
 const PAPER: Register = { floor: 0.44, rise: 0.4, target: 0.55, slope: 0.3, hi: 5.5, lo: 0.8 };
 /**
- * Paper's for a light with no photograph (the seed, the sky): those are
+ * Paper's for a light with no photograph (the seed, the ember): those are
  * mid-light by design, with no darks of their own to give a shadow depth, so
  * the photographs' band would land them pastel. Deeper, so they stay a
  * coloured shadow, darker than the page.
  */
 const PAPER_DEEP: Register = { floor: 0.24, rise: 0.42, target: 0.6, slope: 0.3, hi: 5.5, lo: 0.8 };
+/**
+ * Paper's for a light that is short (the Seam's band, a ring's cast): darker
+ * and fuller than a Bloom's, so a few px of it still read as colour, and a
+ * cream edge lands gold, never lemon.
+ */
+const PAPER_DENSE: Register = { floor: 0.3, rise: 0.4, target: 0.72, slope: 0.25, hi: 9, lo: 0.8 };
 /** The room's glow: darks stay dark, colour runs rich. */
 const GLOW: Register = { floor: 0.28, rise: 0.58, target: 0.6, slope: 0.3, hi: 6, lo: 0.8 };
 /** The Seam in the room: born dark-to-bright as the edge is, so a white cloth glows and a shadow stays dark. */
 const SEAM: Register = { floor: 0.24, rise: 0.68, target: 0.55, slope: 0.3, hi: 6, lo: 0.8 };
 /** The Seam's line in the room: the edge itself, lit, near white in the edge's own colours. */
 const LINE: Register = { floor: 0.74, rise: 0.24, target: 0.35, slope: 0.2, hi: 5, lo: 0.6 };
-/** A ring's band in the room: luminous against its dark face. */
-const BAND_ROOM: Register = { floor: 0.5, rise: 0.42, target: 0.6, slope: 0.3, hi: 9, lo: 0.8 };
-/** A ring's band on paper: rich, so it holds against the page and the face. */
-const BAND_PAPER: Register = { floor: 0.4, rise: 0.44, target: 0.62, slope: 0.3, hi: 12, lo: 0.8 };
+/** A ring's band: luminous against its dark face (on paper too: it sits on its own dark disc). */
+const BAND: Register = { floor: 0.5, rise: 0.42, target: 0.6, slope: 0.3, hi: 9, lo: 0.8 };
 
 /** The lift on the darks before the register (a gamma), so a night photograph keeps its colour. */
 const LIFT = 0.6;
@@ -219,17 +230,23 @@ const CHROMA = fix(
 const SUM = "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 1 1 0 0";
 
 /*
- * ★ LIGHT NEVER GOES OLIVE (the house rule `unOlive` keeps for every lamp): a
- * region whose green has crept just past its red is pushed back toward gold,
- * in proportion to how yellow it is, so a cream napkin casts gold, never
- * lemon. Greens (green well past red), greys and blues are left alone.
+ * ★ LIGHT NEVER GOES OLIVE (the house rule `unOlive` keeps for every lamp,
+ * here per pixel and both ways): a yellow whose green sits near its red (the
+ * olive and lemon band) is pushed to gold by raising its red, and a yellow
+ * whose green is well past its red is pushed to green by lowering it, each in
+ * proportion to how yellow it is, so a cream napkin casts gold and a lawn
+ * green, never khaki. Clean golds, greens, greys and blues are left alone.
  */
-/** How far green has crept past red (from just below it), into red. */
-const GREENISH = "-1 1 0 0 0.04  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1";
-/** The push back toward gold for each amount of creep: nothing for a true green. */
-const HUMP = "0 0.08 0.15 0.18 0.12 0.04 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+/** How far green sits past red, from 0.12 below it, into red. */
+const GREENISH = "-1 1 0 0 0.12  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1";
+/** The push toward gold (red up) for each step of that, 0.05 apart: green just under to just over red. */
+const TO_GOLD = "0 0.12 0.22 0.28 0.26 0.1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+/** The push toward green (red down, as a share) for a yellow-green: green well past red. */
+const TO_GREEN = "0 0 0 0 0 0.08 0.2 0.22 0.15 0.06 0 0 0 0 0 0 0 0 0 0 0";
 /** How yellow it is: red and green together, well above blue, into red. */
 const YELLOWISH = "1.5 1.5 -3 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1";
+/** The share of red a pixel keeps: one less the push toward green. */
+const KEEP = "-1 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0 1";
 
 /** How much of the low gain a region of chroma c takes, so it lands near the target. */
 function curveOf(r: Register): string {
@@ -258,8 +275,7 @@ type Draw = {
   register: Register;
   /**
    * Where it lands: the subject's own shape, offset, grown and softened. All
-   * four at zero is a field that fills its box (a band, a strip, an edge),
-   * clipped by its holder.
+   * four at zero is a field that fills its box (a band, a strip, an edge).
    */
   dx: number;
   dy: number;
@@ -319,7 +335,9 @@ function LightFilter({
 }) {
   const lands = d.dx !== 0 || d.dy !== 0 || d.grow > 0 || d.soft > 0;
   const m = lands
-    ? Math.ceil(Math.max(Math.abs(d.dx), Math.abs(d.dy)) + d.grow + d.soft * 3 + 4)
+    ? Math.ceil(
+        Math.max(Math.abs(d.dx), Math.abs(d.dy)) + d.grow + d.soft * 3 + 4,
+      )
     : 0;
   const r = d.register;
   return (
@@ -343,9 +361,12 @@ function LightFilter({
         <feComponentTransfer in="near" result="field">
           <feFuncA type="linear" slope={400} />
         </feComponentTransfer>
+        {/* Along an edge (a field with its own `mergeY`) the whole colour is
+            the edge's, read sideways only: blurred down a short band as far
+            as along it, its alpha would drain past recovering. */}
         <feGaussianBlur
           in="SourceGraphic"
-          stdDeviation={r1(d.wide)}
+          stdDeviation={`${r1(d.wide)} ${r1(d.mergeY === undefined ? d.wide : Math.max(1, d.mergeY))}`}
           result="far"
         />
         <feComponentTransfer in="far" result="whole">
@@ -381,7 +402,12 @@ function LightFilter({
         </feComponentTransfer>
         {/* Each region's chroma, into alpha, through the curve: the share of
             the low gain it takes, so every region lands at one strength. */}
-        <feColorMatrix in="lifted" type="matrix" values={CHROMA} result="parts" />
+        <feColorMatrix
+          in="lifted"
+          type="matrix"
+          values={CHROMA}
+          result="parts"
+        />
         <feColorMatrix in="parts" type="matrix" values={SUM} result="chroma" />
         <feComponentTransfer in="chroma" result="share">
           <feFuncA type="table" tableValues={curveOf(r)} />
@@ -410,13 +436,38 @@ function LightFilter({
           k4={0}
           result="light"
         />
-        <feColorMatrix in="light" type="matrix" values={GREENISH} result="creep" />
-        <feComponentTransfer in="creep" result="push">
-          <feFuncR type="table" tableValues={HUMP} />
+        <feColorMatrix
+          in="light"
+          type="matrix"
+          values={GREENISH}
+          result="creep"
+        />
+        <feComponentTransfer in="creep" result="up">
+          <feFuncR type="table" tableValues={TO_GOLD} />
         </feComponentTransfer>
-        <feColorMatrix in="light" type="matrix" values={YELLOWISH} result="yellow" />
+        <feComponentTransfer in="creep" result="down">
+          <feFuncR type="table" tableValues={TO_GREEN} />
+        </feComponentTransfer>
+        <feColorMatrix
+          in="light"
+          type="matrix"
+          values={YELLOWISH}
+          result="yellow"
+        />
+        {/* Weighted twice by how yellow it is: a saturated olive goes to gold,
+            a khaki of the same red-to-green (a greener hue) far less. */}
         <feComposite
-          in="push"
+          in="up"
+          in2="yellow"
+          operator="arithmetic"
+          k1={1}
+          k2={0}
+          k3={0}
+          k4={0}
+          result="upOnce"
+        />
+        <feComposite
+          in="upOnce"
           in2="yellow"
           operator="arithmetic"
           k1={1}
@@ -426,12 +477,38 @@ function LightFilter({
           result="gold"
         />
         <feComposite
+          in="down"
+          in2="yellow"
+          operator="arithmetic"
+          k1={1}
+          k2={0}
+          k3={0}
+          k4={0}
+          result="greenward"
+        />
+        <feColorMatrix
+          in="greenward"
+          type="matrix"
+          values={KEEP}
+          result="keep"
+        />
+        <feComposite
           in="light"
           in2="gold"
           operator="arithmetic"
           k1={0}
           k2={1}
           k3={1}
+          k4={0}
+          result="warmed"
+        />
+        <feComposite
+          in="warmed"
+          in2="keep"
+          operator="arithmetic"
+          k1={1}
+          k2={0}
+          k3={0}
           k4={0}
           result="clean"
         />
@@ -543,21 +620,26 @@ function ReelBloom({
 
 /**
  * The Seam's field: the edge's colours merged along it (far less down it,
- * where they are already one row run on), bound to the edge's whole colour
- * (several photographs with no edge above them, harder), and registered.
+ * where they are already one row run on), bound to the edge's whole colour,
+ * and registered: the room's glow, or paper's dense band. A `column` field (a
+ * photograph squeezed whole into a paper band) is averaged top to bottom, so
+ * each stretch of the band is its whole column's colour.
  */
 function edgeDraw(
   ground: "room" | "paper",
   unit: number,
   reach: number,
   bind: number,
+  column = false,
 ): Draw {
   return {
-    merge: unit * 0.04,
-    mergeY: reach * 0.12,
+    // A column field merges twice as far along: column by column a squeezed
+    // photograph is busier than its edge, and the band must stay calm.
+    merge: unit * (column ? 0.09 : 0.04),
+    mergeY: column ? reach * 3 : reach * 0.12,
     wide: unit * 0.5,
     bind,
-    register: ground === "room" ? SEAM : PAPER,
+    register: ground === "room" ? SEAM : PAPER_DENSE,
     dx: 0,
     dy: 0,
     grow: 0,
@@ -566,22 +648,27 @@ function edgeDraw(
 }
 
 /**
- * How far an edge's coloured shadow reaches on paper: short (a photograph a
- * few millimetres off the page), whatever room the slide gives the Seam.
+ * THE PAPER SEAM'S BAND (px): 8 to 12 at a desk. ★ QUIETER IS SHORTER, NEVER
+ * PALER: a footer's quieter light is a shorter band at the same density,
+ * because a paler band is the stain round one drew.
  */
-const spentOf = (reach: number) => Math.min(Math.max(reach * 0.6, 14), 44);
+function bandOf(reach: number, strength: number): number {
+  const full = Math.min(12, Math.max(8, reach * 0.2));
+  return Math.round(Math.max(8, full * (0.8 + 0.2 * Math.min(1, strength))));
+}
+
+/** The room's fall-off: hot at the edge, spent before the words. */
+const ROOM_DECAY =
+  "linear-gradient(to top, #000 0%, rgb(0 0 0 / 0.6) 10%, rgb(0 0 0 / 0.3) 28%, rgb(0 0 0 / 0.1) 56%, transparent 100%)";
 
 /**
- * THE FALL-OFF, as the edge field's own mask: in the room hot at the edge and
- * spent before the words; on paper dense at the edge and gone within `spent`.
+ * Paper's fall-off: full at the edge, holding a few px, then spent fast.
  * ★ Written `to top`: the field is flipped, so its local foot is the edge.
- * ★ It masks the field itself, never the Seam's box: a masked box is an
- * isolated group, and the paper shadow could no longer multiply onto the page.
+ * ★ It masks the field itself, never the Seam's box: a masked box is a group
+ * of its own, and the band could no longer multiply onto the page.
  */
-function decayOf(ground: "room" | "paper", spent: number): string {
-  if (ground === "room")
-    return "linear-gradient(to top, #000 0%, rgb(0 0 0 / 0.6) 10%, rgb(0 0 0 / 0.3) 28%, rgb(0 0 0 / 0.1) 56%, transparent 100%)";
-  return `linear-gradient(to top, #000 0, rgb(0 0 0 / 0.5) ${r1(spent * 0.28)}px, rgb(0 0 0 / 0.16) ${r1(spent * 0.62)}px, transparent ${r1(spent)}px)`;
+function paperDecay(band: number): string {
+  return `linear-gradient(to top, #000 0, #000 ${r1(band * 0.3)}px, rgb(0 0 0 / 0.62) ${r1(band * 0.55)}px, rgb(0 0 0 / 0.24) ${r1(band * 0.8)}px, transparent ${band}px)`;
 }
 
 /** The Seam's line in the room: the edge's last row along it, one px, lit. */
@@ -610,19 +697,32 @@ function Seam({
   style,
 }: SeamProps) {
   const id = useFid();
-  // ★ LIGHT ONLY FALLS FROM SOMETHING: on paper the Seam is a photograph's
-  // shadow, so it is drawn only where a photograph's edge stands over it (a
-  // source read from an edge); a paper foot with no photograph above it
-  // stays paper.
-  const adjacent = "photo" in source && Boolean(source.edge);
-  if (ground === "paper" && !adjacent) return null;
   const room = ground === "room";
+  const designed = designedOf(source);
+  // ★ ON PAPER THE BAND IS EACH COLUMN'S WHOLE COLOUR, NOT ITS LAST ROW: light
+  // falling through a print gathers everything above it, and a photograph's
+  // last rows are often a grey hem or a night crowd, which would cast grey or
+  // mud. Under a photograph's own edge each stretch keeps its column's colour
+  // where it stands; with no photograph over it (a paper page's footer) the
+  // band is the page's light as one family across, as the ember is the
+  // house's.
+  const adjacent = "photo" in source && Boolean(source.edge);
+  const column = !room && !designed;
+  const whole = column && !adjacent;
   const w = width ?? 600;
-  const r = reach ?? (room ? 120 : 56);
-  const spent = spentOf(r);
-  const bind = designedOf(source) ? 0 : adjacent ? 0.55 : 0.8;
-  const mask = decayOf(ground, spent);
   const o = Math.min(1, strength);
+  const r = room ? (reach ?? 120) : bandOf(reach ?? 56, o);
+  const bind = designed
+    ? 0
+    : adjacent
+      ? room
+        ? 0.55
+        : 0.3
+      : whole
+        ? 0.85
+        : 0.8;
+  const draw = edgeDraw(ground, whole ? w * 1.5 : w, r, bind, column);
+  const mask = room ? ROOM_DECAY : paperDecay(r);
   return (
     <div
       aria-hidden
@@ -631,20 +731,15 @@ function Seam({
       data-ground={ground}
       style={{ height: r, ...style }}
     >
-      <LightFilter id={id} d={edgeDraw(ground, w, r, bind)} w={w} h={r} />
+      <LightFilter id={id} d={draw} w={w} h={r} />
       <span
         className="ct-edge"
         style={{
-          ...edgeOf(source, r),
-          opacity: o * (room ? 0.95 : 0.88),
+          ...(column ? fieldOf(source, "strip") : edgeOf(source, r)),
+          opacity: room ? o * 0.95 : 0.94,
           filter: `url(#${id})`,
           WebkitMaskImage: mask,
           maskImage: mask,
-          // On paper the edge's colours land a little to the right of where
-          // they stand: the key light is at the top-left.
-          transform: room
-            ? "scaleY(-1)"
-            : `translateX(${r1(spent * 0.25)}px) scaleY(-1)`,
         }}
       />
       {room ? (
@@ -664,6 +759,42 @@ function Seam({
   );
 }
 
+/**
+ * ONE PHOTOGRAPH'S BAND ON PAPER, under a wall: its own filter over its own
+ * box, so it reads its photograph alone. ★ A shared filter over the whole
+ * row blurs each band into its neighbours, and the short band's strong push
+ * turns that bleed into flecks of the wrong colour.
+ */
+function PaperTile({ t, r, i }: { t: Tile; r: number; i: number }) {
+  const id = `${useFid()}t${i}`;
+  const d: Draw = {
+    // Wide along it, so the band is calm; to its own whole colour a little.
+    merge: t.w * 0.14,
+    mergeY: r * 3,
+    wide: t.w * 0.5,
+    bind: 0.3,
+    register: PAPER_DENSE,
+    dx: 0,
+    dy: 0,
+    grow: 0,
+    soft: 0,
+  };
+  return (
+    <>
+      <LightFilter id={id} d={d} w={t.w} h={r} />
+      <span
+        className="ct-edge-tile"
+        style={{
+          left: t.x,
+          width: t.w,
+          background: `url(${srcOf(t.id)}) 50% 50% / 100% 100% no-repeat`,
+          filter: `url(#${id})`,
+        }}
+      />
+    </>
+  );
+}
+
 function WallSeam({
   tiles,
   width,
@@ -674,17 +805,17 @@ function WallSeam({
 }: WallSeamProps) {
   const id = useFid();
   const room = ground === "room";
-  const r = reach ?? (room ? 120 : 56);
-  const spent = spentOf(r);
+  const o = Math.min(1, strength);
+  const r = room ? (reach ?? 120) : bandOf(reach ?? 56, o);
   const unit =
     tiles.reduce((s, t) => s + t.w, 0) / Math.max(1, tiles.length) || width;
   const tall = Math.round(r / EDGE_SLICE);
-  const o = Math.min(1, strength);
   // In the room each photograph's light pools under it and spends itself
   // fast (the shared wall's own pools, flipped with the field: its local foot
-  // is the edge); on paper each casts down and a little right, one short
-  // shadow under the wall (a gap's few px vanish in its penumbra).
-  const pools = room
+  // is the edge). On paper each photograph lays its own short band under it,
+  // its columns' whole colour (as the single Seam's), broken where the wall's
+  // gaps are.
+  const mask = room
     ? [
         ...tiles.map(
           (t) =>
@@ -692,7 +823,7 @@ function WallSeam({
         ),
         "linear-gradient(to top, rgb(0 0 0 / 0.55) 0%, rgb(0 0 0 / 0.14) 16%, transparent 34%)",
       ].join(", ")
-    : decayOf("paper", spent);
+    : paperDecay(r);
   const strip = (t: Tile, cls: string, size: string) => (
     <span
       key={`${t.id}-${Math.round(t.x)}`}
@@ -712,25 +843,28 @@ function WallSeam({
       data-ground={ground}
       style={{ height: r, ...style }}
     >
-      <LightFilter
-        id={id}
-        d={edgeDraw(ground, unit, r, 0.45)}
-        w={width}
-        h={r}
-      />
+      {room ? (
+        <LightFilter
+          id={id}
+          d={edgeDraw("room", unit, r, 0.45)}
+          w={width}
+          h={r}
+        />
+      ) : null}
       <span
         className="ct-edge"
         style={{
-          opacity: o * (room ? 0.95 : 0.88),
-          filter: `url(#${id})`,
-          WebkitMaskImage: pools,
-          maskImage: pools,
-          transform: room
-            ? "scaleY(-1)"
-            : `translateX(${r1(spent * 0.25)}px) scaleY(-1)`,
+          opacity: room ? o * 0.95 : 0.94,
+          filter: room ? `url(#${id})` : undefined,
+          WebkitMaskImage: mask,
+          maskImage: mask,
         }}
       >
-        {tiles.map((t) => strip(t, "ct-edge-tile", `100% ${tall}px`))}
+        {room
+          ? tiles.map((t) => strip(t, "ct-edge-tile", `100% ${tall}px`))
+          : tiles.map((t, i) => (
+              <PaperTile key={`${t.id}-${Math.round(t.x)}`} t={t} r={r} i={i} />
+            ))}
       </span>
       {room ? (
         <>
@@ -760,6 +894,7 @@ function Ring({
   style,
 }: RingProps) {
   const id = useFid();
+  const room = ground === "room";
   // The face's proportions are the room ring's own (`RoomRing`), so a slide
   // lays every take's Add out the same way.
   const band = Math.max(2, Math.round(size * 0.05 * 2) / 2);
@@ -768,35 +903,37 @@ function Ring({
   const ring = size + out * 2;
   const designed = designedOf(source);
   const field = fieldOf(source, "cover");
+  // ★ THE BAND IS LIGHT, NEVER METAL: each photograph's own colour round the
+  // ring (bound only a little), never one gold, which reads as a coin.
   const bandDraw: Draw = {
     merge: ring * 0.12,
     wide: ring * 0.6,
-    bind: designed ? 0 : 0.4,
-    register: ground === "room" ? BAND_ROOM : BAND_PAPER,
+    bind: designed ? 0 : room ? 0.4 : 0.15,
+    register: BAND,
     dx: 0,
     dy: 0,
     grow: 0,
     soft: 0,
   };
-  // The room: a glow round the band. Paper: the band's colours fall down and
-  // to the right, a crescent of coloured light past the face.
-  const lightDraw: Draw =
-    ground === "room"
-      ? {
-          ...glowOf(ring, designed),
-          dy: ring * 0.04,
-          grow: 0,
-          soft: ring * 0.2,
-        }
-      : {
-          ...fallOf(ring, designed),
-          merge: ring * 0.15,
-          // So small a light casts the album's overall colour, one family.
-          bind: designed ? 0 : 0.85,
-          dx: ring * 0.07,
-          dy: ring * 0.13,
-          soft: ring * 0.075,
-        };
+  // The room: a glow round the band. Paper: the album's colour falls past
+  // the disc, down and to the right, short and dense.
+  const lightDraw: Draw = room
+    ? {
+        ...glowOf(ring, designed),
+        dy: ring * 0.04,
+        grow: 0,
+        soft: ring * 0.2,
+      }
+    : {
+        ...fallOf(ring, designed),
+        merge: ring * 0.15,
+        // So small a light casts the album's overall colour, one family.
+        bind: designed ? 0 : 0.85,
+        register: designed ? PAPER_DEEP : PAPER_DENSE,
+        dx: ring * 0.05,
+        dy: ring * 0.1,
+        soft: ring * 0.045,
+      };
   const sending = progress !== undefined;
   const vars: Vars = {
     width: size,
@@ -822,6 +959,9 @@ function Ring({
         className="ct-ring-light"
         style={{ ...field, filter: `url(#${id}l)` }}
       />
+      {/* On paper the band sits on its own dark disc, its gap dark too: light
+          only reads as light against the dark. */}
+      {room ? null : <span className="ct-ring-disc" />}
       <span
         className="ct-ring-band"
         data-part="track"
@@ -834,7 +974,7 @@ function Ring({
           style={{ ...field, filter: `url(#${id}b)` }}
         />
       ) : null}
-      <span className="ct-ring-shade" />
+      {room ? <span className="ct-ring-shade" /> : null}
       <span className="ct-ring-face">
         <ShutterGlyph glyph={glyph} size={size * 0.36} />
       </span>
@@ -852,37 +992,41 @@ function SeedCover({ seed, ground, children, className, style }: SeedProps) {
         {children}
       </RoomSeed>
     );
-  // On paper the seed is an object: production's hashvatar as an orb in the
-  // empty cover, lit from the top-left like everything else, casting its own
-  // colour down and to the right through the take's filter. Its light falls
-  // from something, never a wash across the cover.
+  // On paper the seed is a flat disc of its own colour in the empty cover,
+  // printed, with no gloss, casting its colour down and to the right through
+  // the take's filter. Its light falls from something, never a wash.
   const w = typeof style?.width === "number" ? style.width : 240;
   const h = typeof style?.height === "number" ? style.height : 160;
-  const orb = Math.round(Math.min(w, h) * 0.46);
+  const disc = Math.round(Math.min(w, h) * 0.42);
+  // The seed's body colour, its yellows lifted as the house lifts its lamps
+  // (a yellow at the body's lightness is bronze, never gold), never olive.
+  const body = orbFor(seed).body;
+  const hue = unOlive(body.h);
+  const colour = tone(
+    Math.min(0.8, body.l + 0.12 * yellowness(hue)),
+    body.c,
+    hue,
+  ).hex;
   const d: Draw = {
-    merge: orb * 0.2,
-    wide: orb * 0.6,
+    merge: 1,
+    wide: 1,
     bind: 0,
     register: PAPER_DEEP,
-    dx: orb * 0.09,
-    dy: orb * 0.17,
+    dx: disc * 0.07,
+    dy: disc * 0.13,
     grow: 0,
-    soft: orb * 0.1,
+    soft: disc * 0.06,
   };
-  const mesh = seedField(seed);
+  const at: CSSProperties = { width: disc, height: disc, background: colour };
   return (
     <div data-bd-seed={seed} className={cn("ct-seed", className)} style={style}>
-      <LightFilter id={id} d={d} w={orb} h={orb} />
+      <LightFilter id={id} d={d} w={disc} h={disc} />
       <span
         aria-hidden
         className="ct-seed-fall"
-        style={{ ...mesh, width: orb, height: orb, filter: `url(#${id})` }}
+        style={{ ...at, filter: `url(#${id})` }}
       />
-      <span
-        aria-hidden
-        className="ct-seed-orb"
-        style={{ ...mesh, width: orb, height: orb }}
-      />
+      <span aria-hidden className="ct-seed-disc" style={at} />
       {children}
     </div>
   );
@@ -890,18 +1034,18 @@ function SeedCover({ seed, ground, children, className, style }: SeedProps) {
 
 /* ── the marks ─────────────────────────────────────────────────────────────── */
 
-/** The house sky's four stops, its lit edge first. */
-const SKY = DUSK.map((s) => tone(s.l, s.c, s.h).oklch);
+/** The house ember's four stops, its lit edge first. */
+const EMBER = DUSK.map((s) => tone(s.l, s.c, s.h).oklch);
 
-/** The printed face's lightness, the band's shadow side falls toward it. */
+/** The printed face's lightness: the band's shadow side falls toward it. */
 const FACE_L = 0.2;
 
 /**
- * THE RING PRINTED ON PAPER: the house sky walked round the band from the key
- * light, a step deeper than the room's so its lit arc holds on white (a light
- * amber on paper is the washed-out zone), and dimmed toward the dark face on
- * its shadow side rather than toward the page, so no part of it goes pastel:
- * a gold arc at the top-left, through coral and rose, into plum.
+ * THE RING PRINTED ON PAPER: the house ember walked round the band from the
+ * key light, a step deeper than the room's so its lit arc holds on white (a
+ * light amber on paper is the washed-out zone), and dimmed toward the dark
+ * face on its shadow side rather than toward the page, so no part of it goes
+ * pastel: a gold arc at the top-left, through coral, into a deep ember.
  */
 function printBand(deg: number, floor: number): string {
   const d = Math.abs(((((deg - KEY) % 360) + 540) % 360) - 180);
@@ -923,54 +1067,44 @@ function printBand(deg: number, floor: number): string {
 }
 
 /**
- * THE ICON'S FALL, drawn on the paper tile under the ring (`RingIcon`'s
- * `under`): the ring's outer disc, offset down and to the right and softened,
- * filled with the house sky from the ring's edge outward, so the warm key
- * light lands first and spends itself to violet. It lands only outside the
- * ring: the gap between band and face stays the tile.
+ * THE SYMBOL PRINTED: a flat dark disc, a hairline of paper, the band in the
+ * printed ember. ★ CRISP, NO CAST: at a lockup's size any fall reads as a
+ * smudge or a misregistered plate, so the printed symbol is the one paper
+ * form with no light past it. Its box is the ring's outer diameter, as the
+ * room's symbol's is.
  */
-function IconFall({ size, optics }: { size: number; optics?: number }) {
-  const id = useFid();
-  const o = iconOptics(optics ?? size);
-  const outer = (o.rDisc + o.gap + o.band) * 1024;
-  const far = outer + 150;
+function PrintedSymbol({ size }: { size: number }) {
+  const small = size < 40;
+  const art = useMemo(() => {
+    const r1o = 320;
+    const band = small ? 62 : 44;
+    const gap = small ? 30 : 24;
+    const r0 = r1o - band;
+    return {
+      rD: r0 - gap,
+      ring: wedges(512, r0, r1o, small ? 90 : 200, (deg) =>
+        printBand(deg, small ? 0.45 : 0.36),
+      ),
+    };
+  }, [small]);
   return (
-    <>
-      <defs>
-        <mask id={`${id}m`} maskUnits="userSpaceOnUse" x={0} y={0} width={1024} height={1024}>
-          <rect width={1024} height={1024} fill="#fff" />
-          <circle cx={512} cy={512} r={outer - 2} fill="#000" />
-        </mask>
-        <radialGradient
-          id={`${id}g`}
-          gradientUnits="userSpaceOnUse"
-          cx={512}
-          cy={512}
-          r={far}
-        >
-          <stop offset={outer / far} stopColor={SKY[0]} />
-          <stop offset={(outer + 45) / far} stopColor={SKY[1]} />
-          <stop offset={(outer + 95) / far} stopColor={SKY[2]} />
-          <stop offset={1} stopColor={SKY[3]} />
-        </radialGradient>
-        <filter id={`${id}f`} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation={outer * 0.15} />
-        </filter>
-      </defs>
-      <g mask={`url(#${id}m)`} style={{ mixBlendMode: "multiply" }}>
-        <g filter={`url(#${id}f)`}>
-          <circle
-            cx={512 + outer * 0.13}
-            cy={512 + outer * 0.25}
-            r={outer}
-            fill={`url(#${id}g)`}
-            opacity={0.92}
-          />
-        </g>
-      </g>
-    </>
+    <svg
+      aria-hidden
+      viewBox="192 192 640 640"
+      width={size}
+      height={size}
+      style={{ display: "block", flexShrink: 0 }}
+    >
+      {art.ring.map((w, i) => (
+        <path key={i} d={w.d} fill={w.fill} />
+      ))}
+      <circle cx={512} cy={512} r={art.rD} fill="#18181b" />
+    </svg>
   );
 }
+
+/** The ember's warm side, for the icon's cast: amber into coral, never its brown end. */
+const WARM = `linear-gradient(in oklab 135deg, ${EMBER[0]} 0%, ${EMBER[1]} 45%, ${EMBER[2]} 100%)`;
 
 function AppIcon({
   size = 180,
@@ -980,6 +1114,7 @@ function AppIcon({
   className,
   style,
 }: IconProps) {
+  const id = useFid();
   if (appearance !== "paper")
     return (
       <RingIcon
@@ -991,21 +1126,42 @@ function AppIcon({
         style={style}
       />
     );
-  // Printed: a light tile, the ring printed deep with no glow (a glow on
-  // white is the stain), and its warm light falling past it inside the tile.
-  const floor = Math.max(0.35, iconOptics(optics ?? size).floor);
+  // On paper the icon keeps its dark room tile, the ring lit inside it, and
+  // the tile casts the ring's warm colour down and to the right onto the
+  // paper under it: short, dense, darker than the page.
+  const d: Draw = {
+    merge: size * 0.06,
+    wide: size * 0.3,
+    bind: 0,
+    register: PAPER,
+    dx: size * 0.03,
+    dy: size * 0.06,
+    grow: 0,
+    soft: size * 0.032,
+  };
   return (
-    <RingIcon
-      size={size}
-      appearance="paper"
-      optics={optics}
-      read={read}
-      glow={false}
-      ring={(deg) => printBand(deg, floor)}
-      under={<IconFall size={size} optics={optics} />}
-      className={className}
-      style={style}
-    />
+    <span
+      className={cn("ct-icon", className)}
+      style={{ width: size, height: size, ...style }}
+    >
+      <LightFilter id={id} d={d} w={size} h={size} />
+      <span
+        aria-hidden
+        className="ct-icon-cast"
+        style={{
+          backgroundImage: WARM,
+          borderRadius: Math.round(size * 0.225),
+          filter: `url(#${id})`,
+        }}
+      />
+      <RingIcon
+        size={size}
+        appearance="room"
+        optics={optics}
+        read={read}
+        className="ct-icon-tile"
+      />
+    </span>
   );
 }
 
@@ -1019,31 +1175,12 @@ function Mark({ size = 40, ground, className, style }: SymbolProps) {
         style={style}
       />
     );
-  // On paper the ring is printed deep and its warm light falls past it, the
-  // sky from the ring's edge outward (the centre sits back up and left of
-  // the fall's own box, where the ring is).
-  const px = (k: number) => `${Math.round(size * k)}px`;
-  const floor = size < 40 ? 0.42 : 0.35;
-  const vars: Vars = {
-    width: size,
-    height: size,
-    "--ct-fall": `radial-gradient(circle at 43% 37%, ${SKY[0]} ${px(0.5)}, ${SKY[1]} ${px(0.6)}, ${SKY[2]} ${px(0.7)}, ${SKY[3]} ${px(0.85)})`,
-    // Only outside the ring (where it is, up and left of the fall's box).
-    "--ct-hole": `radial-gradient(circle at 43% 37%, transparent ${px(0.49)}, #000 ${px(0.5)})`,
-    "--ct-soft": `${Math.max(1.5, size * 0.075)}px`,
-    ...style,
-  };
   return (
-    <span className={cn("ct-mark", className)} style={vars}>
-      <span aria-hidden className="ct-mark-fall" />
-      <span className="ct-centre">
-        <RingSymbol
-          size={size}
-          appearance="paper"
-          glow={false}
-          ring={(deg) => printBand(deg, floor)}
-        />
-      </span>
+    <span
+      className={cn("ct-mark", className)}
+      style={{ width: size, height: size, ...style }}
+    >
+      <PrintedSymbol size={size} />
     </span>
   );
 }
@@ -1059,50 +1196,71 @@ function Receipt({
   style,
 }: ReceiptProps) {
   const id = useFid();
-  const designed = designedOf(source);
   const field = fieldOf(source, "strip", "90deg");
+  if (ground === "paper") {
+    // On paper, a crisp strip printed where the light came from, the Seam's
+    // own construction small: the photograph's edge run along it at print
+    // density, so a pale photograph never prints pale. ★ Never its columns
+    // averaged: a blue sky over yellow flowers averages to a green the
+    // photograph never shows. No halo, no cast. The seed and the ember print
+    // as they are.
+    const print: Draw = {
+      merge: Math.max(2, width * 0.05),
+      mergeY: height,
+      wide: width * 0.5,
+      bind: 0.2,
+      register: PAPER_DENSE,
+      dx: 0,
+      dy: 0,
+      grow: 0,
+      soft: 0,
+    };
+    const designed = designedOf(source);
+    return (
+      <div
+        className={cn("ct-receipt", className)}
+        data-ground="paper"
+        style={{ width, height, ...style }}
+      >
+        {designed ? null : (
+          <LightFilter id={id} d={print} w={width} h={height} />
+        )}
+        <span className="ct-receipt-strip" style={{ borderRadius: height / 2 }}>
+          <span
+            style={
+              designed
+                ? field
+                : {
+                    ...edgeOf(source, height),
+                    transform: "scaleY(-1)",
+                    filter: `url(#${id})`,
+                  }
+            }
+          />
+        </span>
+      </div>
+    );
+  }
   const strip: Draw = {
     merge: Math.max(3, height * 1.2),
     wide: width * 0.5,
     // One family, as small as it is: half the photograph's whole colour.
-    bind: designed ? 0 : 0.5,
-    register: ground === "room" ? BAND_ROOM : BAND_PAPER,
+    bind: designedOf(source) ? 0 : 0.5,
+    register: BAND,
     dx: 0,
     dy: 0,
     grow: 0,
     soft: 0,
   };
-  const fall: Draw = {
-    ...strip,
-    bind: designed ? 0 : 0.5,
-    register: designed ? PAPER_DEEP : PAPER,
-    dx: height * 0.3,
-    dy: height * 0.7,
-    soft: height * 0.55,
-  };
   return (
     <div
       className={cn("ct-receipt", className)}
-      data-ground={ground}
+      data-ground="room"
       style={{ width, height, ...style }}
     >
-      <LightFilter id={`${id}s`} d={strip} w={width} h={height} />
-      {ground === "paper" ? (
-        <>
-          <LightFilter id={`${id}f`} d={fall} w={width} h={height} />
-          <span
-            aria-hidden
-            className="ct-receipt-fall"
-            style={{
-              ...field,
-              borderRadius: height / 2,
-              filter: `url(#${id}f)`,
-            }}
-          />
-        </>
-      ) : null}
+      <LightFilter id={id} d={strip} w={width} h={height} />
       <span className="ct-receipt-strip" style={{ borderRadius: height / 2 }}>
-        <span style={{ ...field, filter: `url(#${id}s)` }} />
+        <span style={{ ...field, filter: `url(#${id})` }} />
       </span>
     </div>
   );

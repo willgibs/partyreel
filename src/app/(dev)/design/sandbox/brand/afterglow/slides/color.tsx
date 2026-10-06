@@ -18,7 +18,7 @@ import {
 } from "../system";
 import { groundOf, inkOf, useTake } from "../take";
 import { CUT, useHairline, usePaperTop } from "./a-parts";
-import { Label, useMeasure } from "./parts";
+import { useMeasure } from "./parts";
 
 /**
  * 04 COLOUR AND STATUS: THE GROUNDS, WHERE COLOUR COMES FROM, AND A STATE.
@@ -26,9 +26,13 @@ import { Label, useMeasure } from "./parts";
  * One table read across the cut: every row is drawn in the room on the left
  * and on this take's paper on the right, so each thing meets its paper form
  * on one line. The grounds and their three inks; colour's three sources in
- * their order (the photographs, the seed, the house's one dusk sky), each
- * lit by the take's own Ring and receipt on both grounds; and status, a
- * point and its word, never a light.
+ * their order (the photographs, the seed, the house's one ember), each lit by
+ * the take's own Ring and receipt on both grounds; and status, a point and
+ * its word, never a light.
+ *
+ * ★ PAPER BREATHES (the creative director's pass): the paper column carries
+ * no heads and no values, only each thing's paper form and the take's one
+ * line about it; a ground's oklch is printed on the two grounds alone.
  */
 
 /** A photograph whose light is plainly two of its own colours: the hall's blue bunting and its warm wood. */
@@ -57,7 +61,7 @@ const SOURCES: readonly SourceRow[] = [
   {
     key: "house",
     name: "The house",
-    line: "Where there is neither: one dusk sky, never a spectrum.",
+    line: "Where there is neither: the icon's own ember, never a spectrum.",
     source: { house: true },
   },
 ];
@@ -70,14 +74,7 @@ const STATES: readonly { id: StatusId; word: string }[] = [
 
 const short = (t: Tone) => `oklch ${t.l} ${t.c} ${t.h}`;
 
-/** A state's value on a ground, as the system writes it (`terse` where a phone's line is short). */
-const valueOf = (id: StatusId, g: Ground, terse = false) => {
-  const v = STATUS[id][g];
-  if (v) return short(v);
-  return terse ? "No hue" : "No hue: the ground's ink";
-};
-
-/** The source itself, drawn: its photograph, its seed's orb, or the one sky. */
+/** The source itself, drawn: its photograph, its seed's orb, or the one ember. */
 function SourceArt({ row, w, h }: { row: SourceRow; w: number; h: number }) {
   if (row.key === "photo")
     return (
@@ -92,11 +89,11 @@ function SourceArt({ row, w, h }: { row: SourceRow; w: number; h: number }) {
         <Seeded seed={PARTY.seed} style={{ width: h, height: h }} />
       </div>
     );
-  // The house is ONE sky, lit from the key at the top-left and spent to
-  // violet in its shadow: never five lamps laid side by side.
+  // The house is ONE ember, lit from the key at the top-left and deepening
+  // as it turns away: one strip in one direction, never lamps side by side.
   return (
     <div
-      aria-label="The house's dusk sky"
+      aria-label="The house's ember"
       role="img"
       style={{
         width: w,
@@ -109,22 +106,23 @@ function SourceArt({ row, w, h }: { row: SourceRow; w: number; h: number }) {
 }
 
 /**
- * A GROUND'S SWATCH: the tone itself, its name and its oklch inside it in the
- * ground's own inks, and where it is the ground words sit on, the three ink
- * steps set on it as "Aa".
+ * A GROUND'S SWATCH: the tone itself and its name inside it in the ground's
+ * own inks. Where it is the ground words sit on, it also carries the three
+ * ink steps as "Aa" and its one oklch value.
  */
 function Swatch({
   name,
   tone,
   ground,
-  inks,
+  main,
   w,
   h,
 }: {
   name: string;
   tone: Tone;
   ground: Ground;
-  inks?: boolean;
+  /** The ground itself: its inks and its value are printed on it. */
+  main?: boolean;
   w: number;
   h: number;
 }) {
@@ -142,7 +140,7 @@ function Swatch({
         boxShadow: `inset 0 0 0 1px ${edge}`,
       }}
     >
-      {inks ? (
+      {main ? (
         <span
           className="absolute flex items-baseline"
           style={{ left: 14, top: 10, gap: 10 }}
@@ -165,17 +163,19 @@ function Swatch({
         >
           {name}
         </span>
-        <span
-          className="ag-num block"
-          style={{
-            color: t.faint,
-            fontSize: 11,
-            letterSpacing: "0.01em",
-            marginTop: 1,
-          }}
-        >
-          {short(tone)}
-        </span>
+        {main ? (
+          <span
+            className="ag-num block"
+            style={{
+              color: t.faint,
+              fontSize: 11,
+              letterSpacing: "0.01em",
+              marginTop: 1,
+            }}
+          >
+            {short(tone)}
+          </span>
+        ) : null}
       </span>
     </div>
   );
@@ -204,20 +204,24 @@ function Lit({
   );
 }
 
-/** A small column head over a table's column. */
-function Head({
-  ground,
+/** One of the slide's two statements, set as a heading over its rows (never a label in capitals). */
+function Statement({
   children,
+  size,
   style,
 }: {
-  ground: Ground;
   children: ReactNode;
+  size: number;
   style?: CSSProperties;
 }) {
+  const t = inkOf(useTake(), "room");
   return (
-    <Label ground={ground} style={{ position: "absolute", ...style }}>
+    <p
+      className="ag-subtitle"
+      style={{ fontSize: size, color: t.fg, ...style }}
+    >
       {children}
-    </Label>
+    </p>
   );
 }
 
@@ -236,15 +240,18 @@ export function ColorSlide({ screen }: SlideProps) {
     const rw = CUT - m.pad - 56;
     const pw = m.w - m.pad - px;
     // Three bands, each read across the cut.
-    const a = m.top;
-    const b = a + 176;
-    const c = b + 368;
     const swH = 96;
+    const b = m.top + swH + 48;
+    const rows = b + 40;
+    const rowH = 100;
+    const c = rows + rowH * 3 + 44;
+    const states = c + 40;
+    const stateH = 40;
     const art = { w: 120, h: 80 };
-    const rowH = 104;
-    const ring = 48;
-    // The paper forms keep a column of their own; the take's line stands beside it.
-    const fw = 252;
+    const ring = 40;
+    // The paper forms keep a column of their own; the take's line stands
+    // beside it, with air between.
+    const fw = 236;
     return (
       <SlideRoot screen={screen} ground="room">
         <div
@@ -259,12 +266,9 @@ export function ColorSlide({ screen }: SlideProps) {
         />
 
         {/* The grounds. */}
-        <Head ground="room" style={{ left: m.pad, top: a }}>
-          The grounds · the room
-        </Head>
         <div
           className="absolute flex"
-          style={{ left: m.pad, top: a + 28, gap: 16 }}
+          style={{ left: m.pad, top: m.top, gap: 16 }}
         >
           {(
             [
@@ -273,51 +277,48 @@ export function ColorSlide({ screen }: SlideProps) {
               ["Display", ROOM.display, false],
               ["Well", ROOM.well, false],
             ] as const
-          ).map(([name, tone, inks]) => (
+          ).map(([name, tone, main]) => (
             <Swatch
               key={name}
               name={name}
               tone={tone}
               ground="room"
-              inks={inks}
+              main={main}
               w={(rw - 48) / 4}
               h={swH}
             />
           ))}
         </div>
-        <Head ground="paper" style={{ left: px, top: a }}>
-          Paper · {take.paper.name}
-        </Head>
         <div
           className="absolute flex"
-          style={{ left: px, top: a + 28, gap: 16 }}
+          style={{ left: px, top: m.top, gap: 16 }}
         >
           <Swatch
-            name="Paper"
+            name={`Paper · ${take.paper.name}`}
             tone={take.paper.ground}
             ground="paper"
-            inks
-            w={(pw - 16) / 2}
+            main
+            w={Math.round((pw - 16) * 0.58)}
             h={swH}
           />
           <Swatch
             name="Card"
             tone={take.paper.card}
             ground="paper"
-            w={(pw - 16) / 2}
+            w={Math.round((pw - 16) * 0.42)}
             h={swH}
           />
         </div>
 
         {/* Colour is light, and it has a source. */}
-        <Head ground="room" style={{ left: m.pad, top: b }}>
-          Colour is light, and it has a source
-        </Head>
-        <Head ground="paper" style={{ left: px, top: b }}>
-          The same sources on paper
-        </Head>
+        <Statement
+          size={19}
+          style={{ position: "absolute", left: m.pad, top: b }}
+        >
+          Colour is light, and it has a source.
+        </Statement>
         {SOURCES.map((row, i) => {
-          const y = b + 30 + i * rowH;
+          const y = rows + i * rowH;
           return (
             <div key={row.key}>
               <div
@@ -332,7 +333,7 @@ export function ColorSlide({ screen }: SlideProps) {
                 }}
               >
                 <SourceArt row={row} w={art.w} h={art.h} />
-                <div style={{ width: 268 }}>
+                <div style={{ width: 270 }}>
                   <p
                     className="ag-subtitle"
                     style={{ fontSize: 17, color: room.fg }}
@@ -383,7 +384,7 @@ export function ColorSlide({ screen }: SlideProps) {
                     ground="paper"
                     ring={ring}
                     receipt={104}
-                    gap={38}
+                    gap={36}
                   />
                 </div>
               </div>
@@ -391,11 +392,29 @@ export function ColorSlide({ screen }: SlideProps) {
           );
         })}
         <div
+          className="absolute"
+          style={{
+            left: m.pad,
+            top: rows + rowH * 3,
+            width: rw,
+            borderTop: `1px solid ${roomRule}`,
+          }}
+        />
+        <div
+          className="absolute"
+          style={{
+            left: px,
+            top: rows + rowH * 3,
+            width: fw,
+            borderTop: `1px solid ${paperRule}`,
+          }}
+        />
+        <div
           className="absolute flex items-center"
           style={{
-            left: px + fw + 32,
-            top: b + 30,
-            width: pw - fw - 32,
+            left: px + fw + 44,
+            top: rows,
+            width: pw - fw - 44,
             height: rowH * 3,
           }}
         >
@@ -411,34 +430,16 @@ export function ColorSlide({ screen }: SlideProps) {
             {take.words.colourPaper}
           </p>
         </div>
-        <div
-          className="absolute"
-          style={{
-            left: px,
-            top: b + 30 + rowH * 3,
-            width: fw,
-            borderTop: `1px solid ${paperRule}`,
-          }}
-        />
-        <div
-          className="absolute"
-          style={{
-            left: m.pad,
-            top: b + 30 + rowH * 3,
-            width: rw,
-            borderTop: `1px solid ${roomRule}`,
-          }}
-        />
 
         {/* Status: a point and its word. */}
-        <Head ground="room" style={{ left: m.pad, top: c }}>
-          Status is a point and its word
-        </Head>
-        <Head ground="paper" style={{ left: px, top: c }}>
-          The same states on paper
-        </Head>
+        <Statement
+          size={19}
+          style={{ position: "absolute", left: m.pad, top: c }}
+        >
+          Status is a point and its word.
+        </Statement>
         {STATES.map((s, i) => {
-          const y = c + 30 + i * 40;
+          const y = states + i * stateH;
           const st = STATUS[s.id];
           return (
             <div key={s.id}>
@@ -448,11 +449,11 @@ export function ColorSlide({ screen }: SlideProps) {
                   left: m.pad,
                   top: y,
                   width: rw,
-                  height: 40,
+                  height: stateH,
                   borderTop: `1px solid ${roomRule}`,
                 }}
               >
-                <span style={{ width: 196 }}>
+                <span style={{ width: 210 }}>
                   <StatusLight state={s.id} ground="room">
                     {s.word}
                   </StatusLight>
@@ -460,7 +461,7 @@ export function ColorSlide({ screen }: SlideProps) {
                 <span
                   className="ag-body"
                   style={{
-                    width: 82,
+                    width: 92,
                     fontSize: 14,
                     fontWeight: 600,
                     color: room.fg,
@@ -474,53 +475,29 @@ export function ColorSlide({ screen }: SlideProps) {
                 >
                   {st.means}
                 </span>
-                <span
-                  className="ag-num"
-                  style={{
-                    width: 150,
-                    fontSize: 12,
-                    color: room.faint,
-                    textAlign: "right",
-                  }}
-                >
-                  {valueOf(s.id, "room")}
-                </span>
               </div>
               <div
                 className="absolute flex items-center"
                 style={{
                   left: px,
                   top: y,
-                  width: pw,
-                  height: 40,
+                  width: fw,
+                  height: stateH,
                   borderTop: `1px solid ${paperRule}`,
                 }}
               >
-                <span style={{ width: 220 }}>
-                  <StatusLight
-                    state={s.id}
-                    ground="paper"
-                    contrast={
-                      s.id === "ready" ? "ready point on paper" : undefined
-                    }
-                    wordContrast={
-                      s.id === "standby" ? "status word on paper" : undefined
-                    }
-                  >
-                    {s.word}
-                  </StatusLight>
-                </span>
-                <span
-                  className="ag-num"
-                  style={{
-                    flex: 1,
-                    fontSize: 12,
-                    color: paper.faint,
-                    textAlign: "right",
-                  }}
+                <StatusLight
+                  state={s.id}
+                  ground="paper"
+                  contrast={
+                    s.id === "ready" ? "ready point on paper" : undefined
+                  }
+                  wordContrast={
+                    s.id === "standby" ? "status word on paper" : undefined
+                  }
                 >
-                  {valueOf(s.id, "paper")}
-                </span>
+                  {s.word}
+                </StatusLight>
               </div>
             </div>
           );
@@ -529,7 +506,7 @@ export function ColorSlide({ screen }: SlideProps) {
           className="absolute"
           style={{
             left: m.pad,
-            top: c + 30 + 3 * 40,
+            top: states + stateH * 3,
             width: rw,
             borderTop: `1px solid ${roomRule}`,
           }}
@@ -538,8 +515,8 @@ export function ColorSlide({ screen }: SlideProps) {
           className="absolute"
           style={{
             left: px,
-            top: c + 30 + 3 * 40,
-            width: pw,
+            top: states + stateH * 3,
+            width: fw,
             borderTop: `1px solid ${paperRule}`,
           }}
         />
@@ -547,7 +524,7 @@ export function ColorSlide({ screen }: SlideProps) {
           className="ag-caption absolute"
           style={{
             left: m.pad,
-            top: c + 30 + 3 * 40 + 14,
+            top: states + stateH * 3 + 14,
             width: rw,
             color: room.faint,
           }}
@@ -560,8 +537,8 @@ export function ColorSlide({ screen }: SlideProps) {
   }
 
   // The phone: the room above, every row in its room form; the cut; paper
-  // below, every row in its paper form.
-  const cut = 1010;
+  // below, every row in its paper form, with the air paper is given.
+  const cut = 1016;
   const sw = (m.inner - 14) / 2;
   return (
     <SlideRoot screen={screen} ground="room">
@@ -573,37 +550,36 @@ export function ColorSlide({ screen }: SlideProps) {
         className="absolute flex flex-col"
         style={{ left: m.pad, top: m.top, width: m.inner }}
       >
-        <Label ground="room">The grounds · the room</Label>
-        <div className="grid grid-cols-2" style={{ gap: 14, marginTop: 14 }}>
+        <div className="grid grid-cols-2" style={{ gap: 14 }}>
           <Swatch
             name="Room"
             tone={ROOM.room}
             ground="room"
-            inks
+            main
             w={sw}
-            h={86}
+            h={90}
           />
-          <Swatch name="Card" tone={ROOM.card} ground="room" w={sw} h={86} />
+          <Swatch name="Card" tone={ROOM.card} ground="room" w={sw} h={90} />
           <Swatch
             name="Display"
             tone={ROOM.display}
             ground="room"
             w={sw}
-            h={86}
+            h={90}
           />
-          <Swatch name="Well" tone={ROOM.well} ground="room" w={sw} h={86} />
+          <Swatch name="Well" tone={ROOM.well} ground="room" w={sw} h={90} />
         </div>
-        <Label ground="room" style={{ marginTop: 40 }}>
-          Colour is light, and it has a source
-        </Label>
-        <div className="flex flex-col" style={{ marginTop: 12 }}>
+        <Statement size={18} style={{ marginTop: 42 }}>
+          Colour is light, and it has a source.
+        </Statement>
+        <div className="flex flex-col" style={{ marginTop: 14 }}>
           {SOURCES.map((row, i) => (
             <div
               key={row.key}
               className="flex items-center"
               style={{
                 gap: 14,
-                padding: "14px 0",
+                padding: "15px 0",
                 borderTop: `1px solid ${roomRule}`,
               }}
             >
@@ -634,34 +610,26 @@ export function ColorSlide({ screen }: SlideProps) {
                 </p>
               </div>
               <div style={{ marginRight: 8 }}>
-                <Ring source={row.source} ground="room" size={34} glyph="add" />
+                <Ring source={row.source} ground="room" size={32} glyph="add" />
               </div>
             </div>
           ))}
         </div>
-        <Label ground="room" style={{ marginTop: 34 }}>
-          Status is a point and its word
-        </Label>
-        <div className="flex flex-col" style={{ marginTop: 12 }}>
+        <Statement size={18} style={{ marginTop: 38 }}>
+          Status is a point and its word.
+        </Statement>
+        <div className="flex flex-col" style={{ marginTop: 14 }}>
           {STATES.map((s) => (
             <div
               key={s.id}
-              style={{ padding: "11px 0", borderTop: `1px solid ${roomRule}` }}
+              style={{ padding: "12px 0", borderTop: `1px solid ${roomRule}` }}
             >
-              <div className="flex items-center justify-between">
-                <StatusLight state={s.id} ground="room">
-                  {s.word}
-                </StatusLight>
-                <span
-                  className="ag-num"
-                  style={{ fontSize: 11.5, color: room.faint }}
-                >
-                  {valueOf(s.id, "room", true)}
-                </span>
-              </div>
+              <StatusLight state={s.id} ground="room">
+                {s.word}
+              </StatusLight>
               <p
                 className="ag-body"
-                style={{ fontSize: 13, color: room.muted, marginTop: 4 }}
+                style={{ fontSize: 13, color: room.muted, marginTop: 5 }}
               >
                 <span style={{ color: room.fg, fontWeight: 600 }}>
                   {STATUS[s.id].name}
@@ -672,7 +640,7 @@ export function ColorSlide({ screen }: SlideProps) {
             </div>
           ))}
         </div>
-        <p className="ag-caption" style={{ marginTop: 12, color: room.faint }}>
+        <p className="ag-caption" style={{ marginTop: 14, color: room.faint }}>
           Waiting was amber, and read as the brand. Now it is the camera&apos;s
           standby: half-lit, with no hue.
         </p>
@@ -680,48 +648,44 @@ export function ColorSlide({ screen }: SlideProps) {
 
       <div
         className="absolute flex flex-col"
-        style={{ left: m.pad, top: cut + 36, width: m.inner }}
+        style={{ left: m.pad, top: cut + 44, width: m.inner }}
       >
-        <Label ground="paper">Paper · {take.paper.name}</Label>
-        <div className="flex" style={{ gap: 14, marginTop: 14 }}>
+        <div className="flex" style={{ gap: 14 }}>
           <Swatch
-            name="Paper"
+            name={take.paper.name}
             tone={take.paper.ground}
             ground="paper"
-            inks
+            main
             w={sw}
-            h={86}
+            h={90}
           />
           <Swatch
             name="Card"
             tone={take.paper.card}
             ground="paper"
             w={sw}
-            h={86}
+            h={90}
           />
         </div>
-        <Label ground="paper" style={{ marginTop: 36 }}>
-          The same sources on paper
-        </Label>
         <p
           className="ag-body"
           style={{
-            fontSize: 13.5,
+            fontSize: 14,
             color: paper.muted,
-            marginTop: 8,
+            marginTop: 44,
             textWrap: "pretty",
           }}
         >
           {take.words.colourPaper}
         </p>
-        <div className="flex flex-col" style={{ marginTop: 10 }}>
+        <div className="flex flex-col" style={{ marginTop: 16 }}>
           {SOURCES.map((row) => (
             <div
               key={row.key}
               className="flex items-center"
               style={{
-                gap: 18,
-                padding: "16px 0",
+                gap: 20,
+                padding: "18px 0",
                 borderTop: `1px solid ${paperRule}`,
               }}
             >
@@ -730,7 +694,7 @@ export function ColorSlide({ screen }: SlideProps) {
                 <Lit
                   source={row.source}
                   ground="paper"
-                  ring={34}
+                  ring={32}
                   receipt={110}
                   gap={34}
                 />
@@ -738,15 +702,11 @@ export function ColorSlide({ screen }: SlideProps) {
             </div>
           ))}
         </div>
-        <Label ground="paper" style={{ marginTop: 30 }}>
-          The same states on paper
-        </Label>
-        <div className="flex flex-col" style={{ marginTop: 12 }}>
+        <div className="flex flex-col" style={{ marginTop: 44 }}>
           {STATES.map((s) => (
             <div
               key={s.id}
-              className="flex items-center justify-between"
-              style={{ padding: "11px 0", borderTop: `1px solid ${paperRule}` }}
+              style={{ padding: "13px 0", borderTop: `1px solid ${paperRule}` }}
             >
               <StatusLight
                 state={s.id}
@@ -758,12 +718,6 @@ export function ColorSlide({ screen }: SlideProps) {
               >
                 {s.word}
               </StatusLight>
-              <span
-                className="ag-num"
-                style={{ fontSize: 11.5, color: paper.faint }}
-              >
-                {valueOf(s.id, "paper", true)}
-              </span>
             </div>
           ))}
         </div>

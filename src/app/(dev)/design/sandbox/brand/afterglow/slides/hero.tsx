@@ -6,7 +6,7 @@ import type { SlideProps } from "../../deck/contract";
 import type { ReelId } from "../../deck/media";
 import { Btn, ReelClock, reelShots, SiteNav } from "../kit";
 import { SlideRoot } from "../root";
-import { LitPhoto, Readout, ROOM, VOICE } from "../system";
+import { LitPhoto, ROOM, VOICE } from "../system";
 import { useInk, useTake } from "../take";
 import { DeskStage, deskOf, PhoneStage, ruleOf } from "./c-parts";
 
@@ -30,14 +30,15 @@ import { DeskStage, deskOf, PhoneStage, ruleOf } from "./c-parts";
 const REEL: ReelId = "hero-candidate-02";
 
 /**
- * ★ AT REST THE REEL STANDS ON ITS SECOND SHOT, the crowd under a warm stage
- * (2.2 s to 4.1 s), never its poster: the poster is the laser show, the most
- * many-coloured still in the set, and a home that rests on it opens on a
- * rainbow. Under reduced motion each reel on the slide is sought there once;
- * the Bloom hears the seek and lights that shot, so the rest state stays the
- * reel's own light, read off a frame it really shows.
+ * ★ AT REST THE REEL STANDS ON ITS LAST SHOT, the DJ under cool light (6 s to
+ * 8.25 s). Never its poster, the laser show: the most many-coloured still in
+ * the set, so a home resting on it opens on a rainbow. Never the warm stage
+ * either: that shot's amber haze under its own amber light turns the whole
+ * first screen sepia. Under reduced motion each reel on the slide is sought
+ * there once; the Bloom hears the seek and lights that shot, so the rest state
+ * stays the reel's own light, read off a frame it really shows.
  */
-const REST_AT = 3;
+const REST_AT = 7;
 
 function RestFrame({ children }: { children: ReactNode }) {
   const box = useRef<HTMLDivElement | null>(null);
@@ -71,36 +72,34 @@ function RestFrame({ children }: { children: ReactNode }) {
  * THE LIGHT, SHOT BY SHOT: a still shows one moment of a light that changes
  * on every cut, so the slide prints the reel's shots in order, each in the
  * take's own Bloom as the reel's Bloom takes it from that shot: one sky a
- * shot, never a strip of swatches. Their gaps keep each light its own.
+ * shot, never a strip of swatches. Their gaps keep each light its own. No
+ * label: the note beside them already says "shot by shot".
  */
 function ShotLights({
   width,
   cols,
   gap,
+  top = 0,
 }: {
   width: number;
   cols: number;
   gap: number;
+  /** Air above the shots: at a desk, down to the note's first line. */
+  top?: number;
 }) {
   const take = useTake();
-  const t = useInk("room");
   const { Bloom } = take.light;
   const shots = reelShots(REEL);
   const tw = Math.floor((width - gap * (cols - 1)) / cols);
   const th = Math.round((tw * 9) / 16);
   return (
-    <div>
-      {/* Set as the note's label is, so the two labels share a line. */}
-      <div>
-        <Readout style={{ color: t.faint }}>Its light, shot by shot</Readout>
-      </div>
+    <div style={{ paddingTop: top }}>
       <div
         className="grid"
         style={{
           gridTemplateColumns: `repeat(${cols}, ${tw}px)`,
           columnGap: gap,
           rowGap: gap,
-          marginTop: 14,
         }}
       >
         {shots.map((id, i) => (
@@ -123,13 +122,27 @@ function ShotLights({
 /** The site's H1 (`VOICE.thesis`), broken where a hero wants it. */
 const THESIS = ["The whole", "event, in one", "album."] as const;
 
-/** The home's trust strip: the site's own four promises (`trust-strip.tsx`). */
+/**
+ * The home's trust strip: the site's own four promises (`trust-strip.tsx`),
+ * set as the site sets them, a quiet line of 14 px words in the muted ink, so
+ * they read at a browser's scale and stay a caption, never a label.
+ */
 const PROMISES = [
   "No app required",
   "Unlisted by default",
   "Yours until you delete it",
   "No photo watermarks",
 ] as const;
+
+/** One promise, set as the site sets it. */
+function Claim({ children }: { children: ReactNode }) {
+  const t = useInk("room");
+  return (
+    <span style={{ fontSize: 14, color: t.muted, whiteSpace: "nowrap" }}>
+      {children}
+    </span>
+  );
+}
 
 /** The reel's box at a desk: its own 16:9, so no shot is cropped. */
 const DESK_REEL = { w: 600, h: 338 } as const;
@@ -216,9 +229,7 @@ function HeroDesk() {
         }}
       >
         {PROMISES.map((c) => (
-          <Readout key={c} style={{ color: t.faint }}>
-            {c}
-          </Readout>
+          <Claim key={c}>{c}</Claim>
         ))}
       </div>
     </div>
@@ -307,9 +318,9 @@ function HeroPhone() {
           <div
             key={c}
             className="flex items-center"
-            style={{ height: 42, borderBottom: `1px solid ${ruleOf("room")}` }}
+            style={{ height: 44, borderBottom: `1px solid ${ruleOf("room")}` }}
           >
-            <Readout style={{ color: t.faint }}>{c}</Readout>
+            <Claim>{c}</Claim>
           </div>
         ))}
       </div>
@@ -353,10 +364,9 @@ export function HeroSlide({ screen }: SlideProps) {
             page={<HeroDesk />}
             phone={<HeroPhone />}
             phonePage={PHONE_PAGE}
-            phoneCaption="The same page, 375 wide"
             label={LABEL}
             note={note}
-            aside={<ShotLights width={360} cols={4} gap={24} />}
+            aside={<ShotLights width={360} cols={4} gap={24} top={32} />}
           />
         </RestFrame>
       </ReelClock>

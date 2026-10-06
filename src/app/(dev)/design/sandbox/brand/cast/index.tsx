@@ -46,27 +46,27 @@ export const CAST: Take = {
     rule: {
       may: "Only under and beside a lit thing, on its shadow side: down and right, from the key light at the top-left.",
       becomes:
-        "A coloured shadow: the photograph's own colours, darker than the page, densest at its edge.",
+        "A coloured shadow: the photograph's own colours, darker than the page, hard at its edge and short.",
       carries:
         "The lit thing itself: a photograph, the shutter, the code on its plate.",
       never:
-        "Above or behind words, or loose on the page: light only falls from something.",
+        "Above or behind words, or loose on the page: it falls from something.",
     },
-    icon: "The shutter: a dark disc in a ring of light, lit from the top-left. On a light ground its light falls past it, the ring's own colours as a shadow.",
+    icon: "The shutter: a dark disc in a ring of light, lit from the top-left, on its dark tile wherever it goes. On paper the tile casts the ring's warm colour down and to the right.",
     iconPaper:
-      "Printed, the ring is a deep gold arc turning to plum, and its warm light falls down and to the right.",
+      "On paper the icon keeps its dark tile and casts the ring's warm colour; the small symbol is printed flat.",
     colourPaper:
-      "On paper each source falls as a coloured shadow: the photograph's own colours, the seed's, the sky's.",
+      "On paper each source falls as a coloured shadow: the photograph's own colours, the seed's, the ember's.",
     forms: {
       ring: {
         room: "Round what adds a photograph, and the icon: the album's own colours, filling as photographs send.",
         paper:
-          "Its light falls past the face, down and to the right: the album's own colours, as a shadow.",
+          "A dark disc and a bright band of the album's colours, casting a short, dense shadow down and to the right.",
       },
       seam: {
         room: "Where the media ends: the picture's own colours, glowing out of its edge.",
         paper:
-          "The photograph's colours fall from its edge onto the page, dense and short.",
+          "A short, hard band of the photograph's own colours, falling from its edge onto the page.",
       },
       bloom: {
         room: "Behind the one live subject: its own frames, blurred, the light the picture gives.",
@@ -75,24 +75,26 @@ export const CAST: Take = {
       },
     },
     seedPaper:
-      "Before the first photograph the seed is an orb in the empty cover, casting its colour down and to the right.",
+      "Before the first photograph the seed is a flat disc of its colour in the empty cover, casting it down and to the right.",
     motion:
       "Light, when something happens: a shadow settles once as a photograph lands; nothing loops.",
     rhythm:
-      "Paper pages are lit from the top-left like everything in the product. Their one subject casts its colour; the rest of the page, the foot too, stays white, because light only falls from something.",
+      "Paper pages are lit from the top-left like everything in the product. Their one subject casts its colour, the footer catches a short band of the page's light along its top edge, and the rest stays white.",
     roundOne: "Round one on paper: the room's light, paled, reads as a stain.",
     thisTake:
       "Cast on paper: the light falls as colour, darker than the page, never paler.",
+    borrow:
+      "From Ink: print crisp wherever a cast would smear, as the small symbol is.",
     notes: {
       hero: "The reel's own frames, blurred, glow round it: the light is the picture, amber for the stage and blue for the floor.",
       darkPage:
         "Under the album each photograph's own colours glow out of its edge, where it is.",
       lightPage:
-        "The Pro plan's photographs cast their colours onto the card, down and to the right; the page round them stays white.",
+        "The Pro plan's photographs cast their colours onto the card, down and to the right; the page round them stays white, and the footer takes a short band of their light.",
       hub: "Before the first photograph the light is the seed's: on her desk the code casts it onto the page; on her phone the Add glows with it as photos send.",
       share:
         "The table card's code casts the seed's colour onto the card, like light through coloured glass.",
-      home: "On a home screen the Ring glows round its dark tile, day or night; printed on a card, its warm light falls past it.",
+      home: "On a home screen the Ring glows round its dark tile, day or night; printed on a card, the dark tile casts the ring's warm colour down and to the right.",
     },
   },
 };

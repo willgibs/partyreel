@@ -151,9 +151,12 @@ export function CoverSlide({ screen }: SlideProps) {
 
   // The phone: the cut runs across, the room above, paper below, the
   // photograph standing across it.
-  const cut = 640;
-  const pw = 300;
-  const ph = 200;
+  // The photograph narrower than the column by a take's margin each side (its
+  // light may reach an eighth past it), so no take's mount or shadow meets the
+  // slide's edge.
+  const cut = 600;
+  const pw = 252;
+  const ph = 168;
   const px = (m.w - pw) / 2;
   const py = cut - ph / 2;
   const lit = (ground: "room" | "paper") => (
