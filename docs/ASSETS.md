@@ -17,7 +17,7 @@ edit); an agent never edits it and asks in its manifest's Handoff instead, one b
 idea (the reason rides the status).
 
 **The source:** one Higgsfield month generates every image and every video on the site ([`ROADMAP.md`](ROADMAP.md),
-"Generated media" under Major overhauls). Nothing is shot or licensed, and no row tracks where an image came from: an
+"Generated media" under Before launch). Nothing is shot or licensed, and no row tracks where an image came from: an
 image we use is one we hold the rights to. **An ask names the slot, never the picture:** where the frame sits, its
 size and aspect, the crops it must survive and where type lands on it. The agent that runs the month researches
 Higgsfield's tooling first and writes every final prompt itself, so a row's creative detail is context for it, not a

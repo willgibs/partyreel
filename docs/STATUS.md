@@ -9,7 +9,7 @@
 ## The era
 
 Pre-launch continuous elevation. The product is built and live at partyreel.com with zero real users, Stripe in TEST mode
-and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoint). Work rides `launch-prep` in rounds: a
+and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work rides `launch-prep` in rounds: a
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 

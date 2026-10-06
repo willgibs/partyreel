@@ -618,7 +618,7 @@ personal access token; the Supabase MCP has no tool for it:
   ([rate limits](https://supabase.com/docs/guides/auth/rate-limits), read 2026-10-03: 2 with Supabase's own sender,
   editable only with custom SMTP on, where it started at 30) and sits at 100 an hour. It is the code emails' bound and
   the first wall a large door meets ("What it costs us": what breaks first); raising it before a large
-  Require-verified-emails event is in ROADMAP's launch checkpoint.
+  Require-verified-emails event is in ROADMAP's Launch bucket.
 - **The quota is shared**: auth codes and lifecycle email draw on one Resend quota, so a crowd confirming emails in
   one evening can reach the free tier's daily cap; the paid tier lifts it.
 - **Verify a change** by requesting a sign-in code at `/login`: it arrives from `noreply@partyreel.com` (never

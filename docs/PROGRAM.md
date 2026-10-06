@@ -58,7 +58,7 @@ manifest alone; push; report one line in chat: "handed off at <sha>".
 ## Launch switches
 
 Stripe live, the real `/privacy`, secrets to Sensitive, `PRUNE_MODE=live` and the test-data reset gather in ROADMAP's
-launch checkpoint and run only in the launch round: each is public or hard to undo.
+Launch bucket and run only in the launch round: each is public or hard to undo.
 
 ## Program principles
 

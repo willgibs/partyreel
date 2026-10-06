@@ -71,7 +71,7 @@ and another account's sessions.
 ## Next, in order
 
 1. **Milestone 38 on Will's yes.** Red-team 56b walked `28ac0f813` (20:02Z): no HIGH or MEDIUM, eight walks PASS, two
-   LOWs, three NITs and one unexplained cookie loss (ROADMAP's Now, for the crumbs lane cut after the second wave
+   LOWs, three NITs and one unexplained cookie loss (ROADMAP's Immediate, for the crumbs lane cut after the second wave
    merges); its burst walk's read-back holds 92 rows, each once. On his yes: the `FULL=1` gate here (gate 51 runs ahead
    on the record's tip), `pnpm compute:model`, merge to `main`, tag, push (production deploys from the push); then the
    Drive and backup Workers (`wrangler`: Will's Mac, or a Cloudflare token in the environment) and `DRIVE_WORKER_URL`

@@ -23,7 +23,28 @@ describe("the record's depth", () => {
     expect(lineCount(body)).toBeLessThanOrEqual(80);
     expect(body).toMatch(/^\*\*Updated:\*\* \d{4}-\d{2}-\d{2}/m);
     expect(body).toMatch(/^## The current round/m);
-    expect(body, "a snapshot holds no previous round").not.toMatch(/^## The previous round/m);
+    expect(body, "a snapshot holds no previous round").not.toMatch(
+      /^## The previous round/m,
+    );
+  });
+
+  it("keeps the ROADMAP in its five buckets, Immediate at 40 lines or fewer (placed, never a pile)", () => {
+    // Append-only is what made "Now" unclear (Will, 2026-10-06): `usher/kit/record.py` places each line by bucket and
+    // area and refuses an Immediate past 40, and this holds the file to the same shape whoever edits it.
+    const body = read("docs/ROADMAP.md");
+    const buckets = [...body.matchAll(/^## (.+)$/gm)]
+      .map((m) => m[1])
+      .filter((h) => !h.startsWith("Landing"));
+    expect(buckets).toEqual([
+      "Immediate",
+      "Upcoming",
+      "Before launch",
+      "Launch",
+      "After launch",
+    ]);
+    const immediate = body.split(/^## Immediate$/m)[1].split(/^## /m)[0];
+    const lines = immediate.split("\n").filter((l) => l.startsWith("- "));
+    expect(lines.length).toBeLessThanOrEqual(40);
   });
 
   it("keeps CLAUDE.md, the per-session tax, at 150 lines or fewer", () => {
