@@ -583,6 +583,8 @@ export type RawLeaseItem = {
   bytes: number;
   type: "photo" | "video";
   createdAt: string;
+  /** When it was taken, where the upload kept it (20261005200000): what its name and date say first. */
+  capturedAt: string | null;
   name: string | null;
   attempts: number;
   sessionUri: string | null;
@@ -634,6 +636,7 @@ export async function leaseWork(connectionId: string): Promise<RawLease> {
         bytes: num(i.bytes) ?? 0,
         type: str(i.type) === "video" ? "video" : "photo",
         createdAt: str(i.created_at) ?? "",
+        capturedAt: str(i.captured_at),
         name: str(i.name),
         attempts: num(i.attempts) ?? 1,
         sessionUri: str(i.session_uri),

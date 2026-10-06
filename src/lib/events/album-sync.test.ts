@@ -12,6 +12,7 @@ import {
 import {
   ENTRY_HIDDEN,
   ENTRY_PENDING,
+  ENTRY_PREVIEW,
   ENTRY_REEL,
 } from "@/lib/events/album-wire";
 
@@ -30,6 +31,7 @@ function change(over: Partial<AlbumChange> = {}): AlbumChange {
     reelEligible: true,
     createdAt: 1790206284644108,
     guestId: null,
+    capturedAt: null,
     ...over,
   };
 }
@@ -89,6 +91,58 @@ describe("parseAlbumRead: album_changes_since's jsonb, defensively", () => {
         reelEligible: false,
       }),
     );
+  });
+
+  it("reads a change's capture time, its twelfth element (capture-time, Will's X7), onto the entry it makes", () => {
+    const taken = 1790200000000000;
+    const r = parseAlbumRead({
+      changes: [
+        [
+          M,
+          8,
+          "approved",
+          "photo",
+          4,
+          3,
+          null,
+          true,
+          true,
+          1790206284644108,
+          null,
+          taken,
+        ],
+      ],
+    });
+    expect(r.changes[0].capturedAt).toBe(taken);
+    expect(changeToEntry(r.changes[0], "album")).toEqual([
+      M,
+      4,
+      3,
+      ENTRY_REEL | ENTRY_PREVIEW,
+      1790206284644108,
+      null,
+      taken,
+    ]);
+    // A reader before it (eleven elements) and a change with none read as none, and the entry is the one it was.
+    const before = parseAlbumRead({
+      changes: [
+        [
+          M,
+          8,
+          "approved",
+          "photo",
+          4,
+          3,
+          null,
+          true,
+          true,
+          1790206284644108,
+          null,
+        ],
+      ],
+    });
+    expect(before.changes[0].capturedAt).toBeNull();
+    expect(changeToEntry(before.changes[0], "album")).toHaveLength(5);
   });
 
   it("reads the asked scope's watermark, and none (zero) from a reader that predates it", () => {

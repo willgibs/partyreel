@@ -3,7 +3,7 @@ title: Photo metadata and location data
 description: "Phone photos and videos carry hidden GPS and device details. Partyreel strips them in the browser before upload, from every format it accepts, without touching the picture."
 category: privacy-and-safety
 order: 4
-updated: "2026-10-01"
+updated: "2026-10-05"
 audience: both
 keywords:
   - metadata
@@ -20,7 +20,7 @@ Every phone photo carries a hidden record: where it was taken, on what device, s
 
 ## What's stripped
 
-Every format Partyreel accepts is covered: JPEG, PNG, WebP, HEIC, HEIF, and AVIF photos, and MP4, MOV, and WebM videos. The upload step removes the location and device metadata: GPS coordinates, camera and phone model, the embedded notes and tags most apps write. The metadata is cut out or blanked without re-saving the file, so the picture itself is untouched, at full quality, and the color profile is kept. Orientation is preserved so nothing ends up sideways.
+Every format Partyreel accepts is covered: JPEG, PNG, WebP, HEIC, HEIF, and AVIF photos, and MP4, MOV, and WebM videos. The upload step removes the location and device metadata: GPS coordinates, camera and phone model, the embedded notes and tags most apps write. The metadata is cut out or blanked without re-saving the file, so the picture itself is untouched, at full quality, and the color profile is kept. Orientation is preserved so nothing ends up sideways. So is the date and time it was taken, when the camera recorded them (never the place), so the album can put the night in order and a saved photo lands on the right day in your library.
 
 Because it happens in the browser before upload, the file Partyreel stores never had the data, which also means the backup copies are clean.
 
@@ -32,7 +32,7 @@ In one sentence: GPS location metadata is stripped from uploads, in every format
 
 ## Downloads
 
-What you download is what was stored, so a downloaded photo or video carries no location.
+What you download is what was stored, so a downloaded photo or video carries no location and no device, only when it was taken.
 
 ## Nothing is analyzed
 

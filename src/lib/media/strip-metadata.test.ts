@@ -250,12 +250,15 @@ function mpfApp2(
 const MPF_APP10 = jpegSeg(0xea, Array(100).fill(0xaa)); // droppable vendor APPn after MPF
 
 /** Primary JPEG (Exif GPS + MPF + optional post-MPF APP10) + a trailing secondary JPEG. */
-function buildMpfJpeg(withApp10: boolean): {
+function buildMpfJpeg(
+  withApp10: boolean,
+  exif: number[] = exifPayloadWithGps(6),
+): {
   jpeg: Uint8Array;
   secondary: Uint8Array;
 } {
   const secondary = buildJpeg([JFIF_APP0, DQT, SOF0, DHT]);
-  const pre = [JFIF_APP0, jpegSeg(0xe1, exifPayloadWithGps(6))];
+  const pre = [JFIF_APP0, jpegSeg(0xe1, exif)];
   const post = [...(withApp10 ? [MPF_APP10] : []), DQT, SOF0, DHT];
   const sum = (segs: number[][]) => segs.reduce((n, s) => n + s.length, 0);
   const mpfLen = mpfApp2(0, 0, 0).length; // placeholder: same length regardless of values
@@ -612,6 +615,37 @@ describe("JPEG MPF index fix-up", () => {
       res.data.length - secondary.length,
     );
     expect(after.primarySize).toBe(res.data.length - secondary.length);
+  });
+
+  it("★ keeps the index true when the primary's Exif GROWS (a bare time gains ExifVersion beside it: capture-time)", async () => {
+    // A tiny Exif holding only a DateTimeOriginal (64-byte TIFF); its rebuild keeps the time and adds ExifVersion, so
+    // the primary grows by 12 bytes and every offset past it must move the other way round from a strip that shrinks.
+    // prettier-ignore
+    const tinyTimeExif = [
+      ...ascii("Exif"), 0, 0,
+      0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00,
+      0x01, 0x00, 0x69, 0x87, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00, 0x1a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x01, 0x00, 0x03, 0x90, 0x02, 0x00, 0x14, 0x00, 0x00, 0x00, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      ...ascii("2026:10:03 21:14:05"), 0,
+    ];
+    const { jpeg, secondary } = buildMpfJpeg(false, tinyTimeExif);
+    const res = await stripMetadataBytes(jpeg, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    expect(res.captured).toEqual({
+      kind: "wall",
+      wall: "2026:10:03 21:14:05",
+      offset: null,
+    });
+    expect(res.data.length).toBe(jpeg.length + 12);
+    const after = readMpfEntries(res.data);
+    expect(after.headerAbs + after.secondaryOffset).toBe(
+      res.data.length - secondary.length,
+    );
+    expect(res.data[after.headerAbs + after.secondaryOffset]).toBe(0xff);
+    expect(res.data[after.headerAbs + after.secondaryOffset + 1]).toBe(0xd8);
+    expect(after.primarySize).toBe(res.data.length - secondary.length);
+    const twice = await stripMetadataBytes(res.data, "image/jpeg");
+    expect(twice.changed).toBe(false);
   });
 
   it("is idempotent on MPF files", async () => {

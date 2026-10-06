@@ -39,6 +39,7 @@ import {
   ENTRY_VIDEO,
   WHO_HOST,
   WHO_VERIFIED,
+  entryDuration,
   entryId,
   faceFromTuple,
   type AlbumLinksBody,
@@ -331,7 +332,7 @@ export function hubItem(
     likeCount,
     width: e[1] > 0 ? e[1] : null,
     height: e[2] > 0 ? e[2] : null,
-    durationSeconds: e.length === 6 ? e[5] : null,
+    durationSeconds: entryDuration(e),
     reelEligible: (flags & ENTRY_REEL) !== 0,
   };
 }
