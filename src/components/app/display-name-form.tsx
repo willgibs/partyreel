@@ -59,8 +59,8 @@ export function DisplayNameForm({
           maxLength={DISPLAY_NAME_MAX_LENGTH}
           autoComplete="name"
         />
-        <Button type="submit" disabled={saving || !dirty || !value.trim()}>
-          {saving ? "Saving…" : "Save"}
+        <Button type="submit" disabled={!dirty || !value.trim()} working={saving} workingLabel="Saving">
+          Save
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">{DISPLAY_NAME_GUIDANCE}</p>

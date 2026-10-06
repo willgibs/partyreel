@@ -13,6 +13,10 @@ import { cn } from "@/lib/utils"
  */
 export const ctaCorner = "rounded-[calc(var(--radius-action)*1.1)]"
 
+/** A key with a face, off: clear, a quiet hairline, quiet words (never while it works). */
+const settlesOff =
+  "disabled:not-aria-busy:bg-transparent disabled:not-aria-busy:text-faint disabled:not-aria-busy:opacity-100 disabled:not-aria-busy:inset-ring disabled:not-aria-busy:inset-ring-(--key-hover)"
+
 const buttonVariants = cva(
   // V1 craft: actions are the ROUND family (radius ~0.4 x height, per size
   // below), explicit transition properties, never `all`. NOTE: `scale` must be
@@ -25,19 +29,22 @@ const buttonVariants = cva(
   // the 150ms below (each size names its own give, `--press-scale`). No
   // `box-shadow` in the transition: the halo arrives in a beat of its own and
   // leaves at once.
-  "group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,transform,scale] duration-150 ease-emphasis outline-none select-none focus-halo press-shrink disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:not-focus-visible:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,transform,scale] duration-150 ease-emphasis outline-none select-none focus-halo press-shrink disabled:pointer-events-none disabled:not-aria-busy:opacity-50 aria-busy:cursor-progress aria-invalid:inset-ring-[1.5px] aria-invalid:inset-ring-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+        // ★ THE KEYS LIE FLAT (identity r5, set=house: "keys flat, as Afterglow's decks draw them"):
+        // ink, a tone, a clear key with a hairline, nothing; their depth is the press. Off, a key that has a
+        // face settles clear with a quiet hairline and quiet words (an ink key at half strength read as a
+        // heavy slab, a faint tone as an empty field beside one), unless it is working, when it keeps its
+        // face: a key held while it works is busy, never off (`working` below). The tokens are THE HOUSE
+        // SET'S GROUNDS in globals.css.
+        default: `bg-primary text-primary-foreground hover:bg-(--ink-up) ${settlesOff}`,
+        outline: `bg-transparent text-foreground inset-ring inset-ring-(--key-line) hover:bg-(--key-wash) hover:inset-ring-(--key-line-up) aria-expanded:bg-(--key-wash) ${settlesOff}`,
+        secondary: `bg-(--key-tone) text-foreground hover:bg-(--key-tone-up) aria-expanded:bg-(--key-tone-up) ${settlesOff}`,
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
-        destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
+          "text-foreground hover:bg-(--key-hover) aria-expanded:bg-(--key-hover)",
+        destructive: `bg-destructive/11 text-(--key-danger) hover:bg-destructive/17 ${settlesOff}`,
         link: "text-primary underline-offset-4 hover:underline",
         // ★ TWO FOR A PHOTOGRAPH (`event-header` r1's picks, the atom contract with identity r2):
         // where a photograph is the ground (the album's cover, the hub's), the page's paper is not
@@ -92,10 +99,10 @@ const buttonVariants = cva(
       size: {
         default:
           "h-8 gap-1.5 rounded-action-sm px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
-        xs: "h-6 gap-1 rounded-[calc(var(--radius-action)*0.6)] px-2 text-xs [--press-scale:0.95] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        sm: "h-7 gap-1 rounded-[calc(var(--radius-action)*0.7)] px-2.5 text-xs [--press-scale:0.95] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        xs: "h-6 gap-1 rounded-[calc(var(--radius-action)*0.6)] px-2 text-xs [--press-scale:0.95] [--arc:12px] [--arc-w:1.5px] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-7 gap-1 rounded-[calc(var(--radius-action)*0.7)] px-2.5 text-xs [--press-scale:0.95] [--arc:12px] [--arc-w:1.5px] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 rounded-[calc(var(--radius-action)*0.9)] px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
-        cta: `h-11 gap-1.5 ${ctaCorner} px-6 text-base [--press-scale:0.98] has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5 [&_svg:not([class*='size-'])]:size-4.5`,
+        cta: `h-11 gap-1.5 ${ctaCorner} px-6 text-base [--press-scale:0.98] [--arc:16px] [--arc-w:2px] has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5 [&_svg:not([class*='size-'])]:size-4.5`,
         icon: "size-8 rounded-action-sm [--press-scale:0.92] [&_svg:not([class*='size-'])]:size-4",
         "icon-xs": "size-6 rounded-[calc(var(--radius-action)*0.6)] [--press-scale:0.92] [&_svg:not([class*='size-'])]:size-3.5",
         "icon-sm": "size-7 rounded-[calc(var(--radius-action)*0.7)] [--press-scale:0.92] [&_svg:not([class*='size-'])]:size-3.5",
@@ -114,17 +121,37 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * ★ WORKING = WORDS (identity r5, loading=words): `working` holds a key while it works on what was
+ * pressed, and it says so twice, the arc in its icon's place and its words turned to what it is doing
+ * (`workingLabel`: "Saving", "Unlocking", "Creating your event", no ellipsis, the arc says it goes on).
+ * The two faces stand in one grid cell, the one not shown hidden, so the key holds the wider of its two
+ * widths from its first paint and nothing beside it moves when it starts or ends.
+ *
+ * ★ BUSY, NEVER OFF: a working key keeps its face and its focus (`aria-busy`, `aria-disabled`), and a
+ * second press does nothing, a submit included; a call site may still pass `disabled` for its own reasons
+ * and the key keeps its face while it works. A key without a label says its own words beside the arc.
+ */
 function Button({
   className,
   variant = "default",
   size = "default",
   asChild = false,
+  working,
+  workingLabel,
+  children,
+  onClick,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    /** The key is working on what was pressed: the arc, its working words, no second press. */
+    working?: boolean
+    /** What the key says while it works ("Saving"); its own words when omitted. */
+    workingLabel?: React.ReactNode
   }) {
   const Comp = asChild ? Slot.Root : "button"
+  const faces = !asChild && (working !== undefined || workingLabel !== undefined)
 
   return (
     <Comp
@@ -132,8 +159,43 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      aria-busy={working || undefined}
+      aria-disabled={working || props["aria-disabled"] || undefined}
+      onClick={
+        working
+          ? (e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()
+          : onClick
+      }
       {...props}
-    />
+    >
+      {faces ? (
+        <span data-slot="button-faces" className="inline-grid [gap:inherit]">
+          <span
+            aria-hidden={working || undefined}
+            className={cn(
+              "col-start-1 row-start-1 inline-flex items-center justify-center [gap:inherit]",
+              working && "invisible"
+            )}
+          >
+            {children}
+          </span>
+          <span
+            data-slot="button-working"
+            aria-hidden={!working || undefined}
+            // The arc stands where a leading icon stands, so a key saying its own words drops that icon.
+            className={cn(
+              "col-start-1 row-start-1 inline-flex items-center justify-center [gap:inherit] [&>svg:first-child]:hidden",
+              !working && "invisible"
+            )}
+          >
+            <span aria-hidden className="working-arc" />
+            {workingLabel ?? children}
+          </span>
+        </span>
+      ) : (
+        children
+      )}
+    </Comp>
   )
 }
 

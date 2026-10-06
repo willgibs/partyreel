@@ -148,7 +148,7 @@ function Row({ row, action }: { row: EventListRow; action?: React.ReactNode }) {
           // of that contract on purpose — and copying it across was the mistake
           // the contract caught.
           className={cn(
-            "group/row relative block overflow-hidden rounded-xl border border-border bg-card transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.995] motion-reduce:active:scale-100",
+            "group/row relative block overflow-hidden rounded-xl border border-border bg-card transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.995] motion-reduce:active:scale-100",
           )}
         >
           {body}

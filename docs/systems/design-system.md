@@ -250,14 +250,50 @@ spells no focus ring or active scale of its own (`ui/identity-traits.test.ts`, w
   colours (the camera's black) wears `dark`, or its halo is paper's ink on black.
 - **An atom whose own light stands outside its box** (the shutter's ring) sets `--halo-at` and `--halo-band` to stand
   beyond it (`ui/shutter.css`); an element that stands for a focus it does not hold (the code field's caret slot) pins
-  the halo with `data-halo`; a resting error ring is `aria-invalid:not-focus-visible:`, since as a variant it would
-  replace a focused field's halo.
+  the halo with `data-halo`; a control filling a box that clips (a row's stretched button, an overlay, a field's eye)
+  draws it inside with `halo-inset`. An atom's error is drawn inside it (a key's and a switch's `inset-ring`, a
+  field's well rim), never in the ring slot, where it would replace the halo.
+- ★ **A trigger a layer hands its focus back to after a pointer's choice wears no halo** (`ui/quiet-focus.ts`, worn
+  by DropdownMenu and ResponsiveMenu: Chrome reads that programmatic focus as the keyboard's); a new layer that gives
+  focus back calls it too.
 - **A focusable atom transitions no `box-shadow`**: the halo arrives in its own 140ms beat (out of the registered
   `--halo-t`) and leaves at once, where a fade would show two marks as a key moves on.
 - **The press lands in the frame the finger does and lets go on the atom's own transition**, which must name `scale`
   (its 0ms is `!important`, to outrank a transition an atom's own sheet declares outside every layer). Each size names
   its give in `--press-scale`, about two pixels at every size. It never fires on a popup trigger (`aria-haspopup`),
   whose layer Radix anchors to the trigger in that same frame. The camera's shutter keeps a camera's press.
+
+## The atoms' set: sunk, flat, afloat
+
+Every atom is built from one set (identity r5, set=house): **a field is a well**, **a key lies flat**, **what is chosen
+floats**. Their values are THE HOUSE SET'S GROUNDS in globals.css, declared on every ground; the constructions are
+utilities beside the halo, each writing its own slot of the shadow every utility composes, so the halo stands over
+any of them whole.
+
+- **`field-well`**: Input, Textarea, Select's trigger, the code's slots and any native field (Settings' Max size). A
+  shade inside its top, a rim, a lit lip; the rim firms under a pointer, the inside lightens holding the caret, red
+  rim in error. A field in the set wears no border.
+- **The keys** are Button's variants on the tokens directly: ink (`default`), a tone (`secondary`), clear inside a
+  hairline (`outline`), nothing (`ghost`), a red tint (`destructive`). Off, a key with a face settles clear with a
+  quiet hairline and faint words, unless it is working.
+- **`afloat`** (with `afloat-card` for a card in a clipping wrapper): a chosen segment, chip, tab or radio card, white
+  on its lift on paper, lit graphite with the bright edge on its `::after` in the room. A segment's track is
+  `bg-(--track)`; a radio card waits as `bg-(--choice)`; a radio waits as a ring of tone and fills with ink. A note
+  set into a control's place (the consequence line, "31 guests are already in") is a flat tone with no line.
+  Production's corners and boxes stand: the set is bodies, never sizes.
+- **A switch** is a flat track of tone that turns to ink, its thumb `toggle-thumb` (white on both grounds, a seam).
+
+## Working: the arc and its words
+
+A key working on what was pressed says so twice (identity r5, loading=words): Button's `working` and `workingLabel`
+draw `working-arc` (a third of a ring turning round a faint whole ring, in the key's ink, sized by `--arc` per size) in
+its icon's place, and its words turn to what it is doing ("Saving", "Creating your event", never an ellipsis, never
+"Still saving"). Both faces stand in one grid cell from the first paint, so the key never changes width.
+
+- **Busy, never off**: a working key keeps its face and its focus (`aria-busy`, `aria-disabled`) and swallows a
+  second press, a submit included; a `disabled` beside it keeps the face while it works.
+- **A field checking what was typed** puts the arc in its status slot (`working-arc text-muted-foreground`), as the
+  handle and the event link do. Under reduced motion the arc rests as a ring a third filled.
 
 ## Elevation contract (four heights, one job each)
 
@@ -339,7 +375,7 @@ still carrying its own.
 
 The album's cover and the hub's head ([guest-flow.md](guest-flow.md), [host-app.md](host-app.md)) stand their
 controls on a photograph, which no paper atom was made for. Their atoms live in `src/components/ui/` under one
-contract: the hooks below are what identity's lab sheets style while production draws them, so a name here never
+contract: the hooks below are what a lab sheet styles the atoms by while production draws them, so a name here never
 moves without both (a rule naming a hook the atom does not draw reaches nothing).
 
 | Hook | The atom |

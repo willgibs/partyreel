@@ -116,7 +116,7 @@ export function Check({
           type="checkbox"
           checked={checked}
           onChange={() => onToggle?.(index)}
-          className="peer absolute inset-0 size-5 cursor-pointer appearance-none rounded-md border bg-card transition-colors duration-150 checked:border-success focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+          className="peer absolute inset-0 size-5 cursor-pointer appearance-none rounded-md border bg-card transition-colors duration-150 checked:border-success focus-halo"
         />
         {checked && (
           <span
@@ -219,7 +219,7 @@ export function Checklist({
           <button
             type="button"
             onClick={reset}
-            className="rounded-md px-1.5 py-0.5 transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="rounded-md px-1.5 py-0.5 transition-colors duration-150 hover:text-foreground focus-halo"
           >
             Start over
           </button>

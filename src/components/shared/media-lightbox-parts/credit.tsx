@@ -185,7 +185,7 @@ export const FaceCredit = memo(function FaceCredit({
                       data-credit-look=""
                       className={cn(
                         "truncate rounded-sm text-left text-working font-medium text-white outline-none",
-                        "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
+                        "transition-transform duration-150 ease-emphasis focus-halo active:scale-[0.98] motion-reduce:active:scale-100",
                         GLASS_MARK_LIT,
                       )}
                     >
@@ -199,7 +199,7 @@ export const FaceCredit = memo(function FaceCredit({
                     href={door}
                     className={cn(
                       "truncate rounded-sm text-working font-medium text-white outline-none",
-                      "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
+                      "transition-transform duration-150 ease-emphasis focus-halo active:scale-[0.98] motion-reduce:active:scale-100",
                       GLASS_MARK_LIT,
                     )}
                   >

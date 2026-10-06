@@ -123,10 +123,11 @@ export function ProfileSlugControl({
               variant="ghost"
               size="sm"
               onClick={() => setConfirm({ mode: "remove" })}
-              disabled={clearing}
               className="text-destructive hover:text-destructive"
+              working={clearing}
+              workingLabel="Removing"
             >
-              {clearing ? "Removing…" : "Remove"}
+              Remove
             </Button>
           </div>
         </div>
@@ -142,9 +143,11 @@ export function ProfileSlugControl({
             <Button
               type="button"
               onClick={onSaveClick}
-              disabled={saving || status.kind !== "available"}
+              disabled={status.kind !== "available"}
+              working={saving}
+              workingLabel="Saving"
             >
-              {saving ? "Saving…" : "Save handle"}
+              Save handle
             </Button>
             {slug && (
               <Button
@@ -207,9 +210,10 @@ export function ProfileSlugControl({
                 <Button
                   type="button"
                   onClick={() => runSave(confirm.slug)}
-                  disabled={saving}
+                  working={saving}
+                  workingLabel="Saving"
                 >
-                  {saving ? "Saving…" : "Change handle"}
+                  Change handle
                 </Button>
               </PopupFooter>
             </>
@@ -241,9 +245,10 @@ export function ProfileSlugControl({
                   type="button"
                   variant="destructive"
                   onClick={runRemove}
-                  disabled={clearing}
+                  working={clearing}
+                  workingLabel="Removing"
                 >
-                  {clearing ? "Removing…" : "Remove handle"}
+                  Remove handle
                 </Button>
               </PopupFooter>
             </>

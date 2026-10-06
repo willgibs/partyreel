@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 
 /** The quiet text button of Settings' event page ("Add an end date"'s own look). */
 const QUIET =
-  "text-caption text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50";
+  "text-caption text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-halo";
 
 /** The zones this browser knows, the list the search runs over (none in an engine too old to say). */
 function browserZones(): readonly string[] {

@@ -316,7 +316,7 @@ function SizeSlider({
         style={{ "--fill": `${pct}%` } as CSSProperties}
         className={cn(
           "h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent outline-none",
-          "focus-visible:ring-2 focus-visible:ring-background/70",
+          "focus-halo",
           // The track, and the fill painted into it.
           "[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full",
           "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--background)_var(--fill),color-mix(in_oklch,var(--background)_20%,transparent)_var(--fill))]",
@@ -412,7 +412,7 @@ export function PlanPair() {
               onClick={() => setCadence(opt.value)}
               className={cn(
                 "relative z-10 rounded-md px-4 py-1.5 text-sm font-medium transition-colors outline-none",
-                "focus-visible:ring-2 focus-visible:ring-ring/50",
+                "focus-halo",
                 "active:scale-[0.98] motion-reduce:active:scale-100",
                 cadence === opt.value
                   ? "text-foreground"

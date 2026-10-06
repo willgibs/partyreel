@@ -737,13 +737,14 @@ function PasskeyOffer({
         type="button"
         size="lg"
         className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
-        disabled={saving}
         onClick={() => {
           setSaving(true);
           void onSave();
         }}
+        working={saving}
+        workingLabel="Saving"
       >
-        <Fingerprint /> {saving ? "Saving…" : "Save a passkey"}
+        <Fingerprint /> Save a passkey
       </Button>
       <button
         type="button"

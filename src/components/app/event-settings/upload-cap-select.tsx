@@ -20,7 +20,7 @@ export function UploadCapSelect() {
       </label>
       <select
         id={id}
-        className="h-8 w-full min-w-0 cursor-pointer rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+        className="h-8 w-full min-w-0 cursor-pointer rounded-lg px-2.5 py-1 text-base transition-colors outline-none field-well focus-halo md:text-sm"
         value={value == null ? "" : String(value)}
         onChange={(e) =>
           void s.saveEvent({

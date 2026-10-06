@@ -21,7 +21,7 @@ export const PANEL = "bg-[oklch(0.14_0_0)] ring-1 ring-white/[0.07]";
 
 /** The room's own focus ring: white on the dark, never the theme's. */
 export const ROOM_FOCUS =
-  "outline-none focus-visible:ring-2 focus-visible:ring-white/70";
+  "outline-none focus-halo";
 
 /** The press every control in the room answers with (instant under reduced motion). */
 export const ROOM_PRESS =

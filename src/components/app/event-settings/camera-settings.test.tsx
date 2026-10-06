@@ -64,7 +64,7 @@ describe("how guests add", () => {
     expect(radio("Free uploads")).toHaveAttribute("aria-checked", "true");
     expect(
       screen.getByText(
-        "A roll of 24 shots each. Removing one frees its frame.",
+        "A roll of 24 shots each. Removing one frees its frame for another, up to 72 shots in all.",
       ),
     ).toBeInTheDocument();
     fireEvent.click(radio("The album's camera"));
@@ -72,6 +72,22 @@ describe("how guests add", () => {
     // Choosing what is already chosen saves nothing.
     fireEvent.click(radio("Free uploads"));
     expect(onSave).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Reshaped for red-team 56's roll-of-one words: the line said "Removing one frees its frame." and at a roll
+// of 1 "A roll of 1 shots each."; it now says one shot as one and where freeing a frame ends (the ceiling).
+describe("the camera's line, at every roll", () => {
+  it("says one shot as one, and what removing a shot truly does", async () => {
+    const { cameraLine } = await import(
+      "@/components/app/event-settings/camera-settings"
+    );
+    expect(cameraLine(1)).toBe(
+      "One shot each. Removing it frees the frame for another, up to 3 shots in all.",
+    );
+    expect(cameraLine(12)).toBe(
+      "A roll of 12 shots each. Removing one frees its frame for another, up to 36 shots in all.",
+    );
   });
 });
 

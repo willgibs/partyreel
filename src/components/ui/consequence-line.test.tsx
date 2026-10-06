@@ -43,9 +43,15 @@ describe("the consequence line", () => {
     expect(onConfirm).toHaveBeenCalledTimes(1)
   })
 
-  it("a change being written cannot be pressed again", () => {
-    mount(true)
-    expect(screen.getByRole("button", { name: "Close it to everyone" })).toBeDisabled()
+  // Reshaped with identity r5 (loading=words): the change's key was disabled while written; it works now,
+  // saying so (Saving, with the arc) and keeping its focus, and a second press still does nothing.
+  it("a change being written cannot be pressed again, and says it is being written", () => {
+    const { onConfirm } = mount(true)
+    const key = screen.getByRole("button", { name: "Saving" })
+    expect(key).toHaveAttribute("aria-busy", "true")
+    expect(key).toHaveAttribute("aria-disabled", "true")
+    fireEvent.click(key)
+    expect(onConfirm).not.toHaveBeenCalled()
     expect(screen.getByRole("button", { name: "Keep it as it is" })).toBeDisabled()
   })
 })

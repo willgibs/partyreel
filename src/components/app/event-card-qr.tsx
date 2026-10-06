@@ -9,7 +9,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 import { eventUrl } from "@/lib/events/share-urls";
 
 const CHIP =
-  "flex items-center justify-center rounded-[var(--radius-tile)] bg-white p-1.5 text-black shadow-lift outline-none transition-transform duration-150 ease-emphasis active:scale-95 focus-visible:ring-2 focus-visible:ring-white motion-reduce:active:scale-100";
+  "flex items-center justify-center rounded-[var(--radius-tile)] bg-white p-1.5 text-black shadow-lift outline-none transition-transform duration-150 ease-emphasis active:scale-95 focus-halo motion-reduce:active:scale-100";
 
 /**
  * The dashboard event card's top-left QR chip (Phase 5 S2a): a white tile that

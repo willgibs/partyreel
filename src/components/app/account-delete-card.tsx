@@ -383,10 +383,11 @@ export function AccountDeleteCard({
                       <Button
                         type="button"
                         variant="outline"
-                        disabled={sending}
                         onClick={onSendCode}
+                        working={sending}
+                        workingLabel="Sending"
                       >
-                        {sending ? "Sending…" : "Send code"}
+                        Send code
                       </Button>
                     </div>
                   )}
@@ -398,10 +399,12 @@ export function AccountDeleteCard({
                   </PopupClose>
                   <Button
                     variant="destructive"
-                    disabled={deleting || !canDelete}
+                    disabled={!canDelete}
                     onClick={onDelete}
+                    working={deleting}
+                    workingLabel="Deleting"
                   >
-                    {deleting ? "Deleting…" : "Delete my account"}
+                    Delete my account
                   </Button>
                 </PopupFooter>
               </>

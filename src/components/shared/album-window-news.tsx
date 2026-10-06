@@ -245,7 +245,7 @@ export function AlbumNewsPill({
         }
         className={cn(
           "pointer-events-auto flex h-9 items-center rounded-full px-3.5 text-sm font-medium text-white outline-none",
-          "transition-[background-color,transform] duration-150 ease-emphasis hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 motion-reduce:active:scale-100",
+          "transition-[background-color,transform] duration-150 ease-emphasis hover:bg-white/10 focus-halo active:scale-95 motion-reduce:active:scale-100",
           "animate-in duration-200 fade-in-0 slide-in-from-top-1 motion-reduce:animate-none",
           GLASS,
         )}

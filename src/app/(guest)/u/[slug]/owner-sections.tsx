@@ -136,7 +136,7 @@ export async function OwnerSections() {
                   {item.slug ? (
                     <Link
                       href={`/u/${item.slug}`}
-                      className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 transition-[background-color,transform] duration-150 ease-emphasis outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100"
+                      className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 transition-[background-color,transform] duration-150 ease-emphasis outline-none hover:bg-muted/40 focus-halo active:scale-[0.97] motion-reduce:active:scale-100"
                     >
                       {identity}
                     </Link>

@@ -46,7 +46,7 @@ import {
 import { developTimeWords } from "@/lib/disposable/develop-words";
 import type { Capture } from "@/lib/disposable/facts";
 import { developState, revealOf, type Reveal } from "@/lib/disposable/reveal";
-import { ROLL_SHOTS } from "@/lib/disposable/roll";
+import { ROLL_RETAKES, ROLL_SHOTS, rollShots } from "@/lib/disposable/roll";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { farZone, hostPartyZone } from "@/lib/event/zone";
 import { developToKeep } from "@/lib/event/zone-morning";
@@ -469,10 +469,9 @@ function StyleCard({
       data-album-style={style}
       data-state={on ? "on" : "off"}
       className={cn(
-        "relative flex items-center gap-3 rounded-xl border p-2.5 transition-colors duration-150 motion-reduce:transition-none",
-        on
-          ? "border-foreground/40 bg-muted/40 ring-1 ring-foreground/15"
-          : "border-border hover:border-foreground/20",
+        // A radio card in the house set (identity r5): a flat tone that waits, the chosen one afloat.
+        "relative flex items-center gap-3 rounded-xl p-2.5 transition-[background-color] duration-150 motion-reduce:transition-none",
+        on ? "afloat afloat-card" : "bg-(--choice) hover:bg-(--choice-up)",
       )}
     >
       <button
@@ -481,7 +480,7 @@ function StyleCard({
         aria-checked={on}
         disabled={disabled && !on}
         onClick={onChoose}
-        className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-wait"
+        className="absolute inset-0 rounded-xl outline-none focus-halo halo-inset disabled:cursor-wait"
       >
         <span className="sr-only">{`${STYLE_NAMES[style]}. ${line}`}</span>
       </button>
@@ -535,7 +534,7 @@ function Customize({
           aria-expanded={open}
           aria-controls={bodyId}
           onClick={() => onOpenChange(!open)}
-          className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-halo"
         >
           <span>Customize how guests add and when everyone sees</span>
           <ChevronDown
@@ -656,7 +655,7 @@ export function CaptureAndReveal({
           <Choice
             on={value.capture === "camera"}
             label="The album's camera"
-            line={`A roll of ${roll} shots each. Removing one frees its frame.`}
+            line={cameraLine(roll)}
             onChoose={() =>
               value.capture !== "camera" && onSave({ capture: "camera" })
             }
@@ -765,10 +764,9 @@ function Choice({
       data-choice={data}
       data-state={on ? "on" : "off"}
       className={cn(
-        "relative rounded-lg border px-3 py-2.5 transition-colors duration-150 motion-reduce:transition-none",
-        on
-          ? "border-foreground/30 bg-muted/40"
-          : "border-border hover:border-foreground/20",
+        // A radio card in the house set (identity r5), as the door's gates are.
+        "relative rounded-xl px-3 py-2.5 transition-[background-color] duration-150 motion-reduce:transition-none",
+        on ? "afloat afloat-card" : "bg-(--choice) hover:bg-(--choice-up)",
       )}
     >
       <div className="flex items-start gap-2.5">
@@ -778,18 +776,21 @@ function Choice({
           aria-checked={on}
           disabled={disabled && !on}
           onClick={onChoose}
-          className="absolute inset-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-wait"
+          className="absolute inset-0 rounded-xl outline-none focus-halo halo-inset disabled:cursor-wait"
         >
           <span className="sr-only">{label}</span>
         </button>
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none relative mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
-            on ? "border-foreground" : "border-muted-foreground/50",
+            // A radio waits as a ring of tone and fills with ink (identity r5).
+            "pointer-events-none relative mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full",
+            on ? "bg-primary" : "inset-ring-2 inset-ring-foreground/45",
           )}
         >
-          {on ? <span className="size-2 rounded-full bg-foreground" /> : null}
+          {on ? (
+            <span className="size-1.5 rounded-full bg-primary-foreground" />
+          ) : null}
         </span>
         <span className="pointer-events-none relative min-w-0 flex-1">
           <span className="block text-sm font-medium">{label}</span>
@@ -1017,4 +1018,17 @@ function DevelopTimeControl({
       ) : null}
     </div>
   );
+}
+
+/**
+ * THE CAMERA'S LINE, TRUE AT EVERY ROLL (red-team 56: at a roll of 1 it said "A roll of 1 shots each.
+ * Removing one frees its frame."): one shot is said as one, and what removing a shot does is said whole.
+ * A shot she takes back or the host removes gives its frame back, but only up to the ceiling's
+ * `ROLL_RETAKES` rolls' worth a period (`disposable-mode.md`), so the line says where that ends.
+ */
+export function cameraLine(roll: number): string {
+  const all = rollShots(roll * ROLL_RETAKES);
+  return roll === 1
+    ? `One shot each. Removing it frees the frame for another, up to ${all} in all.`
+    : `A roll of ${rollShots(roll)} each. Removing one frees its frame for another, up to ${all} in all.`;
 }

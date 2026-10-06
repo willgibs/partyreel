@@ -147,7 +147,7 @@ export function AsGuestStage({
             <button
               type="button"
               data-as-guest-back=""
-              className="absolute top-5 right-5 flex h-10 items-center gap-1.5 rounded-full bg-white/10 pr-4 pl-3 text-sm font-medium text-white transition-colors outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.97] max-sm:hidden"
+              className="absolute top-5 right-5 flex h-10 items-center gap-1.5 rounded-full bg-white/10 pr-4 pl-3 text-sm font-medium text-white transition-colors outline-none hover:bg-white/20 focus-halo active:scale-[0.97] max-sm:hidden"
             >
               <X className="size-4" aria-hidden />
               Back to your hub
@@ -190,7 +190,7 @@ export function AsGuestStage({
             href={asGuestHref(eventId, false)}
             target="_blank"
             rel="noopener"
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/70 transition-colors outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/60 max-sm:hidden"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/70 transition-colors outline-none hover:text-white focus-halo max-sm:hidden"
             {...trackAttrs("cta_click", {
               cta: "as-guest-tab",
               location: "as-guest",

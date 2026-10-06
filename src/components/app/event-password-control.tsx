@@ -10,6 +10,7 @@ import {
 } from "@/app/(app)/dashboard/actions";
 import { LockChip } from "@/components/app/pricing/lock-chip";
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -94,10 +95,8 @@ export function EventPasswordControl({
   if (hasPassword && !editing) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <span className="inline-flex items-center gap-2 text-sm font-medium">
-          <span className="size-1.5 rounded-full bg-emerald-500" />
-          Password is set
-        </span>
+        {/* The state is a badge, its light the badge's own (identity r5: the door's parts as atoms). */}
+        <Badge variant="success">Password is set</Badge>
         {!locked && (
           <Button
             type="button"
@@ -113,10 +112,11 @@ export function EventPasswordControl({
           variant="ghost"
           size="sm"
           onClick={onRemove}
-          disabled={clearing}
           className="text-destructive hover:text-destructive"
+          working={clearing}
+          workingLabel="Removing"
         >
-          {clearing ? "Removing…" : "Remove"}
+          Remove
         </Button>
       </div>
     );
@@ -140,13 +140,13 @@ export function EventPasswordControl({
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90 rounded-lg outline-none focus-halo halo-inset"
           >
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
-        <Button type="button" onClick={onSet} disabled={saving}>
-          {saving ? "Saving…" : "Set password"}
+        <Button type="button" onClick={onSet} working={saving} workingLabel="Saving">
+          Set password
         </Button>
         {hasPassword && (
           <Button

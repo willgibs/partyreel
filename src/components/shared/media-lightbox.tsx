@@ -1834,7 +1834,7 @@ export function MediaLightbox({
                       aria-label="Close"
                       className={cn(
                         "pointer-events-auto absolute right-2.5 flex size-8 items-center justify-center rounded-full text-white outline-none",
-                        "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                        "transition-transform duration-150 ease-emphasis focus-halo active:scale-90 motion-reduce:active:scale-100",
                         // A 44 px target for a thumb around a 32 px circle.
                         "after:absolute after:-inset-1.5 after:rounded-full",
                         GLASS,
@@ -1858,7 +1858,7 @@ export function MediaLightbox({
                       onClick={() => onIndexChange(index! - 1)}
                       className={cn(
                         "pointer-events-auto absolute top-1/2 left-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-white outline-none",
-                        "opacity-0 transition-[opacity,transform] duration-150 ease-emphasis group-hover/stage:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                        "opacity-0 transition-[opacity,transform] duration-150 ease-emphasis group-hover/stage:opacity-100 focus-visible:opacity-100 focus-halo active:scale-90 motion-reduce:active:scale-100",
                         GLASS,
                       )}
                     >
@@ -1874,7 +1874,7 @@ export function MediaLightbox({
                       onClick={() => onIndexChange(index! + 1)}
                       className={cn(
                         "pointer-events-auto absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-white outline-none",
-                        "opacity-0 transition-[opacity,transform] duration-150 ease-emphasis group-hover/stage:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                        "opacity-0 transition-[opacity,transform] duration-150 ease-emphasis group-hover/stage:opacity-100 focus-visible:opacity-100 focus-halo active:scale-90 motion-reduce:active:scale-100",
                         GLASS,
                       )}
                     >

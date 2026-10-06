@@ -174,8 +174,8 @@ export function EmailSection({
             aria-invalid={requestError ? true : undefined}
             aria-describedby="account-new-email-help"
           />
-          <Button type="submit" disabled={sending || !draft.trim()}>
-            {sending ? "Sending…" : "Send codes"}
+          <Button type="submit" disabled={!draft.trim()} working={sending} workingLabel="Sending">
+            Send codes
           </Button>
         </div>
         {requestError && (

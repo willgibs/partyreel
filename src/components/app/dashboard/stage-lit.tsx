@@ -220,7 +220,7 @@ export function Plate({
             type="button"
             data-stage-plate=""
             aria-label={`Show ${name}'s code`}
-            className="relative rounded-xl bg-white p-2.5 shadow-lift transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-white/60 active:scale-[0.98] motion-reduce:active:scale-100"
+            className="relative rounded-xl bg-white p-2.5 shadow-lift transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.98] motion-reduce:active:scale-100"
           >
             <span className="block size-[176px]">
               <StyledQr

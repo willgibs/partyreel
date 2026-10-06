@@ -31,7 +31,7 @@ export function BlockLookAction({
         data-block-look=""
         className={cn(
           "-mx-1 flex items-center gap-1.5 rounded-sm px-1 py-1 text-xs text-muted-foreground outline-none",
-          "transition-colors duration-150 ease-emphasis hover:text-destructive focus-visible:text-destructive focus-visible:ring-2 focus-visible:ring-ring/50",
+          "transition-colors duration-150 ease-emphasis hover:text-destructive focus-visible:text-destructive focus-halo",
         )}
       >
         <Ban className="size-3.5" aria-hidden />

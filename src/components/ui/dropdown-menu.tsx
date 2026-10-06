@@ -5,6 +5,7 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 import { usePortalContainer } from "@/components/ui/portal-container"
 
 import { cn } from "@/lib/utils"
+import { quietFocusAfterPointer } from "@/components/ui/quiet-focus"
 import {
   floatingClock,
   floatingDisplayPanel,
@@ -82,6 +83,7 @@ function DropdownMenuContent({
   align = "start",
   sideOffset = 4,
   collisionPadding = floatingGutter,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
@@ -93,6 +95,11 @@ function DropdownMenuContent({
         // The family's gutter: a menu pushed against the viewport stands clear
         // of the glass, as its submenu always did.
         collisionPadding={collisionPadding}
+        // A trigger chosen from by a pointer takes its focus back quietly (`quiet-focus.ts`).
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event)
+          quietFocusAfterPointer()
+        }}
         className={cn(
           // The panel's 4px of padding IS the row's corner offset.
           // Move it and `floatingRow` is wrong by the difference.
