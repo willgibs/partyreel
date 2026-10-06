@@ -1,7 +1,7 @@
 ---
 track: test-slim
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "613ad790"            # the launch-prep SHA the branch was cut from
+cut: "2634388a8"           # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/admin/
@@ -162,3 +162,38 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+Scratch: `../partyreel-wt/_scratch/test-slim/` (BASELINE.md, the JSON reports, `tools/analyze.mjs` per-file times,
+`tools/covdiff.mjs` per-directory and per-line coverage diff, `coverage-base/`). Coverage needs the provider linked
+in: `node_modules/@vitest/coverage-v8` -> `_scratch/test-slim/cov/node_modules/@vitest/coverage-v8` (package.json
+untouched); run it as `pnpm exec vitest run --testTimeout=60000 --coverage.enabled --coverage.reportOnFailure
+--coverage.provider=v8 "--coverage.include=src/**/*.{ts,tsx}" "--coverage.exclude=src/**/*.test.{ts,tsx}"
+"--coverage.exclude=src/lib/db/types.ts" "--coverage.exclude=src/**/testing/**" "--coverage.exclude=src/**/test-utils/**"
+--coverage.reporter=json-summary --coverage.reporter=json --coverage.reportsDirectory=<dir>`. Two baseline runs are
+identical line for line, so any drop is real.
+
+**Baseline (2634388a8):** 1,052 files, 13,161 tests (unit 672/8,781, component 380/4,380), 258,477 test lines; wall
+82.7 / 87.5 / 86.4 s, CPU 853 / 874 / 869 s (load ~20 from other lanes); summed: environment (jsdom) 284 s, import
+249 s, tests 321 s, setup 78 s, transform 60 s. Coverage: lines 70.68% (40,705/57,588), branches 66.16%
+(32,684/49,399), functions 65.78% (10,472/15,918). The time is per-file setup (jsdom ~0.75 s a component file) and
+~800 tests over 100 ms; 9,500 tests run under 10 ms each (14 s in all), so the count is not the cost.
+
+**Config, measured, no test change (each one run):** `--pool=threads` 69.6 s, all green; `--experimental.fsModuleCache`
+warm 79.9 s; `--no-isolate` 31.6 s but 51 files fail (leaking mocks). Proposed under Questions, not built.
+
+**Step 1, the shared scan (in progress):** `src/testing/source-tree.ts` (filesUnder / entries / sources / read /
+syntax) pushed at 68ca2209b with three worked examples and the migration reader on it. The whole-tree AST policies
+move onto it with a token filter (only a file that spells the shape is parsed): done in the tree, not yet committed:
+sign-out-scope, bare-login, client-form, adopt-typed-value, refresh-then-write, history-state (4.1 s -> 0.1 s),
+use-hydrated-one-home, layer-is-up, media-cost, no-em-dash, jsx-text-escape, jsx-text-space, type-ladder,
+single-source. Left of mine: stored-copies, row-cap, lazy-sdk, help-ui-labels, send-kinds, gallery, not-found,
+dynamic-params, the two prefetch policies. The other 86 walker files (`_scratch/test-slim/b1..b4.txt`) are with four
+helpers (reports land in `_scratch/test-slim/helpers/report-b*.md`). Then the guard
+(`_scratch/test-slim/walk-policy.test.ts.pending` -> `src/testing/walk-policy.test.ts`), the gate, coverage diff, commit.
+
+**Left after step 1:** tables (88 same-file groups that differ only in literals, `_scratch/test-slim/dupes.txt`), copy
+pins pointed at their homes, DOM-free component files moved to node, the rule paragraph for testing-verification.md
+under the Handoff, three timed runs and the final coverage diff.
+
