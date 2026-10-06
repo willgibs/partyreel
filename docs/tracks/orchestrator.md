@@ -95,18 +95,18 @@ Round 15, on Will's desk answers of 2026-10-04 and his brand note; the approved 
    `cloud_export_fixes` (20261005193047), `roll_size_range` (20261005205744); advisors 26/4/36; types current
    (`78d1ffd47`, then drive's seam at the drive-fixes record).
 2. **Drive's road to live:** the desk re-walk PASSED (no HIGH or MEDIUM; the local Worker stopped). Next: red-team 56
-   (local, the desk refreshed to the head) once capture-time, credit-watch, identity-wiring and event-zone land (album-order merged,
-   gate 21), so one walk covers milestone 38; then and milestone 38 on Will's yes, where Drive's Worker deploys (never
+   (local, the desk refreshed to the head) once credit-watch and event-zone land (album-order, capture-time and identity-wiring merged,
+   gates 21 to 23; capture-time's fixture upload check rides it), so one walk covers milestone 38; then and milestone 38 on Will's yes, where Drive's Worker deploys (never
    against milestone 37's build: `npm ci`, `wrangler queues create partyreel-drive-dlq --message-retention-period-secs
    1209600`, `wrangler deploy`, `DRIVE_APP_URL` partyreel.com, the cron every fifteen minutes) and Vercel's non-secret
    `DRIVE_WORKER_URL` (production holds Drive's four secrets but not the URL, so it reads "not set up" until then);
    `partyreel-backup` deploys at 38 too (the reconcile's listing merge, RESTORE_MODE dryrun; then `BACKUP_WORKER_URL`
    on partyreel-admin). The Advisor wants 38 soon: milestone 37's build re-grants a Pro credit past a day (TEST money).
-3. **Desk 5 = identity r5 + event-header r5 + brand r2** (all running): integrate each at its handoff, the desk pass,
+3. **Desk 5 = identity r5 (merged, gate 24) + event-header r5 + brand r2** (running): integrate each at its handoff, the desk pass,
    refresh the desk, tell him. **Desk 6** = the brand applied (after brand r2's pick); **desk 7** = the moments boards
    (host-, guest-, account-moments, create-wizard r4; after identity r5's set pick).
-4. **Lanes running** (eight agents; memory 68% free at the eighth): identity-r5, event-header-r5, brand-r2,
-   capture-time, credit-watch, identity-wiring, crumbs-82, event-zone (their rows above). Queued: none. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
+4. **Lanes running** (seven agents; memory 62% free): event-header-r5, brand-r2, credit-watch, crumbs-82, event-zone,
+   drive-hardening, crumbs-83 (their rows above). Queued: red-team 56 (Opus) when credit-watch and event-zone land. Each lane's migration goes through the Advisor (`a22be0c2878d7ab19`, this session) before the apply.
 5. **The calls lab:** runs to AX (AF to AX added today; AF4 and AJ3 retired as built); X7 answered and routed
    (capture-time); album-order's calls next (AY), then each merge's.
 6. **Compute:** lever 3 and 3b (the CDN-cached album version) only on Will's X5; the guest page's next CPU levers
