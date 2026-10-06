@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Drive (next): a check page throttled before its folder's duplicate listing skips the count, and once its cursor has moved no later page counts it (`first` is "cursor null"); count once a walk on the first page that answers (drive-crumbs).
+- Drive: the closing check asks a non-rate `unknown` again every 90 s with no growth for the hour before a send reads Stuck; the Worker's cadence could back off on a repeated unknown (the Advisor; drive-crumbs).
+- Code hygiene: drop drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`) now that `src/lib/db/types.ts` carries `cloud_export_ready`'s `p_found` (drive-crumbs).
 - Code hygiene: drop billing-orphans' `orphansDb` seam (`src/lib/db/mutations/event-passes.ts`) now that `src/lib/db/types.ts` carries `adopt_pass_credit_orphans` (billing-orphans).
 - Pricing: `adopt_pass_credit_orphans`' orphan loop could also hold `and c.profile_id = p_host_id`, so a caller naming another host's session is refused in SQL as well as by the route (the Advisor's nit; billing-orphans).
 - Marketing (copy): `features/album/album-copy.ts`'s "Take all of it" body still says "everything, photos, or videos" (the retired menu's chips) over a plate that now draws Select, then Save; and the how-it-works keep step's body (`constants/how-it-works.ts`) says only "the whole album as a single zip", where the host's panel offers Phone size too (retired-mocks).
@@ -49,9 +52,6 @@ below hold the rest by surface.
 - Engineering: a popup's entry a router refresh stripped of its marker, whose act then navigates, still leaves one dead Back under the next page (`ui/popup-back.ts` knows a spent entry by its marker alone) (crumbs-83).
 - Engineering: a traversal of several entries at once (a long-press Back menu) that skips a spent entry left under a page leaves its side stale (`popup-back.ts`'s `windowAbove`); the Navigation API's entry index would know the side (crumbs-83).
 - The lab: delete the boards' own pause bridges now that `Frame` holds a hidden option still (`brand/deck/deck.tsx` and `deck.css`'s `data-bd-paused`, `afterglow/applied/kit.tsx`, `contact-sheet/applied/dark-page.tsx`'s video mirror), and let `the-wait/motion.tsx`'s and `demo-framing/scene.tsx`'s `useOffStage` read the frame's own `data-lab-paused` (each in its board's next round) (lab-kit-2).
-- Drive: after a same-account Disconnect and Connect, sending an album again sends it whole into a second same-named album folder (the forget dropped its files' ids); mark album folders (`pr_event`) and look files up by `pr_media` when the press found the folder rather than made it (a column on the send, a migration) (drive-hardening).
-- Drive: a slow down on a closing check's `files.get` answers `unknown`, which the check route drops while the cursor walks past it, so "every one checked" can follow a file Google never answered for; pace the check's asks and hold the cursor at the first unknown (`check.ts`, `/api/internal/drive/check`, `cloud_export_check_page`) (drive-hardening).
-- Drive: Account's Drive card could name her Partyreel folder as soon as she reconnects (found by its mark), not only after her next send (drive-hardening).
 - Host: the hub's own develop words (the head cover's "until it develops tomorrow at 9 am", the cards) read her own clock; a party far from home could name its place there as Settings does (`zone-words.ts`) (event-zone).
 - Host: the far-from-home chooser could open on the cities her past events kept, so a host who travels for parties starts where she last was (event-zone).
 - Design: the hub code's corner count (`EventCodeDoor`) still wears the retired waiting amber; Afterglow's standby point and its word would replace it (brand r2 or its wiring) (event-header-r5).
@@ -82,7 +82,6 @@ below hold the rest by surface.
 - Now: if Will overrules Question 3, hold the door's Sending step while files go and the keep is due (the entry-modal line is in the Question).
 - Trust & safety: "Delete our copy from her Drive", an audited operator act for a takedown of an item a send delivered (it needs the connection's key at the time; written to `forensic_audit_log`).
 - Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on `/admin/exports#drive`, found by address).
-- Admin: the command palette jumps to `/admin/exports#drive` (`lib/admin/palette.ts`).
 - Engineering: the rest of the tests that read `supabase/migrations/` by hand (`grep -l "supabase/migrations" src`, less `testing/migrations.*`, the six this lane moved and the three guard tests that already use it) read each function's winning body through `testing/migrations.ts`'s `liveFunction`, so a dropped function never reads as defined. (Replaces the line that names the five.)
 - Code hygiene: comments in `constants/tiers.ts` (the anti-abuse why), `event-settings/delete-event-row.tsx`, `constants/events.test.ts`, `content/blog-keep-lines.test.ts` and `app/group-not-found.lazy.test.tsx` still say events have "no end date" in the lifecycle sense; say "never expires", since Settings' end date only says when.
 - Marketing: the album page's Free bullet, its Stays step and FAQ and the pricing table's Kept row each say the keep rule by hand (the five stale lines were that drift); one home lets a lifecycle change land once.
