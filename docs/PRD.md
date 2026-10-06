@@ -32,8 +32,8 @@ next host. **North-star metric: a host creates a second event.**
 
 ## The core loop
 
-1. **Create**: the host makes an event; one `qr_token` (`/e/[qr_token]`) becomes the QR code and the link (a paid
-   custom link, `/e/<slug>`, opens the same event).
+1. **Create**: the host makes an event; one `qr_token` (`/e/[qr_token]`) becomes the QR code and the link (a custom
+   link, `/e/<slug>`, opens the same event).
 2. **Join and upload**: a guest scans, gives a name (and confirms an email while the host requires verified emails,
    the default), and uploads straight from the phone: browser to storage, direct, with photo metadata stripped in the
    browser first.
@@ -100,21 +100,23 @@ leaves at once, for the host too, and purges that night. The windows live in `sr
 
 A per-event moderation mode (`live` or `hold_for_approval`) gates visibility, not safety; uploads happen only while
 `accepting_uploads` is true. Anyone who opens an event's link can report the event anonymously, and a signed-in member
-can report a person from their profile; reports land in the operator queue (`/admin/reports`, on
-`admin.partyreel.com`) and never hide anything on their own (an anonymous report is trivially spammable, so an
-operator decides). There is no NSFW filter and no upload-time scanning. The host's access controls run through the
-capability-token RPCs: the album's visibility (open, password-locked on a paid plan, or private), Require verified
-emails (free, on by default) and Require an upload to view (free, off by default; it fails open while uploads are
-closed or the album is full, so no guest is ever held at a step they cannot pass).
+can report a person from their profile; reports land in the operator queue (`/admin/reports`, on `admin.partyreel.com`),
+where an operator decides, since an anonymous report is trivially spammable; the one exception is a child-abuse report
+of an item from a confirmed address, which hides the item at once, within limits
+([`systems/admin-observability.md`](systems/admin-observability.md) "Reports"). There is no NSFW filter and no
+upload-time scanning. The host's access controls run through the capability-token RPCs: the album's visibility (open,
+password-locked, or private), Require verified emails (free, on by default) and Require an upload to view (free, off by
+default; it fails open while uploads are closed or the album is full, so no guest is ever held at a step they cannot
+pass).
 
 ## Platform principles
 
-One domain for everything a guest, a host or a future host sees: a scanned QR, a shared album and the marketing site
-are one recognizable origin (the ops portal on `admin.partyreel.com` is the one exception). RLS is the security
-boundary; guests act through capability-token security-definer RPCs. Media is never exposed at a raw storage URL. The
-server is the source of truth for entitlements; the Stripe webhook sets the tier. Media-first, understated UI: neutral
-chrome in light and dark with no accent, so the photographs carry the colour (the action hues aside); the design law
-is the Library's bible. Native mobile apps are a non-goal: guests use the mobile web, which is the whole point.
+One domain for everything a guest, a host or a future host sees: a scanned QR, a shared album and the marketing site are
+one recognizable origin (the ops portal on `admin.partyreel.com` is the one exception). RLS is the security boundary;
+guests act through capability-token security-definer RPCs. Media is never exposed at a raw storage URL. The server is
+the source of truth for entitlements; the Stripe webhook sets the tier. Media-first, understated UI: an achromatic
+interface with one accent, where the colour comes from the photographs and from light; the Library's bible holds the
+design's ten. Native mobile apps are a non-goal: guests use the mobile web, which is the whole point.
 
 **Will's product principles**, each a reason and never a law:
 - **Cost is designed like the architecture.** We scale by events, not users (one wedding is a hundred guests at once),
@@ -123,7 +125,17 @@ is the Library's bible. Native mobile apps are a non-goal: guests use the mobile
   experience and cuts the cost, is prized; a limit that bounds cost is designed as a feature; every free tier is watched
   before it is hit, the foundation fixed rather than an upgrade bought; no paying host costs more than she pays.
 - **Adapt to every host's workflow, never enforce one:** deep control that stays simple, met where she acts, with an
-  opinionated default a newcomer never has to touch (Linear is the reference).
+  opinionated default a newcomer never has to touch (Linear is the reference). Every choice starts at an answer we stand
+  behind and waits one press below the surface it changes, saying whose it is (this device, everyone, her usual); taste
+  is a setting, while the core (the seal, the caps, every abuse bound) stays fixed with its reason; and a "why can't I"
+  is read for the need under it (more shots for a weekend may be a fresh roll each day).
+- **Delight where it costs nothing in clarity:** "all work and no play is a boring consumer product", so a moment of
+  play (a develop, a photograph landing) is worth building wherever it never clouds what a screen says; and never a
+  developer's tool (no terminal or code look, no monospace face).
+- **Nothing depends on a timeline:** undated, morning-only, daytime and multi-day events all read well, and "night" is
+  never identity language (`constants/marketing-voice.ts`).
+- **Immediate, or a clear state and a way out:** everything should feel immediate; anything that takes longer says what
+  it is doing and can be stopped where stopping means something.
 - **Permission at the moment of need:** sign-up asks only what sign-in needs; Drive, a device or any later grant is
   asked at its first use, after our own words say why.
 - **One moment for every guest:** anything an album does at a time (its turn, a develop, a reveal) happens at one
