@@ -1,6 +1,6 @@
 ---
 track: halo-last
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "28ac0f81"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -49,13 +49,23 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commits 8a4ac74e6 (the seven owned files) and the pricing-demos test fix; sync merge of launch-prep f5a20ce6f
+  (it had moved); pushed on lp/halo-last.
+- Gates on the synced tree 6b7651d40: typecheck 0, lint 0, test 0 (13,289 passed), `lab:smoke` 0 (155 checks, run on
+  the pre-sync tree 95571696; its first pass timed out on a cold /design/library compile, the rerun was clean).
+  `pnpm build` 0 (run on the tree before the sync).
+- Lane check: owned paths + this file, plus ONE exception: `src/app/(dev)/design/(shell)/library/compositions/pricing-demos.test.tsx`
+  (it pinned the checkout key's old "Starting" name and `disabled`; now "Opening billing" and `aria-busy`).
+- Items: pricing's three rings (pro-price-list, lock-chip, cadence-toggle) and Drive's picker row are `focus-halo`
+  (the row `halo-inset`: a stretched button in a clipping list); the checkout key is `working` + `workingLabel="Opening
+  billing"` (disabled kept only for `away`, other doors); the Drive send key is `working={pressing}` +
+  `workingLabel="Starting"`, the hand-made Loader2 swap and `cursor-progress` dropped. Busy keys are `aria-busy`, no
+  longer `disabled`, so tests assert that.
+- ROADMAP: retire the line "Design: the halo and the working words at the four call sites...".
+- Tab walk: NOT DRIVEN. This container holds no signed-in test-host session, so the account Plan card and the Drive
+  picker at 375/1440, light/dark, and the working words on a throttled network are Will's desk (Tab through /pricing's
+  sheet, Account > Plan, Dashboard > Send to Google Drive; press Get Pro and Send to Drive on a slow network).
+- Stale comments (not owned): `pricing-demos.tsx:69` and `pricing/leave.ts:16` still say "Starting…".
+- Assets: none. Board ideas: none. Migrations / env: none. Calls his to overrule: the key's word is "Opening billing" (the
+  brief's), though the same key also opens plan changes.
+- Look at first: the checkout key's working face, and the picker row's inset halo.
