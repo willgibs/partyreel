@@ -909,3 +909,24 @@ Its two asks are on your desk; these are the calls drawn into every option, buil
 
 **BI5. Paper follows brand r2's recommended take (Aperture) until you pick one.** Ink and Cast are on the board's Paper knob, never asked twice.
 - *Push back if* you want paper judged first.
+
+---
+
+## BJ. Your house set and working words, wired (identity-r5-wiring)
+
+Your two identity picks are in production's atoms; these five calls came with them, built and yours to overrule.
+
+**BJ1. A working key stays busy, never off.** It keeps its focus and face while it works (a second press does nothing), where a disabled key dropped focus to the page mid-save.
+- *Push back if* a working key should read as off.
+
+**BJ2. An off key settles clear:** faint words inside a quiet hairline, as the board drew it, not production's half-strength slab.
+- *Push back if* off should stay a dimmed slab.
+
+**BJ3. Create's foot is the key it becomes.** While the event is made it reads "Creating your event" with the arc, then turns to Get it ready in place.
+- *Push back if* you'd rather keep a line of text there while it works.
+
+**BJ4. Where a box clips, the halo is drawn inside it** (Settings' rows, the radio cards, the password field's eye): outside, it was cut away. The one construction the board never drew.
+- *Push back if* those controls should lose their clip instead.
+
+**BJ5. The camera's line names the retake ceiling:** "One shot each. Removing it frees the frame for another, up to 3 shots in all." (and "A roll of 12 shots each. Removing one frees its frame for another, up to 36 shots in all.")
+- *Push back if* the words should stay silent on the ceiling.
