@@ -32,13 +32,13 @@ session of its own (the runbook's "Cut a lane", step 4); none can message back, 
 
 | lane | what | state | model | session |
 | --- | --- | --- | --- | --- |
-| `redteam-56b` | red-team 56b on milestone 38's whole tip: crumbs-85's MEDIUM re-walked, the bursts, the house set and the halo's Tab walk, the album's time, the roll, marketing's pictures, the 404s, the regressions | to spawn on this record's tip (its prompt in this seat's scratch, `redteam-56b-prompt.template.txt`, `{sha}` to fill) | Opus | (to spawn) |
-| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | RUNNING since 17:45Z (cut at `6ccc5b4e`) | Opus | `session_01NRUnVBvmM6AN8RZvcVryuV` |
-| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | RUNNING since 17:46Z (cut at `6ccc5b4e`) | Opus | `session_01P6nE262dMp6APASC6qYNgs` |
+| `redteam-56b` | red-team 56b on milestone 38's whole tip: crumbs-85's MEDIUM re-walked, the bursts, the house set and the halo's Tab walk, the album's time, the roll, marketing's pictures, the 404s, the regressions | RUNNING since 18:34Z on `28ac0f813` (its report is its `result` event; its MEDIUM-or-worse lines show in its events as it walks) | Opus | `session_01KZTtpNFbXk3YiQS79BqG9j` |
+| `account-moments-r1` | board account-moments r1 (desk 50): I4 Follow and Block staying quiet, I5 a profile before a public page, each built answer drawn beside real alternatives | BACK WITH ITS LANE (18:58Z): gate 48 red on one test, `layer-is-up.test.tsx` refusing the hand-written dialog selector at `relations.tsx:113` (every other step green); the local merge undone, the lane resumed by message to fix it and hand off again | Opus | `session_01NRUnVBvmM6AN8RZvcVryuV` |
+| `create-wizard-r4` | board create-wizard r4 (desk 60): the styles' step polished on his round-3 note, F1 what is left as Settings' steps, F2 the develop playing while the event is made | HANDED OFF at `cbd77b06f` (18:21Z); integrating (gate 49) | Opus | `session_01P6nE262dMp6APASC6qYNgs` |
 | `marketing-crumbs` | nine marketing lines: today's product in the site's words and pictures, the postmark, the cinema 404, the demo modal on the popup, three wells | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01YKZtbayaXAkLj5ZQSZabgU` |
 | `upload-sums` | per-event byte sums in SQL (PRICING.md's lever 7): an upload's three reads and the size list stop walking every item; one migration (`20261006180000_upload_sums.sql`) through the Advisor | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01XwyY3CKaLeoiXrtikFMvXb` |
 | `crumbs-86` | ten small things: the 404s' one noindex, the host's capture clock, See it as a guest's zone and words, Create's seeding, billing's seam, two Library specimens, lifecycle comments, Blocked's address; no migration | RUNNING since 17:48Z (cut at `567e8710`); integrates after milestone 38 | Opus | `session_01NdLRsbCC4Nknxu3h5cbE8f` |
-| `halo-last` | the halo and the working words at the four call sites that waited on their lanes: pricing's three focus rings and its "Opening billing", Drive's album picker and its "Starting" | to cut now (its spec in this seat's scratch, `specs/halo-last.json`); integrates after milestone 38 | Sonnet | (to spawn) |
+| `halo-last` | the halo and the working words at the four call sites that waited on their lanes: pricing's three focus rings and its "Opening billing", Drive's album picker and its "Starting" | RUNNING since 18:36Z (cut at `28ac0f81`); integrates after milestone 38 | Sonnet | `session_01AP6FaNfAyNyBG8FUkqkX6h` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor") read billing_orphans and drive_marks, both
 applied (2026-10-06); its caveats are ROADMAP lines. A successor respawns it from `usher/kit/advisor-prompt.txt` for the
@@ -72,7 +72,7 @@ and another account's sessions.
 
 ## Next, in order
 
-1. **Red-team 56b** on this record's tip: a fresh cloud session from its prompt (`{sha}` filled); its report is its
+1. **Red-team 56b** walks `28ac0f813` (In flight); its report is its
    `result` event, and each MEDIUM-or-worse line shows in its events as it walks. Rows it names for a read-back are
    read here (SELECT, on Will's Allow). Its findings go to a crumbs lane; with no HIGH, **milestone 38** goes to Will
    for his yes: the `FULL=1` gate here, `pnpm compute:model` (a lane, since it needs the real services), merge to
