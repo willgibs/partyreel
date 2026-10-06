@@ -15,6 +15,12 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
+import {
+  ClipsLine,
+  OriginalsCard,
+  PhoneSizeCard,
+} from "@/components/app/export/take-home-panel";
+import { takeHomeSizes } from "@/lib/export/take-home";
 import { setViewportWidth } from "../../../../vitest.setup";
 
 const { start, startDownload } = vi.hoisted(() => ({
@@ -270,5 +276,60 @@ describe("on her phone", () => {
       size: "phone",
     });
     expect(startDownload).not.toHaveBeenCalled();
+  });
+});
+
+/* THE PANEL'S PIECES, AS A PICTURE OF IT DRAWS THEM (retired-mocks): the marketing site's Take it home composes the
+   exported cards and the clips' line, so each must render, on its own, exactly what it renders inside the panel. */
+describe("the exported pieces draw what the panel draws", () => {
+  beforeEach(() => setViewportWidth(1440));
+
+  it("each card and the clips' line, outside the panel, match the open panel's to the markup", async () => {
+    const dialog = await open();
+    const sizes = takeHomeSizes(SUMMARY);
+    const alone = render(
+      <div>
+        <OriginalsCard sizes={sizes} pictures={PICTURES} desk act={null} />
+        <PhoneSizeCard sizes={sizes} pictures={PICTURES} desk act={null} />
+        <ClipsLine sizes={sizes} />
+      </div>,
+    ).container;
+    for (const name of ["Originals", "Phone size"]) {
+      const inPanel = card(dialog, name);
+      const outside = alone.querySelector<HTMLElement>(
+        `[data-set-card="${name}"]`,
+      )!;
+      // The card's frame, its picture and its words are the same markup; only the act is the caller's.
+      expect(outside.getAttribute("class")).toBe(inPanel.getAttribute("class"));
+      expect(outside.hasAttribute("data-lead")).toBe(
+        inPanel.hasAttribute("data-lead"),
+      );
+      expect(outside.firstElementChild!.outerHTML).toBe(
+        inPanel.firstElementChild!.outerHTML,
+      );
+      expect(
+        outside.querySelector("[data-set-facts]")!.parentElement!.outerHTML,
+      ).toBe(
+        inPanel.querySelector("[data-set-facts]")!.parentElement!.outerHTML,
+      );
+    }
+    expect(alone).toHaveTextContent(
+      "Clips come as they were taken: 18 · 396 MB, with the originals.",
+    );
+  });
+
+  it("while the sizes are asked, and once they could not be, the cards say so", () => {
+    const { container } = render(
+      <div>
+        <OriginalsCard sizes={null} pictures={[]} desk act={null} />
+        <PhoneSizeCard sizes={null} failed pictures={[]} desk act={null} />
+        <ClipsLine sizes={null} />
+      </div>,
+    );
+    const facts = [...container.querySelectorAll("[data-set-facts]")].map(
+      (f) => f.textContent,
+    );
+    expect(facts).toEqual(["Adding it up", "Couldn't add it up"]);
+    expect(container.querySelectorAll("p")).toHaveLength(0);
   });
 });

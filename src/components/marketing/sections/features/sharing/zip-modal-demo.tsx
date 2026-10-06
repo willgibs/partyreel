@@ -1,200 +1,254 @@
 "use client";
 
-import {
-  Check,
-  Download,
-  Image as ImageIcon,
-  Layers,
-  Video,
-} from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Check, Download, FolderUp, X } from "lucide-react";
+import { getImageProps } from "next/image";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  ClipsLine,
+  OriginalsCard,
+  PhoneSizeCard,
+} from "@/components/app/export/take-home-panel";
 import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
+import { floatingWorkSurface } from "@/components/ui/floating-layer";
 import { Switch } from "@/components/ui/switch";
-import { cn, formatBytes } from "@/lib/utils";
+import { marketingImage } from "@/lib/constants/marketing-media";
+import type { ExportSummary } from "@/lib/export/build-manifest";
+import { setNoun, takeHomeSizes } from "@/lib/export/take-home";
+import { cn } from "@/lib/utils";
 
 /**
- * THE SIGNATURE (sharing page): a working "Download album" config modal. It
- * QUOTES the shipped export dialog (export-dialog.tsx): the exact title +
- * description, the three chip-cards (icon over label over live count, active =
- * border-primary bg-accent), the host-only "Include hidden items" Switch row,
- * and the footer's big tabular size + "N items" line beside the primary
- * Download. Every selection recomputes the totals like the app does, and the
- * size lands with the number-pop recipe ([data-mkt-digits], marketing.css
- * chapter 2), which reduce-degrades to a plain swap. The Download button plays
- * a one-shot icon swap (09-icon-swap) instead of pretending to zip anything.
+ * TAKE IT HOME, AS THE HOST MEETS IT (retired-mocks): the panel her album's Download opens, drawn from the panel's own
+ * pieces (`take-home-panel.tsx`'s `OriginalsCard`, `PhoneSizeCard` and `ClipsLine`), so a set's name, its purpose,
+ * the shape of its facts and its picture are the product's and move with it. Only the frame is drawn here (the plan
+ * popup's work layer, its head and its Include hidden items row, whose words `mock-parity.test.ts` pins), and the
+ * acts, which are the product's buttons with nothing behind them.
  *
- * The byte math is an art-directed fixture (a plausible wedding album), but it
- * formats through the REAL formatBytes, so the sizes read exactly as the app
- * would print them. Caps deliberately unmentioned (unmarketed).
+ * One figure, two places: the sharing page's signature (`ZipModalDemo`, `live`: the switch re-sizes both sets through
+ * the product's own `takeHomeSizes`, and a Download plays the icon swap instead of pretending to zip anything), and
+ * the host's Take it home step on /how-it-works and in the help center (`KeepPicture`, still). The figure lays out as
+ * the panel does by the room it is given rather than the window: side by side where a desk's panel would be, the
+ * hand's stack, phone size first, in a narrow column.
+ *
+ * The album is the site's one fictional wedding, an art-directed fixture formatted by the product's own functions.
  */
 
-type TypeFilter = "all" | "photo" | "video";
-type Bucket = { count: number; bytes: number };
-
 const MB = 1024 * 1024;
-const SUMMARY = {
+
+/** Maya & Jay's album, as the server would sum it: 214 photographs and 12 clips shown, 11 and 1 hidden. */
+const SUMMARY: ExportSummary = {
   shown: {
-    photo: { count: 186, bytes: 812 * MB },
-    video: { count: 14, bytes: 430 * MB },
+    photo: { count: 214, bytes: 214 * 3.4 * MB, phone: 214 * 0.62 * MB },
+    video: { count: 12, bytes: 12 * 61 * MB, phone: 12 * 61 * MB },
   },
   hidden: {
-    photo: { count: 11, bytes: 58 * MB },
-    video: { count: 1, bytes: 96 * MB },
+    photo: { count: 11, bytes: 11 * 3.4 * MB, phone: 11 * 0.62 * MB },
+    video: { count: 1, bytes: 48 * MB, phone: 48 * MB },
   },
-} as const;
+};
 
-function bucketFor(type: "photo" | "video", includeHidden: boolean): Bucket {
-  const s = SUMMARY.shown[type];
-  if (!includeHidden) return s;
-  const h = SUMMARY.hidden[type];
-  return { count: s.count + h.count, bytes: s.bytes + h.bytes };
-}
+/** The album's newest photographs, which picture both sets (each card its own run of them). */
+const PICTURES = [
+  "wedding-golden",
+  "party-dj",
+  "wedding-toast",
+  "reception-hall",
+  "wedding-petals",
+  "festival-lights",
+  "wedding-rings",
+].map((id) => {
+  const still = marketingImage(id);
+  // The optimizer's small copy (a card's cell is a few dozen pixels), as the product's tile is a preview.
+  return getImageProps({
+    src: still.src,
+    width: 240,
+    height: Math.round((240 * still.height) / still.width),
+    alt: "",
+  }).props.src;
+});
 
-function totalFor(types: TypeFilter, includeHidden: boolean): Bucket {
-  const photo = bucketFor("photo", includeHidden);
-  const video = bucketFor("video", includeHidden);
-  if (types === "photo") return photo;
-  if (types === "video") return video;
-  return { count: photo.count + video.count, bytes: photo.bytes + video.bytes };
-}
-
-const CHIPS: { key: TypeFilter; label: string; Icon: typeof Layers }[] = [
-  { key: "all", label: "Everything", Icon: Layers },
-  { key: "photo", label: "Photos", Icon: ImageIcon },
-  { key: "video", label: "Videos", Icon: Video },
-];
-
-/** The size re-pops per value: keyed remount refires the digit animation. */
-function SizePop({ text }: { text: string }) {
+/** A product button that is a picture of one: out of the tab order, its press the caller's to give. */
+function Act({
+  lead,
+  icon,
+  label,
+  onPress,
+}: {
+  lead: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onPress?: () => void;
+}) {
   return (
-    <span
-      key={text}
-      data-mkt-digits
-      data-on="true"
-      className="inline-flex items-baseline text-2xl font-medium tabular-nums"
+    <Button
+      type="button"
+      variant={lead ? "default" : "outline"}
+      size="sm"
+      tabIndex={onPress ? undefined : -1}
+      onClick={onPress}
     >
-      {text.split("").map((ch, i) => (
-        <span
-          key={i}
-          data-mkt-digit
-          className="inline-block"
-          style={{ "--i": i } as CSSProperties}
-        >
-          {ch === " " ? "\u00A0" : ch}
-        </span>
-      ))}
+      {icon} {label}
+    </Button>
+  );
+}
+
+/** Download, then a check for a beat: the one answer the figure gives to a press. */
+function useSwap() {
+  const [on, setOn] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+  const press = (key: string) => {
+    if (timer.current) clearTimeout(timer.current);
+    setOn(key);
+    timer.current = setTimeout(() => setOn(null), 1400);
+  };
+  return { on, press };
+}
+
+function SwapIcon({ done }: { done: boolean }) {
+  return (
+    <span className="mkt-icon-swap" data-state={done ? "b" : "a"} aria-hidden>
+      <span className="mkt-icon" data-icon="a">
+        <Download />
+      </span>
+      <span className="mkt-icon" data-icon="b">
+        <Check />
+      </span>
     </span>
   );
 }
 
-export function ZipModalDemo() {
-  const [types, setTypes] = useState<TypeFilter>("all");
-  const [includeHidden, setIncludeHidden] = useState(false);
-  const [swapped, setSwapped] = useState(false);
-  const swapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (swapTimer.current) clearTimeout(swapTimer.current);
-    },
-    [],
+/** The two sets in one layout of the panel's: a desk's pair, originals first, or a hand's stack, phone size first. */
+function Sets({
+  desk,
+  includeHidden,
+  live,
+}: {
+  desk: boolean;
+  includeHidden: boolean;
+  live: boolean;
+}) {
+  const sizes = takeHomeSizes(SUMMARY, includeHidden);
+  const { on, press } = useSwap();
+  const originals = (
+    <OriginalsCard
+      key="originals"
+      sizes={sizes}
+      pictures={PICTURES}
+      desk={desk}
+      act={
+        <>
+          <Act
+            lead={desk}
+            icon={<SwapIcon done={on === "originals"} />}
+            label="Download"
+            onPress={live ? () => press("originals") : undefined}
+          />
+          <Act lead={false} icon={<FolderUp />} label="Send to Drive" />
+        </>
+      }
+    />
   );
-
-  const result = totalFor(types, includeHidden);
-  const sizeText = formatBytes(result.bytes);
-
-  function onDownload() {
-    if (swapTimer.current) clearTimeout(swapTimer.current);
-    setSwapped(true);
-    swapTimer.current = setTimeout(() => setSwapped(false), 1400);
-  }
-
+  const phone = (
+    <PhoneSizeCard
+      key="phone"
+      sizes={sizes}
+      pictures={PICTURES}
+      desk={desk}
+      act={
+        <Act
+          lead={!desk}
+          icon={<SwapIcon done={on === "phone"} />}
+          label="Download"
+          onPress={live ? () => press("phone") : undefined}
+        />
+      }
+    />
+  );
   return (
-    <div role="group" aria-label="Download album demo">
-      {/* The quiet stage: in the app this dialog floats over the gallery, so
-          the mock gets a muted backdrop and the dialog's own shadow-layer
-          instead of sitting flush on the page. */}
-      <div className="rounded-2xl border bg-muted/40 p-4 sm:p-8">
-        <div className="mx-auto w-full max-w-[26rem] rounded-2xl border bg-card p-6 shadow-layer ring-1 ring-foreground/5">
-          <div className="flex flex-col gap-1.5">
-            <p className="text-lg font-semibold">Download album</p>
-            <p className="text-sm text-muted-foreground">
-              Pick what to bundle into your copy.
-            </p>
-          </div>
+    <div className={cn("gap-3", desk ? "grid grid-cols-2" : "flex flex-col")}>
+      {desk ? [originals, phone] : [phone, originals]}
+    </div>
+  );
+}
 
-          <div className="mt-4 flex gap-2">
-            {CHIPS.map(({ key, label, Icon }) => {
-              const active = types === key;
-              const count = totalFor(key, includeHidden).count;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setTypes(key)}
-                  className={cn(
-                    "flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-3 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
-                    active
-                      ? "border-primary bg-accent"
-                      : "border-border hover:bg-accent/50",
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "size-5",
-                      active ? "text-foreground" : "text-muted-foreground",
-                    )}
-                  />
-                  <span className="text-sm font-medium">{label}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <label className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3.5">
-            <span className="text-sm text-muted-foreground">
-              Include hidden items
-            </span>
-            <Switch
-              checked={includeHidden}
-              onCheckedChange={setIncludeHidden}
-              aria-label="Include hidden items"
-            />
-          </label>
-
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <div>
-              <SizePop text={sizeText} />
-              <div className="text-xs text-muted-foreground tabular-nums">
-                {result.count} items
-              </div>
-            </div>
-            <Button type="button" onClick={onDownload}>
-              <span
-                className="mkt-icon-swap"
-                data-state={swapped ? "b" : "a"}
-                aria-hidden
-              >
-                <span className="mkt-icon" data-icon="a">
-                  <Download />
-                </span>
-                <span className="mkt-icon" data-icon="b">
-                  <Check />
-                </span>
-              </span>
-              Download
-            </Button>
-          </div>
+/**
+ * THE PANEL, DRAWN: the plan popup's work layer and corner, its head (the title and what the album holds, in
+ * `setNoun`'s words), the two sets, the clips' line and the hidden switch.
+ */
+export function TakeHomeFigure({
+  live = false,
+  className,
+}: {
+  live?: boolean;
+  className?: string;
+}) {
+  const [includeHidden, setIncludeHidden] = useState(false);
+  const sizes = takeHomeSizes(SUMMARY, includeHidden);
+  return (
+    <div
+      data-take-home-figure=""
+      className={cn(
+        "@container relative w-full max-w-xl overflow-hidden rounded-[calc(var(--radius-float)*1.25)] text-sm",
+        floatingWorkSurface,
+        className,
+      )}
+    >
+      <span
+        aria-hidden
+        className="absolute top-2 right-2 flex size-7 items-center justify-center text-muted-foreground"
+      >
+        <X className="size-4" />
+      </span>
+      <div className="flex flex-col gap-1 p-4 pr-12">
+        <p className="font-heading text-card-title text-pretty">Take it home</p>
+        <p className="text-sm text-pretty text-muted-foreground tabular-nums">
+          {setNoun(sizes.photos, sizes.clips)}
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 px-4 pb-4">
+        {/* The panel's layout by the figure's own width (a desk's pair from 30rem, as wide as a desk panel's cards stand): the hand's stack below it. */}
+        <div className="hidden @min-[30rem]:block">
+          <Sets desk includeHidden={includeHidden} live={live} />
         </div>
+        <div className="@min-[30rem]:hidden">
+          <Sets desk={false} includeHidden={includeHidden} live={live} />
+        </div>
+        <ClipsLine sizes={sizes} />
+        <label className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-muted-foreground">Include hidden items</span>
+          <Switch
+            checked={includeHidden}
+            onCheckedChange={live ? setIncludeHidden : undefined}
+            tabIndex={live ? undefined : -1}
+            aria-label="Include hidden items"
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * THE SIGNATURE (sharing page): the host's Take it home, working. Flip Include hidden items and both sets re-size as
+ * the panel does; press a Download and it answers with a check.
+ */
+export function ZipModalDemo() {
+  return (
+    <div role="group" aria-label="Take it home demo">
+      {/* The quiet stage: in the app the panel floats over the album, so the figure gets a muted backdrop and the
+          work layer's own shadow instead of sitting flush on the page. */}
+      <div className="rounded-2xl border bg-muted/40 p-4 sm:p-8">
+        <TakeHomeFigure live className="mx-auto" />
       </div>
       <Caption className="mt-4 text-center">
-        shown with the host extras · guests get the same modal, minus Include
-        hidden
+        the host&rsquo;s Take it home · guests pick with Select, then Save
       </Caption>
     </div>
   );

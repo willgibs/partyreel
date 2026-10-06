@@ -1,14 +1,4 @@
-import {
-  Check,
-  ChevronLeft,
-  Clapperboard,
-  Download,
-  Image as ImageIcon,
-  Layers,
-  ListChecks,
-  Video,
-  X,
-} from "lucide-react";
+import { Check, ChevronLeft, Clapperboard, ListChecks, X } from "lucide-react";
 import Image from "next/image";
 
 import { ctaCorner } from "@/components/ui/button";
@@ -18,13 +8,13 @@ import { LIVE_REEL_MINIMUM } from "@/lib/events/gallery-reel";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { cn } from "@/lib/utils";
 
+import { TakeHomeFigure } from "@/components/marketing/sections/features/sharing/zip-modal-demo";
 import {
   Chip,
   EVENT_NAME,
   EVENT_URL,
   MiniQr,
   MockOutline,
-  MockPrimary,
   Panel,
   Tile,
 } from "./picture-parts";
@@ -341,22 +331,15 @@ export function ShapePicture() {
 
 /* ── 05 · Take it all home ──────────────────────────────────────────────── */
 
-const EXPORT_CHIPS = [
-  { label: "Everything", Icon: Layers, count: "226", on: true },
-  { label: "Photos", Icon: ImageIcon, count: "214", on: false },
-  { label: "Videos", Icon: Video, count: "12", on: false },
-];
-
 /**
- * export-dialog.tsx: three chip-cards each carrying its own live count, the
- * bundle size in the big tabular numeral, the item line under it, and the
- * Download button. The dialog is drawn as a floating layer over a hint of the
- * album it is taking, so the picture says WHAT is being downloaded.
+ * TAKE IT HOME, the panel her album's Download opens: her two sets, Originals to keep for good and Phone size to post
+ * tonight, the very figure the sharing page works (`features/sharing/zip-modal-demo.tsx`, composed of the panel's own
+ * pieces), held still. It floats over a hint of the album it is taking, so the picture says WHAT goes home.
  */
 export function KeepPicture() {
   return (
     <div className="relative">
-      {/* The album behind the dialog, at a whisper: three tiles, half out of
+      {/* The album behind the panel, at a whisper: three tiles, half out of
           frame, so the layer has something to float over. */}
       <div
         aria-hidden
@@ -366,41 +349,7 @@ export function KeepPicture() {
           <Tile key={id} id={id} sizes="90px" />
         ))}
       </div>
-      <Panel className="relative mt-10 rounded-float p-5 shadow-layer">
-        <p className="text-sm font-medium">Download album</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Pick what to bundle into your copy.
-        </p>
-        <div className="mt-3 flex gap-2">
-          {EXPORT_CHIPS.map(({ label, Icon, count, on }) => (
-            <span
-              key={label}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-2.5",
-                on && "border-primary bg-accent",
-              )}
-            >
-              <Icon className="size-4" />
-              <span className="text-[11px] font-medium">{label}</span>
-              <span className="text-[10px] text-muted-foreground tabular-nums">
-                {count}
-              </span>
-            </span>
-          ))}
-        </div>
-        <div className="mt-4 flex items-end justify-between gap-3 border-t pt-3.5">
-          <span className="flex flex-col">
-            <span className="text-xl font-medium tabular-nums">4.1 GB</span>
-            <span className="text-[11px] text-muted-foreground tabular-nums">
-              226 items
-            </span>
-          </span>
-          <MockPrimary className="px-3.5">
-            <Download className="size-3.5" />
-            Download
-          </MockPrimary>
-        </div>
-      </Panel>
+      <TakeHomeFigure className="mt-10" />
     </div>
   );
 }

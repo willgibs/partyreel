@@ -180,12 +180,21 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/password-gate.tsx",
     literal: "One password and you",
   },
+  // ★ Reshaped on purpose (retired-mocks): the album page's take-home plate drew the retired "Download album" menu;
+  // it draws her Select, then Save now, so it quotes Save's two rows.
   {
-    label: "album take-home dialog title",
+    label: "album take-home plate, Save's photos row",
     marketingFile:
       "src/components/marketing/sections/features/album/take-home-section.tsx",
-    appFile: "src/components/app/export/export-dialog.tsx",
-    literal: "Download album",
+    appFile: "src/components/guest/live-gallery-save.tsx",
+    literal: "Save to Photos",
+  },
+  {
+    label: "album take-home plate, Save's originals row",
+    marketingFile:
+      "src/components/marketing/sections/features/album/take-home-section.tsx",
+    appFile: "src/components/guest/live-gallery-save.tsx",
+    literal: "Save to Files",
   },
   {
     label: "album cap refusal, the guest's words",
@@ -235,34 +244,30 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-settings/camera-settings.tsx",
     literal: "Hold new photos until you approve or reject them, instead of",
   },
-  // Zip export demo (/features/sharing) <-> the real download dialog.
+  // Take it home (/features/sharing's signature, and /how-it-works' and the help center's keep step, one figure)
+  // <-> the host's panel. ★ Reshaped on purpose (retired-mocks): the figure drew the retired "Download album" menu
+  // (Everything, Photos, Videos) and quoted it from a file kept alive for its pins; it composes the panel's own set
+  // cards now, so only the frame's words are its own to pin.
   {
-    label: "zip demo dialog title",
+    label: "take-home figure title",
     marketingFile:
       "src/components/marketing/sections/features/sharing/zip-modal-demo.tsx",
-    appFile: "src/components/app/export/export-dialog.tsx",
-    literal: "Download album",
+    appFile: "src/components/app/export/take-home-panel.tsx",
+    literal: "Take it home",
   },
   {
-    label: 'zip demo "everything" filter chip',
+    label: "take-home figure originals' second way home",
     marketingFile:
       "src/components/marketing/sections/features/sharing/zip-modal-demo.tsx",
-    appFile: "src/components/app/export/export-dialog.tsx",
-    literal: "Everything",
+    appFile: "src/components/app/export/take-home-panel.tsx",
+    literal: "Send to Drive",
   },
   {
-    label: 'zip demo "photos" filter chip',
+    label: "take-home figure hidden switch",
     marketingFile:
       "src/components/marketing/sections/features/sharing/zip-modal-demo.tsx",
-    appFile: "src/components/app/export/export-dialog.tsx",
-    literal: "Photos",
-  },
-  {
-    label: 'zip demo "videos" filter chip',
-    marketingFile:
-      "src/components/marketing/sections/features/sharing/zip-modal-demo.tsx",
-    appFile: "src/components/app/export/export-dialog.tsx",
-    literal: "Videos",
+    appFile: "src/components/app/export/take-home-panel.tsx",
+    literal: "Include hidden items",
   },
   // QR page (/features/qr) <-> the host's real QR designer + download menu.
   // (No "Save QR style" pair: the designer is a menu whose row is the act,
@@ -304,16 +309,21 @@ const ENTRIES: ParityEntry[] = [
   },
   // The live reel (`reel-sweep`, 2026-09-25): every surface that draws the reel
   // quotes the reel's own words, so a rename in the view or the hub card
-  // strands no marketing picture of it. ★ Reshaped on purpose (`event-header`
-  // r1, the album's head is the cover): the album's reel tile went, so the
-  // reel's name is read from its one home (`EVENT_ROOMS`, which the hub's card
-  // and its room wear), and the tile's own clip line went with the tile (the
-  // creator's door is the view's "Make your own", pinned below).
+  // strands no marketing picture of it. ★ Reshaped on purpose (retired-mocks):
+  // /reel drew the retired reel tile and pinned its name; it draws the album's
+  // cover now (`event-header` r1's head), whose round opens the reel, so it pins
+  // that round's words.
   {
-    label: "reel page live tile heading",
-    marketingFile: "src/components/marketing/sections/reel/live-tile.tsx",
-    appFile: "src/lib/event/sections.ts",
-    literal: "Highlight reel",
+    label: "reel page live section, the cover's reel round",
+    marketingFile: "src/components/marketing/sections/reel/live-section.tsx",
+    appFile: "src/components/guest/event-experience.tsx",
+    literal: "Watch the highlight reel",
+  },
+  {
+    label: "reel page live section, the cover's invite round",
+    marketingFile: "src/components/marketing/sections/reel/live-section.tsx",
+    appFile: "src/components/guest/guest-share.tsx",
+    literal: 'title="Invite"',
   },
   {
     label: "reel page screen corner code line",
