@@ -137,7 +137,7 @@ working.
   (ink, tone, clear+hairline, ghost, red tint; off settles clear). Each writes its own shadow slot, so the halo
   composes over all of them.
 - Working = words: `working-arc` in globals.css; Button `working` + `workingLabel` (two faces in one grid cell, the
-  width held from first paint: measured 136 px resting and working on the consequence line's key); 41 call sites in
+  width held from first paint: measured 136 px resting and working on the consequence line's key); 30 keys in
   owns moved (Saving, Removing, Sending, Deleting, Signing in, Finishing, Adding a passkey, Creating your event); the
   field-status and slow-claim spinners are the arc; ConsequenceLine's key works in words.
 - Create event: the foot is one key, working as "Creating your event", then Get it ready (`create-event-wizard.tsx`).
