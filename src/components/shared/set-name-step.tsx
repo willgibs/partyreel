@@ -73,9 +73,11 @@ export function SetNameStep({
       <Button
         type="submit"
         className="w-full"
-        disabled={saving || !value.trim()}
+        disabled={!value.trim()}
+        working={saving}
+        workingLabel="Saving"
       >
-        {saving ? "Saving…" : submitLabel}
+        {submitLabel}
       </Button>
     </ClientForm>
   );

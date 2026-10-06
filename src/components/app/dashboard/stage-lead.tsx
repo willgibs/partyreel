@@ -162,7 +162,7 @@ function Phrase({
         "relative -mx-1 rounded-md px-1 font-medium text-white uppercase outline-none",
         "underline decoration-white/40 decoration-dotted decoration-[1.5px] underline-offset-[5px]",
         "transition-[text-decoration-color] duration-150 hover:decoration-white motion-reduce:transition-none",
-        "focus-visible:ring-2 focus-visible:ring-white/60",
+        "focus-halo",
         "after:absolute after:-inset-x-1 after:-inset-y-3.5 after:content-['']",
       )}
     >
@@ -458,7 +458,7 @@ export function StageLead({
                 type="button"
                 aria-label="Close"
                 onClick={() => close(true)}
-                className="flex items-center justify-center rounded-full text-white/70 outline-none hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/60 max-lg:-my-3.5 max-lg:-mr-3 max-lg:size-11 lg:-my-2 lg:-mr-2 lg:size-8"
+                className="flex items-center justify-center rounded-full text-white/70 outline-none hover:bg-white/10 hover:text-white focus-halo max-lg:-my-3.5 max-lg:-mr-3 max-lg:size-11 lg:-my-2 lg:-mr-2 lg:size-8"
               >
                 <X className="size-4" aria-hidden />
               </button>
@@ -499,7 +499,7 @@ export function StageLead({
                     onPointerEnter={(ev) => {
                       if (ev.pointerType !== "touch") show(r);
                     }}
-                    className="group -mx-3 flex items-center gap-3 rounded-xl px-3 text-left outline-none hover:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-white/60 max-lg:min-h-12 max-lg:py-1 lg:min-h-14 lg:py-1.5"
+                    className="group -mx-3 flex items-center gap-3 rounded-xl px-3 text-left outline-none hover:bg-white/[0.06] focus-halo max-lg:min-h-12 max-lg:py-1 lg:min-h-14 lg:py-1.5"
                   >
                     <span
                       aria-hidden

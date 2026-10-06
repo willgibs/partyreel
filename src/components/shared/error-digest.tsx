@@ -91,7 +91,7 @@ export function ErrorDigest({
           // is gone under reduced motion (both bible 5).
           "transition-[background-color,color,transform] duration-150 ease-emphasis",
           "hover:bg-muted/70 hover:text-foreground active:scale-[0.97] motion-reduce:active:scale-100",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+          "focus-halo",
         )}
       >
         <span className="tabular-nums select-all">{digest}</span>

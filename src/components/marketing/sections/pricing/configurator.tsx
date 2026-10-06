@@ -164,7 +164,7 @@ export function Configurator() {
                     "mt-4 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border outline-none",
                     "[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-border [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:ease-emphasis [&::-webkit-slider-thumb]:active:scale-110",
                     "[&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-border [&::-moz-range-thumb]:bg-foreground",
-                    "focus-visible:ring-2 focus-visible:ring-ring/50",
+                    "focus-halo",
                   )}
                 />
                 <div className="mt-2 flex justify-between text-micro text-faint uppercase">
@@ -237,7 +237,7 @@ function OnceOrAgain({
           onClick={() => setAgain(i === 1)}
           className={cn(
             "relative z-10 rounded-md px-3 py-1.5 text-working font-medium transition-colors outline-none",
-            "focus-visible:ring-2 focus-visible:ring-ring/50",
+            "focus-halo",
             "active:scale-[0.98] motion-reduce:active:scale-100",
             again === (i === 1)
               ? "text-foreground"

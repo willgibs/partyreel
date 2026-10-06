@@ -209,7 +209,7 @@ export function InvitedSection({
               type="button"
               aria-label={`Drop ${entry}`}
               onClick={() => setFlagged((f) => f.filter((x) => x !== entry))}
-              className="flex size-5 items-center justify-center rounded-full outline-none hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="flex size-5 items-center justify-center rounded-full outline-none hover:bg-destructive/10 focus-halo"
             >
               <X className="size-3.5" aria-hidden />
             </button>

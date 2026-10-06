@@ -297,8 +297,8 @@ function CropperBody({
         <Button variant="outline" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave} disabled={!bitmap || saving}>
-          {saving ? "Saving…" : "Save photo"}
+        <Button onClick={handleSave} disabled={!bitmap || saving} working={saving} workingLabel="Saving">
+          Save photo
         </Button>
       </DialogFooter>
     </>

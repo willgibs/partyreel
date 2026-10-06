@@ -140,7 +140,7 @@ export function AccountSecurityForm({
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90 rounded-lg outline-none focus-halo halo-inset"
           >
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
@@ -162,12 +162,13 @@ export function AccountSecurityForm({
         />
       </div>
 
-      <Button type="submit" disabled={disabled}>
-        {saving
-          ? "Saving…"
-          : mode === "change"
-            ? "Change password"
-            : "Set password"}
+      <Button
+        type="submit"
+        disabled={disabled}
+        working={saving}
+        workingLabel="Saving"
+      >
+        {mode === "change" ? "Change password" : "Set password"}
       </Button>
     </ClientForm>
   );

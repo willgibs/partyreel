@@ -76,7 +76,7 @@ export function HowItWorksStepper({
             className={cn(
               "flex size-9 items-center justify-center rounded-full border text-sm font-medium tabular-nums outline-none",
               "transition-[color,background-color,border-color,transform,scale] duration-150 ease-emphasis",
-              "focus-visible:ring-2 focus-visible:ring-ring/50",
+              "focus-halo",
               "active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100",
               i === active
                 ? "border-foreground bg-foreground text-background"

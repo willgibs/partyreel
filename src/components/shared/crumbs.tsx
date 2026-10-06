@@ -197,7 +197,7 @@ export function CrumbsBar() {
       {parent ? (
         <Link
           href={parent.href!}
-          className="flex min-w-0 items-center gap-0.5 text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+          className="flex min-w-0 items-center gap-0.5 rounded-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-halo sm:hidden"
         >
           <ChevronLeft className="size-4 shrink-0" aria-hidden />
           <span className="truncate">{parent.label}</span>
@@ -225,7 +225,7 @@ export function CrumbsBar() {
               {step.href && !isLast ? (
                 <Link
                   href={step.href}
-                  className="truncate text-muted-foreground transition-colors hover:text-foreground"
+                  className="truncate rounded-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-halo"
                 >
                   {step.label}
                 </Link>

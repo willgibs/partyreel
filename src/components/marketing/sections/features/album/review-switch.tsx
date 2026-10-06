@@ -117,7 +117,7 @@ export function ReviewSwitch() {
             onClick={() => pick(value)}
             className={cn(
               "relative z-10 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium transition-colors outline-none",
-              "focus-visible:ring-2 focus-visible:ring-ring/50",
+              "focus-halo",
               "active:scale-[0.98] motion-reduce:active:scale-100",
               mode === value
                 ? "text-foreground"

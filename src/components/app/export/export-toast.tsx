@@ -56,7 +56,7 @@ function Controls({
           aria-label={close.label}
           title={close.label}
           onClick={close.run}
-          className="-my-1.5 -mr-2 flex size-8 shrink-0 items-center justify-center rounded-md opacity-55 transition-opacity duration-150 outline-none hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-current/40 active:scale-95 motion-reduce:active:scale-100"
+          className="-my-1.5 -mr-2 flex size-8 shrink-0 items-center justify-center rounded-md opacity-55 transition-opacity duration-150 outline-none hover:opacity-100 focus-visible:opacity-100 focus-halo active:scale-95 motion-reduce:active:scale-100"
         >
           <X className="size-3.5" aria-hidden />
         </button>

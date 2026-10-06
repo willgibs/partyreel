@@ -51,7 +51,7 @@ export function DeleteEventRow({
         <PopupTrigger asChild>
           <button
             type="button"
-            className="flex w-full items-center gap-2 rounded-lg bg-card px-4 py-3 text-left text-sm font-medium text-destructive ring-1 ring-foreground/10 transition-colors duration-150 outline-none hover:bg-destructive/5 focus-visible:ring-2 focus-visible:ring-destructive/40 motion-reduce:transition-none"
+            className="flex w-full items-center gap-2 rounded-lg bg-card px-4 py-3 text-left text-sm font-medium text-destructive ring-1 ring-foreground/10 transition-colors duration-150 outline-none hover:bg-destructive/5 focus-halo motion-reduce:transition-none"
           >
             <Trash2 className="size-4" aria-hidden />
             Delete event
@@ -72,10 +72,11 @@ export function DeleteEventRow({
             </PopupClose>
             <Button
               variant="destructive"
-              disabled={isDeleting}
               onClick={onDelete}
+              working={isDeleting}
+              workingLabel="Deleting"
             >
-              {isDeleting ? "Deleting…" : "Delete event"}
+              Delete event
             </Button>
           </PopupFooter>
         </PopupContent>

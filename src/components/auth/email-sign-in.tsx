@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
@@ -111,7 +110,7 @@ function WaitingCue() {
       data-waiting-cue=""
       className="absolute inset-y-0 left-4 flex animate-in items-center duration-300 fill-mode-backwards [--tw-animation-delay:500ms] fade-in group-active/button:animate-none"
     >
-      <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+      <span className="working-arc" />
     </span>
   );
 }
@@ -589,14 +588,15 @@ export function EmailSignIn({
             // the HTML a cold phone paints and gone the moment the handler exists.
             aria-disabled={hydrated ? undefined : true}
             className={cn(
-              "relative w-full active:scale-[0.99] motion-reduce:active:scale-100",
+              "relative w-full",
               !hydrated && "cursor-progress",
               buttonClassName,
             )}
-            disabled={form.formState.isSubmitting}
+            working={form.formState.isSubmitting}
+            workingLabel="Sending"
           >
             {!hydrated && <WaitingCue />}
-            {form.formState.isSubmitting ? "Sending…" : "Email me a code"}
+            Email me a code
           </Button>
         </div>
       </ClientForm>

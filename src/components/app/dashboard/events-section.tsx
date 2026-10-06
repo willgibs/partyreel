@@ -400,7 +400,7 @@ export function EventsSection({
                     ?.querySelector<HTMLElement>("[aria-haspopup='dialog']")
                     ?.focus({ preventScroll: true });
                 }}
-                className="font-medium text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="font-medium text-foreground outline-none hover:underline focus-halo"
               >
                 Reset
               </button>

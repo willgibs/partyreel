@@ -324,8 +324,8 @@ export function ProfileSetupWizard({
             <Button type="button" variant="ghost" onClick={() => setStep(1)}>
               <ArrowLeft /> Back
             </Button>
-            <Button type="submit" disabled={savingName || !name.trim()}>
-              {savingName ? "Saving…" : "Continue"}
+            <Button type="submit" disabled={!name.trim()} working={savingName} workingLabel="Saving">
+              Continue
               {!savingName && <ArrowRight />}
             </Button>
           </CardFooter>
@@ -394,8 +394,8 @@ export function ProfileSetupWizard({
             >
               <ArrowLeft /> Back
             </Button>
-            <Button type="button" disabled={finishing} onClick={finish}>
-              {finishing ? "Finishing…" : "Finish"}
+            <Button type="button"  onClick={finish} working={finishing} workingLabel="Finishing">
+              Finish
             </Button>
           </CardFooter>
         </>

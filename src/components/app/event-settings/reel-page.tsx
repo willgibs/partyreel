@@ -91,7 +91,7 @@ export function ReelPage() {
                       key={id}
                       value={id}
                       data-reel-mood={id}
-                      className="group flex min-w-0 flex-col items-center gap-1 rounded-[calc(var(--radius-tile)+2px)] outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                      className="group flex min-w-0 flex-col items-center gap-1 rounded-[calc(var(--radius-tile)+2px)] outline-none focus-halo"
                     >
                       <MoodSwatch id={id} photo={photo} />
                       <span className="w-full truncate text-center text-xs text-muted-foreground group-data-[state=on]:font-medium group-data-[state=on]:text-foreground">
@@ -116,7 +116,7 @@ export function ReelPage() {
                       void s.saveReel({ reelHoldSec: next });
                   }}
                   aria-labelledby="reel-hold-label"
-                  className="flex rounded-lg bg-muted p-0.5"
+                  className="flex gap-0.5 rounded-[11px] bg-(--track) p-[3px]"
                 >
                   {HOLD_STEPS_SEC.map((step) => (
                     <ToggleGroupPrimitive.Item
@@ -124,9 +124,9 @@ export function ReelPage() {
                       value={String(step)}
                       aria-label={secondsLabel(step)}
                       className={cn(
-                        "h-7 flex-1 rounded-md text-xs text-muted-foreground tabular-nums transition-colors duration-150 outline-none motion-reduce:transition-none",
-                        "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
-                        "data-[state=on]:bg-background data-[state=on]:font-medium data-[state=on]:text-foreground data-[state=on]:shadow-lift",
+                        "h-7 flex-1 rounded-lg text-xs text-muted-foreground tabular-nums transition-[color,background-color,scale] duration-150 ease-emphasis outline-none",
+                        "hover:text-foreground focus-halo press-shrink [--press-scale:0.95]",
+                        "data-[state=on]:afloat data-[state=on]:font-medium",
                       )}
                     >
                       {step}

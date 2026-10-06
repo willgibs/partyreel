@@ -596,6 +596,117 @@
   color-scheme: dark;
 }
 
+/* ═══ THE HOUSE SET'S GROUNDS (identity r5, set=house) ═══
+   Will's pick on his desk 5, in the board's words: "the house mix: sunk,
+   flat, afloat". A FIELD IS A PLACE, so it is a well sunk a step under its
+   ground (a soft shade inside its top, a rim, its foot catching the light);
+   WHAT YOU PRESS IS A WORD, so it lies flat (ink, a tone, a clear key with a
+   hairline, nothing); WHAT IS CHOSEN FLOATS over the flat track it stands in
+   (white on its lift on paper, lit graphite in the room). The constructions
+   are the utilities after THE PRESS (`field-well`, `afloat`, `toggle-thumb`);
+   these are their values, declared on every ground, since a var() inside a
+   custom property resolves where it is declared (a value declared on the root
+   alone would carry paper's tone into the room). The board that drew them is
+   retired with this wiring; its numbers are these. (Each ground's selector
+   names its class first, so the ground contracts' tests still find each
+   ground's own block where they look for it, by its class and brace.) */
+.surface-paper,
+:root {
+  /* The well: a step under paper, a lighter inside while it holds the caret. */
+  --well: oklch(0.955 0.002 286);
+  --well-in: oklch(0.985 0.001 286);
+  --well-shade: oklch(0 0 0 / 7%);
+  --well-rim: oklch(0.14 0.004 286 / 8%);
+  --well-rim-up: oklch(0.14 0.004 286 / 15%);
+  --well-lip: oklch(1 0 0 / 75%);
+  /* The keys: ink under a pointer steps toward the page's light; a tone (the
+     quiet key, a chip), a wash (the clear key's hover) and a hover (ghost's)
+     are the ground's own ink at a few percent; the clear key's hairline. Its
+     red words a step deeper than the red, so they read on their own tint. */
+  --ink-up: color-mix(in oklab, var(--primary), oklch(1 0 0) 12%);
+  --key-tone: color-mix(in oklab, var(--foreground) 11%, transparent);
+  --key-tone-up: color-mix(in oklab, var(--foreground) 14%, transparent);
+  --key-wash: color-mix(in oklab, var(--foreground) 4%, transparent);
+  --key-hover: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --key-line: oklch(0.14 0.004 286 / 15%);
+  --key-line-up: oklch(0.14 0.004 286 / 24%);
+  --key-danger: color-mix(in oklab, var(--destructive), oklch(0 0 0) 20%);
+  /* What is chosen: the flat track it stands in, the face it floats on, its
+     lift, and its light (none on paper, where light cannot show on white). */
+  --track: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --afloat: oklch(1 0 0);
+  --afloat-line: oklch(0.14 0.004 286 / 9%);
+  --afloat-near: oklch(0 0 0 / 8%);
+  --afloat-far: oklch(0 0 0 / 14%);
+  --afloat-light: transparent;
+  /* A card to choose (a style, the door's gate): a flat tone over the card. */
+  --choice: color-mix(in oklab, var(--foreground) 4.5%, var(--card));
+  --choice-up: color-mix(in oklab, var(--foreground) 7%, var(--card));
+  /* The toggles: a flat track that turns to ink, a white thumb with a seam. */
+  --toggle-off: color-mix(in oklab, var(--foreground) 15%, transparent);
+  --toggle-off-up: color-mix(in oklab, var(--foreground) 21%, transparent);
+  --thumb: oklch(1 0 0);
+  --thumb-seam: oklch(0.14 0.004 286 / 9%);
+}
+.surface-ink,
+.dark {
+  --well: oklch(0.12 0.003 286);
+  --well-in: oklch(0.14 0.003 286);
+  --well-shade: oklch(0 0 0 / 55%);
+  --well-rim: oklch(1 0 0 / 7%);
+  --well-rim-up: oklch(1 0 0 / 13%);
+  --well-lip: oklch(1 0 0 / 7%);
+  /* A breath darker in the room: at 7% and more a white key read as grey. */
+  --ink-up: color-mix(in oklab, var(--primary), oklch(0 0 0) 4%);
+  --key-tone: color-mix(in oklab, var(--foreground) 12%, transparent);
+  --key-tone-up: color-mix(in oklab, var(--foreground) 15%, transparent);
+  --key-wash: color-mix(in oklab, var(--foreground) 4%, transparent);
+  --key-hover: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --key-line: oklch(1 0 0 / 15%);
+  --key-line-up: oklch(1 0 0 / 24%);
+  --key-danger: var(--destructive);
+  --track: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --afloat: color-mix(in oklab, var(--display), oklch(1 0 0) 6%);
+  --afloat-line: oklch(0 0 0 / 0%);
+  --afloat-near: oklch(0 0 0 / 50%);
+  --afloat-far: oklch(0 0 0 / 55%);
+  --afloat-light: var(--display-light);
+  --choice: color-mix(in oklab, var(--foreground) 4%, var(--card));
+  --choice-up: color-mix(in oklab, var(--foreground) 6.5%, var(--card));
+  --toggle-off: color-mix(in oklab, var(--foreground) 16%, transparent);
+  --toggle-off-up: color-mix(in oklab, var(--foreground) 22%, transparent);
+  --thumb: oklch(0.96 0.002 286);
+  --thumb-seam: oklch(0 0 0 / 35%);
+}
+.surface-display {
+  --well: color-mix(in oklab, var(--display), oklch(0 0 0) 32%);
+  --well-in: color-mix(in oklab, var(--display), oklch(0 0 0) 20%);
+  --well-shade: oklch(0 0 0 / 45%);
+  --well-rim: oklch(1 0 0 / 7%);
+  --well-rim-up: oklch(1 0 0 / 14%);
+  --well-lip: oklch(1 0 0 / 8%);
+  --ink-up: color-mix(in oklab, var(--primary), oklch(0 0 0) 4%);
+  --key-tone: color-mix(in oklab, var(--foreground) 13%, transparent);
+  --key-tone-up: color-mix(in oklab, var(--foreground) 16%, transparent);
+  --key-wash: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --key-hover: color-mix(in oklab, var(--foreground) 8%, transparent);
+  --key-line: oklch(1 0 0 / 16%);
+  --key-line-up: oklch(1 0 0 / 26%);
+  --key-danger: var(--destructive);
+  --track: color-mix(in oklab, var(--foreground) 9%, transparent);
+  --afloat: var(--display-step);
+  --afloat-line: oklch(0 0 0 / 0%);
+  --afloat-near: oklch(0 0 0 / 40%);
+  --afloat-far: oklch(0 0 0 / 45%);
+  --afloat-light: var(--display-light);
+  --choice: color-mix(in oklab, var(--foreground) 5%, var(--display));
+  --choice-up: color-mix(in oklab, var(--foreground) 8%, var(--display));
+  --toggle-off: color-mix(in oklab, var(--foreground) 18%, transparent);
+  --toggle-off-up: color-mix(in oklab, var(--foreground) 24%, transparent);
+  --thumb: oklch(0.96 0.002 286);
+  --thumb-seam: oklch(0 0 0 / 35%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -1198,8 +1309,7 @@
    segment, a tab, a field, a switch, the shutter, the code's chip and mat, a
    readout), so it reads as the product's mark and not each control's (his r2
    note: "some focuses rings, some corners, which is bad"). An atom wears
-   this class and no focus treatment of its own; the board's drawing it
-   carries is `sandbox/identity/sheet/focus.ts`'s HALO.
+   this class and no focus treatment of its own.
 
    ★ IT IS DRAWN IN TAILWIND'S OWN RING SLOT: the band, the line and its bloom
    all in `--tw-ring-shadow`, composed in the order every shadow utility
@@ -1235,8 +1345,12 @@
    in the atoms: as a variant it would replace the halo), so a field in error
    still shows where the keyboard is.
 
+   ★ A CONTROL IN A BOX THAT CLIPS draws it inside (`halo-inset`, below).
+
    `data-halo` pins it on an element that stands for a focus it does not hold
-   (the code field's caret slot, `ui/input-otp.tsx`). Forced colours drop
+   (the code field's caret slot, `ui/input-otp.tsx`), and `data-quiet-focus`
+   holds it off a trigger a layer handed its focus back to after a pointer's
+   choice (`ui/quiet-focus.ts`: Chrome reads that focus as the keyboard's). Forced colours drop
    every shadow, so there it is an outline. */
 [data-surface="photo"],
 [data-variant="on-photo"],
@@ -1266,7 +1380,7 @@
 }
 
 @utility focus-halo {
-  &:is(:focus-visible, [data-halo]) {
+  &:is(:focus-visible, [data-halo]):not([data-quiet-focus]) {
     /* The line's ink, named so an atom that must draw it another way reads
        the same colour (the shutter's outline, `ui/shutter.css`). */
     --halo-ink: var(
@@ -1276,11 +1390,13 @@
     outline: none;
     /* The band (on top), the line round it, the bloom under both: one slot. */
     --tw-ring-shadow:
-      0 0 0 calc(var(--halo-at, 2px) + (1 - var(--halo-t)) * 1.5px)
+      var(--halo-in,) 0 0 0
+        calc(var(--halo-at, 2px) + (1 - var(--halo-t)) * 1.5px)
         var(--halo-band, var(--halo-gap, var(--background))),
-      0 0 0 calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
+      var(--halo-in,) 0 0 0
+        calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
         var(--halo-ink),
-      0 -1px calc(12px + (1 - var(--halo-t)) * 10px)
+      var(--halo-in,) 0 -1px calc(12px + (1 - var(--halo-t)) * 10px)
         calc(var(--halo-at, 2px) + (2 - var(--halo-t)) * 1.5px)
         var(--halo-bloom);
     box-shadow:
@@ -1288,7 +1404,7 @@
       var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow),
       var(--tw-shadow, 0 0 #0000);
   }
-  &:is(:focus-visible, [data-halo]):not([aria-busy="true"]) {
+  &:is(:focus-visible, [data-halo]):not([aria-busy="true"], [data-quiet-focus]) {
     animation: halo-arrive 140ms var(--ease-emphasis);
   }
   &[aria-invalid="true"] {
@@ -1302,14 +1418,20 @@
   }
 }
 
+/* The halo drawn INSIDE: a control that fills a box which clips (a list's row stretched behind its words,
+   an overlay over a card) has no room outside it, so it wears `focus-halo halo-inset` and the same band,
+   line and bloom stand inside its edge (`--halo-in`, empty by default, is each shadow's `inset`). */
+@utility halo-inset {
+  --halo-in: inset;
+}
+
 /* ═══════════ THE PRESS: `press-shrink` (identity r4, press=shrink) ═══════════
    "The control gives under the finger by about two pixels at every size, from
    a chip to the 44px key, the way a phone's own controls do." A give is a
    scale, so each size carries its own number in `--press-scale` (0.96 unless
    it says otherwise): a small round gives more (0.92), a 24 or 28px key, a
    chip and a segment 0.95, the 44px call to action less (0.98), the shutter
-   0.94, so the give is felt alike on each (`sandbox/identity/sheet/press.ts`'s
-   SHRINK).
+   0.94, so the give is felt alike on each.
 
    ★ IT LANDS IN THE FRAME THE FINGER DOES AND LETS GO AT THE HOUSE'S SPEED: a
    transition runs on the state it arrives at, so the held state's duration is
@@ -1335,6 +1457,148 @@
     scale: var(--press-scale, 0.96);
     transition-duration: 0ms !important;
   }
+}
+
+
+/* ═══════════ THE HOUSE SET: `field-well`, `afloat`, `toggle-thumb` (identity r5, set=house) ═══════════
+   The constructions of THE HOUSE SET'S GROUNDS (their values, above), one
+   utility each, worn by the atoms and by a screen's part that stands for one
+   (Settings' door, its password panel): a field is `field-well`, what is
+   chosen is `afloat`, a switch's thumb is `toggle-thumb`. The keys are flat,
+   so they need no construction of their own: Button's variants read the
+   tokens directly (`ui/button.tsx`).
+
+   ★ EACH WRITES ITS OWN SLOT IN THE SHADOW EVERY UTILITY COMPOSES: the well
+   its shade and lip in `--tw-inset-shadow` and its rim in
+   `--tw-inset-ring-shadow`, what floats its lift in `--tw-shadow`, so the
+   halo (the ring slot) stands over either whole, and a state moves one slot
+   (a hover firms the rim, an error turns it red) without retyping the rest.
+   A field in error keeps its well and takes a red rim; focused, the halo's
+   line turns red too (`focus-halo`).
+
+   ★ WHAT FLOATS IS LIT IN THE ROOM, never on paper: its `::after` is the
+   bright edge's pixel (THE BRIGHT EDGE below: a 1px clear border under a
+   mask, never a padding) in `--afloat-light`, transparent on paper. A host
+   that wears `afloat` is positioned by it, and gives it its `::after` (a
+   tab's underline is the line variant's alone, which never floats). */
+@utility field-well {
+  background-color: var(--well);
+  --tw-inset-shadow:
+    inset 0 1px 2px 0 var(--well-shade), inset 0 -1px 0 0 var(--well-lip);
+  --tw-inset-ring-shadow: inset 0 0 0 1px var(--well-rim);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow, 0 0 #0000);
+  &:is(:hover, :focus-visible, :focus-within, [data-state="open"]):not(
+      :disabled,
+      [data-disabled],
+      [aria-busy="true"]
+    ) {
+    --tw-inset-ring-shadow: inset 0 0 0 1px var(--well-rim-up);
+  }
+  /* Holding the caret, the well's inside steps lighter: where you type is lit. */
+  &:is(:focus-visible, :focus-within) {
+    background-color: var(--well-in);
+  }
+  &[aria-invalid="true"] {
+    --tw-inset-ring-shadow: inset 0 0 0 1px var(--destructive);
+  }
+}
+
+@utility afloat {
+  position: relative;
+  background-color: var(--afloat);
+  color: var(--foreground);
+  --tw-shadow: var(
+    --afloat-lift,
+    0 0 0 1px var(--afloat-line),
+    0 1px 2px 0 var(--afloat-near),
+    0 3px 10px -1px var(--afloat-far)
+  );
+  box-shadow:
+    var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000),
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    pointer-events: none;
+    opacity: 1;
+    background: radial-gradient(
+        135% 100% at 50% 0%,
+        var(--afloat-light) 0%,
+        color-mix(in oklab, var(--afloat-light) 44%, transparent) 36%,
+        color-mix(in oklab, var(--afloat-light) 13%, transparent) 66%,
+        transparent 92%
+      )
+      border-box;
+    -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    -webkit-mask-clip: padding-box, border-box;
+    mask-clip: padding-box, border-box;
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+/* A card afloat (a radio card): its line INSIDE its box and its lift tight under it, since a card often
+   stands in a wrapper that clips (the door's dormant steps), which cut an edge drawn outside away. */
+@utility afloat-card {
+  --afloat-lift:
+    inset 0 0 0 1px var(--afloat-line), 0 1px 2px 0 var(--afloat-near),
+    0 6px 8px -6px var(--afloat-far);
+}
+
+@utility toggle-thumb {
+  background-color: var(--thumb);
+  /* Its seam keeps a white thumb whole on an inked track; its lift stands it over the track. */
+  box-shadow:
+    0 0 0 1px var(--thumb-seam), 0 1px 2px 0 var(--afloat-near),
+    0 3px 8px -1px var(--afloat-far);
+}
+
+/* ═══════════ WORKING: `working-arc` (identity r5, loading=words) ═══════════
+   Will's pick on his desk 5, in the board's words: "the words say it: Saving,
+   with the arc". A key that works on what was pressed shows a third of a ring
+   in its own ink running round a faint whole ring of the same ink, where a
+   leading icon stands, and its words turn to what it is doing (Saving,
+   Unlocking, Creating your event). Button draws both from its `working` and
+   `workingLabel` (`ui/button.tsx`), holding the wider of its two faces from
+   the first paint so nothing beside it moves.
+
+   ★ ONE TURN IN 800ms, LINEAR: a spinner that eases reads as stalling between
+   turns. ★ STILL, IT STILL SAYS WORKING: under reduced motion the guard below
+   plays the loop once and rests it on its base, a ring a third filled.
+   ★ NOT "STILL SAVING": a long wait keeps its words (he did not pick `still`).
+   Sized to its key's icon step through `--arc` (12, 14, 16: Button's sizes). */
+@keyframes working-arc-turn {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@utility working-arc {
+  flex: none;
+  box-sizing: border-box;
+  width: var(--arc, 14px);
+  height: var(--arc, 14px);
+  padding: var(--arc-w, 1.75px);
+  border-radius: 999px;
+  pointer-events: none;
+  background: conic-gradient(
+    currentColor 0 30%,
+    color-mix(in oklab, currentColor 22%, transparent) 30% 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: working-arc-turn 800ms linear infinite;
 }
 
 /* GLOBAL REDUCED-MOTION GUARD. 0.01ms, NEVER 0: radix exit-unmount and the
@@ -2803,7 +3067,7 @@
    (`ui/floating-layer.ts`): `lit-display` on every quick layer (a menu, a
    popover, a select, the Add's rows, the palette, a tooltip), the toast
    beside them, and `lit-work` on every work layer (the popup's shapes, the
-   Dialog, the Sheet). The board's drawing is `sandbox/identity/sheet/edge.ts`.
+   Dialog, the Sheet).
 
    ★ IT REPLACES THE HAIRLINE, IT IS NEVER A THIRD OUTLINE: the display wears
    no ring any more (the contract's `floatingDisplay`), and a toast's border

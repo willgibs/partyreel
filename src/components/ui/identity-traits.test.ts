@@ -129,7 +129,9 @@ describe("the focus halo: `focus-halo` (focus=halo)", () => {
   })
 
   it("arrives in one beat out of a registered number, and steps aside for a working control", () => {
-    expect(halo()).toMatch(/:not\(\[aria-busy="true"\]\)\s*\{\s*animation:\s*halo-arrive 140ms var\(--ease-emphasis\)/)
+    expect(halo()).toMatch(
+      /:not\(\[aria-busy="true"\], \[data-quiet-focus\]\)\s*\{\s*animation:\s*halo-arrive 140ms var\(--ease-emphasis\)/
+    )
     expect(css).toMatch(
       /@property --halo-t\s*\{\s*syntax:\s*"<number>";\s*inherits:\s*false;\s*initial-value:\s*1;\s*\}/
     )
@@ -211,12 +213,30 @@ describe("the focus halo: `focus-halo` (focus=halo)", () => {
     }
   })
 
-  it("lets an atom in error show where the keyboard is: its resting error ring steps aside while it holds focus", () => {
-    for (const file of ["button.tsx", "input.tsx", "textarea.tsx", "switch.tsx"]) {
+  // Reshaped with identity r5 (set=house): the resting error ring was an OUTER ring that had to step aside
+  // (`aria-invalid:not-focus-visible:ring-3`), since it shared the halo's slot. It is drawn INSIDE now, in
+  // the inset ring's slot (a key's and a switch's `inset-ring`, a field's well rim), so it stays while the
+  // halo stands round it. The scar kept: an outer error ring would still replace the halo.
+  it("lets an atom in error show where the keyboard is: its error is drawn inside, never in the halo's slot", () => {
+    for (const file of ["button.tsx", "switch.tsx"]) {
       const source = read(`src/components/ui/${file}`)
-      expect(source, file).toMatch(/aria-invalid:not-focus-visible:ring-3/)
-      expect(source, `${file}'s error ring would replace the halo`).not.toMatch(/aria-invalid:ring-3/)
+      expect(source, file).toMatch(/aria-invalid:inset-ring-destructive/)
     }
+    for (const file of ["input.tsx", "textarea.tsx", "select.tsx"])
+      expect(read(`src/components/ui/${file}`), file).toMatch(/\bfield-well\b/)
+    expect(block("@utility field-well")).toMatch(
+      /&\[aria-invalid="true"\]\s*\{\s*--tw-inset-ring-shadow:\s*inset 0 0 0 1px var\(--destructive\)/
+    )
+    for (const file of ["button.tsx", "input.tsx", "textarea.tsx", "switch.tsx", "select.tsx"])
+      expect(read(`src/components/ui/${file}`), `${file}'s error ring would replace the halo`).not.toMatch(
+        /aria-invalid:(?:not-focus-visible:)?ring-/
+      )
+  })
+
+  it("stays off a trigger a layer handed its focus back to after a pointer's choice (red-team 56)", () => {
+    expect(halo()).toMatch(/&:is\(:focus-visible, \[data-halo\]\):not\(\[data-quiet-focus\]\)\s*\{/)
+    expect(read("src/components/ui/dropdown-menu.tsx")).toMatch(/quietFocusAfterPointer\(\)/)
+    expect(read("src/components/ui/responsive-menu.tsx")).toMatch(/giveFocusBack\(/)
   })
 
   it("stands beyond the shutter's own light, its line an outline over the glow", () => {

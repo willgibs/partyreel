@@ -149,7 +149,7 @@ function PeekCard({ peek }: { peek: PeekRequest }) {
 
       <DialogPrimitive.Close
         aria-label="Close the demo photo"
-        className="absolute inset-0 z-10 cursor-pointer rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+        className="absolute inset-0 z-10 cursor-pointer rounded-[inherit] outline-none focus-halo halo-inset"
       />
     </div>
   );

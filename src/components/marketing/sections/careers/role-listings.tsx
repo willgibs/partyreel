@@ -95,7 +95,7 @@ function RoleRow({ role, index }: { role: JobOpening; index: number }) {
       // cards, the pricing plans and the help chips all draw the ring token. On
       // paper (not over a photograph), so it takes the ring form rather than
       // /blog's inset white outline.
-      className="mkt-learn group grid gap-x-8 gap-y-5 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color] duration-200 ease-emphasis hover:border-foreground/30 hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none sm:grid-cols-[1fr_auto] sm:items-end sm:gap-x-10 sm:p-7"
+      className="mkt-learn group grid gap-x-8 gap-y-5 rounded-sm border bg-muted/50 p-6 transition-[border-color,background-color] duration-200 ease-emphasis hover:border-foreground/30 hover:bg-card focus-halo sm:grid-cols-[1fr_auto] sm:items-end sm:gap-x-10 sm:p-7"
     >
       <div className="flex min-w-0 flex-col gap-2.5">
         <div className="flex items-center gap-3">

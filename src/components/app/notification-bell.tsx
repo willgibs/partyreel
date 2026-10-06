@@ -54,7 +54,7 @@ export function NotificationBell({ items, badgeCount }: NotificationBellProps) {
     <DropdownMenu onOpenChange={onOpenChange}>
       <DropdownMenuTrigger
         aria-label={count > 0 ? `Notifications, ${count} new` : "Notifications"}
-        className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-halo"
       >
         <Bell className="size-5" />
         {count > 0 && (

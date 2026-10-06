@@ -461,7 +461,7 @@ function SettingsStep({
           .filter(Boolean)
           .join(" ")}
         data-settings-open={group}
-        className="absolute inset-0 rounded-none outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+        className="absolute inset-0 rounded-none outline-none focus-halo halo-inset"
       />
       <span id={stateId} className="sr-only">
         {done ? `Step ${n}, done.` : `Step ${n}, to do.`}
@@ -551,7 +551,7 @@ function CodeStep({
           aria-label="The code"
           aria-describedby={`${stateId} ${lineId}`}
           data-settings-open="code"
-          className="absolute inset-0 rounded-none outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+          className="absolute inset-0 rounded-none outline-none focus-halo halo-inset"
         />
       ) : null}
       <span id={stateId} className="sr-only">

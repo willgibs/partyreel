@@ -151,7 +151,7 @@ function ActionGlyph({
   const className = cn(
     "flex size-6 cursor-pointer items-center justify-center rounded-full text-white outline-none",
     "transition-[color,transform] duration-150 ease-emphasis",
-    "focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+    "focus-halo active:scale-90 motion-reduce:active:scale-100",
     a.tone && (active ? TONE_ACTIVE[a.tone] : TONE[a.tone]),
     a.disabled && "pointer-events-none opacity-50",
   );
@@ -474,7 +474,7 @@ function AlbumTileBody({
         // `active:scale-[0.98]` with no space, one class nobody emits, so a
         // hidden photograph sat in the host album at full brightness.
         className={cn(
-          "size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]",
+          "size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-halo halo-inset active:scale-[0.98]",
           dimmed && "opacity-30",
         )}
       >

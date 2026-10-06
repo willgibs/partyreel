@@ -232,7 +232,7 @@ export function CodeCard({
             <button
               type="button"
               aria-label="Close"
-              className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full text-neutral-500 transition-colors outline-none hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97]"
+              className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full text-neutral-500 transition-colors outline-none hover:bg-neutral-100 hover:text-neutral-900 focus-halo active:scale-[0.97]"
             >
               <X className="size-4" aria-hidden />
             </button>

@@ -119,7 +119,7 @@ export function useVideoState(el: HTMLVideoElement | null): VideoState {
 
 const TRANSPORT_BUTTON = cn(
   "flex size-7 shrink-0 items-center justify-center rounded-full text-white/85 outline-none",
-  "transition-[color,transform] duration-150 ease-emphasis hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+  "transition-[color,transform] duration-150 ease-emphasis hover:text-white focus-halo active:scale-90 motion-reduce:active:scale-100",
   GLASS_MARK_LIT,
 );
 
@@ -338,7 +338,7 @@ function Scrubber({
         onPointerUp={onPointerEnd}
         onPointerCancel={onPointerEnd}
         onKeyDown={onKeyDown}
-        className="group/scrub relative flex h-full min-w-0 flex-1 cursor-pointer touch-none items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+        className="group/scrub relative flex h-full min-w-0 flex-1 cursor-pointer touch-none items-center rounded-full outline-none focus-halo"
       >
         <span
           aria-hidden

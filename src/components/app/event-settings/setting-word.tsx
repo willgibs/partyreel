@@ -56,7 +56,7 @@ export function SettingWord({
         aria-busy={busy || undefined}
         onClick={() => setOpen(true)}
         className={cn(
-          "pointer-events-auto relative z-10 rounded-sm font-medium text-foreground underline decoration-foreground/35 decoration-dotted decoration-2 underline-offset-4 transition-[text-decoration-color] duration-150 outline-none hover:decoration-foreground/70 focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:transition-none",
+          "pointer-events-auto relative z-10 rounded-sm font-medium text-foreground underline decoration-foreground/35 decoration-dotted decoration-2 underline-offset-4 transition-[text-decoration-color] duration-150 outline-none hover:decoration-foreground/70 focus-halo motion-reduce:transition-none",
           open && "bg-accent",
           busy && "opacity-70",
         )}

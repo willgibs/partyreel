@@ -8,6 +8,7 @@ import {
 import { usePortalContainer } from "@/components/ui/portal-container"
 
 import { cn } from "@/lib/utils"
+import { giveFocusBack } from "@/components/ui/quiet-focus"
 import { useMediaQuery } from "@/lib/use-media-query"
 import {
   floatingClock,
@@ -144,7 +145,8 @@ function ResponsiveMenu({
 
   const giveBackFocus = (event: Event) => {
     event.preventDefault()
-    anchorRef.current?.focus({ preventScroll: true })
+    // Quietly when a pointer chose (`quiet-focus.ts`): the halo is the keyboard's.
+    giveFocusBack(anchorRef.current)
   }
 
   if (shape === "menu") {

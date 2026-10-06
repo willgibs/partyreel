@@ -56,8 +56,8 @@ const LAYOUT_ICONS: Record<Layout, ReactNode> = {
   list: <Rows3 />,
 };
 
-const PILL =
-  "h-7 rounded-full px-3 text-xs text-muted-foreground hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-lift";
+// A pill is a segment of the house set (identity r5): clear in its group's flat track, afloat when chosen.
+const PILL = "h-7 rounded-full px-3 text-xs";
 
 /** One choice among a few, as a row of pills: the pressed one stays pressed (a second press never leaves none). */
 function Pills<T extends string>({
@@ -77,7 +77,7 @@ function Pills<T extends string>({
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
       aria-label={label}
-      className="flex-wrap justify-start rounded-2xl bg-muted p-0.5"
+      className="flex-wrap justify-start rounded-2xl"
     >
       {options.map((o) => (
         <ToggleGroupItem key={o.id} value={o.id} className={PILL}>
@@ -150,13 +150,14 @@ export function DisplayMenu({
             value={display.layout}
             onValueChange={(v) => v && set({ layout: v as Layout })}
             aria-label="Layout"
-            className="grid w-full grid-cols-3 gap-1.5"
+            // Three radio cards, not segments: no track under them (identity r5's radio card).
+            className="grid w-full grid-cols-3 gap-1.5 bg-transparent p-0"
           >
             {LAYOUTS.map((l) => (
               <ToggleGroupItem
                 key={l.id}
                 value={l.id}
-                className="flex h-14 flex-col gap-1 rounded-xl border border-border text-xs data-[state=on]:border-foreground data-[state=on]:bg-muted"
+                className="flex h-14 flex-col gap-1 rounded-xl bg-(--choice) text-xs hover:bg-(--choice-up) data-[state=on]:afloat-card"
               >
                 {LAYOUT_ICONS[l.id]}
                 {l.label}
@@ -176,7 +177,7 @@ export function DisplayMenu({
             <button
               type="button"
               onClick={() => set({ desc: !display.desc })}
-              className="flex h-7 items-center gap-1.5 rounded-full px-2 text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="flex h-7 items-center gap-1.5 rounded-full px-2 text-xs text-muted-foreground outline-none hover:text-foreground focus-halo"
             >
               {display.desc ? (
                 <ArrowDown className="size-3.5" aria-hidden />
@@ -246,7 +247,7 @@ export function DisplayMenu({
                 onChange(resetChoices(display));
                 panel.current?.focus({ preventScroll: true });
               }}
-              className="font-medium text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="font-medium text-foreground outline-none hover:underline focus-halo"
             >
               Reset
             </button>
