@@ -225,7 +225,7 @@ export const IDENTITY = defineExploration({
           gains:
             "Each depth says one part's job, and its keys lie flat as Afterglow draws them.",
           costs:
-            "Three constructions to hold in step; it borrows keys' hairline for its quiet key.",
+            "Its lit chosen is a light beside Afterglow's in the room; it borrows keys' hairline.",
         },
         {
           id: "tone",
