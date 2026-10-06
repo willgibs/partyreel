@@ -1,6 +1,6 @@
 ---
 track: crumbs-85
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "b5042226"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -70,25 +70,114 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Q1 (built, Will's to overrule): where her sending state stands when the stack is out of sight. **Recommended and
+  built:** the stack keeps the slot her photograph lands in (the end of an album in order), and while that slot is out
+  of her sight a glass stand-in pill (her file's thumb, "N to go" or "Sending", the bar, the x) stands above the
+  shutter's band, wherever she is in either order (`upload/sending-stand-in.tsx`). The alternative, moving the stack
+  to the head in every order, would land her photograph somewhere she then cannot see in an album in order.
+- Q2 (built, Will's to overrule): "seat it at the night's edge". **Recommended and built:** the END edge (after the
+  night, in their own order), since the start edge is exactly "leads the night". "The night" is derived from the
+  entries alone (the run of times ending at the newest, neighbours within three days) so the server's first paint
+  (`album-window-plan.ts`, not this lane's) and the browser lay one order; only a minority before that run is seated,
+  so an album made after its trip keeps its true order. The alternative (by the event's dated days) needs the dates
+  threaded into the first paint's plan.
+- Q3 (built): a far party's both-clocks phrase is "Sun, Oct 4 at 9 am in Bali, Sat 6 pm yours" (her weekday only where
+  her day differs). It rides every develop sentence (the wait, the slot's rule, the sheet, her tracker, the failure
+  sheet, the camera); the cover's eyebrow over the name keeps her own short clock ("Disposable · develops tomorrow at
+  6 pm"), which is true and fits a single line at 375. Overrule if the eyebrow should name the place too.
+- Q4 (built): the party's zone now reaches the guest's browser, for words only (`partyZone`, `party-zone.tsx`), never
+  behind a lock (the shell names nothing of where the party is) and never for the turn (still an instant). The
+  guest page reads it for an undated album with a develop time too (one more primary-key read, in parallel, for those).
+- Q5 (built, Will's to overrule): the held door's camera says "They go in once you're let in" under the name and in
+  Your shots, "Waiting to go in" on each shot, and "N shots. They go in once you're let in." at the roll's end.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+The lane's `reads` docs are not its to edit; each line below is a proposed in-place refinement for the Orchestrator:
+
+- `guest-flow.md` (album order): the night in order seats a capture time before the night's own run of times
+  (neighbours within `NIGHT_GAP_US`, three days, ending at the newest) at the night's END edge, while it is the
+  smaller part of the album (`nightKeys`, album-order.ts); one key for the first paint, the live album and the hub.
+- `guest-flow.md` (the turn): `GuestAlbumOrder` is `{ morningAfter, own, chosen }` (event-zone's `AlbumOpening` folded
+  in); the develop the album turns at is the sync's word once heard, a develop taken away included, else the page's own
+  (`useLiveUploadsWait`'s `turnDevelopsAt`).
+- `guest-flow.md` (the guest's sending): ★ her stack keeps the slot her photograph lands in; while it is out of her
+  sight a stand-in carries its bar and its x in view (`sending-stand-in.tsx`); the x's question is the pick's, never a
+  tile's (`StackQuestion`), so the window unmounting the stack's row no longer withdraws a question still meant.
+- `guest-flow.md` / `disposable-mode.md` (words): a far party's develop time is said in both clocks
+  (`developsWhen(iso, now, zone)`, `bothClocksWhen`); the page hands its zone for words alone (`partyZone`), never
+  behind a lock; the hub names a far party's place as Settings does (`hubDevelopWhen`).
+- `disposable-mode.md` (the default develop): `defaultDevelopAt` and `patchForStyle` take the party's zone themselves
+  (`{ zone }`, through `event/wall-time.ts`, the one wall-clock arithmetic the turn shares); `developToKeep` is a thin
+  wrapper until Create and Settings drop it.
+- `disposable-mode.md` (the camera): `RollView.held` is her live shots uncapped (past the roll only by the server's own
+  count); the counts say "2 on a roll of 1" and `removalFrees` is false there. At the held door the camera's reveal is
+  `door` (`heldAtDoor`), and the door's camera hears the album's word on uploads where the album's sync polls.
+- `uploads-and-r2.md` (capture time): every header clock of a movie (mvhd, tkhd, mdhd: creation and modification) is
+  rewritten in place to the capture instant, or zero where it names none (`stampMovieClocks`). A zoneless Exif wall
+  clock rides the complete as `captured_wall` beside the browser's reading, and the GUEST complete reads it in the
+  party's zone (`wallInPartyZone`; cost: one primary-key read of `events.time_zone` a burst, only when such a clock is
+  carried; the host's route keeps the browser's reading). The album's camera claims its shutter's time
+  (`BurstFile.takenAt`, `FileExtra.takenAt`) where the file states none.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: Create's add step and Settings' camera still seed `patchForStyle` with `developToKeep`; now `patchForStyle`
+  takes `{ zone: hostPartyZone(...) }` itself, so each drops the seeding when its files next move (crumbs-85).
+- Uploads: the host's complete route (`api/host/r2/complete-upload`) does not read `captured_wall`, so a host's own
+  zoneless Exif clock stays read in her browser's zone; extend its schema as the guest's (crumbs-85).
+- Guests: See it as a guest says develop times in the host's own clock: its page (`(as-guest)/.../as-guest/page.tsx`)
+  could hand `AsGuestView` the party's zone for words, as the guest page does (crumbs-85).
+- Server: at a roll of 1 `create_media` refuses "You've taken all 1 shots on your roll." (the migrations' sentence;
+  the camera's counts now say one shot as one) (crumbs-85).
+- Guests: the guest link's own 404 (`(guest)/e/[token]/not-found.tsx`) and the other groups' 404s still set their own
+  robots metadata; the root's and the cinema's dropped theirs for Next's one noindex (crumbs-85).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Head and sync.** Work commits `09ec9049`..`62c01640`, synced with launch-prep at `55641d0e` (event-header-r6 and
+  test-slim's worker threads came in, no conflict), then `b8f0b6f3` (a pin reshaped by this lane's own change) and
+  `f4a8a5cc` (a stand-in fix from the walk). All pushed on `lp/crumbs-85`.
+- **Gates** on `f4a8a5cc` (the synced tree), each on its own exit code: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (1,053 files, 13,203 passed, 2 skipped), `zsh scripts/build-lock.sh pnpm build` 0, `pnpm lab:smoke --base http://localhost:3131` 0 (202 checks, 0 failing; its PREMISE line: event-header's two open asks describe `dashboard/[eventId]/page.tsx`, which this lane touched by one line). No board, so no `lab:demo`. The Supabase connector was not used (no SQL in this lane).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file, with these exceptions:
+  `src/app/(app)/dashboard/[eventId]/page.tsx` (one line: the hub's develop facts carry `time_zone`, the hub NIT's only
+  way in); `src/app/not-found.site.test.tsx` and `src/app/group-not-found.lazy.test.tsx` (each pinned the robots line
+  the NIT removes, reshaped with its scar); `src/lib/media/capture-time.ts` + its test and
+  `src/lib/media/strip-metadata-capture.test.ts` (the capture time's one home and the strip's capture pins, which the
+  brief's Exif, camera and MOV items live in).
+- **Red-team 56's findings:**
+  - MEDIUM (album order): `09ec9049`, `3fe330cc`, `f4a8a5cc`; walked locally at 375 on the demo album set to Oldest
+    first: eight files sent from the head, the stack below the fold (top 948 to 2056 px in an 812 px view), the
+    stand-in in view the whole run ("8 to go" … "3 to go" … "Sending", bar and x), its x asking "Stop this upload?".
+  - LOW (roll of one, guest side): `674ca04f` (`roll-view.ts` `held`/`removalFrees`, `rollCount`: "2 on a roll of 1";
+    no "Remove a shot to free its frame" where it would not).
+  - NIT MOV write time: `69a8fc1d` (`stampMovieClocks`; the iPhone fixture's track header now says the take).
+  - NIT 404 robots: `1116d2b5`; walked: `curl` of `/no-such-page` and `/about/no-such` on the dev server each carry one
+    `<meta name="robots" content="noindex"/>`.
+  - NIT hub develop place: `62c01640` (`hubDevelopWhen`, the cover and Looking early).
+- **The album's time (ROADMAP Now lines to retire, each):**
+  - develop taken away still obeyed → `9a051560` (`turnDevelopsAt`).
+  - `patchForStyle`/`defaultDevelopAt` read the browser's zone → `980295b8` (they take `{ zone }`; the callers'
+    seeding is a Deferred line above, outside the lane).
+  - `GuestAlbumOrder`/`AlbumOpening` fold → `980295b8`.
+  - far party in both clocks → `62c01640`, `b8f0b6f3`.
+  - zoneless Exif in the party's zone → `b0d6c4e3` (cost: one PK read a burst, only for a carried wall clock).
+  - camera shots' capture time → `b0d6c4e3` (`takenAt`).
+  - capture time far outside the days → `e98ede68` (`nightKeys`).
+  - the door's camera word → `4adeb167`.
+  - the held door's camera words → `4adeb167`.
+  - the test's scratch path → `97362072`.
+- **Not walked here (the cloud seat has no sign-in kit and no test events of its own; for Will's desk or the
+  Orchestrator's walk, test data named "(disposable)"):** a far party's guest page in both clocks (an album with a
+  develop time and a zone far from the walker's: the slot's rule, the sheet, the camera), the hub's cover on a far
+  party (Settings' "in Makassar" beside it), a camera shot sent late keeping its taken time, a zoneless-Exif photo
+  landing on the party's clock, the held door's camera words, and red-team 56's own MEDIUM re-walk on a real
+  disposable album at 375 with a throttled send. No test data was created by this lane.
+- Assets requested from Will: none.
+- Board ideas: the stand-in pill and the shutter's progress ring say the same pick twice when both show (deep in a
+  newest-first album); one object could carry both (a board on "her pick in flight, wherever she is").
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: Q1 (the stand-in), Q2 (the end edge), Q3 (the eyebrow keeps her clock), Q5 (the held door's
+  words).
+- Look at first: `src/components/guest/upload/sending-stand-in.tsx` with `gallery-rows.tsx`'s `useStandIn`, then
+  `src/lib/shared/album-order.ts`'s `nightKeys`, then `src/app/api/r2/complete-upload/route.ts`'s party-zone read.
