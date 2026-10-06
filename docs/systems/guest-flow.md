@@ -157,7 +157,7 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   the reading measure, and `BLEED`, the gutter alone. The album alone takes `BLEED` and the cover runs the window's
   width; everything else the page says keeps `COLUMN`.
 - **The upload act.** The queue ([`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts): one at a time,
-  the silent join, demo sim, retry) is created once in `event-experience.tsx` and shared by the album's Add and the
+  the next burst begun on the last one's bytes, a Retry all sent back as one burst, the silent join, demo sim, retry) is created once in `event-experience.tsx` and shared by the album's Add and the
   door's upload step, so a run started at the door outlives it. `GuestUpload`
   ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)) reads its snapshot and owns the album's two
   sheets and the post-upload slot behind a `{openAdd, retry}` handle; it draws no tile. The album's owner is never her

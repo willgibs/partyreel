@@ -41,7 +41,9 @@ shapes.
   when the last has gone up, 10 s after the first landed (`BURST_RECORD_WAIT_MS`), or at once when the page is hidden
   (that complete `keepalive`). Meanwhile a landed file stands full: the guest's queue keeps it `queued` at 100 (only
   the file in the air is `uploading`, which the album's stack follows) and the host's panel `uploading` at 100.
-  Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h).
+  Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h). A caller with a burst after it
+  begins that one on this one's bytes (`onSendDone`) and holds its complete for this one's answer (`recordAfter`): the
+  line never idles for a complete, and one sender's completes never overlap.
 - **The guest/host asymmetries are deliberate, so the shared engine keeps them.** The host's `getUser()` gates in the
   route before the engine (401 before the body is parsed); a guest's token is validated inside the RPCs, and a token
   whose row carries an account uploads only for that signed-in account, and a signed-in account only through a row of

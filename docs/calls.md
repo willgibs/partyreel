@@ -1038,3 +1038,18 @@ would stop being one: a ROADMAP line for a design answer).
 **BO5. The report queue's Dismiss says nothing while it works:** the dismissal is optimistic, so the entry leaves at
 once and no key is left to speak.
 - *Push back if* a Dismiss should hold its entry until the server answers.
+
+## BP. Bursts back to back (uploads-bursts)
+
+A dropped burst's Retry all comes back as one burst, and the next burst goes on the last one's bytes (about 4 s saved
+at each boundary on a throttled phone line, measured before and after); these calls came with it, built and yours to
+overrule.
+
+**BP1. The overlap stands even at an album's cap or a roll's end:** the next burst's presign is judged before the
+last burst's files are recorded, so a file let through at the exact cap sends its bytes before the complete refuses it
+onto the failure sheet in the same words (never counted, its staging swept).
+- *Push back if* the overlap should hold where a roll or a cap could be reached.
+
+**BP2. Retry all is coalesced inside the queue** (one run a tick), not a new key on the sheet; a Retry all whose files
+take longer than the burst's own 10 s record wait still records in two completes, the burst's rule.
+- *Push back if* a Retry all should always be one complete.

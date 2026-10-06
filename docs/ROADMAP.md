@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Uploads: the heal re-asks a kept complete on the browser's `online` event at once, so a Retry all pressed as the line comes back is a second complete beside the heal's; `healLost` could ride the queue's `runSoon`, or wait a tick for a press (uploads-bursts).
+- Guests: in a 45-photo send the in-flight recorder counted the album's direct tiles dipping (21, then 18, then 21) mid-run, on the builds before and after uploads-bursts alike: a red-team look (uploads-bursts).
 - Design: the halo and the working words at the four call sites that waited on their lanes: pricing's three `focus-visible:ring` lines (`src/components/app/pricing/`, its key "Opening billing" in `checkout-button.tsx`) and Drive's album picker (`src/components/app/drive/`, its send steps' "Starting") (a11y-halo).
 - Design: the room display's caption step reads `--faint` at 3.88:1 on a held row (AA wants L 0.722, against `--display-muted`'s 0.77, so a third step would stop being one): a fourth grey, or a caption that never stands on the step (a11y-halo).
 - The lab and the kit: `lab:demo --all` pressed 15 steps in 759 s of its 900 s alarm (gate 43, the motion pass on every step); one more board's steps cross it, so the gate's alarm, or the demo's pace, wants to scale with the desk (Orchestrator).
@@ -81,8 +83,6 @@ below hold the rest by surface.
 - Pricing: drop `consume_passes_for_pro_credit(uuid)` once no deployed build calls it (milestone 38 runs the claim), with `event-passes-migration.test.ts`'s pins on it; a contract migration (billing-integrity).
 - Admin: name the admin deployment's manifest for the portal ("Partyreel Ops", start `/admin`) now that it serves one (`src/app/manifest.ts`).
 - Now: if Will overrules Question 3, hold the door's Sending step while files go and the keep is due (the entry-modal line is in the Question).
-- Now: "Guests: the failure sheet's Retry all re-queues its files one at a time and each call runs the queue (`use-upload-queue.ts`'s `retry`), so the first run takes a burst of one: a dropped burst's Try again is two completes where one would do (walked, uploads-idempotent); re-queue the list, then run the queue once."
-- Now: "Uploads: a burst boundary (past 20 files, 1 GiB, or a pick made while a burst goes) waits for the last burst's complete before the next burst's first file prepares and presigns (the queue awaits `uploadBurst` whole); start the next burst once the last one's bytes are up."
 - Trust & safety: "Delete our copy from her Drive", an audited operator act for a takedown of an item a send delivered (it needs the connection's key at the time; written to `forensic_audit_log`).
 - Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on `/admin/exports#drive`, found by address).
 - Admin: the command palette jumps to `/admin/exports#drive` (`lib/admin/palette.ts`).
