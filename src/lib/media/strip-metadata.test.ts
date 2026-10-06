@@ -16,11 +16,13 @@
  * A final describe block runs the stripper over the REAL out-of-repo test media when present
  * (skipped cleanly on machines without it).
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 import {
   hasGpsMetadata,
@@ -1248,7 +1250,8 @@ describe.skipIf(!existsSync(TEST_MEDIA_DIR))(
   () => {
     it("strips the real JPEGs losslessly and idempotently", async () => {
       const dir = join(TEST_MEDIA_DIR, "images");
-      const jpegs = readdirSync(dir)
+      const jpegs = entries(dir)
+        .map((entry) => entry.name)
         .filter((f) => f.endsWith(".jpg"))
         .slice(0, 3);
       expect(jpegs.length).toBeGreaterThan(0);
@@ -1268,7 +1271,8 @@ describe.skipIf(!existsSync(TEST_MEDIA_DIR))(
 
     it("strips the real MP4s in place (length preserved, offsets stable)", async () => {
       const dir = join(TEST_MEDIA_DIR, "videos");
-      const mp4s = readdirSync(dir)
+      const mp4s = entries(dir)
+        .map((entry) => entry.name)
         .filter((f) => f.endsWith(".mp4"))
         .slice(0, 2);
       expect(mp4s.length).toBeGreaterThan(0);

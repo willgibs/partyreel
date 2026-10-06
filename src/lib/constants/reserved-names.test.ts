@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { checkDisplayName } from "@/lib/guest/join";
@@ -8,6 +5,7 @@ import { isReservedName, RESERVED_NAMES } from "@/lib/constants/reserved-names";
 import { BRAND_FOLD, BRAND_STEM } from "@/lib/constants/reserved-slugs";
 import { parseGuestDisplayName } from "@/lib/validation/upload";
 import { displayNameSchema } from "@/lib/validation/profile";
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * THE BRAND REACHES DISPLAY NAMES (crumbs-20, the ROADMAP's `crumbs-11` security line).
@@ -298,18 +296,6 @@ describe("every door a name comes through", () => {
     });
   });
 
-  const ROOT = process.cwd();
-  const sources = (dir: string): string[] =>
-    readdirSync(join(ROOT, dir), { recursive: true })
-      .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-      .filter(
-        (rel) =>
-          /\.tsx?$/.test(rel) &&
-          !/\.test\.tsx?$|\.d\.ts$/.test(rel) &&
-          rel !== "src/lib/db/types.ts",
-      )
-      .sort();
-
   /** A file that stores a typed name: an update of `display_name`, or the RPCs' `p_display_name`. */
   const STORES_A_NAME = /\.update\(\{\s*display_name\b|\bp_display_name\s*:/;
 
@@ -328,33 +314,26 @@ describe("every door a name comes through", () => {
   };
 
   it("no other file stores a typed name: a new writer is named above with its gate", () => {
-    const found = sources("src").filter((rel) =>
-      STORES_A_NAME.test(readFileSync(join(ROOT, rel), "utf8")),
-    );
+    const found = sources("src").filter((rel) => STORES_A_NAME.test(read(rel)));
     expect(found.sort()).toEqual(Object.keys(WRITERS).sort());
   });
 
   it("each writer asks the schema first, and the wrappers' callers ask the gate or send no name", () => {
     for (const [rel, gate] of Object.entries(WRITERS)) {
-      if (gate)
-        expect(readFileSync(join(ROOT, rel), "utf8"), rel).toContain(gate);
+      if (gate) expect(read(rel), rel).toContain(gate);
     }
     for (const [rel, gate] of Object.entries(CALLERS)) {
-      expect(readFileSync(join(ROOT, rel), "utf8"), rel).toMatch(gate);
+      expect(read(rel), rel).toMatch(gate);
     }
     // The two that carry a typed name check its profanity as well: the matcher cannot ship to a browser.
     for (const rel of [
       "src/app/api/guests/route.ts",
       "src/app/api/guests/name/route.ts",
     ]) {
-      expect(readFileSync(join(ROOT, rel), "utf8"), rel).toContain(
-        "containsProfanity(",
-      );
+      expect(read(rel), rel).toContain("containsProfanity(");
     }
     const callers = sources("src").filter((rel) =>
-      /\b(createGuest|setGuestDisplayName)\(/.test(
-        readFileSync(join(ROOT, rel), "utf8"),
-      ),
+      /\b(createGuest|setGuestDisplayName)\(/.test(read(rel)),
     );
     expect(
       callers.filter((rel) => rel !== "src/lib/db/mutations/guest.ts").sort(),

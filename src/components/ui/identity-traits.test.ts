@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
+
+import { entries } from "@/testing/source-tree"
 
 import { badgeVariants } from "./badge"
 import { buttonVariants } from "./button"
@@ -47,9 +49,9 @@ function block(head: string): string {
 }
 
 /** The atoms' sources, tests aside. */
-const UI = readdirSync(join(ROOT, "src/components/ui")).filter(
-  (f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f)
-)
+const UI = entries("src/components/ui")
+  .map((entry) => entry.name)
+  .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
 
 const VARIANTS = [
   "default",

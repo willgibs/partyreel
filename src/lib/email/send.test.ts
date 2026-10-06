@@ -9,9 +9,6 @@
  *    to lose it for good; it is kept, rendered and with no address, its sweep retries it each night through the same
  *    claim, and it is given up, loudly, 30 days after its first failure.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -19,6 +16,7 @@ import {
   type FakePostgrest,
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 const send = vi.fn();
 const lifecycleMailFlowing = vi.fn();
@@ -547,11 +545,8 @@ describe("★ retryParkedNotices", () => {
  * code names differently fails here). Its behavior on the live schema is the migration's own rolled-back check.
  */
 describe("★ notice_retries, as the migrations leave it", () => {
-  const dir = join(process.cwd(), "supabase", "migrations");
-  const sql = readdirSync(dir)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((f) => readFileSync(join(dir, f), "utf8").replace(/--[^\n]*/g, ""))
+  const sql = readMigrations()
+    .map((f) => f.sql.replace(/--[^\n]*/g, ""))
     .join("\n")
     .replace(/\s+/g, " ");
   const table = /create table public\.notice_retries \(([\s\S]*?)\);/.exec(

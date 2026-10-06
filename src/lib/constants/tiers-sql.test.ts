@@ -23,9 +23,6 @@
  * Same method as the parity test: TEXT-parsed (Vitest has no Postgres), the newest definition wins
  * (filenames sort in apply order), and anything unreadable throws rather than passing quietly.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -40,19 +37,13 @@ import {
   GATED_EVENT_SETTINGS,
   type GatedEventSetting,
 } from "@/lib/constants/tiers";
-
-const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /** The winning body of `public.<name>(`, comments stripped, from its `as $tag$` to its close. */
 function newestBody(name: string): { file: string; body: string } {
   let newest: { file: string; body: string } | null = null;
-  for (const file of readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(MIGRATIONS, file), "utf8").replace(
-      /--[^\n]*/g,
-      "",
-    );
+  for (const { file, sql: raw } of readMigrations()) {
+    const sql = raw.replace(/--[^\n]*/g, "");
     const re = new RegExp(
       `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${name}\\s*\\(`,
       "g",
@@ -265,12 +256,8 @@ describe("the uploads allowance is one number over one window", () => {
   });
 
   it("keeps both new functions the service role's alone", () => {
-    const all = readdirSync(MIGRATIONS)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()
-      .map((f) =>
-        readFileSync(join(MIGRATIONS, f), "utf8").replace(/--[^\n]*/g, ""),
-      )
+    const all = readMigrations()
+      .map(({ sql }) => sql.replace(/--[^\n]*/g, ""))
       .join("\n");
     for (const sig of [
       "public.upload_allowance(public.tier_type, bigint)",

@@ -1,9 +1,8 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 import { FollowButton } from "./follow-button";
 
@@ -106,26 +105,23 @@ describe("FollowButton", () => {
 
 /** Every non-test source file under a directory, as paths. */
 function sourcesUnder(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) return sourcesUnder(full);
-    return /\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry) ? [full] : [];
-  });
+  return filesUnder(dir).filter(
+    (file) => /\.tsx?$/.test(file) && !/\.test\.tsx?$/.test(file),
+  );
 }
 
 describe("what a Follow is handed", () => {
   it("★ no caller hands it a handle: the person's id is all a relation needs", () => {
-    const root = process.cwd();
     const offenders: string[] = [];
-    for (const file of sourcesUnder(join(root, "src"))) {
-      const source = readFileSync(file, "utf8");
+    for (const file of sourcesUnder("src")) {
+      const source = read(file);
       for (const match of source.matchAll(/<FollowButton\b/g)) {
         // The opening tag, to its own close: its props are plain values, so the first `/>` ends it.
         const tag = source.slice(
           match.index,
           source.indexOf("/>", match.index),
         );
-        if (/\bslug\s*=/.test(tag)) offenders.push(file.slice(root.length + 1));
+        if (/\bslug\s*=/.test(tag)) offenders.push(file);
       }
     }
     expect(offenders).toEqual([]);

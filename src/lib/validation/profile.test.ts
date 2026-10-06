@@ -1,9 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { BRAND_NAME_MESSAGE } from "@/lib/constants/reserved-slugs";
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   BIO_MAX_LENGTH,
   bioSchema,
@@ -216,15 +214,10 @@ describe("bioSchema", () => {
  * is this file's own fact. Do not re-add the consent assertions; extend that guard instead.
  */
 describe("the bio's SQL half", () => {
-  const migrations = join(__dirname, "..", "..", "..", "supabase/migrations");
-
   /** Latest-wins, like the guard in social/: the truth is the migration SET, never one file. */
   const body = (() => {
     let latest: string | null = null;
-    for (const file of readdirSync(migrations)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()) {
-      const sql = readFileSync(join(migrations, file), "utf8");
+    for (const { file, sql } of readMigrations()) {
       const start = sql.indexOf(
         "create or replace function public.get_public_profile",
       );
@@ -245,10 +238,8 @@ describe("the bio's SQL half", () => {
   });
 
   it("caps the bio in the database too, not only in zod", () => {
-    const all = readdirSync(migrations)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()
-      .map((f) => readFileSync(join(migrations, f), "utf8"))
+    const all = readMigrations()
+      .map((f) => f.sql)
       .join("\n");
     expect(all).toContain("profiles_bio_len");
     expect(all).toContain(String(BIO_MAX_LENGTH));

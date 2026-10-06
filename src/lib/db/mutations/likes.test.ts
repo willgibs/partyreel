@@ -13,7 +13,7 @@
  *   - authenticated still holds no INSERT on media_likes, or like_many's INVOKER body would stop
  *     being the only door and a raw insert would skip the visibility check.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
@@ -22,6 +22,7 @@ import {
   likeManyInBatches,
   parseLikeManyFailed,
 } from "@/lib/db/mutations/likes";
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
 
 const MIGRATIONS_DIR = join(
@@ -42,13 +43,10 @@ function code(sql: string): string {
 
 /** Every migration's executable SQL, in timestamp order. */
 function migrations(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: code(readFileSync(join(MIGRATIONS_DIR, file), "utf8")),
-    }));
+  return readMigrations().map(({ file, sql }) => ({
+    file,
+    sql: code(sql),
+  }));
 }
 
 /** The winning definition of a public function: its last `create` across the set, to its body's end. */

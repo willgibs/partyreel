@@ -14,9 +14,6 @@
  *   4. ★ the order holds for every writer of `event_passes`' rows, so no later body can reopen the cycle, and no
  *      TypeScript writes the conversion past it.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -24,6 +21,7 @@ import {
   liveFunction,
   liveFunctions,
 } from "@/lib/db/testing/migrations";
+import { filesUnder, read } from "@/testing/source-tree";
 
 const FILE = "20261005130000_billing_locks.sql";
 const consume = () => liveFunction("consume_passes_for_pro_credit");
@@ -133,19 +131,15 @@ describe("4. the order holds for every writer of a pass's row", () => {
   });
 
   it("★ no TypeScript writes the conversion itself: consumed_reason has one writer, the SQL", () => {
-    const root = join(process.cwd(), "src");
-    const offenders = (readdirSync(root, { recursive: true }) as string[])
-      .map((f) => String(f).replace(/\\/g, "/"))
+    const offenders = filesUnder("src")
       .filter(
         (f) =>
           /\.tsx?$/.test(f) &&
           !/\.test\.tsx?$/.test(f) &&
-          f !== "lib/db/types.ts" &&
-          !f.startsWith("lib/db/testing/"),
+          f !== "src/lib/db/types.ts" &&
+          !f.startsWith("src/lib/db/testing/"),
       )
-      .filter((f) =>
-        /\bconsumed_reason\s*:/.test(readFileSync(join(root, f), "utf8")),
-      );
+      .filter((f) => /\bconsumed_reason\s*:/.test(read(f)));
     expect(offenders).toEqual([]);
   });
 });

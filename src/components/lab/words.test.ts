@@ -1,9 +1,10 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { RETIRED } from "@/app/(dev)/design/_data/glossary";
+import { entries, filesUnder, read } from "@/testing/source-tree";
 
 /**
  * THE LAB'S WORDS ARE THE PROGRAM'S (the lab revamp, 2026-09-29).
@@ -43,18 +44,25 @@ const GLOSSARY = "src/app/(dev)/design/_data/glossary.ts";
  */
 const NOT_YET: readonly { file: string; says: string; why: string }[] = [];
 
-function filesIn(path: string, out: string[] = []): string[] {
-  const rel = relative(ROOT, path);
-  if (SKIPPED.includes(rel)) return out;
-  if (statSync(path).isDirectory()) {
-    for (const name of readdirSync(path)) filesIn(join(path, name), out);
-  } else if (/\.(ts|tsx|mjs|js|css|md|sh|py|txt)$/.test(path)) out.push(rel);
-  return out;
+/**
+ * A scanned folder's files at any depth, or the scanned file itself
+ * (CLAUDE.md); a SKIPPED path leaves out everything under it.
+ */
+function filesIn(path: string): string[] {
+  const listed: readonly string[] = statSync(join(ROOT, path)).isDirectory()
+    ? filesUnder(path)
+    : [path];
+  return listed.filter(
+    (rel) =>
+      !SKIPPED.some((skip) => rel === skip || rel.startsWith(`${skip}/`)) &&
+      /\.(ts|tsx|mjs|js|css|md|sh|py|txt)$/.test(rel),
+  );
 }
 
 const files = [
-  ...SCANNED.flatMap((p) => filesIn(join(ROOT, p))),
-  ...readdirSync(join(ROOT, "scripts"))
+  ...SCANNED.flatMap((p) => filesIn(p)),
+  ...entries("scripts")
+    .map((entry) => entry.name)
     .filter((f) => SCRIPTS.test(f))
     .map((f) => `scripts/${f}`),
 ];
@@ -63,7 +71,7 @@ describe("the lab's words", () => {
   it("never say ruled, ruling or ratified", () => {
     const said: string[] = [];
     for (const file of files) {
-      const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
+      const lines = read(file).split("\n");
       lines.forEach((line, i) => {
         if (!OLD.test(line)) return;
         // The glossary's retired list names them, which is how a reader who

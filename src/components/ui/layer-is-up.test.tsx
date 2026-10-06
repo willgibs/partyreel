@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { render } from "@testing-library/react";
 import ts from "typescript";
 import { afterEach, describe, expect, it } from "vitest";
@@ -11,6 +8,7 @@ import {
   MODAL_ROLES,
 } from "@/components/ui/layer-is-up";
 import { Popup, PopupContent, PopupHeader } from "@/components/ui/popup";
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * IS ANOTHER LAYER UP? A surface that owns the keyboard (the review room, the report queue) or the address
@@ -119,17 +117,8 @@ describe("layerIsUp", () => {
  * element is a layer being MADE, which is fine; it is the QUESTION "is one up" that must be asked in one place.
  */
 describe("the layer roles have one home", () => {
-  const ROOT = process.cwd();
   const HOME = "src/components/ui/layer-is-up.ts";
-  const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$/;
   const SELECTOR = /\[\s*role\s*=\s*["']?(?:alert)?dialog["']?\s*\]/;
-
-  function filesUnder(dir: string): string[] {
-    return readdirSync(join(ROOT, dir), { recursive: true })
-      .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-      .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-      .sort();
-  }
 
   /** The line of every string that is a selector for a dialog, comments excluded (they are trivia, not nodes). */
   function selectorsIn(text: string, fileName: string): number[] {
@@ -158,15 +147,14 @@ describe("the layer roles have one home", () => {
     return lines;
   }
 
-  // A whole-`src` parse in the jsdom project: about 1.6 s alone, 9.2 s inside the full suite on a loaded machine
-  // (gate 166, load near 12), past vitest's default 5 s. Its own ceiling, so the gate reads a selector, never the load.
   it("finds no dialog selector outside the home", () => {
-    const sources = filesUnder("src");
-    expect(sources.length, "the scan found no files").toBeGreaterThan(500);
+    // A selector for a dialog spells the word, so only a file that does is parsed; the home is one.
+    const naming = sources().filter((rel) => read(rel).includes("dialog"));
+    expect(naming).toContain(HOME);
     const offenders: string[] = [];
-    for (const rel of sources) {
+    for (const rel of naming) {
       if (rel === HOME) continue;
-      for (const line of selectorsIn(readFileSync(join(ROOT, rel), "utf8"), rel)) {
+      for (const line of selectorsIn(read(rel), rel)) {
         offenders.push(`${rel}:${line}`);
       }
     }
@@ -175,7 +163,7 @@ describe("the layer roles have one home", () => {
       `A selector for a dialog was written by hand again: ask \`layerIsUp()\` ("@/components/ui/layer-is-up"), ` +
         `which knows a confirm is an alertdialog:\n${offenders.join("\n")}`,
     ).toEqual([]);
-  }, 30_000);
+  });
 
   it("sees the shapes it exists for", () => {
     for (const [name, code] of [

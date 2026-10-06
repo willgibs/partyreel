@@ -9,14 +9,12 @@
  * `signInWithOAuth` asks for no extra scope, no offline access and no consent screen. Each check is run on a planted
  * violation too, so a check that stopped seeing would fail here.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { filesUnder as everyFileUnder, read } from "@/testing/source-tree";
 
 import { DRIVE_FILE_SCOPE, DRIVE_SCOPES, GOOGLE_URLS } from "./google-urls";
 
-const ROOT = process.cwd();
 const ALLOWED_HOSTS = new Set([
   "accounts.google.com",
   "oauth2.googleapis.com",
@@ -28,16 +26,12 @@ const ALLOWED_HOSTS = new Set([
 ]);
 
 function filesUnder(dir: string): string[] {
-  const out: string[] = [];
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (name === "node_modules" || name === "dist" || name === ".wrangler")
-      continue;
-    if (statSync(path).isDirectory()) out.push(...filesUnder(path));
-    else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name))
-      out.push(path);
-  }
-  return out;
+  return everyFileUnder(dir).filter(
+    (path) =>
+      !/\/(?:node_modules|dist|\.wrangler)\//.test(path.slice(dir.length)) &&
+      /\.(ts|tsx)$/.test(path) &&
+      !/\.test\.tsx?$/.test(path),
+  );
 }
 
 const SCANNED = [
@@ -46,7 +40,7 @@ const SCANNED = [
   "src/app/api/internal/drive",
   "src/components/app/drive",
   "workers/drive/src",
-].flatMap((dir) => filesUnder(join(ROOT, dir)));
+].flatMap((dir) => filesUnder(dir));
 
 describe("Google's addresses", () => {
   it("are https and Google's own, every one", () => {
@@ -60,16 +54,13 @@ describe("Google's addresses", () => {
   it("★ are the only addresses the Drive code and the Worker name", () => {
     expect(SCANNED.length).toBeGreaterThan(20);
     for (const file of SCANNED) {
-      const text = readFileSync(file, "utf8");
+      const text = read(file);
       for (const match of text.matchAll(/https:\/\/([a-z0-9.-]+)/gi)) {
         const host = match[1]!.toLowerCase();
         // Comments may cite Google's docs; code may not call them.
         if (host === "developers.google.com" || host === "support.google.com")
           continue;
-        expect(
-          ALLOWED_HOSTS.has(host),
-          `${file.replace(ROOT, "")}: ${host}`,
-        ).toBe(true);
+        expect(ALLOWED_HOSTS.has(host), `${file}: ${host}`).toBe(true);
       }
     }
   });
@@ -78,7 +69,7 @@ describe("Google's addresses", () => {
     expect(DRIVE_SCOPES).toEqual(["openid", "email", DRIVE_FILE_SCOPE]);
     expect(DRIVE_FILE_SCOPE).toBe("https://www.googleapis.com/auth/drive.file");
     for (const file of SCANNED) {
-      expect(readFileSync(file, "utf8"), file).not.toMatch(
+      expect(read(file), file).not.toMatch(
         /auth\/drive(?:\.readonly|\.metadata|\.appdata)?["'`\s]/,
       );
     }
@@ -91,10 +82,10 @@ type Source = { path: string; text: string };
 
 /** Every source file of the app and the Worker, tests left out (a fixture may name a scope; code may not). */
 const EVERY_SOURCE: Source[] = ["src", "workers/drive/src"]
-  .flatMap((dir) => filesUnder(join(ROOT, dir)))
+  .flatMap((dir) => filesUnder(dir))
   .map((file) => ({
-    path: file.replace(`${ROOT}/`, ""),
-    text: readFileSync(file, "utf8"),
+    path: file,
+    text: read(file),
   }));
 
 /** The Drive connect's own: where its scopes are named, and the one module that reads them (the consent URL). */

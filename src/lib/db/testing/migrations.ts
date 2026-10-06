@@ -24,9 +24,11 @@
  *
  * Pure but for the folder read: `replayFunctions` takes the files it replays, so a test hands it fixtures.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { entries } from "@/testing/source-tree";
 
 /** The folder the database's migrations live in (`supabase/migrations/`). */
 export const MIGRATIONS_DIR = fileURLToPath(
@@ -74,10 +76,12 @@ const filesByDir = new Map<string, MigrationFile[]>();
 export function readMigrations(dir: string = MIGRATIONS_DIR): MigrationFile[] {
   let files = filesByDir.get(dir);
   if (!files) {
-    files = readdirSync(dir)
-      .filter((file) => file.endsWith(".sql"))
-      .sort()
-      .map((file) => ({ file, sql: readFileSync(join(dir, file), "utf8") }));
+    files = entries(dir)
+      .filter((entry) => !entry.isDirectory && entry.name.endsWith(".sql"))
+      .map(({ name }) => ({
+        file: name,
+        sql: readFileSync(join(dir, name), "utf8"),
+      }));
     filesByDir.set(dir, files);
   }
   return files;

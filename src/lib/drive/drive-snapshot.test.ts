@@ -3,11 +3,12 @@
  * `chosenRows` over what `media_host_all` lets her read. Pinned three ways: the SQL's predicate as written, the
  * policy's conjuncts it leans on, and the same rows chosen both ways over every status a row can hold.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { chosenRows } from "@/lib/export/build-manifest";
 
 const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
@@ -52,23 +53,21 @@ describe("the snapshot's predicate", () => {
   });
 
   it("leans on the policy that reads her album: an operator's removal and an asked purge are out of it", () => {
-    const executable = (f: string) =>
-      readFileSync(join(MIGRATIONS, f), "utf8")
+    const executable = (raw: string) =>
+      raw
         .split("\n")
         .filter((line) => !line.trimStart().startsWith("--"))
         .join("\n");
-    const files = readdirSync(MIGRATIONS)
-      .filter((f) => f.endsWith(".sql"))
-      .sort();
+    const files = readMigrations();
     const last = files
       .filter((f) =>
         /(alter|create) policy media_host_all on public\.media/.test(
-          executable(f),
+          executable(f.sql),
         ),
       )
       .pop();
     expect(last).toBeDefined();
-    const text = executable(last!);
+    const text = executable(last!.sql);
     const at = text.search(
       /(alter|create) policy media_host_all on public\.media[\s\S]*$/,
     );

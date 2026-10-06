@@ -1,8 +1,10 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, posix } from "node:path";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * THE ROOT 404 COSTS NOTHING ON A PAGE THAT IS NOT ONE (perf-404; the walk is crumbs-22's, which kept the
@@ -407,11 +409,9 @@ const GROUPS = GROUP_LIST.map((g) => ({
 /** Every source file that imports one of the not-found modules, by the module it imports. */
 function importersOfNotFoundModules(): Map<string, string[]> {
   const found = new Map<string, string[]>();
-  const files = (
-    readdirSync(join(ROOT, "src"), { recursive: true }) as string[]
-  )
-    .map((f) => `src/${String(f).replace(/\\/g, "/")}`)
-    .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f));
+  const files = filesUnder("src").filter(
+    (f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f),
+  );
   for (const file of files) {
     const text = DISK.read(file);
     if (!/not-found\.(lazy|screen|site)/.test(text)) continue;
@@ -508,14 +508,9 @@ describe("the one boundary is loaded by the 404s and nothing else", () => {
 });
 
 describe("every not-found.tsx under app/ draws nothing itself", () => {
-  const entries = (
-    readdirSync(join(ROOT, "src/app"), { recursive: true }) as string[]
-  )
-    .map((f) => `src/app/${String(f).replace(/\\/g, "/")}`)
-    .filter(
-      (f) => f === "src/app/not-found.tsx" || f.endsWith("/not-found.tsx"),
-    )
-    .sort();
+  const entries = filesUnder("src/app").filter(
+    (f) => f === "src/app/not-found.tsx" || f.endsWith("/not-found.tsx"),
+  );
 
   it("finds the root's and each group's", () => {
     expect(entries).toContain(ENTRY);

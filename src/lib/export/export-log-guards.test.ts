@@ -11,14 +11,11 @@
  *   3. ★ The nonce is unique: every report and every status poll finds the export's row by it.
  *   4. No client role is granted anything on export_log, in any file: it stays deny-all.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { STREAM_OUTCOMES } from "@/lib/export/report";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
 const FILE = "20261001235500_export_worker_reports.sql";
 
 /** Strip `--` comments (the rolled-back check at the foot is not code) and collapse whitespace. */
@@ -26,13 +23,10 @@ function executable(sql: string): string {
   return sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
 }
 
-const SQL = readdirSync(MIGRATIONS_DIR)
-  .filter((f) => f.endsWith(".sql"))
-  .sort()
-  .map((file) => ({
-    file,
-    sql: executable(readFileSync(join(MIGRATIONS_DIR, file), "utf8")),
-  }));
+const SQL = readMigrations().map(({ file, sql }) => ({
+  file,
+  sql: executable(sql),
+}));
 
 const ALL = SQL.map((f) => f.sql).join(" ");
 

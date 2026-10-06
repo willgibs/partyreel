@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import type { AccountUploads } from "@/lib/db/queries/accounts";
@@ -10,6 +7,7 @@ import {
   planById,
   uploadAllowance,
 } from "@/lib/constants/tiers";
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 import {
   allowanceLabel,
@@ -44,15 +42,9 @@ const free = (usedBytes: number): AccountUploads => ({
 describe("the breaker's ceiling is the SQL's, read off the migrations", () => {
   /** The newest migration that sets `c_uploads_an_hour` wins, as the live function is the last one created. */
   function ceilingInSql(): number {
-    const dir = join(process.cwd(), "supabase", "migrations");
     let found: number | null = null;
-    for (const file of readdirSync(dir)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()) {
-      const sql = readFileSync(join(dir, file), "utf8").replace(
-        /--[^\n]*/g,
-        "",
-      );
+    for (const migration of readMigrations()) {
+      const sql = migration.sql.replace(/--[^\n]*/g, "");
       for (const m of sql.matchAll(
         /\bc_uploads_an_hour constant integer := (\d+);/g,
       )) {

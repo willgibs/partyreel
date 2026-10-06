@@ -15,11 +15,12 @@
  *   3. THE BREAKERS: an account's uploads a clock hour (20,000) and its creations a day (100), the second on a creation
  *      alone, after the plan's own limit, in words the create action reads.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 
 const ROOT = process.cwd();
@@ -29,20 +30,10 @@ const FILE = "20261003210500_upload_meter.sql";
 const collapse = (sql: string) => sql.replace(/\s+/g, " ");
 const strip = (sql: string) => sql.replace(/--[^\n]*/g, "");
 
-function files(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS_DIR, file), "utf8"),
-    }));
-}
-
 /** Every function's winning definition: the last create across the set, with the file it won in. */
 function winning(): Map<string, { body: string; file: string }> {
   const out = new Map<string, { body: string; file: string }>();
-  for (const { file, sql } of files()) {
+  for (const { file, sql } of readMigrations()) {
     const code = strip(sql);
     const re = /create (?:or replace )?function public\.([a-z_0-9]+)\(/g;
     let m: RegExpExecArray | null;
@@ -71,7 +62,7 @@ function latest(name: string): { body: string; file: string } {
 const fileSql = () =>
   collapse(strip(readFileSync(join(MIGRATIONS_DIR, FILE), "utf8")));
 const everything = () =>
-  files()
+  readMigrations()
     .map(({ sql }) => collapse(strip(sql)))
     .join(" ");
 

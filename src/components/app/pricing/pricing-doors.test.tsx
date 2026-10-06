@@ -1,12 +1,10 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import { GIGABYTE, planById, plansForTier } from "@/lib/constants/tiers";
+import { filesUnder, read } from "@/testing/source-tree";
 
 import { PricingDoorsProvider, type PricingDoors } from "./pricing-doors";
 import { PricingSheet } from "./pricing-sheet";
@@ -524,27 +522,22 @@ describe("a door's read is as forgiving as the route's was", () => {
 });
 
 /** Every source file under src, relative, minus tests: what ships or builds. */
-function sources(dir: string, out: string[] = []): string[] {
-  for (const name of readdirSync(dir)) {
-    const p = join(dir, name);
-    if (statSync(p).isDirectory()) sources(p, out);
-    else if (/\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name)) out.push(p);
-  }
-  return out;
+function sources(dir: string): string[] {
+  return filesUnder(dir).filter(
+    (p) => /\.tsx?$/.test(p) && !/\.test\.tsx?$/.test(p),
+  );
 }
 
 describe("the provider is the lab's", () => {
   it("★ no product file hands the surface its own doors", () => {
-    const root = process.cwd();
-    const strays = sources(join(root, "src"))
-      .map((p) => relative(root, p))
+    const strays = sources("src")
       // Where it is defined, and the lab, whose specimens are what it is for.
       .filter((f) => f !== "src/components/app/pricing/pricing-doors.tsx")
       .filter((f) => !f.startsWith("src/app/(dev)/design/"))
       // An IMPORT of it, not a mention: the sheet's own header names the provider it reads from.
       .filter((f) =>
         /import\s*(?:type\s*)?\{[^}]*\bPricingDoorsProvider\b[^}]*\}\s*from/.test(
-          readFileSync(join(root, f), "utf8"),
+          read(f),
         ),
       );
     expect(

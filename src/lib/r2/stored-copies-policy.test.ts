@@ -1,10 +1,8 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { liveFunctions } from "@/lib/db/testing/migrations";
+import { entries, filesUnder, read } from "@/testing/source-tree";
 
 /**
  * NOTHING IS EVER ORPHANED IN R2: the static guard of the third stored copy (take-home-wiring, 2026-10-03).
@@ -32,8 +30,6 @@ import { liveFunctions } from "@/lib/db/testing/migrations";
  * a division and JSX text from code, and a bare scanner that meets one loses its place and reads the rest of the file
  * inverted, comments as code. The SQL is `testing/migrations.ts`' replay, comments gone.
  */
-
-const ROOT = process.cwd();
 
 /** Code that deletes objects without a row's keys: it lists the bucket, so a third copy is just another key. */
 const DELETES_BY_LISTING: Readonly<Record<string, string>> = {
@@ -99,20 +95,14 @@ const SQL_DISPLAY_ONLY: Readonly<Record<string, string>> = {
 const SKIP =
   /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$|^src\/lib\/db\/testing\/|\/milestone-\d+\/|\/testing\//;
 
-function filesUnder(dir: string, keep: (rel: string) => boolean): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => !rel.includes("node_modules") && keep(rel))
-    .sort();
-}
-
+// A worker's own source is its `src/` (its installed packages are never walked).
 const SOURCES = [
-  ...filesUnder("src", (rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel)),
-  ...filesUnder("scripts", (rel) => rel.endsWith(".mjs")),
-  ...filesUnder(
-    "workers",
-    (rel) => /\/src\/.*\.ts$/.test(rel) && !SKIP.test(rel),
-  ),
+  ...filesUnder("src").filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel)),
+  ...filesUnder("scripts").filter((rel) => rel.endsWith(".mjs")),
+  ...entries("workers")
+    .filter((worker) => worker.isDirectory)
+    .flatMap((worker) => filesUnder(`workers/${worker.name}/src`))
+    .filter((rel) => rel.endsWith(".ts") && !SKIP.test(rel)),
 ];
 
 /**
@@ -152,10 +142,24 @@ function codeOfText(rel: string, text: string): string {
   return out.join(" ");
 }
 
-const codeOf = (rel: string) =>
-  codeOfText(rel, readFileSync(join(ROOT, rel), "utf8"));
+const codeOf = (rel: string) => codeOfText(rel, read(rel));
 
-const CODE = new Map(SOURCES.map((rel) => [rel, codeOf(rel)]));
+/**
+ * The code of every source that could hold a purge or a reader: a file whose text names none of their words cannot,
+ * so it is never parsed (the code is a subset of the text).
+ */
+const MENTIONS =
+  /deleteR2Objects|DeleteObjectsCommand|reclaimMedia|preview_key/;
+const CODE = new Map(
+  SOURCES.filter((rel) => MENTIONS.test(read(rel))).map((rel) => [
+    rel,
+    codeOf(rel),
+  ]),
+);
+
+/** A listed file's code, read even when it mentions none of the words (an entry that outlived its reason). */
+const codeAt = (rel: string) =>
+  SOURCES.includes(rel) ? (CODE.get(rel) ?? codeOf(rel)) : undefined;
 
 const DELETES =
   /\bdeleteR2Objects\s*\(|\bDeleteObjectsCommand\b|\breclaimMedia\s*\(/;
@@ -193,10 +197,8 @@ describe("A. every purge deletes every stored copy", () => {
 
   it("every deletes-by-listing entry still deletes", () => {
     for (const rel of Object.keys(DELETES_BY_LISTING)) {
-      expect(CODE.has(rel), `${rel} is gone: drop its entry`).toBe(true);
-      expect(DELETES.test(CODE.get(rel)!), `${rel} no longer deletes`).toBe(
-        true,
-      );
+      expect(codeAt(rel), `${rel} is gone: drop its entry`).toBeDefined();
+      expect(DELETES.test(codeAt(rel)!), `${rel} no longer deletes`).toBe(true);
     }
   });
 });
@@ -216,7 +218,7 @@ describe("B. every reader of preview_key knows the phone copy, or only draws", (
 
   it("a display-only reader never deletes, and still reads preview_key", () => {
     for (const rel of Object.keys(DISPLAY_ONLY)) {
-      const code = CODE.get(rel);
+      const code = codeAt(rel);
       expect(code, `${rel} is gone: drop its entry`).toBeDefined();
       expect(DELETES.test(code!), `${rel} deletes now: it is a purge`).toBe(
         false,

@@ -121,7 +121,7 @@
  *      own form, keeps a row the new address already had without ever raising, still returns first for an account
  *      being deleted, and stays trivial and uncallable by a client role.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -137,6 +137,7 @@ import {
 } from "@/lib/db/testing/migrations";
 import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
+import { filesUnder, read as readFile } from "@/testing/source-tree";
 
 const ROOT = join(__dirname, "..", "..", "..");
 
@@ -4144,24 +4145,16 @@ describe("a report is open exactly when it has no resolved_at (crumbs-29, 202609
 
   it("★ every write of a report's status in the app writes its resolved_at beside it", () => {
     const writes: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) walk(path);
-        else if (
-          /\.tsx?$/.test(entry.name) &&
-          !/\.test\.tsx?$/.test(entry.name)
-        ) {
-          const source = collapse(readFileSync(path, "utf8"));
-          for (const [, fields] of source.matchAll(
-            /\.from\("reports"\) \.update\(\{([^}]*)\}\)/g,
-          )) {
-            if (/\bstatus:/.test(fields)) writes.push(`${path}: ${fields}`);
-          }
+    for (const path of filesUnder("src")) {
+      if (/\.tsx?$/.test(path) && !/\.test\.tsx?$/.test(path)) {
+        const source = collapse(readFile(path));
+        for (const [, fields] of source.matchAll(
+          /\.from\("reports"\) \.update\(\{([^}]*)\}\)/g,
+        )) {
+          if (/\bstatus:/.test(fields)) writes.push(`${path}: ${fields}`);
         }
       }
-    };
-    walk(join(ROOT, "src"));
+    }
     // The portal's close, its reopen and the Undo of an action: the scan is not vacuous.
     expect(writes.length).toBeGreaterThanOrEqual(3);
     for (const write of writes) {

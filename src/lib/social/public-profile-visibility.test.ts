@@ -35,18 +35,12 @@
  * host or a CONFIRMED viewer, and an anonymous viewer has no uid to be either. The pins below hold
  * the gate, and that the legacy flag is named nowhere in the arm.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const MIGRATIONS_DIR = join(__dirname, "..", "..", "..", "supabase/migrations");
-
-function migrationFiles(): string[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-}
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /**
  * The definition that actually WINS on the live DB: the LAST migration in timestamp order that
@@ -55,8 +49,7 @@ function migrationFiles(): string[] {
  */
 function functionBody(): string {
   let latest: string | null = null;
-  for (const file of migrationFiles()) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+  for (const { file, sql } of readMigrations()) {
     const start = sql.indexOf(
       "create or replace function public.get_public_profile",
     );
@@ -160,8 +153,8 @@ describe("get_public_profile consent scope (migration SQL)", () => {
     // to `require_verified_email`. A body that still named the column would fail at its first call,
     // and a clause re-pointed at a dead flag is the 2026-07-08 leak waiting to come back.
     expect(code(body)).not.toContain("allow_anonymous_uploads");
-    const all = migrationFiles()
-      .map((f) => readFileSync(join(MIGRATIONS_DIR, f), "utf8"))
+    const all = readMigrations()
+      .map((f) => f.sql)
       .join("\n")
       .replace(/--[^\n]*/g, "")
       .replace(/\s+/g, " ");

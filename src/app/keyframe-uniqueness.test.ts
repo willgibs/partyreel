@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * Every @keyframes name across every stylesheet is unique.
@@ -14,13 +13,8 @@ import { describe, expect, it } from "vitest";
  * count at zero: a board that needs its own animation prefixes it (glw-, the
  * board's own name), never reuses a production name.
  */
-const ROOT = process.cwd();
-
 function cssFilesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map(String)
-    .filter((f) => f.endsWith(".css"))
-    .map((f) => `${dir}/${f}`);
+  return filesUnder(dir).filter((f) => f.endsWith(".css"));
 }
 
 /** The sheets that are always there, whatever boards stand. */
@@ -33,10 +27,7 @@ const FIXED = [
 /** A sheet's keyframe names, its comments stripped: prose that says
  *  "@keyframes names are document-global" is not a keyframe called "names". */
 function keyframesIn(rel: string): string[] {
-  const css = readFileSync(join(ROOT, rel), "utf8").replace(
-    /\/\*[\s\S]*?\*\//g,
-    "",
-  );
+  const css = read(rel).replace(/\/\*[\s\S]*?\*\//g, "");
   return [...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]);
 }
 

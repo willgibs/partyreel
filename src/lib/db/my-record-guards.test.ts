@@ -14,25 +14,18 @@
  *      granted to a client role by any file; and no file backfills `let_in_at` (a decision already made must never
  *      become news when the column lands).
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
-
-const FILES = readdirSync(MIGRATIONS_DIR)
-  .filter((f) => f.endsWith(".sql"))
-  .sort();
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /** Strip `--` comments (a quoted example is not code) and collapse whitespace. */
 function executable(sql: string): string {
   return sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
 }
 
-const SQL = FILES.map((file) => ({
+const SQL = readMigrations().map(({ file, sql }) => ({
   file,
-  sql: executable(readFileSync(join(MIGRATIONS_DIR, file), "utf8")),
+  sql: executable(sql),
 }));
 
 /** The winning definition of a public function: its parameter list and its body, from the last file that makes it. */

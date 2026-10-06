@@ -1,7 +1,9 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { entries, filesUnder, read } from "@/testing/source-tree";
 
 /**
  * THE NAME GATE IS WHOLE: a nameless account must never move around the app
@@ -26,17 +28,9 @@ const gate = readFileSync(join(APP_DIR, "name-gate.ts"), "utf8");
 const EXEMPT = new Set(["welcome"]);
 
 function topLevelRouteDirs(): string[] {
-  return readdirSync(APP_DIR).filter((name) => {
-    const full = join(APP_DIR, name);
-    return statSync(full).isDirectory() && !name.startsWith("_");
-  });
-}
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    return statSync(full).isDirectory() ? filesUnder(full) : [full];
-  });
+  return entries("src/app/(app)")
+    .filter((entry) => entry.isDirectory && !entry.name.startsWith("_"))
+    .map((entry) => entry.name);
 }
 
 describe("the name gate's one function", () => {
@@ -90,9 +84,8 @@ describe("every (app) route but /welcome gates on it", () => {
 
 describe("/welcome never gates itself", () => {
   it("no file under welcome/ imports requireNamedProfile (no redirect loop)", () => {
-    const welcomeDir = join(APP_DIR, "welcome");
-    const offenders = filesUnder(welcomeDir).filter((f) =>
-      readFileSync(f, "utf8").includes("requireNamedProfile"),
+    const offenders = filesUnder("src/app/(app)/welcome").filter((f) =>
+      read(f).includes("requireNamedProfile"),
     );
     expect(
       offenders,

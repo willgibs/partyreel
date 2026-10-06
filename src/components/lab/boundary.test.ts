@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * THE KIT'S BOUNDARY.
@@ -24,24 +23,23 @@ import { describe, expect, it } from "vitest";
  * lab surfaces living at a lab route. They are listed by name rather than
  * allowed by pattern, so the exception cannot quietly widen.
  */
-const ROOT = process.cwd();
 const KIT = "@/components/lab";
 const OLD = "@/components/dev/board";
 
 /** Lab surfaces that may reach the kit from outside `(dev)/design`: none today. */
 const ALLOWED_OUTSIDE_LAB: readonly string[] = [];
 
-function walk(dir: string, out: string[] = []): string[] {
-  for (const name of readdirSync(dir)) {
-    if (name === "node_modules" || name.startsWith(".")) continue;
-    const p = join(dir, name);
-    if (statSync(p).isDirectory()) walk(p, out);
-    else if (/\.(ts|tsx)$/.test(name)) out.push(p);
-  }
-  return out;
+function walk(dir: string): string[] {
+  return filesUnder(dir).filter((p) => {
+    const names = p.slice(dir.length + 1).split("/");
+    return (
+      /\.(ts|tsx)$/.test(p) &&
+      !names.some((name) => name === "node_modules" || name.startsWith("."))
+    );
+  });
 }
 
-const FILES = walk(join(ROOT, "src")).map((p) => relative(ROOT, p));
+const FILES = walk("src");
 
 describe("the lab kit's boundary", () => {
   it("is imported only from the lab", () => {
@@ -50,25 +48,20 @@ describe("the lab kit's boundary", () => {
       if (f.startsWith("src/components/dev/")) return false; // the shim itself
       if (f.startsWith("src/app/(dev)/design/")) return false;
       if (ALLOWED_OUTSIDE_LAB.includes(f)) return false;
-      const src = readFileSync(join(ROOT, f), "utf8");
+      const src = read(f);
       return src.includes(KIT) || src.includes(OLD);
     });
     expect(strays, "a file outside the lab imports the board kit").toEqual([]);
   });
 
   it("never reaches into a board", () => {
-    const strays = walk(join(ROOT, "src/components/lab"))
-      .map((p) => relative(ROOT, p))
+    const strays = walk("src/components/lab")
       // The guards read the registry to know which boards are migrated; a test
       // is not shipped, so it is not the dependency this rule is about.
       .filter((f) => !f.endsWith(".test.ts") && !f.endsWith(".test.tsx"))
       // An IMPORT, not a mention: the traps and the landmine comments name the
       // paths they are about, and a path inside a string is not a dependency.
-      .filter((f) =>
-        /(?:from|import\()\s*"[^"]*design\/sandbox/.test(
-          readFileSync(join(ROOT, f), "utf8"),
-        ),
-      );
+      .filter((f) => /(?:from|import\()\s*"[^"]*design\/sandbox/.test(read(f)));
     expect(
       strays,
       "the kit imports a board; the dependency runs the other way",
@@ -77,13 +70,12 @@ describe("the lab kit's boundary", () => {
 
   it("keeps the two faces: no board or kit file uses a mono face", () => {
     const strays = [
-      ...walk(join(ROOT, "src/components/lab")),
-      ...walk(join(ROOT, "src/app/(dev)/design/sandbox")),
+      ...walk("src/components/lab"),
+      ...walk("src/app/(dev)/design/sandbox"),
     ]
-      .map((p) => relative(ROOT, p))
       // The guards themselves carry the pattern they look for.
       .filter((f) => !f.endsWith(".test.ts") && !f.endsWith(".test.tsx"))
-      .filter((f) => /\bfont-mono\b/.test(readFileSync(join(ROOT, f), "utf8")));
+      .filter((f) => /\bfont-mono\b/.test(read(f)));
     expect(strays, "font-mono in the lab; the product has two faces").toEqual(
       [],
     );

@@ -5,23 +5,15 @@
  * later `create or replace` that drops one fails here. Its behavior on the live schema is the migration's own
  * rolled-back check.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const DIR = join(process.cwd(), "supabase", "migrations");
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /** Every migration, comments stripped and whitespace collapsed, in file order. */
-const MIGRATIONS = readdirSync(DIR)
-  .filter((f) => f.endsWith(".sql"))
-  .sort()
-  .map((f) => ({
-    file: f,
-    sql: readFileSync(join(DIR, f), "utf8")
-      .replace(/--[^\n]*/g, "")
-      .replace(/\s+/g, " "),
-  }));
+const MIGRATIONS = readMigrations().map(({ file, sql }) => ({
+  file,
+  sql: sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " "),
+}));
 
 /** The latest definition of the function, from `create` to its body's closing dollar quote. */
 function latestDefinition(name: string): string {

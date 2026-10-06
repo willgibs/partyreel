@@ -6,11 +6,9 @@
  * envelope is read off the LATEST migration that states it, so a step added outside it fails here
  * rather than at a host's first save.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   DEFAULT_HOLD_SEC,
   HOLD_STEPS_SEC,
@@ -25,17 +23,11 @@ import {
   STYLE_CATALOG,
 } from "@/lib/reel/engine/style-registry";
 
-const MIGRATIONS_DIR = join(__dirname, "..", "..", "..", "supabase/migrations");
-
 /** The hold envelope's bounds, from the last migration that states the CHECK. */
 function holdEnvelope(): { min: number; max: number } {
   let found: { min: number; max: number } | null = null;
-  for (const file of readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8")
-      .replace(/--[^\n]*/g, "")
-      .replace(/\s+/g, " ");
+  for (const migration of readMigrations()) {
+    const sql = migration.sql.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
     for (const [, min, max] of sql.matchAll(
       /constraint events_reel_hold_sec_range check \(reel_hold_sec is null or \(reel_hold_sec >= ([0-9.]+) and reel_hold_sec <= ([0-9.]+)\)\)/g,
     )) {

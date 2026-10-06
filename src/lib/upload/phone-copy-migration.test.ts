@@ -12,11 +12,12 @@
  *   3. NEVER METERED: the ledger, `storage_used_bytes` and the caps read `p_file_size_bytes` alone.
  *   4. WHO MAY CALL THEM: the service role, the grants restated in the file that replaced them.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { MAX_PHONE_BYTES } from "@/lib/media/preview-size";
 
 const ROOT = process.cwd();
@@ -26,20 +27,10 @@ const FILE = "20261003110000_phone_copy.sql";
 const collapse = (sql: string) => sql.replace(/\s+/g, " ");
 const strip = (sql: string) => sql.replace(/--[^\n]*/g, "");
 
-function files(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS_DIR, file), "utf8"),
-    }));
-}
-
 /** The winning definition of `public.<name>(`: the last create across the set, with the file it won in. */
 function latest(name: string): { body: string; file: string } {
   let found: { body: string; file: string } | null = null;
-  for (const { file, sql } of files()) {
+  for (const { file, sql } of readMigrations()) {
     const code = strip(sql);
     const re = new RegExp(
       `create (?:or replace )?function public\\.${name}\\(`,
@@ -66,7 +57,7 @@ function latest(name: string): { body: string; file: string } {
 const fileSql = () =>
   collapse(strip(readFileSync(join(MIGRATIONS_DIR, FILE), "utf8")));
 const everything = () =>
-  files()
+  readMigrations()
     .map(({ sql }) => collapse(strip(sql)))
     .join(" ");
 
@@ -238,7 +229,7 @@ describe("4. who may call them", () => {
       // ★ And by capture-time (20261005200000; same scar): the winner's signature ends in the capture time's argument.
       const winner = latest(name).file;
       expect(winner >= FILE, `${name} wins in ${winner}`).toBe(true);
-      const winning = files().find((f) => f.file === winner)!.sql;
+      const winning = readMigrations().find((f) => f.file === winner)!.sql;
       const now = `${after}, timestamptz`;
       expect(winning).toContain(
         `revoke execute on function public.${name}(${now}) from public, anon, authenticated;`,
