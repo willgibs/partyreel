@@ -794,3 +794,83 @@ describe("★ a delta carries its new items' links (album-calm)", () => {
     expect(quiet.status).toBe(304);
   });
 });
+
+/**
+ * ★ WHETHER THE ALBUM TAKES UPLOADS (guest-requests). A host who closes or reopens uploads moves no media row, so a quiet
+ * album's poll answered 304 through either, and the album's camera, stopped by a closed refusal, asked the album again
+ * by itself (a presign at 10 s, 20, 40, then each minute) to hear a reopen. A full answer carries the switch from the
+ * request's own event read, and the validator hashes it while it is off, from the same read, so a close or a reopen
+ * reaches an open page on its next poll, and the two can never disagree.
+ */
+describe("★ whether the album takes uploads (guest-requests)", () => {
+  const viewer = (accepting: boolean, access = "full") =>
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event: { ...EVENT, accepting_uploads: accepting },
+      decision: { access, gate: access === "full" ? null : "account" },
+      isDemo: false,
+      heal: null,
+    });
+  const poll = (etag: string) =>
+    post({ qr_token: "qr-1", since: 5 }, { "If-None-Match": etag });
+
+  it("★ a full answer carries the host's switch, a manifest's and a delta's alike", async () => {
+    viewer(true);
+    expect(await (await post({ qr_token: "qr-1" })).json()).toMatchObject({
+      kind: "manifest",
+      accepting: true,
+    });
+    viewer(false);
+    expect(
+      await (await post({ qr_token: "qr-1", since: 4 })).json(),
+    ).toMatchObject({ kind: "delta", accepting: false });
+  });
+
+  it("★ a host closing uploads defeats a held validator, with no media row moving: the next poll is a 200 that says so", async () => {
+    viewer(true);
+    const etag = (await post({ qr_token: "qr-1" })).headers.get("etag")!;
+    expect((await poll(etag)).status).toBe(304);
+    viewer(false);
+    const closed = await poll(etag);
+    expect(closed.status).toBe(200);
+    expect(await closed.json()).toMatchObject({
+      kind: "delta",
+      upsert: [],
+      remove: [],
+      accepting: false,
+    });
+  });
+
+  it("★ and reopening them: a validator held while closed answers 200 once, then the album rests on 304 again", async () => {
+    viewer(false);
+    const closedEtag = (await post({ qr_token: "qr-1" })).headers.get("etag")!;
+    // Closed and quiet: the poll rests (the camera waits for the album's word, and the album has nothing new to say).
+    expect((await poll(closedEtag)).status).toBe(304);
+    viewer(true);
+    const reopened = await poll(closedEtag);
+    expect(reopened.status).toBe(200);
+    expect((await reopened.json()).accepting).toBe(true);
+    expect((await poll(reopened.headers.get("etag")!)).status).toBe(304);
+  });
+
+  it("an album taking uploads keeps the validator it always had (nothing rolls at the deploy, and the page's seed matches it)", async () => {
+    viewer(true);
+    const open = (await post({ qr_token: "qr-1" })).headers.get("etag");
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event: EVENT,
+      decision: { access: "full", gate: null },
+      isDemo: false,
+      heal: null,
+    });
+    const unsaid = (await post({ qr_token: "qr-1" })).headers.get("etag");
+    expect(open).toBe(unsaid);
+  });
+
+  it("never on the teaser: a viewer still at the door has no camera to tell", async () => {
+    viewer(false, "teaser");
+    const body = await (await post({ qr_token: "qr-1" })).json();
+    expect(body.kind).toBe("teaser");
+    expect(body).not.toHaveProperty("accepting");
+  });
+});

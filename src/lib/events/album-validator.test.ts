@@ -54,6 +54,21 @@ describe("the guest's validator", () => {
     expect(account).not.toBe(upload);
   });
 
+  it("★ moves when the host closes uploads, and back when she reopens them (no media row moves for either)", () => {
+    const closed = guestAlbumEtag({ ...base, accepting: false });
+    expect(closed).not.toBe(guestAlbumEtag(base));
+    expect(guestAlbumEtag({ ...base, accepting: true })).not.toBe(closed);
+  });
+
+  it("an album taking uploads keeps its validator byte for byte: nothing rolls at the deploy, and a seed built without the switch still matches", () => {
+    expect(guestAlbumEtag({ ...base, accepting: true })).toBe(
+      guestAlbumEtag(base),
+    );
+    expect(
+      guestAlbumEtag({ ...base, accepting: true, developsAt: "2026-10-06" }),
+    ).toBe(guestAlbumEtag({ ...base, developsAt: "2026-10-06" }));
+  });
+
   it("★ at full access it ignores the presign bucket (links re-mint by id); the teaser rolls with it", () => {
     expect(guestAlbumEtag({ ...base, bucketId: "1" })).toBe(
       guestAlbumEtag({ ...base, bucketId: "2" }),

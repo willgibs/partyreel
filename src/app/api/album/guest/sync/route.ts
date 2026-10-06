@@ -86,6 +86,11 @@ export const dynamic = "force-dynamic";
  * so a host's new one reaches an open page on its next poll. Only at full access: never on the teaser, behind
  * `require_upload_to_view` or to a blocked viewer, each of which answers before it. Never a waiting id: the album's
  * reads leave every held and sealed row out.
+ *
+ * ★ WHETHER THE ALBUM TAKES UPLOADS (guest-requests). A full answer carries the host's switch (`accepting`), from the
+ * event this request already read, and the validator hashes it while it is off, both from that one read so the two can
+ * never disagree: a host who closes or reopens uploads moves no media row, so without it a quiet album's poll answered
+ * 304 through either, and the album's camera asked the album again by itself, a presign each time, to hear a reopen.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1).max(200),
@@ -178,6 +183,8 @@ export async function POST(request: Request) {
   // FULL: the paged album.
   const reel = await loadGalleryReel(event, "full");
   const develop = developFactsOf(event);
+  // The host's switch, as this request's own event read says it: the payload's word and the validator's (the head note).
+  const accepting = event.accepting_uploads;
   const quietEtag = guestAlbumEtag({
     eventId: event.id,
     access: "full",
@@ -186,6 +193,7 @@ export async function POST(request: Request) {
     attrVersion: versions.attrVersion,
     reel,
     developsAt: develop.developsAt,
+    accepting,
   });
   if (!heal && since !== null && ifNoneMatch === quietEtag) {
     headers.set("ETag", quietEtag);
@@ -205,6 +213,7 @@ export async function POST(request: Request) {
         attrVersion: plan.read.attrVersion,
         reel,
         developsAt: develop.developsAt,
+        accepting,
       }),
     );
   }
@@ -221,6 +230,7 @@ export async function POST(request: Request) {
     gate: null,
     total: plan.read.approved,
     reel,
+    accepting,
     ...(guestCount === undefined ? {} : { guestCount }),
     ...(waiting ? { waiting } : {}),
     ...(links ? { links } : {}),

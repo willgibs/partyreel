@@ -384,6 +384,7 @@ export async function loadGallerySeed(
       attrVersion: plan.read.attrVersion,
       reel,
       developsAt: develop.developsAt,
+      accepting: event.accepting_uploads, // the sync route's own word (guest-requests): a closed album's first poll 304s
     }),
     links: {
       ok: true,
