@@ -1,4 +1,5 @@
 import { Download, EyeOff } from "lucide-react";
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   act,
@@ -1604,7 +1605,10 @@ describe("a tile that leaves takes its unfinished download with it", () => {
     expect(error).not.toHaveBeenCalled();
   });
 
-  it("runs as a tile leaves the grid, and never on a tile that stays", () => {
+  // The abort runs a tick after the commit (a microtask), once the tile has left the document: React's
+  // Strict Mode rehearses every ref's cleanup with the tile still on the page, and an abort run there left
+  // it blank for good in development. So this pin awaits that tick before it reads the leaving tile.
+  it("runs as a tile leaves the grid, and never on a tile that stays", async () => {
     // The grid's one observer is what hears a tile leave; jsdom has none of its own.
     vi.stubGlobal(
       "IntersectionObserver",
@@ -1629,10 +1633,55 @@ describe("a tile that leaves takes its unfinished download with it", () => {
       finished(leaving, false);
       finished(staying, false);
       rerender(<MasonryColumns items={[two[1]]} />);
+      await Promise.resolve();
       expect(leaving.isConnected).toBe(false);
       expect(leaving.hasAttribute("src")).toBe(false);
       expect(staying.getAttribute("src")).toBe("/c.jpg");
     } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("keeps a loading photograph on a tile React only rehearses (Strict Mode, development)", async () => {
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    // Every image unfinished from its first frame, so the rehearsal's cleanup meets a download in flight.
+    const complete = Object.getOwnPropertyDescriptor(
+      HTMLImageElement.prototype,
+      "complete",
+    );
+    Object.defineProperty(HTMLImageElement.prototype, "complete", {
+      configurable: true,
+      get: () => false,
+    });
+    try {
+      const two: GridMedia[] = [
+        { id: "a", type: "photo", url: "/a.jpg", width: 800, height: 1200 },
+        { id: "c", type: "photo", url: "/c.jpg", width: 800, height: 600 },
+      ];
+      const { container } = render(
+        <StrictMode>
+          <MasonryColumns items={two} />
+        </StrictMode>,
+      );
+      await Promise.resolve();
+      for (const id of ["a", "c"]) {
+        const img = container.querySelector<HTMLImageElement>(
+          `[data-media-id="${id}"] img`,
+        )!;
+        expect(img.isConnected).toBe(true);
+        expect(img.getAttribute("src")).toBe(`/${id}.jpg`);
+      }
+    } finally {
+      if (complete)
+        Object.defineProperty(HTMLImageElement.prototype, "complete", complete);
+      else delete (HTMLImageElement.prototype as { complete?: boolean }).complete;
       vi.unstubAllGlobals();
     }
   });

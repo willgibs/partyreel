@@ -91,63 +91,67 @@ export function CameraReel({
       onClick={onOpen}
       aria-label={label}
       data-cam-reel=""
-      className={cn("cam-reel", className)}
+      // The house's focus mark (identity r4, `focus-halo`), round the reel's own box: the film's fade is on the
+      // film inside it (`cam-reel-film`), since a mask on the button would fade its halo away with the frames.
+      className={cn("cam-reel focus-halo", className)}
     >
-      <span
-        aria-hidden
-        className="cam-reel-track"
-        // The frame she is on, the track's centre (`camera.css` lays the frames out by their shape).
-        style={{ "--c": reelCentre(cells) } as CSSProperties}
-      >
-        {cells.map((cell) => (
-          <span
-            key={cell.n}
-            className="cam-cell"
-            data-state={cell.state}
-            data-sending={cell.sending ? "" : undefined}
-            style={{ "--n": cell.n } as CSSProperties}
-          >
-            {cell.shotKey && just.has(cell.shotKey) && (
-              <FrozenFrame source={frozen.get(cell.shotKey)} />
-            )}
-            {cell.state === "exposed" && cell.minute && (
-              <span className="cam-cell-time">
-                {cell.video ? (
-                  <>
-                    <Play className="size-2 fill-current" aria-hidden />
-                    {`${cell.video}s`}
-                  </>
-                ) : (
-                  cell.minute
-                )}
-              </span>
-            )}
-          </span>
-        ))}
-      </span>
-      {/* The frame she is on: the live picture, standing still at the reel's centre. */}
-      <span
-        aria-hidden
-        className="cam-reel-live"
-        data-on={liveCell ? "" : undefined}
-        data-rolling={liveCell?.state === "rolling" ? "" : undefined}
-      >
-        <video
-          ref={live}
-          muted
-          playsInline
-          autoPlay
-          disablePictureInPicture
-          className={cn("size-full object-cover", mirror && "-scale-x-100")}
-        />
-        {progress !== null && (
-          <span
-            className="cam-reel-fill"
-            style={{
-              transform: `scaleX(${Math.min(1, Math.max(0, progress))})`,
-            }}
+      <span aria-hidden className="cam-reel-film">
+        <span
+          aria-hidden
+          className="cam-reel-track"
+          // The frame she is on, the track's centre (`camera.css` lays the frames out by their shape).
+          style={{ "--c": reelCentre(cells) } as CSSProperties}
+        >
+          {cells.map((cell) => (
+            <span
+              key={cell.n}
+              className="cam-cell"
+              data-state={cell.state}
+              data-sending={cell.sending ? "" : undefined}
+              style={{ "--n": cell.n } as CSSProperties}
+            >
+              {cell.shotKey && just.has(cell.shotKey) && (
+                <FrozenFrame source={frozen.get(cell.shotKey)} />
+              )}
+              {cell.state === "exposed" && cell.minute && (
+                <span className="cam-cell-time">
+                  {cell.video ? (
+                    <>
+                      <Play className="size-2 fill-current" aria-hidden />
+                      {`${cell.video}s`}
+                    </>
+                  ) : (
+                    cell.minute
+                  )}
+                </span>
+              )}
+            </span>
+          ))}
+        </span>
+        {/* The frame she is on: the live picture, standing still at the reel's centre. */}
+        <span
+          aria-hidden
+          className="cam-reel-live"
+          data-on={liveCell ? "" : undefined}
+          data-rolling={liveCell?.state === "rolling" ? "" : undefined}
+        >
+          <video
+            ref={live}
+            muted
+            playsInline
+            autoPlay
+            disablePictureInPicture
+            className={cn("size-full object-cover", mirror && "-scale-x-100")}
           />
-        )}
+          {progress !== null && (
+            <span
+              className="cam-reel-fill"
+              style={{
+                transform: `scaleX(${Math.min(1, Math.max(0, progress))})`,
+              }}
+            />
+          )}
+        </span>
       </span>
     </button>
   );

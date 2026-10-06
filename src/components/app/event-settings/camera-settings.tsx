@@ -4,7 +4,9 @@ import {
   type ChangeEvent,
   type FocusEvent,
   type KeyboardEvent,
+  useEffect,
   useId,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -18,6 +20,10 @@ import {
 } from "@/components/app/event-settings/camera-settings-develop-time";
 import { useFinishedFields } from "@/components/app/event-settings/camera-settings-finish";
 import { StylePicture } from "@/components/app/event-settings/camera-settings-style-picture";
+import {
+  RollControl,
+  type RollChange,
+} from "@/components/app/event-settings/roll-control";
 import {
   SettingsCard,
   SettingsNote,
@@ -109,9 +115,81 @@ export function AlbumStyleSettings({ children }: { children?: ReactNode }) {
       savingCapture={s.saving("capture")}
       savingReveal={s.saving("review") || s.saving("developsAt")}
       onSave={(patch) => void s.saveEvent(patch)}
+      roll={<RollSetting />}
     >
       {children}
     </AlbumStyles>
+  );
+}
+
+/** How long the stepper rests before its count is saved: a run of presses is one save, never one a press. */
+export const ROLL_REST_MS = 600;
+
+/**
+ * SHOTS EACH, ON THE PAGE (customize r1's `roll=both`, and `home=words`: the sentence's "12 shots" is the quick swap, this
+ * row the whole control): film's three and Other, over Settings' one state.
+ *
+ * ★ A BOX SAVES AT ONCE, A RUN OF STEPS ONCE SHE RESTS. Every save is a Server Action that re-renders the hub, so a held
+ * plus that sent each count would send dozens. Each count is laid over the row at once (`lay`: the stepper, the
+ * Disposable card's line and the first screen's sentence all say it as she steps), and the one she lands on is saved
+ * `ROLL_REST_MS` after her last step, or the moment the page goes (Next, the back arrow, a close), since the state
+ * outlives the panel. A refused save puts the row's own count back, with the provider's sentence.
+ */
+export function RollSetting() {
+  const s = useSettings();
+  const labelId = useId();
+  const value = s.values.rollSize ?? ROLL_SHOTS;
+  // "Another number" sent her here: the stepper opens, in focus, and the way here is spent.
+  const [openOther] = useState(() => s.opening === "roll");
+  const { openAt, saveEvent, lay } = s;
+  useEffect(() => {
+    if (openOther) openAt(null);
+  }, [openOther, openAt]);
+
+  // The count that waits for her to rest, and how to send it now.
+  const waiting = useRef<{ n: number; timer: number } | null>(null);
+  const save = useRef(saveEvent);
+  useEffect(() => {
+    save.current = saveEvent;
+  });
+  const flush = useRef(() => {
+    const w = waiting.current;
+    if (!w) return;
+    window.clearTimeout(w.timer);
+    waiting.current = null;
+    void save.current({ rollSize: w.n });
+  });
+  useEffect(() => {
+    const send = flush.current;
+    return () => send();
+  }, []);
+
+  const onChange = (n: number, how: RollChange) => {
+    lay({ rollSize: n });
+    if (waiting.current) window.clearTimeout(waiting.current.timer);
+    const timer =
+      how === "step"
+        ? window.setTimeout(() => flush.current(), ROLL_REST_MS)
+        : 0;
+    waiting.current = { n, timer };
+    if (how === "pick") flush.current();
+  };
+
+  return (
+    <StackSetting
+      label="Shots each"
+      labelId={labelId}
+      line="Each guest's roll on the album's camera."
+    >
+      <div data-roll-setting="">
+        <RollControl
+          value={value}
+          onChange={onChange}
+          openOther={openOther}
+          labelledBy={labelId}
+        />
+      </div>
+    </StackSetting>
   );
 }
 
@@ -196,8 +274,14 @@ export function AlbumStyles({
   savingCapture,
   savingReveal,
   onSave,
+  roll,
   children,
 }: ControlProps & {
+  /**
+   * The camera's roll, its row (`RollSetting`, over Settings' state): drawn under the develop time while guests add with
+   * the camera, and gone with it. Absent, there is no roll row (a frame that draws its own).
+   */
+  roll?: ReactNode;
   /** The page's own switches (accepting uploads, videos), standing in the develop time's card. */
   children?: ReactNode;
 }) {
@@ -298,6 +382,7 @@ export function AlbumStyles({
             />
           </StackSetting>
         ) : null}
+        {value.capture === "camera" ? roll : null}
         {children}
       </SettingsCard>
 

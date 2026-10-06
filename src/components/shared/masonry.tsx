@@ -950,7 +950,13 @@ export function MasonryColumns<T extends GridMedia>(props: {
       io.observe(el);
       return () => {
         io.unobserve(el);
-        abortUnfinishedImages(el);
+        // ★ A REHEARSAL IS NOT A LEAVING. In development React runs every ref's cleanup once and
+        // attaches it again (Strict Mode) with the tile still on the page; stripping its source then
+        // left the tile blank for good, since React never rewrites an attribute it did not change. So
+        // the abort waits for the commit to finish and runs only for a tile that left the document.
+        queueMicrotask(() => {
+          if (!el.isConnected) abortUnfinishedImages(el);
+        });
       };
     };
   });

@@ -6,7 +6,12 @@
  * delta poll, this device's own ids) lives one level up, in `GalleryLiveProvider` (gallery-live.tsx),
  * since the reel reads the same album: one live source for album and reel. What stays here is what
  * only the album draws: the two arrival marks, the upload tiles at its head, the hearts, the View
- * menu (the density slider and Yours), the delete consequence, and the teaser CTA.
+ * menu (Size, Sort and Filter: `gallery-view.ts`), the delete consequence, and the teaser CTA.
+ *
+ * ★ THE ALBUM'S ORDER AND HER LENS ARE PRESENTATION (album-order): the live source keeps its newest-first
+ * list, and this view turns it into the night's order (`order`, the page's: the turn or her choice) and
+ * looks through her filter, the rows laid from the end the order grows at. A full album only: a
+ * teaser's nine stay newest first.
  *
  * ★ THE ALBUM IS THE JUSTIFIED ROWS, WINDOWED (`gallery-rows.tsx`): every photograph is laid out
  * from the manifest, only the rows around the viewport are mounted, and the window's ids are what
@@ -51,21 +56,22 @@ import {
   type GalleryPayload as LiveGalleryPayload,
   type LiveGalleryHandle as LiveGalleryHandleType,
 } from "@/components/guest/gallery-live";
+import type { GuestAlbumOrderState } from "@/components/guest/gallery-order";
 import { GalleryRows, type PendingTile } from "@/components/guest/gallery-rows";
+import {
+  buildGuestViewGroups,
+  LENS_WORDS,
+} from "@/components/guest/gallery-view";
 import { GuestSaveChoice } from "@/components/guest/live-gallery-save";
 import {
   guestSelect,
   useGuestSelect,
 } from "@/components/guest/live-gallery-select";
 import { rememberAlbumWidth } from "@/components/shared/album-window-plan";
-import {
-  ViewMenu,
-  type ViewMenuDensityGroup,
-  type ViewMenuGroup,
-} from "@/components/shared/view-menu";
+import { ViewMenu } from "@/components/shared/view-menu";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
-import { yoursView } from "@/lib/guest/yours-filter";
+import { lensAlbum, type AlbumFilter } from "@/lib/shared/album-order";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
@@ -76,76 +82,19 @@ import {
   useArrivalMarks,
 } from "@/lib/shared/arrival";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
-import {
-  DEFAULT_ROW_STEP,
-  perRowFor,
-  type RowStep,
-} from "@/lib/shared/album-rows";
+import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { useRowStep } from "@/lib/shared/use-tile-size";
 
 // The payload, the header's arithmetic and the handle live in the provider with the state they
-// describe; named again here so every importer of this module keeps its one import.
+// describe, and the View menu's groups in `gallery-view.ts`; named again here so every importer of
+// this module keeps its one import.
 export { albumCount } from "@/components/guest/gallery-live";
+export { buildGuestViewGroups } from "@/components/guest/gallery-view";
 export type GalleryPayload = LiveGalleryPayload;
 export type LiveGalleryHandle = LiveGalleryHandleType;
 
 /** The guest album's own path, which its remembered width is scoped to (`rememberAlbumWidth`). */
 const ALBUM_WIDTH_PATH = "/e";
-
-/**
- * THE GUEST ALBUM'S ONE VIEW MENU: the density slider (`album-columns` r2, `steps=both`: three
- * steps, photographs per row, the same index a pinch or ctrl and the wheel set) and the Yours filter
- * in one parent dropdown rather than more and more configs beside the album.
- *
- * Pure, and exported, so its gates are unit-testable without standing up the whole live gallery:
- *   1. THE STEPS SPEAK IN PHOTOGRAPHS A ROW once the album has been laid out (`perRow`, from the
- *      width the rows were laid at), and in their plain names before (the server has no width).
- *   2. SHOWING JOINS ONLY WHEN THERE IS SOMETHING TO SHOW. An album the guest has added nothing to
- *      gets no second group at all, the same rule `yoursView` enforces for the filter itself, read
- *      off the same count so the two can never disagree.
- */
-export function buildGuestViewGroups({
-  step,
-  setStep,
-  boxWidth,
-  showingMine,
-  setShowingMine,
-  ownedCount,
-}: {
-  step: RowStep;
-  setStep: (step: RowStep) => void;
-  /** The width the rows were laid at (null before the album has measured its box). */
-  boxWidth: number | null;
-  showingMine: boolean;
-  setShowingMine: (mine: boolean) => void;
-  /** How many of the WHOLE album are the guest's own (`yoursView`'s own count). */
-  ownedCount: number;
-}): (ViewMenuGroup | ViewMenuDensityGroup)[] {
-  const groups: (ViewMenuGroup | ViewMenuDensityGroup)[] = [
-    {
-      kind: "density",
-      id: "size",
-      label: "Size",
-      value: step,
-      onChange: setStep,
-      perRow:
-        boxWidth !== null ? (s: RowStep) => perRowFor(boxWidth, s) : undefined,
-    },
-  ];
-  if (ownedCount > 0) {
-    groups.push({
-      id: "showing",
-      label: "Showing",
-      value: showingMine ? "mine" : "all",
-      onChange: (v) => setShowingMine(v === "mine"),
-      options: [
-        { value: "all", label: "Everyone's" },
-        { value: "mine", label: `Yours (${formatCount(ownedCount)})` },
-      ],
-    });
-  }
-  return groups;
-}
 
 type LiveGalleryProps = {
   ref?: Ref<LiveGalleryHandle>;
@@ -210,6 +159,11 @@ type LiveGalleryProps = {
    * box, where it reads this live source. Absent where the album never develops here (the Library, a test).
    */
   develop?: AlbumDevelopProps;
+  /**
+   * The album's order as the page holds it (`useGuestAlbumOrder`: the turn, or her choice) and her way to choose one
+   * (View's Sort). Absent (a standalone album), it runs newest first and offers no Sort.
+   */
+  order?: GuestAlbumOrderState;
 };
 
 export function LiveGallery({ ref, ...props }: LiveGalleryProps) {
@@ -260,6 +214,7 @@ function LiveGalleryView({
   closesOnLastRemoval = false,
   addsWait = false,
   develop,
+  order,
 }: Omit<LiveGalleryProps, "ref"> & { live: GalleryLive }) {
   const {
     qrToken,
@@ -342,10 +297,24 @@ function LiveGalleryView({
   // The header's number is the provider's (`albumCount`); the CTA below says the same one.
   const rawCount = items.length;
 
-  // THE YOURS FILTER (`mine=none`: View's Showing is its one door now, no mark on the tiles),
-  // over the WHOLE album (the manifest: `yoursView`'s own note). The intent is this tab's alone.
-  const [showMine, setShowMine] = useState(false);
-  const yours = yoursView(items, ownIds, showMine);
+  // HER LENS (`mine=none`: View's Filter is its one door, no mark on the tiles): Photos, Videos or Yours,
+  // over the WHOLE album (the manifest: `lensAlbum`'s own note), live only with something to show. The
+  // intent is this visit's alone (album-order's Q4). THE ORDER is the page's (the turn, or hers): the night
+  // in order turns the list (`inOrder`, by when each happened) and lays the rows from their start.
+  const [lensIntent, setLensIntent] = useState<AlbumFilter>("all");
+  const lens = useMemo(
+    () => lensAlbum(items, ownIds, lensIntent),
+    [items, ownIds, lensIntent],
+  );
+  const sort = access === "full" ? (order?.sort ?? "newest") : "newest";
+  const turn = live.inOrder;
+  const shown = useMemo(
+    () =>
+      sort === "oldest"
+        ? (turn?.(lens.items) ?? lens.items.slice().reverse())
+        : lens.items,
+    [sort, lens.items, turn],
+  );
 
   // THE DENSITY STEP: server-resolved so the first paint is already the step a returning guest
   // picked; the write rides the page's own Server Action on the one shared cookie.
@@ -389,9 +358,12 @@ function LiveGalleryView({
     step,
     setStep: setRowStep,
     boxWidth,
-    showingMine: yours.on,
-    setShowingMine: setShowMine,
-    ownedCount: yours.count,
+    sort,
+    setSort: access === "full" ? order?.choose : undefined,
+    filter: lens.filter,
+    setFilter: setLensIntent,
+    kinds: lens.kinds,
+    ownedCount: lens.owned,
   });
 
   // SELECT MODE (take-home r1): her picks as the tiles read them, and the album's own way out of it.
@@ -471,7 +443,7 @@ function LiveGalleryView({
             !isDemo ? (
               <SelectBar
                 picks={select.picks}
-                items={yours.items}
+                items={shown}
                 ownIds={ownIds}
                 qrToken={qrToken}
               />
@@ -500,14 +472,14 @@ function LiveGalleryView({
                 )}
               </div>
             ) : null}
-            {/* THE YOURS LINE, for the View-menu filter (`mine=none`): a line and not a chip, only
-              while the filter is live, and its only exit. */}
-            {yours.on && (
+            {/* THE LENS'S LINE, for the View-menu filter (`mine=none`): a line and not a chip, only
+              while a lens is live, and its only exit. */}
+            {lens.filter !== "all" && (
               <div className="mb-3 flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">
-                  Showing yours
+                  {LENS_WORDS[lens.filter]}
                   <span className="ml-1.5 text-faint tabular-nums">
-                    {formatCount(yours.count)}
+                    {formatCount(lens.count)}
                   </span>
                 </span>
                 <span aria-hidden className="text-faint">
@@ -515,7 +487,7 @@ function LiveGalleryView({
                 </span>
                 <button
                   type="button"
-                  onClick={() => setShowMine(false)}
+                  onClick={() => setLensIntent("all")}
                   className="rounded-md font-medium underline-offset-4 transition-colors hover:underline active:scale-[0.98] motion-reduce:active:scale-100"
                 >
                   Show all
@@ -524,7 +496,9 @@ function LiveGalleryView({
             )}
             <DeleteConsequence.Provider value={deleteConsequence}>
               <GalleryRows
-                items={yours.items}
+                items={shown}
+                anchor={sort === "oldest" ? "start" : "end"}
+                lens={lens.filter}
                 pending={pendingTiles}
                 progress={uploadProgress}
                 step={step}

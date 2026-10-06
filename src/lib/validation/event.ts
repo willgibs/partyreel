@@ -43,6 +43,7 @@ import {
   DEVELOP_MAX_AHEAD_DAYS,
   developTimeWithinReach,
 } from "@/lib/disposable/reveal";
+import { ROLL_MAX, ROLL_MIN } from "@/lib/disposable/roll";
 import {
   FIRST_EVENT_YEAR,
   isSaneDay,
@@ -170,16 +171,29 @@ function datesInOrder(
 // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (lane `disposable-foundation`, 20261002200000). A new event is born with
 // them too (create-wizard r3's add=styles: a style is these two columns and `moderation_mode`, one insert, so no
 // half-state is ever stored), and the update sends them as Settings' styles and develop time change them.
-//  - `capture`: free uploads or the album's camera. The database fills in the roll (24) and stamps its period
-//    (`events.sealed_from`, never written here); `roll_size` is the wizard's to name later, never this form's.
+//  - `capture`: free uploads or the album's camera. The database stamps its period (`events.sealed_from`, never
+//    written here).
+//  - `roll_size`: the camera's roll, any count from 1 to 99 (customize r1, Will's `roll=both`), named under the
+//    Disposable pick in Create and in Settings. Unnamed, the database fills in 24 for a camera; free uploads keep the
+//    last one named, so the camera comes back to it (20261005190000). The CHECK (`events_roll_size_range`) is the
+//    boundary; this is the same refusal in words.
 //  - `develops_at`: the develop time, or null for none. Any real time up to a year and a day ahead; one at or before
 //    now (Develop now writes the browser's now) is stored as the database's own now. The column holds only a
 //    finite-time envelope (`events_develops_at_finite`), so this bound is the write's.
 // The third, `moderation_mode`, is the event's own field above: the three-way "when everyone sees" writes it beside
 // `develops_at`, and `createEvent` and `updateEvent` refuse the pair approval-with-a-develop in words
 // (`approvalWithADevelop`) before the database's CHECK would.
+
+/** What a roll outside the bounds meets, in a host's words (a crafted request, a stale tab: the stepper stays inside). */
+export const ROLL_SIZE_MESSAGE = `Pick a roll of ${ROLL_MIN} to ${ROLL_MAX} shots.`;
+
 const developFields = {
   capture: z.enum(CAPTURES),
+  roll_size: z
+    .number(ROLL_SIZE_MESSAGE)
+    .int(ROLL_SIZE_MESSAGE)
+    .min(ROLL_MIN, ROLL_SIZE_MESSAGE)
+    .max(ROLL_MAX, ROLL_SIZE_MESSAGE),
   develops_at: z.iso
     .datetime({ offset: true })
     .refine(
@@ -202,8 +216,10 @@ export const createEventSchema = z
     require_upload_to_view: eventFields.require_upload_to_view.default(false),
     moderation_mode: eventFields.moderation_mode.default("live"),
     qr_style: eventFields.qr_style.default("classic"),
-    // The album's style at birth: free uploads and no develop time, as the columns default.
+    // The album's style at birth: free uploads and no develop time, as the columns default; a Disposable names its
+    // roll (none named is the database's 24).
     capture: developFields.capture.default("upload"),
+    roll_size: developFields.roll_size.nullable().default(null),
     develops_at: developFields.develops_at.default(null),
   })
   .superRefine(datesInOrder);

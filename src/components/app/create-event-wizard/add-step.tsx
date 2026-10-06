@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useState } from "react";
 import { preload } from "react-dom";
 import { Check } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
@@ -16,6 +16,7 @@ import {
   StylePicture,
   type StyleMoment,
 } from "@/components/app/event-settings/camera-settings-style-picture";
+import { RollControl } from "@/components/app/event-settings/roll-control";
 import {
   ALBUM_STYLES,
   type AlbumStyle,
@@ -24,6 +25,7 @@ import {
   styleLine,
   STYLE_NAMES,
 } from "@/lib/disposable/album-style";
+import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import { cn } from "@/lib/utils";
 
 import { DevelopRow } from "./develop-row";
@@ -45,6 +47,11 @@ import { Night } from "./night";
  * ★ THE DEVELOP TIME STANDS DIRECTLY UNDER ITS CARD, never under the night (his own placement): once Disposable is
  * picked a row of it opens in place under that card, so it is where the host's eye already is. Approval never stands
  * with it (`both=never`): no style here combines the two.
+ *
+ * ★ AND THE ROLL UNDER IT (customize r1's `roll=both`, and its carried `create`: "never as a question: it stands under the
+ * Disposable pick, a press to change, the way the develop time does"): Settings' own control (`roll-control.tsx`), film's
+ * three and Other's stepper, opening and shutting with the develop time. 24 unless she picks; her pick is kept while she
+ * moves between the styles, and rides the create only with the Disposable (`createFieldsOf`).
  *
  * ★ THE NIGHT PLAYS ONCE, as the step first opens (every album empty, then the party), and then rests on the party for
  * her hand; reduced motion opens on the party. Her own move of the slider stops it.
@@ -73,6 +80,10 @@ export type AddChoice = {
   developsAt: string | null;
   /** What the develop field holds, unfinished (`YYYY-MM-DDTHH:mm`, "" half filled), or null when it holds the time. */
   draft: string | null;
+  /** Shots on each guest's roll, sent with a Disposable (24 unless she picks). */
+  roll: number;
+  /** A box picked or the stepper moved: the roll she will create with. */
+  setRoll: (n: number) => void;
   /** Why what she finished is not a time. */
   refusal: string | null;
   /** A card is pressed: a Disposable keeps a time still ahead, else offers 9 am tomorrow (Create knows no date yet). */
@@ -98,6 +109,7 @@ export function useAddChoice(): AddChoice {
   const [developsAt, setDevelopsAt] = useState<string | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [roll, setRoll] = useState(ROLL_SHOTS);
 
   const pick = useCallback((to: AlbumStyle) => {
     setStyle(to);
@@ -163,12 +175,15 @@ export function useAddChoice(): AddChoice {
         { capture: "upload", review: false, developsAt },
         { eventDate: null },
       ),
+      roll,
     );
 
   return {
     style,
     developsAt,
     draft,
+    roll,
+    setRoll,
     refusal,
     pick,
     type,
@@ -247,7 +262,7 @@ export function AddStep({
       >
         {ALBUM_STYLES.map((s) => {
           const on = s === choice.style;
-          const line = styleLine(s, { rollSize: null });
+          const line = styleLine(s, { rollSize: choice.roll });
           return (
             <Fragment key={s}>
               <RadioGroupPrimitive.Item
@@ -264,6 +279,7 @@ export function AddStep({
                   <StylePicture
                     style={s}
                     moment={moment}
+                    roll={choice.roll}
                     className="cr-style-pic"
                   />
                 </span>
@@ -293,6 +309,9 @@ export function AddStep({
                   refusal={choice.refusal}
                   onDraft={choice.type}
                   onFinish={() => void choice.finish()}
+                  after={
+                    <RollField roll={choice.roll} onRoll={choice.setRoll} />
+                  }
                 />
               ) : null}
             </Fragment>
@@ -300,6 +319,25 @@ export function AddStep({
         })}
       </RadioGroupPrimitive.Root>
       <Night moment={moment} onMoment={onMoment} className="cr-under" />
+    </div>
+  );
+}
+
+/** The Disposable's roll under its develop time: its name, then film's three and Other, Settings' own control. */
+function RollField({
+  roll,
+  onRoll,
+}: {
+  roll: number;
+  onRoll: (n: number) => void;
+}) {
+  const labelId = useId();
+  return (
+    <div data-roll-field="" className="mt-4 space-y-2.5">
+      <p id={labelId} className="px-1 text-working text-muted-foreground">
+        Shots each
+      </p>
+      <RollControl value={roll} onChange={onRoll} labelledBy={labelId} />
     </div>
   );
 }

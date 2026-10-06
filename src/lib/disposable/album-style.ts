@@ -108,17 +108,25 @@ export function patchForStyle(
 
 /**
  * A STYLE'S COLUMNS IN THE NAMES THE CREATE CARRIES (`createEventSchema`): the one write a new event is born with, so a
- * style is never a half-state at birth either. `capture` and `develops_at` are the foundation's INSERT-granted columns
- * (20261002200000); `moderation_mode` is the event's own answer, `hold_for_approval` where the host reviews.
+ * style is never a half-state at birth either. `capture`, `roll_size` and `develops_at` are the foundation's
+ * INSERT-granted columns (20261002200000); `moderation_mode` is the event's own answer, `hold_for_approval` where the
+ * host reviews. ★ THE ROLL RIDES ONLY WITH THE CAMERA (customize r1's `roll=both`): a Disposable is born with the roll
+ * she picked under it, and a Live or Review album with none, so what Create showed is what is born (her pick is kept
+ * inside Create across a switch of style, `useAddChoice`; an album born without one meets 24 when its camera starts).
  */
-export function createFieldsOf(v: StyleColumns): {
+export function createFieldsOf(
+  v: StyleColumns,
+  rollSize: number | null = null,
+): {
   capture: Capture;
   moderation_mode: "live" | "hold_for_approval";
+  roll_size: number | null;
   develops_at: string | null;
 } {
   return {
     capture: v.capture,
     moderation_mode: v.review ? "hold_for_approval" : "live",
+    roll_size: v.capture === "camera" ? rollSize : null,
     develops_at: v.developsAt,
   };
 }

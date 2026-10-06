@@ -5,7 +5,7 @@
  * that actually credits a photograph to a row. The REAL route, pipeline and owner check run here;
  * the RPC wrappers, R2 and the two Supabase clients are the stubbed edges.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const getUploadContext = vi.fn();
 const createMedia = vi.fn();
@@ -736,5 +736,61 @@ describe("a complete sent again for an upload already recorded", () => {
     expect(again.body).toEqual({ ok: true, status: "recorded" });
     expect(checkAbuseRate).toHaveBeenCalledTimes(1);
     expect(recordAbuseEvent).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("★ the capture time a guest's complete claims (capture-time, Will's X7)", () => {
+  // The server's clock, fixed: the bounds are now plus a day and 1990 (`capture-time.ts`, their one home).
+  beforeEach(() => {
+    vi.useFakeTimers({
+      now: new Date("2026-10-05T12:00:00Z"),
+      toFake: ["Date"],
+    });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+  const recorded = () =>
+    (createMedia.mock.calls.at(-1) as [Record<string, unknown>])[0].capturedAt;
+
+  it("records a claim inside the bounds, as the instant the column stores", async () => {
+    const { status } = await complete({
+      captured_at: "2026-10-04T01:14:05.000Z",
+    });
+    expect(status).toBe(200);
+    expect(recorded()).toBe("2026-10-04T01:14:05.000Z");
+  });
+
+  it("★ drops a lie (a day and more ahead, or before 1990) and the upload still lands: the arrival stands", async () => {
+    for (const lie of [
+      "2026-10-06T12:00:01.000Z",
+      "2099-01-01T00:00:00.000Z",
+      "1989-12-31T23:59:59.000Z",
+      "1970-01-01T00:00:00.000Z",
+    ]) {
+      const { status, body } = await complete({ captured_at: lie });
+      expect(status, lie).toBe(200);
+      expect(body.ok, lie).toBe(true);
+      expect(recorded(), lie).toBeNull();
+    }
+  });
+
+  it("★ a claim that is no instant is none, never a refusal of the file; an older tab's body says none", async () => {
+    for (const bad of [
+      12345,
+      "yesterday",
+      { at: "now" },
+      ["2026-10-04T01:14:05Z"],
+      true,
+      null,
+      "infinity",
+    ]) {
+      const { status } = await complete({ captured_at: bad });
+      expect(status, JSON.stringify(bad)).toBe(200);
+      expect(recorded(), JSON.stringify(bad)).toBeNull();
+    }
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(recorded()).toBeNull();
   });
 });

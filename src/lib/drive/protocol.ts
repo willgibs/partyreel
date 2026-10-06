@@ -268,7 +268,7 @@ export type LeaseItem = {
   contentType: string;
   name: string;
   description: string;
-  /** RFC 3339: when it reached the album, so Drive's own sort agrees with the names. */
+  /** RFC 3339: when it was taken (where the upload kept that, else when it reached the album), as its name says. */
   modifiedTime: string;
   attempts: number;
   /** The file an earlier send on this connection left: asked first, kept when it is still there and whole. */

@@ -72,13 +72,19 @@ function HubSkeleton() {
       {/* The head (`event-header` r1): the cover's dark room to the window's edges and up to the
           app's bar, at the head's own height, so the photographs land in the box that held them. */}
       <div className="dark -mx-3 -mt-8 h-[20.5rem] bg-background sm:-mx-5 sm:h-[25rem]" />
-      {/* The cards row at rest: a phone's 2x2 grid, the row of tiles from
-          `sm` (event-feed/room-card.ts). */}
-      <div className="grid grid-cols-2 gap-2 py-2 sm:flex">
-        {Array.from({ length: 4 }, (_, i) => (
+      {/* The cards row at rest, standing up into the cover as it does over the seam (`event-header` r4,
+          event-feed/event-cards-row.tsx): a phone's two by two with the guest's view the width under it, five tiles from
+          `sm`, five cards from 68.75rem (1100px), each at the row's own height and rising by the row's own `--hub-rise`
+          (event-hub-head-seam.css), so the album starts where the page puts it and nothing jumps as it streams in. */}
+      <div className="-mt-[76px] grid grid-cols-2 gap-2 pb-1.5 sm:-mt-[68px] sm:grid-cols-5 sm:pb-2 min-[68.75rem]:-mt-16 min-[68.75rem]:gap-3">
+        {Array.from({ length: 5 }, (_, i) => (
           <Skeleton
             key={i}
-            className="h-16 shrink-0 rounded-xl sm:h-24 sm:w-36 md:w-40"
+            className={
+              i === 4
+                ? "col-span-2 h-[46px] rounded-xl sm:col-span-1 sm:h-24 min-[68.75rem]:h-[72px]"
+                : "h-[58px] rounded-xl sm:h-24 min-[68.75rem]:h-[72px]"
+            }
           />
         ))}
       </div>

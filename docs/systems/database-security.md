@@ -337,4 +337,6 @@ across the files (a body is its last definition; grants and policies replay stat
   which is how a check gets an unconfirmed account.
 - **An unapplied migration is proved on the live schema inside `begin; … rollback;` in ONE `execute_sql` call:** the
   call returns the LAST row-returning statement's result even after the rollback, so a temp `proof` table carries
-  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback).
+  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback). That
+  a deployed build's call still resolves to a changed signature is proved with no fixtures: call it the old way with
+  arguments its body refuses first (an unknown session, a foreign event) and read the refusal's words.

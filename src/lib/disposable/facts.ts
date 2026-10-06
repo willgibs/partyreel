@@ -13,6 +13,8 @@
  * her tracker's read (`/api/guests/mine`), never the album's.
  */
 
+import { rollSizeOf } from "@/lib/disposable/roll";
+
 /** How guests add, mirroring `events.capture`'s CHECK (20261002200000): free uploads, or the album's camera. */
 export const CAPTURES = ["upload", "camera"] as const;
 export type Capture = (typeof CAPTURES)[number];
@@ -69,7 +71,7 @@ export type GuestWaiting = WaitingFacts & { developsAt: string | null };
 /** The event's own facts here, as its row or its read (`get_event_by_qr_token`) carries them. */
 export type DevelopEventFacts = {
   capture: Capture;
-  /** The camera's roll (24 unless its host named fewer), or null for free uploads. */
+  /** The camera's roll (1 to 99, 24 unless its host named another), or null for free uploads. */
   rollSize: number | null;
   /** The develop time, ISO, or null for none. A time reached has developed. */
   developsAt: string | null;
@@ -85,13 +87,9 @@ export function developFactsOf(row: unknown): DevelopEventFacts {
   const o =
     row && typeof row === "object" ? (row as Record<string, unknown>) : {};
   const capture = isCapture(o.capture) ? o.capture : "upload";
-  const rollSize =
-    capture === "camera" &&
-    typeof o.roll_size === "number" &&
-    Number.isInteger(o.roll_size) &&
-    o.roll_size > 0
-      ? o.roll_size
-      : null;
+  // ★ THE CAMERA'S ROLL ONLY: free uploads keep the roll she named for the camera's return (20261005190000), and no
+  // guest surface meets a kept one, so it is read only beside the camera.
+  const rollSize = capture === "camera" ? rollSizeOf(o.roll_size) : null;
   return {
     capture,
     rollSize,

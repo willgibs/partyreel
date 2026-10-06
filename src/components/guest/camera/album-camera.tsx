@@ -569,7 +569,10 @@ export function AlbumCamera({
             }}
             // Nothing is outside a camera that covers the screen but another layer.
             onInteractOutside={(e) => e.preventDefault()}
-            className="fixed inset-0 z-50 overflow-hidden bg-black text-white outline-none select-none"
+            // ★ THE PHONE'S OWN BLACK IS THE ROOM, ON PAPER TOO (`dark`), as a photograph is: every token
+            // its controls read is the room's, so the house's focus halo (globals.css, `focus-halo`) is
+            // a line of light over a dark band, never paper's ink on black.
+            className="dark fixed inset-0 z-50 overflow-hidden bg-black text-white outline-none select-none"
           >
             <DialogPrimitive.Title className="sr-only">
               {`${event.name}: the camera`}

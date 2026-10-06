@@ -161,7 +161,7 @@ async function manifestPage(
       let q = admin
         .from("media")
         .select(
-          "id, type, width, height, duration_seconds, preview_key, reel_eligible, created_at",
+          "id, type, width, height, duration_seconds, preview_key, reel_eligible, created_at, captured_at",
         )
         .eq("event_id", eventId)
         .eq("status", "approved")
@@ -191,6 +191,7 @@ async function manifestPage(
           has_preview: m.preview_key !== null,
           reel_eligible: m.reel_eligible,
           created_at: m.created_at,
+          captured_at: m.captured_at,
         },
         "album",
       ),

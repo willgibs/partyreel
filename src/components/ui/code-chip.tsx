@@ -28,9 +28,10 @@ function CodeChip({
       data-slot="code-chip"
       className={cn(
         "relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-neutral-950 shadow-layer ring-1 ring-black/10 outline-none",
-        "transition-transform duration-150 ease-emphasis hover:scale-[1.04] active:scale-[0.97]",
-        "focus-visible:ring-3 focus-visible:ring-ring/50",
-        "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+        "transition-transform duration-150 ease-emphasis hover:scale-[1.04]",
+        // The house's focus and press (identity r4): a small round's give.
+        "focus-halo press-shrink [--press-scale:0.92]",
+        "motion-reduce:transition-none motion-reduce:hover:scale-100",
         className
       )}
       {...props}
