@@ -256,9 +256,9 @@ function albumStart(root: HTMLElement, screenH: number): string | null {
 }
 
 /**
- * THE DOORS' CAPTION: how many, how big, whether they stand on the cover,
- * over its seam, under it, in the stuck band or docked, where the album
- * starts, and the band's height once it has stuck.
+ * THE DOORS' CAPTION: how many, how big, whether they stand on the cover's
+ * foot, over its seam, under it or in the stuck band, the Seam's form and
+ * reach, where the album starts, and the band's height once it has stuck.
  */
 export const measureDoors =
   (screenH: number): Probe =>
@@ -273,20 +273,25 @@ export const measureDoors =
     const first = doors[0].getBoundingClientRect();
     const head = root.querySelector("[data-eh-head]");
     const coverFoot = head?.getBoundingClientRect().bottom ?? 0;
-    const where = doors[0].closest("[data-eh-head]")
-      ? "on the cover"
-      : doors[0].closest("[data-eh-foot]")
-        ? "at the screen's foot"
-        : doors[0].closest("[data-eh-band][data-stuck]")
-          ? doors[0].closest("[data-eh-dock]")
-            ? "docked under the bar"
-            : "in the stuck band"
-          : first.top < coverFoot
-            ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
-            : "under the cover";
+    const where = doors[0].closest("[data-eh-band][data-stuck]")
+      ? "in the stuck band"
+      : first.bottom <= coverFoot
+        ? `on the cover's foot, ${px(coverFoot - first.bottom)} of photograph under them`
+        : first.top < coverFoot
+          ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
+          : "under the cover";
     parts.push(
       `${doors.length} doors ${where}, the first ${px(first.width)} by ${px(first.height)}`,
     );
+    // The Seam as drawn: its form and its reach, read off its own box.
+    const light = root.querySelector<HTMLElement>("[data-eh-light]");
+    const lit = light?.getBoundingClientRect();
+    if (light && lit && lit.height > 0 && lit.bottom > 56)
+      parts.push(
+        light.dataset.ehLight === "room"
+          ? `the Seam reaching ${px(lit.height)} under the cover's edge`
+          : `the Seam on paper as ${light.dataset.ehLight}, ${px(lit.height)}`,
+      );
     const band = root.querySelector("[data-eh-band][data-stuck]");
     if (band)
       parts.push(`the band ${px(band.getBoundingClientRect().height)} tall`);

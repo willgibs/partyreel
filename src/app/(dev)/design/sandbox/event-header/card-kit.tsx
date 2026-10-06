@@ -10,8 +10,6 @@ import {
   useLayoutEffect,
   useRef,
 } from "react";
-import { Pause } from "lucide-react";
-
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -32,16 +30,16 @@ import {
 } from "./door-kit";
 
 /**
- * WHAT EVERY TAKE ON THE CARDS SHARES (round five): the row over the seam,
- * its footprint and its band, the pieces a door is drawn from, and the fold
- * that carries the five cards into their pills under the bar and back. Each
- * take (`cards-keys.tsx`, `cards-seam.tsx`, `cards-points.tsx`) draws its own
- * door from these pieces and dresses them in its own sheet, so the takes
- * differ by their idea and never by their plumbing.
+ * WHAT EVERY TAKE ON THE CARDS SHARES (round six): the row on the cover's
+ * foot, its footprint and its band, the pieces a door is drawn from, and the
+ * fold that carries the five cards into their pills under the bar and back.
+ * Each take (`cards.tsx`) draws its own door from these pieces and dresses
+ * them under its own look (`cards.css`), so the takes differ by their idea and
+ * never by their plumbing.
  *
  * ★ THE ROW IS A CONTAINER (`eh-row`), AND EVERY SHAPE IS READ OFF ITS WIDTH,
  * never off the Screen knob, so a take holds at every width a host can hold,
- * not only at the three drawn: a phone's grid under 640px, tiles from 640 to
+ * not only at the three drawn: a phone's one row under 640px, tiles from 640 to
  * 1088 (five cards there are 110 to 200px, too narrow for "Highlight reel"
  * beside a glyph: the ROADMAP's tablet line), the desk's cards from 1088
  * (where each is 200px or more). `card-kit.css` holds those shapes.
@@ -52,7 +50,7 @@ import {
  * Review, the door pressed most tonight, folds straight up.
  */
 
-export type Look = "keys" | "seam" | "points";
+export type Look = "shoulder" | "ring" | "numeral";
 
 /** The fold is occasional (once a pass of the bar), so it is quick: under 300ms. */
 const FOLD_MS = 260;
@@ -66,12 +64,17 @@ const DRAWER = "cubic-bezier(0.32, 0.72, 0, 1)";
  */
 const DISSOLVE_MS = 150;
 
-/** A waiting count's line once its numeral stands on its own: the word it counts ("waiting"). */
-export const wordOf = (value: string) => value.replace(/^[\d.,]+\s*/, "");
-
 /** The count that waits on her, or 0: people at the door, uploads in Review. */
 export const waitsOf = (face: DoorFace) =>
   face.amber && face.count ? face.count : 0;
+
+/**
+ * ★ A BADGE NEVER GROWS PAST "99+" (Will, round five: "Can max at 99+ so it
+ * never overflows into card title"): the cap is the badge's own, one home,
+ * never the count's format, so the accessible name and the room keep the
+ * whole number ("Review: 140 waiting").
+ */
+export const capCount = (n: number) => (n > 99 ? "99+" : formatCount(n));
 
 /**
  * The pointer's place on a door, for a light that follows it (each take's
@@ -133,13 +136,17 @@ export function DoorButton({
  */
 export function Skin({ className }: { className?: string }) {
   return (
-    <span aria-hidden data-fold="skin" className={cn("eh-ck-skin", className)} />
+    <span
+      aria-hidden
+      data-fold="skin"
+      className={cn("eh-ck-skin", className)}
+    />
   );
 }
 
 /**
  * The glyph in its disc; `children` stands on the disc's shoulder (a take's
- * badge, or the band's point). ★ EVERY GLYPH IS INK, THE REEL'S INCLUDED
+ * badge). ★ EVERY GLYPH IS INK, THE REEL'S INCLUDED
  * (Afterglow: no hue is painted on a control; production's reel violet was
  * the hub's one painted colour), a call carried in every take.
  */
@@ -170,17 +177,11 @@ export function Words({
   room,
   line,
   strong,
-  status = false,
 }: {
   room: RoomId;
   line: string;
   /** The line reads in the ink: a count hers to act on, paused uploads. */
   strong?: boolean;
-  /**
-   * The line is a live state: Afterglow's status, the standby point and its
-   * word ("◐ waiting"), the word in the ground's own ink.
-   */
-  status?: boolean;
 }) {
   return (
     <span aria-hidden className="eh-ck-text">
@@ -190,11 +191,9 @@ export function Words({
       </span>
       <span
         data-fold="text"
-        data-strong={strong || status ? "" : undefined}
-        data-status={status ? "" : undefined}
+        data-strong={strong ? "" : undefined}
         className="eh-ck-line"
       >
-        {status ? <StandbyPoint /> : null}
         {line}
       </span>
     </span>
@@ -208,71 +207,6 @@ export function PillWord({ room }: { room: RoomId }) {
       {ROOM_SHORT[room]}
     </span>
   );
-}
-
-/**
- * AFTERGLOW'S STANDBY POINT (brand r1, Will's desk-4 pick): a state is a small,
- * solid, hard-edged point and its word, a camera's pilot light; waiting is
- * Standby, half-lit in the ground's own ink with no hue at all, and it never
- * glows (the glow is the light's: a glowing point is a lamp).
- *
- * ★ IT HOLDS STILL ON THE HUB (a call carried in every take): Afterglow's
- * standby breathes, but a host keeps her hub open all night and a point that
- * beat for hours on two doors would pull her eye off the album, the strip's
- * own rule for its newest mark.
- */
-export function StandbyPoint({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden
-      data-fold="light"
-      data-state="standby"
-      className={cn("eh-ck-point", className)}
-    />
-  );
-}
-
-/**
- * The band's point: a pill has no line for the point to stand beside, so
- * stuck it rides the glyph's shoulder, where a badge would (shown only stuck).
- */
-export function ShoulderPoint() {
-  return <StandbyPoint className="eh-ck-shoulder" />;
-}
-
-/**
- * A DOOR'S COUNT AT ITS END, IN AFTERGLOW'S GRAMMAR: the number alone, printed
- * in the camera's readout (Inter's tabular figures, never the display face:
- * what a camera prints), its state said by the point beside the line's word;
- * Settings' steps left are a plain number for a pill too small for its words
- * (plain, never a status: the call G4), and paused uploads the code's own
- * pause once the cover's code has gone.
- */
-export function Count({ face }: { face: DoorFace }) {
-  const waits = waitsOf(face);
-  if (waits)
-    return (
-      <span aria-hidden data-count="waits" className="eh-ck-count">
-        <span data-fold="num" className="eh-ck-num">
-          {formatCount(waits)}
-        </span>
-      </span>
-    );
-  if (face.left)
-    return (
-      <span aria-hidden data-count="left" className="eh-ck-count">
-        <span data-fold="num" className="eh-ck-num">
-          {formatCount(face.left)}
-        </span>
-      </span>
-    );
-  if (face.paused)
-    return (
-      <span aria-hidden data-count="paused" className="eh-ck-count">
-        <Pause data-fold="light" fill="currentColor" strokeWidth={0} />
-      </span>
-    );
-  return null;
 }
 
 /* ── the fold ────────────────────────────────────────────────────────────── */
@@ -512,18 +446,16 @@ export function useFold(
 /* ── the row ─────────────────────────────────────────────────────────────── */
 
 /**
- * THE ROW OVER THE SEAM, sticky, folding into its band once it reaches the
- * bar: production's footprint and band (`event-cards-row.tsx`), the cover's
- * face leading it stuck and the code's chip closing it.
+ * THE ROW ON THE COVER'S FOOT, sticky, folding into its band once it reaches
+ * the bar: production's footprint and band (`event-cards-row.tsx`), the
+ * cover's face leading it stuck and the code's chip closing it.
  *
- * ★ OVER THE SEAM, THE ROW RISES INTO THE COVER by its overlap (an inline
- * margin: the hub's `space-y-6` is a production utility the lab's cannot
- * outrank), and the band takes no top padding at rest, so the cards' tops are
- * exactly the rise; the footprint holds the resting row's height
- * (`useRestHeight`), so folding never moves the album.
- *
- * `sticks` false leaves the row in the page (a take whose stuck doors stand
- * somewhere else, at a phone's foot), its band still marked for the captions.
+ * ★ THE ROW RISES INTO THE COVER by its whole height and the photograph left
+ * under it (`seam.tsx`'s `seamOf`: an inline margin, since the hub's
+ * `space-y-6` is a production utility the lab's cannot outrank), and the band
+ * takes no top padding at rest, so the cards' tops are exactly the rise; the
+ * footprint holds the resting row's height (`useRestHeight`), so folding
+ * never moves the album.
  */
 export function CardRow({
   look,
@@ -537,11 +469,6 @@ export function CardRow({
   rise,
   Door,
   pace,
-  sticks = true,
-  markAt = "top",
-  className,
-  bandStyle,
-  underlay,
 }: DoorDraw & {
   look: Look;
   stuck: boolean;
@@ -550,17 +477,6 @@ export function CardRow({
   rise: number;
   Door: (p: DoorProps) => ReactNode;
   pace?: FoldPace;
-  sticks?: boolean;
-  /**
-   * Where `mark` reads the row: its top (a row that sticks at the bar) or its
-   * foot (a row that leaves the page, whose doors stand elsewhere once it has).
-   */
-  markAt?: "top" | "bottom";
-  className?: string;
-  /** The band's own properties (the seam take's light, as custom properties). */
-  bandStyle?: CSSProperties;
-  /** What lies on the band's ground under the doors (the seam take's light). */
-  underlay?: ReactNode;
 }) {
   const bandRef = useRef<HTMLDivElement | null>(null);
   useFold(bandRef, stuck, pace);
@@ -568,13 +484,9 @@ export function CardRow({
   const faces = facesOf(c);
   return (
     <div
-      ref={markAt === "top" ? mark : undefined}
+      ref={mark}
       data-eh-row="cards"
-      className={cn(
-        "eh-ck-row pointer-events-none z-30 -mx-3 sm:-mx-5",
-        sticks ? "sticky top-14" : "relative",
-        className,
-      )}
+      className="eh-ck-row pointer-events-none sticky top-14 z-30 -mx-3 sm:-mx-5"
       style={
         {
           minHeight: rest || undefined,
@@ -588,10 +500,8 @@ export function CardRow({
         data-look={look}
         data-screen={screen}
         className="eh-ck-band pointer-events-auto"
-        style={bandStyle}
       >
         <span aria-hidden data-fold="veil" className="eh-ck-veil" />
-        {underlay}
         <div className="eh-ck-bar">
           <span data-fold="lead" className="eh-ck-lead">
             <BandLead c={c} name={name} phone={false} />
@@ -618,13 +528,6 @@ export function CardRow({
           </span>
         </div>
       </div>
-      {markAt === "bottom" ? (
-        <div
-          ref={mark}
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-0"
-        />
-      ) : null}
     </div>
   );
 }
