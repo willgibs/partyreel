@@ -368,11 +368,16 @@ describe("★ one moment for every guest: the album turns in the party's own zon
     expect(zoneRead).toHaveBeenCalledWith(EVENT.id);
   });
 
-  it("★ the browser is handed the instant, never a zone: neither the party's nor the reader's rides the page", async () => {
+  /* ★ RESHAPED ON PURPOSE (crumbs-85; scar kept: the TURN is an instant, and no zone, the party's or the reader's, rides
+     the album's order; reason dropped: no zone rode the page at all, but a far party's develop time is now said in both
+     clocks, which names the party's place, so its zone rides once, as `partyZone`, for words alone). */
+  it("★ the browser is handed the turn as an instant: the party's zone rides for words alone, the reader's never", async () => {
     party.zone = "Pacific/Auckland";
     reader.headers = { "x-vercel-ip-timezone": "America/Los_Angeles" };
     const { experience } = await meet({ kind: "through", admitted: false });
-    const handed = JSON.stringify(experience);
+    const { partyZone, ...rest } = experience as Record<string, unknown>;
+    expect(partyZone).toBe("Pacific/Auckland");
+    const handed = JSON.stringify(rest);
     expect(handed).not.toContain("Pacific/Auckland");
     expect(handed).not.toContain("America/Los_Angeles");
     expect(Object.keys(experience?.albumOrder as object).sort()).toEqual([
@@ -416,5 +421,7 @@ describe("★ one moment for every guest: the album turns in the party's own zon
       own: "newest",
       chosen: null,
     });
+    // Behind a lock nothing names where the party is: no zone for words either (crumbs-85).
+    expect(gated.experience?.partyZone).toBeNull();
   });
 });
