@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Design: the product's hand-rolled controls move onto the halo (118 call-site lines spell `focus-visible:ring-*` on elements of their own beside the atoms' one mark: `grep -rn "focus-visible:ring" src --include=*.tsx`) (identity-wiring).
+- Design: Crystal's lip and hairline compose through Tailwind's inset slots, so a glass round keeps them under the halo (the halo replaces its `box-shadow` while it holds focus, as the old ring did) (identity-wiring).
+- Design: a quick layer that scrolls itself (the Display menu's popover, a long dropdown) scrolls an inner body, so its light stays whole when scrolled (identity-wiring).
+- Design: the contact form's topic `SelectContent` names a corner of its own (`rounded-xl`), so its paper light is off concentric at the corners: wear the display's corner or name `--lit-r` (identity-wiring).
+- Lab: the customize board's camera frame composes production's camera parts without `dark`, so a light session's frame shows paper's halo on black (the board's own wrapper; it leaves with the board) (identity-wiring).
 - Uploads: read a zoneless Exif wall clock in the party's own zone (event-zone's `events.time_zone`) rather than the uploader's browser's: the claim would carry the bare wall clock for the server to read in the event's zone (capture-time).
 - Camera: the album camera's shots (canvas JPEGs, no Exif) carry no capture time, so one that goes up well after it was taken (a retry an hour on) sorts by its arrival in the night in order; hand `uploadBurst` its `takenAt` as the claim (`camera-screen.tsx`, a `BurstFile` field) (capture-time).
 - Guests: a capture time far outside the album's own days (a throwback, a camera a year off) leads the night in order; seat it at the night's edge in the in-order view, the wire keeping the true time (capture-time).
