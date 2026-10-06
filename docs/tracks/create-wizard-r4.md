@@ -1,6 +1,6 @@
 ---
 track: create-wizard-r4
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "6ccc5b4e"            # the launch-prep SHA the branch was cut from
 board: create-wizard
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -45,7 +45,9 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- How the round shapes F2: one ask or two? **Two, built:** `wait` (what stands while the event is made) and `failed` (where a failure lands), the failure staged `after: wait` and drawn in his picked wait, since a failure held in place looks like the wait it holds. Overrule: one ask, each option a wait and a failure together.
+- `styles`' recommendation: **`focused`** (three cards, then the develop time's own screen), his second placement, over production's `built`, which already answers his note (the time directly under its card; Review as the name) and measures in view at 375 (512 px down) with the room scrolling 35 px once the roll opens. Overrule: `built`, if one more screen for a Disposable host costs more.
+- New words this round drew, each the board's until a pick wires it: the focused screen's "When do the photos develop?" / "Everyone's open at once"; the close's "Guests still need your code: print it, or share it."; the held failure's "Couldn't create it yet" / "Nothing was lost: your name, style and look are kept. Check your connection and try again."; the in-room line "Couldn't create the event. Nothing was lost." Recommended: keep them as drawn; the voice (`marketing-voice.ts`) may tune them at wiring.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -57,13 +59,18 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Work commit** `d71ba2435` on `lp/create-wizard-r4`, pushed. No sync: launch-prep moved since the cut only by `docs/STATUS.md`, `docs/tracks/orchestrator.md` and `src/lib/db/types.ts` (none of this lane's reads, nothing the board imports changed); the head is in the chat line.
+- **Gates on `d71ba2435`** (the light gate, each on its own exit code): `pnpm typecheck` 0; `pnpm lint` on the board 0; vitest over `sandbox/`, `components/lab` and `components/app/create-event-wizard` 0 (26 files, 301 tests); `pnpm lab:smoke --base http://localhost:3131` 0 (6 checks, the board's reading 613 of 1200 words); `pnpm lab:demo --board create-wizard --base http://localhost:3131` 0 (4 steps, every option drawn and differing, at 1440 and 375), and again with `--state screen=1440` 0. Reduced motion: frames shot under `prefers-reduced-motion: reduce` read whole (the run's waits are timers, never motion; the tray's warmth and slow develop are declared only under `no-preference`).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/create-wizard/` (12 paths: `add.tsx`, `pictures.tsx`, `paper.tsx`, `room.tsx` deleted, round three's drawings; `close.tsx`, `create.tsx`, `styles.tsx` new) + this file. No exceptions; no production byte.
+- **The items:**
+  - `styles` (the styles polished; today `built`, recommended `focused`): `built` is production's `AddStep` untouched; `focused` is the same cards with the develop slot shut (board CSS) and a screen of its own after them while Disposable is picked (the steppers go 4 to 5); `quiet` is one `StylePicture` of the style picked, the night under it, Settings' three as plain rows, production's `DevelopRow` and `RollControl` opening in Disposable's row. Measured at 375, Disposable picked: built, time in view 512 px down, the room scrolls 35 px; focused, no time on the step, the time 481 px down on its own screen, nothing scrolls; quiet, one picture 335 by 176 (Live) shrinking to 92 when the time opens, time in view 543 px down, nothing scrolls.
+  - `close` (F1; today `marks`, recommended `next`): production's `BeatSteps` (20 words on the beat at 375), one line of what guests still need (24), Settings' five steps as named chips (28, two lines at a phone), nothing (14). All read off production's `readiness()` of the new event.
+  - `wait` (F2; today and recommended `breath`): production's `BeatCode` breathing; `tray`, the same plate shown as blank paper with a warm pass, her code developing up out of it slower (1.3 s) once made; `inplace`, Create event working on the look, the beat landing with her code.
+  - `failed` (F2, `after: wait`; today `back`, recommended `held`): production's return to the look with its toast (a frame-scoped `Toaster`, sonner's `toasterId`); `held`, the beat stays ("Couldn't create it yet", the plate still, Try again at the foot, Back to the look), or on the look under `inplace`; `line`, back to the look with the words under the question.
+  - Every frame is `create.tsx`'s `CreateRun`: production's room, head, carry, name, add step, look and beat composed, with the four axes threaded; Try it opens each, the at-rest frames press Create event as they open. Captions are read off the frame (`scene.tsx`'s `readRoom`: the screen, the steppers, the pictures' sizes, where the develop time stands against the fold, the code's state, where a failure is said, the words, the question, the action, a scroll).
+- **Assets requested from Will:** none.
+- **Board ideas:** production's Settings `Mark` (the round tick) is local to `add-step.tsx` and retyped in `styles.tsx`; a pick of `quiet` exports it. The readiness `code` item's line ("Nobody has opened it yet. Send it or print it, then scan it once yourself.") is long for anywhere a line is all there is; `next` would want a short form beside it.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the recommendations above (`styles=focused`, `close=next`, `wait=breath`, `failed=held`); Try it's slow line at 2.6 s and a retry that succeeds (the board's carried `slow` and `retry`); F2 split into two asks.
+- **Test data left:** none (nothing reaches a server; the run makes no event).
+- **Look at first:** `failed` at 375 wearing `wait=tray` (the held failure on blank paper), then `styles.focused`'s third frame (the develop time's own screen), then `close.next` against `close.marks`.
