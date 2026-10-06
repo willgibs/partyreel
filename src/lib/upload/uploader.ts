@@ -23,7 +23,9 @@
  *    or held by the budget);
  *  - THE BYTES go one file at a time (robust on flaky mobile connections), and a landed file waits for its siblings
  *    (`BURST_RECORD_WAIT_MS`), so the burst is RECORDED together: when its last file has gone up, when the first landed
- *    has waited that long, or at once when the page is hidden (that complete kept alive past the page).
+ *    has waited that long, or at once when the page is hidden (that complete kept alive past the page). A caller with
+ *    a burst after this one begins it on this one's bytes (`onSendDone`) and holds its complete for this one's answer
+ *    (`recordAfter`), so the line never idles for a complete and the completes stay one after another.
  * Every file meets every check it met alone (the server's spine, file by file), a file refused never stops its
  * siblings, and each settles exactly once (`onOutcome`). A refusal of WHO is sending (the burst's whole answer) is
  * every file's not yet presigned, never asked again.
@@ -577,6 +579,19 @@ export async function uploadBurst(args: {
   /** Her cancel: ends what has not been asked to record, and answers `cause: "cancelled"`. */
   signal?: AbortSignal;
   onOutcome?: (index: number, outcome: UploadOutcome) => void;
+  /**
+   * THE BURST'S BYTES ARE UP: every file has gone up, or been refused or stopped short of it, so nothing of it needs
+   * the network but its complete. Said once, maybe before the complete answers; the caller may start its next burst
+   * here (uploads-bursts: the guest's queue no longer idles the line for a complete's round trip).
+   */
+  onSendDone?: () => void;
+  /**
+   * ★ THIS BURST'S COMPLETE WAITS FOR THAT ONE (the caller's last burst, still being recorded): its presign and bytes
+   * may overlap the last complete, its own complete never does, so `create_media*` meets one sender's completes one
+   * after another, in order, as it did when a burst waited for the last one whole (the cap, the month, the roll and a
+   * clip's budget are each judged at the complete on what the one before it recorded). Never rejects by contract.
+   */
+  recordAfter?: Promise<unknown>;
 }): Promise<UploadOutcome[]> {
   const outcomes: (UploadOutcome | undefined)[] = args.files.map(
     () => undefined,
@@ -713,6 +728,8 @@ async function runBurst(
   const reasked: boolean[] = files.map(() => false);
   let reaskTimer: ReturnType<typeof setTimeout> | undefined;
   let recording = false;
+  /** The caller's last burst is recorded (`recordAfter`): until then this one's landed files wait, whatever the clock. */
+  let afterRecorded = !args.recordAfter;
   const page = pageEvents();
   let hidden = page?.visibilityState === "hidden";
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -1008,12 +1025,14 @@ async function runBurst(
     }
     sendIndex = n;
     sendDone = true;
+    args.onSendDone?.();
     poke();
   }
 
   // ── Recording: the landed files together (the head note's three moments), one complete at a time ──
   function maybeRecord() {
-    if (recording) return;
+    // The last burst's complete first (`recordAfter`): its answer pokes this again.
+    if (recording || !afterRecorded) return;
     const due: number[] = [];
     for (let i = 0; i < n && due.length < MAX_BURST_FILES; i++) {
       if (stage[i] === "sent") due.push(i);
@@ -1152,6 +1171,11 @@ async function runBurst(
   };
   signal?.addEventListener("abort", onAbort, { once: true });
   page?.addEventListener("visibilitychange", onVisibility);
+  const recorded = () => {
+    afterRecorded = true;
+    poke();
+  };
+  void args.recordAfter?.then(recorded, recorded);
   try {
     // A kept complete is asked before anything else starts.
     poke();
