@@ -83,9 +83,8 @@ and another account's sessions.
    crumbs-86) and halo-last integrate after milestone 38's merge, so what ships is what red-team 56b walked;
    upload-sums' migration goes through the Advisor, then its drift read, RED, GREEN and apply here. A `send_later`
    check-in about every 40 minutes reads them.
-3. **The alias, once, for the desk review** (Will's ask, 18:29Z: "should be fine on our Vercel usage"): when desk 7's
-   last two boards are merged, their record carries `[preview]` and the runbook's "Deploy to the alias" runs once
-   (`vercel-usage.mjs` read first, `alias-ensure.mjs`, the prune); Will reviews the desk there.
+3. **The alias serves `bbfcc544`** (19:45Z, deployed once on Will's word, 18:29Z): his desk review is at
+   `https://partyreel-git-launch-prep-partyreel.vercel.app/design/lab?key=fiesta`. No other deploy until he asks.
 4. **Will's desk** holds brand r2's `take` (served at `2634388a8`, unanswered) and, at the next refresh, event-header
    r6's `card` and `attention` and desk 7's moments boards (host-moments r1, guest-moments r1, account-moments r1 and
    create-wizard r4 merged): he runs `git pull && S=/tmp zsh usher/kit/desk-refresh.sh <sha>` in his checkout. Desk 6,
@@ -100,7 +99,7 @@ and another account's sessions.
 ## Waiting on Will
 
 - Sentry and Stripe to authorize on this account.
-- **His desk:** brand r2's take; event-header r6 and desk 7 at the next refresh.
+- **His desk, on the alias** (`/design/lab?key=fiesta`): brand r2's take, event-header r6 and desk 7 whole.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Milestone 38** on his yes, after red-team 56b (billing-orphans and drive-crumbs merged).

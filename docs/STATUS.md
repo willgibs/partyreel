@@ -39,8 +39,8 @@ five; Create's last steps, four). Desk 6 next.
 - **Prod:** partyreel.com is `main` at tag `milestone-37` (`b67cdc1f2`), both projects READY. Its crons: the purge at
   04:00 UTC and the spend watch at 05:00. Send to Google Drive reads "not set up" there until its Worker deploys with
   milestone 38 (production holds Drive's four secrets; `DRIVE_WORKER_URL` is set at the deploy).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 53 (`31a73a46`, 2026-10-04),
-  idle under the CPU limit. Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
+  once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
 - **The shared database** runs every migration through `drive_marks` (2026-10-06), each by protocol (the Advisor read
   each before its apply, the file's md5 matched), each an expand milestone 37 runs beside; no build of either project
   reads a dropped thing. Advisors stand at 26 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
