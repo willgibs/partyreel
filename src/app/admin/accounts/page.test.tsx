@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -18,6 +18,9 @@ import {
  *
  * ★ AND EACH ACCOUNT'S UPLOADS AGAINST ITS ALLOWANCE (admin-uploads): what her window has used beside the number her plan
  * holds her to, a row at the allowance marked, and a failed read saying No reading rather than zero.
+ *
+ * ★ AND THE TWO BILLING CHECKS ABOVE THE LIST (credit-watch): the stuck credits and Stripe's change-plan configuration,
+ * each read beside the accounts, a failure of either told to Sentry and said on the page, never failing it.
  */
 
 const accounts = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
@@ -32,6 +35,12 @@ const usage = vi.hoisted(() => ({
 const sentry = vi.hoisted(() => ({ warnings: [] as unknown[][] }));
 /** The admin gate's answer, and how many reads were made behind it. */
 const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0, uploadsCalls: 0 }));
+/** The two billing checks' answers (credit-watch): the stuck credits' reading and the configuration's check. */
+const checks = vi.hoisted(() => ({
+  stuck: { ok: true, value: { total: 0, rows: [] } } as unknown,
+  settle: { ok: true, value: { total: 0, rows: [] } } as unknown,
+  portal: { state: "whole", configurationId: "bpc_tagged", sold: 6 } as unknown,
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/admin-context", () => ({
@@ -75,6 +84,23 @@ vi.mock("@/lib/db/queries/accounts", () => ({
   },
 }));
 
+vi.mock("@/lib/db/queries/pass-credits", () => ({
+  readStuckPassCredits: async () => {
+    gate.reads += 1;
+    return checks.stuck;
+  },
+  readCreditsToSettle: async () => {
+    gate.reads += 1;
+    return checks.settle;
+  },
+}));
+vi.mock("./portal-check", () => ({
+  checkChangePlanConfiguration: async () => {
+    gate.reads += 1;
+    return checks.portal;
+  },
+}));
+
 const { default: AdminAccountsPage } = await import("./page");
 
 function row(over: Record<string, unknown>) {
@@ -95,6 +121,14 @@ async function draw() {
   render(await AdminAccountsPage({ searchParams: Promise.resolve({}) }));
 }
 
+/** Draw the page and let its streamed configuration line settle (React settles a suspended `use` inside `act`). */
+async function drawSettled() {
+  const page = await AdminAccountsPage({ searchParams: Promise.resolve({}) });
+  await act(async () => {
+    render(page);
+  });
+}
+
 const rowOf = (name: string) =>
   screen.getByText(name).closest("tr") as HTMLElement;
 
@@ -107,6 +141,9 @@ beforeEach(() => {
   gate.aal = "aal2";
   gate.reads = 0;
   gate.uploadsCalls = 0;
+  checks.stuck = { ok: true, value: { total: 0, rows: [] } };
+  checks.settle = { ok: true, value: { total: 0, rows: [] } };
+  checks.portal = { state: "whole", configurationId: "bpc_tagged", sold: 6 };
 });
 
 describe("the Cap column", () => {
@@ -334,5 +371,92 @@ describe("the portal's gate", () => {
     expect(out).toBeNull();
     expect(gate.reads).toBe(0);
     expect(sentry.warnings).toEqual([]);
+  });
+});
+
+describe("the billing checks (credit-watch)", () => {
+  it("★ draws both above the list, quiet when whole", async () => {
+    accounts.rows = [row({ display_name: "Anyone" })];
+    await drawSettled();
+    expect(screen.getByText("Billing checks")).toBeTruthy();
+    expect(screen.getByText("None stuck")).toBeTruthy();
+    expect(screen.getByText("Lists all 6 Pro prices")).toBeTruthy();
+    expect(sentry.warnings).toEqual([]);
+  });
+
+  it("★ a stuck credit is listed with its account, and a missing price named", async () => {
+    checks.stuck = {
+      ok: true,
+      value: {
+        total: 1,
+        rows: [
+          {
+            stripe_session_id: "cs_test_1",
+            profile_id: "44444444-4444-4444-8444-444444444444",
+            credit_cents: 1850,
+            pass_ids: ["00000000-0000-4000-8000-00000000000a"],
+            claimed_until: "2026-10-05T08:10:00.000Z",
+            balance_transaction_id: null,
+            granted_at: null,
+            converted_at: null,
+            converted_count: null,
+            released_at: null,
+            created_at: "2026-10-05T08:00:00.000Z",
+            kind: "never_granted",
+            since: "2026-10-05T08:00:00.000Z",
+            email: "stuck@example.com",
+            displayName: "Stuck Host",
+          },
+        ],
+      },
+    };
+    checks.portal = {
+      state: "missing",
+      configurationId: "bpc_tagged",
+      sold: 6,
+      missing: [
+        { planId: "pro_50_yr", label: "Pro 50 GB, $90/yr", priceId: "price_a" },
+      ],
+    };
+    await drawSettled();
+    expect(screen.getByText("1 stuck")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Stuck Host" })).toBeTruthy();
+    expect(screen.getByText("1 of 6 missing")).toBeTruthy();
+  });
+
+  it("★ a check that could not run says No reading, tells Sentry, and the list still draws", async () => {
+    accounts.rows = [row({ display_name: "Still Listed" })];
+    checks.stuck = { ok: false, message: "stuck credits: boom" };
+    checks.settle = { ok: false, message: "credits to settle: boom" };
+    checks.portal = { state: "unread", message: "Stripe is unreachable" };
+    await drawSettled();
+    expect(screen.getAllByText("No reading")).toHaveLength(3);
+    expect(screen.getByText("Still Listed")).toBeTruthy();
+    // Each told once, in whichever order its read came back (the configuration's streams beside the list's).
+    expect(sentry.warnings).toHaveLength(3);
+    expect(sentry.warnings).toContainEqual([
+      "admin",
+      "accounts: credits to settle read failed",
+      { message: "credits to settle: boom" },
+    ]);
+    expect(sentry.warnings).toContainEqual([
+      "admin",
+      "accounts: stuck credits read failed",
+      { message: "stuck credits: boom" },
+    ]);
+    expect(sentry.warnings).toContainEqual([
+      "admin",
+      "accounts: change-plan configuration check failed",
+      { message: "Stripe is unreachable" },
+    ]);
+  });
+
+  it("★ never holds the list for Stripe: the accounts draw while the configuration is still being asked", async () => {
+    accounts.rows = [row({ display_name: "Drawn At Once" })];
+    // The configuration check never answers: the page still renders its list, the line saying it is asking.
+    checks.portal = new Promise(() => {});
+    await draw();
+    expect(screen.getByText("Drawn At Once")).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("Asking Stripe…");
   });
 });

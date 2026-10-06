@@ -474,7 +474,11 @@ describe("loadGallerySeed: the page's album seed", () => {
 
   it("★ at full: an album due a develop develops first, and what waits rides the seed as it rides each sync", async () => {
     waiting = { count: 2, minutes: [[1_790_000_000_000, 2]] };
-    const due = { ...EVENT, develop_due: true, develops_at: "2026-10-03T09:00:00.000Z" };
+    const due = {
+      ...EVENT,
+      develop_due: true,
+      develops_at: "2026-10-03T09:00:00.000Z",
+    };
     const seed = await loadGallerySeed(
       due as typeof EVENT,
       { access: "full", gate: null },
@@ -504,6 +508,26 @@ describe("loadGallerySeed: the page's album seed", () => {
     );
   });
 
+  it("★ a closed album's seed carries the validator the sync route answers it with (guest-requests), so its first poll is a 304", async () => {
+    const closed = { ...EVENT, accepting_uploads: false };
+    const seed = await loadGallerySeed(
+      closed as typeof EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: null },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    const shape = {
+      eventId: EVENT.id,
+      access: "full" as const,
+      gate: null,
+      albumMax: 7,
+      attrVersion: 3,
+      reel: seed.sync.reel,
+    };
+    expect(seed.etag).toBe(guestAlbumEtag({ ...shape, accepting: false }));
+    expect(seed.etag).not.toBe(guestAlbumEtag(shape));
+  });
+
   it("mints links for exactly the first paint's photographs (the reel off), and reports the ones gone", async () => {
     getLiveReelServerFacts.mockResolvedValue({
       liveReelEnabled: false,
@@ -528,6 +552,21 @@ describe("loadGallerySeed: the page's album seed", () => {
     );
     expect(seed.links.missing).toEqual([uuid(1)]);
     expect(seed.links.b).toBe(7);
+  });
+
+  it("★ an album that opens in order links its first rows, the oldest, never the newest (album-order)", async () => {
+    getLiveReelServerFacts.mockResolvedValue({
+      liveReelEnabled: false,
+      tier: "pro",
+    });
+    await loadGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: 1400, sort: "oldest" },
+    );
+    const asked = readGuestAlbumMedia.mock.calls[0][1] as string[];
+    expect(asked[0]).toBe(uuid(99));
+    expect(asked).not.toContain(uuid(0));
   });
 
   it("with a reel, the Highlight reel tile's stills ride the seed too, after the first paint's", async () => {

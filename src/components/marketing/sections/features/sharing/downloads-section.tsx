@@ -22,9 +22,8 @@ const DOWNLOAD_TRIGGERS = [
  * and the guest album's "Select", whose Save takes a pick home). The
  * interactive modal is the page's signature.
  *
- * ★ THE MODAL BESIDE IT STILL DRAWS THE RETIRED "DOWNLOAD ALBUM" MENU (`zip-modal-demo.tsx`, owed a redraw on Take it
- * home with `features/album/take-home-section.tsx`: ROADMAP), so this copy says what the product does today and the
- * picture is the one part of the section that does not.
+ * The figure beside it is the host's own Take it home (`zip-modal-demo.tsx`'s `TakeHomeFigure`, composed of
+ * `take-home-panel.tsx`'s own cards: retired-mocks), so the copy and the picture both say what the product does today.
  */
 export function DownloadsSection() {
   const rise = (i: number) => ({

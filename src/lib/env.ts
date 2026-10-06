@@ -102,6 +102,9 @@ const serverSchema = z.object({
   // confirm. `.optional()` so the app builds without it; assertPruneApiEnv() asserts at request time so
   // the route fails closed rather than confirm deletions for an unauthenticated caller.
   PRUNE_API_SECRET: z.string().min(1).optional(),
+  // The backup Worker's origin (its *.workers.dev URL): the backup restore's Restore now POSTs its one door there with
+  // PRUNE_API_SECRET (workers/backup/src/restore-door.ts). `.optional()`: unset, the card says Restore now is not wired.
+  BACKUP_WORKER_URL: z.url().optional(),
   // Gate key for the V1 identity-exploration playground at /design (the (dev) route group).
   // Production requires `?key=` to match (timing-safe, see src/lib/design-gate/server.ts); dev mode is
   // open. `.optional()`: unset in prod means the playground simply 404s everywhere. Not a classic
@@ -186,6 +189,7 @@ function parseServer() {
     CONTACT_NOTIFY_EMAIL: process.env.CONTACT_NOTIFY_EMAIL,
     UNLOCK_COOKIE_SECRET: process.env.UNLOCK_COOKIE_SECRET,
     PRUNE_API_SECRET: process.env.PRUNE_API_SECRET,
+    BACKUP_WORKER_URL: process.env.BACKUP_WORKER_URL,
     DESIGN_PREVIEW_KEY: process.env.DESIGN_PREVIEW_KEY,
     EXPORT_SIGNING_SECRET: process.env.EXPORT_SIGNING_SECRET,
     EXPORT_WORKER_URL: process.env.EXPORT_WORKER_URL,

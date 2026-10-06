@@ -51,7 +51,7 @@ export const DESK_SCREENS = {
   "loop-share": "The printed code on a table card at the reception",
   "loop-fill": "The album filling in a browser, two photos just landed",
   "loop-shape": "Review: three uploads waiting, Approve all",
-  "loop-keep": "Download album: Everything, Photos or Videos",
+  "loop-keep": "Take it home: Originals to keep, or Phone size to post",
   "loop-reel": "The Highlight reel card, and the Look every guest starts on",
   "qr-download":
     "Download the code: SVG (best for print) or PNG (best for screens)",

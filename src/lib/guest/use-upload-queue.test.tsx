@@ -16,7 +16,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   landedAs,
-  localRefusalCode,
   runLandedOf,
   runProgressOf,
   runSentOf,
@@ -1155,10 +1154,223 @@ describe("★ what waits goes as one burst (compute-uploads)", () => {
 });
 
 /**
- * ★ A REFUSAL OF THE FILE ITSELF, MADE ON THE PHONE, IS TOLD AS THE CODE THE LADDER KNOWS (red-team 54's LOW): the
- * uploader refuses a wrong type and a file over the ceiling before any request, so it has no `code`, and the failure
- * sheet offered a Retry whose press sent nothing (the same check refused the same file at once). The queue asks the file
- * again with the uploader's own validators, so no surface offers a Retry that cannot pass.
+ * ★ THE QUEUE'S TWO THROUGHPUT LINES (uploads-bursts): a dropped burst's Retry all goes back as the one burst it was, and
+ * the next burst begins on the last one's bytes, its complete still waiting for the last one's answer.
+ */
+describe("★ bursts back to back (uploads-bursts)", () => {
+  const burstMock = vi.mocked(uploadBurst);
+  const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  type BurstArgs = Parameters<typeof uploadBurst>[0];
+
+  /** A burst whose bytes go up at once (each file sent, then its `onSendDone`) and whose complete answers on `answer`. */
+  function bytesThenComplete(outcome: (i: number) => UploadOutcome) {
+    let answer!: () => void;
+    const answered = new Promise<void>((resolve) => (answer = resolve));
+    burstMock.mockImplementationOnce(async (args: BurstArgs) => {
+      for (const one of args.files) {
+        one.onSending?.();
+        one.onProgress?.(1);
+        one.onSent?.();
+      }
+      args.onSendDone?.();
+      await answered;
+      const out = args.files.map((_, i) => outcome(i));
+      out.forEach((o, i) => args.onOutcome?.(i, o));
+      return out;
+    });
+    return { answer: () => act(async () => answer()) };
+  }
+  const many = (count: number) =>
+    Array.from({ length: count }, (_, i) => makeFile(`p${i}.jpg`));
+
+  it("★ a dropped burst's Retry all goes back as ONE burst: one presign and one complete for the lot", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: DROPPED,
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles(many(5)));
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(1);
+
+    let n = 0;
+    mockUploadFile.mockImplementation(async () => landed(`med-${++n}`));
+    // The sheet's Retry all: each listed file, in one tick, then the sheet's close dismisses the very same ids.
+    const ids = q.items().map((it) => it.id);
+    act(() => {
+      for (const id of ids) q.result.current.retry(id);
+      q.result.current.dismiss(ids);
+    });
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "done")).toBe(true),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(2);
+    expect(burstMock.mock.calls[1]![0].files).toHaveLength(5);
+    // The status gate held: the close found them queued, so none was dropped.
+    expect(q.items()).toHaveLength(5);
+  });
+
+  it("a single file's Retry is a burst of that file alone, as ever", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      message: DROPPED,
+      cause: "dropped",
+    });
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles(many(3)));
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    act(() => q.result.current.retry(q.items()[1]!.id));
+    await waitFor(() => expect(q.items()[1]!.status).toBe("done"));
+    expect(burstMock).toHaveBeenCalledTimes(2);
+    expect(burstMock.mock.calls[1]![0].files.map((f) => f.file.name)).toEqual([
+      "p1.jpg",
+    ]);
+    expect(q.items().map((it) => it.status)).toEqual([
+      "error",
+      "done",
+      "error",
+    ]);
+  });
+
+  it("★ the next burst begins on the last one's bytes, before its complete answers, and records after it", async () => {
+    const first = bytesThenComplete((i) => landed(`med-a${i}`));
+    const second = bytesThenComplete((i) => landed(`med-b${i}`));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    // 21 picks: a burst of 20, and the 21st past the boundary.
+    act(() => q.result.current.addFiles(many(21)));
+    await waitFor(() => expect(burstMock).toHaveBeenCalledTimes(2));
+    expect(burstMock.mock.calls[0]![0].files).toHaveLength(20);
+    expect(burstMock.mock.calls[1]![0].files.map((f) => f.file.name)).toEqual([
+      "p20.jpg",
+    ]);
+    // The first burst's complete has not answered: its files wait, up, and nothing is told yet.
+    expect(q.onUploaded).not.toHaveBeenCalled();
+    // The second burst's complete waits for the first's answer, and only for that.
+    const after = burstMock.mock.calls[1]![0].recordAfter!;
+    let firstRecorded = false;
+    void after.then(() => (firstRecorded = true));
+    await act(async () => {});
+    expect(firstRecorded).toBe(false);
+    await first.answer();
+    await waitFor(() => expect(firstRecorded).toBe(true));
+    expect(q.onUploaded).toHaveBeenCalledTimes(20);
+    await second.answer();
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "done")).toBe(true),
+    );
+    expect(q.onUploaded).toHaveBeenCalledTimes(21);
+    expect(burstMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("a waiting file is never taken twice: the last burst's files, up and `queued` at 100, are not the next burst's", async () => {
+    const first = bytesThenComplete((i) => landed(`med-a${i}`));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles(many(2)));
+    await waitFor(() =>
+      expect(q.items().map((it) => [it.status, it.progress])).toEqual([
+        ["queued", 100],
+        ["queued", 100],
+      ]),
+    );
+    // Its bytes are up, so a pick now goes at once, alone.
+    mockUploadFile.mockResolvedValue(landed("med-late"));
+    act(() => q.result.current.addFiles([makeFile("late.jpg")]));
+    await waitFor(() => expect(burstMock).toHaveBeenCalledTimes(2));
+    expect(burstMock.mock.calls[1]![0].files.map((f) => f.file.name)).toEqual([
+      "late.jpg",
+    ]);
+    await first.answer();
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "done")).toBe(true),
+    );
+    expect(burstMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("★ a refused complete of the last burst still lands on the failure sheet with its files", async () => {
+    const CAP = {
+      ok: false,
+      code: "cap_reached",
+      message: "This album is full.",
+    } as const;
+    const first = bytesThenComplete(() => CAP);
+    mockUploadFile.mockResolvedValue(landed("med-b"));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles(many(21)));
+    await waitFor(() => expect(burstMock).toHaveBeenCalledTimes(2));
+    await first.answer();
+    await waitFor(() =>
+      expect(q.items().filter((it) => it.status === "error")).toHaveLength(20),
+    );
+    await waitFor(() => expect(q.items()[20]!.status).toBe("done"));
+    expect(q.items()[0]).toMatchObject({
+      status: "error",
+      errorCode: "cap_reached",
+      error: "This album is full.",
+    });
+  });
+
+  it("★ a session refusal its complete brought late takes the burst begun on that ticket with it: every file goes again on the new one", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "fresh-token" } },
+      ],
+    });
+    const first = bytesThenComplete(() => OTHER_ACCOUNT);
+    // The burst begun on the same ticket meets the same refusal at its presign.
+    mockUploadFile.mockResolvedValueOnce(OTHER_ACCOUNT);
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles(many(21)));
+    await waitFor(() => expect(burstMock).toHaveBeenCalledTimes(2));
+    let n = 0;
+    mockUploadFile.mockImplementation(async () => landed(`med-${++n}`));
+    await first.answer();
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "done")).toBe(true),
+    );
+    // One join for the lot, and the 21 went again on the fresh ticket (20, then the one past the boundary).
+    expect(fetchUrls()).toEqual(["/api/guests/leave", "/api/guests"]);
+    const again = burstMock.mock.calls.slice(2);
+    expect(again.map((c) => c[0].identity)).toEqual([
+      { session_token: "fresh-token" },
+      { session_token: "fresh-token" },
+    ]);
+    expect(again.flatMap((c) => c[0].files)).toHaveLength(21);
+    expect(q.onUploaded).toHaveBeenCalledTimes(21);
+  });
+
+  it("★ a stop is its own burst's: a file of the last burst, up with its complete asked, is too late at once while the next one goes", async () => {
+    const first = bytesThenComplete((i) => landed(`med-a${i}`));
+    // The next burst's file stays in the air.
+    mockUploadFile.mockReturnValueOnce(new Promise<UploadOutcome>(() => {}));
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() => q.result.current.addFiles(many(21)));
+    await waitFor(() => expect(q.items()[20]!.status).toBe("uploading"));
+    let answer: unknown = "unanswered";
+    await act(async () => {
+      answer = await q.result.current.stop(q.items()[0]!.id);
+    });
+    expect(answer).toBeNull();
+    expect(burstMock.mock.calls[0]![0].files[0]!.signal!.aborted).toBe(false);
+    await first.answer();
+    await waitFor(() => expect(q.items()[0]!.status).toBe("done"));
+  });
+});
+
+/**
+ * ★ A REFUSAL OF THE FILE ITSELF CARRIES THE CODE ITS SOURCE GAVE IT (red-team 54's LOW; RESHAPED ON PURPOSE in crumbs-83).
+ * The uploader refuses a wrong type and a file over the ceiling before any request, and with no `code` the failure sheet
+ * offered a Retry whose press sent nothing (the same check refused the same file at once). The scar kept: such a file
+ * reaches every surface with the code the refusal ladder reads as "choose another", so none offers it a Retry. The expired
+ * reason dropped: that the queue asked the file again with the uploader's validators (`localRefusalCode`) because the
+ * uploader said no code; the uploader tags them where it decides them now (`uploader.burst.test.ts` pins that), and the
+ * queue carries whatever code it is told and makes none up.
  */
 describe("a refusal of the file itself that the uploader made locally", () => {
   const file = (name: string, type: string, size?: number) => {
@@ -1167,18 +1379,41 @@ describe("a refusal of the file itself that the uploader made locally", () => {
     return f;
   };
 
-  it("localRefusalCode reads the file the way the uploader does: a type nobody takes, a file over the ceiling, else nothing", () => {
-    expect(localRefusalCode(file("notes.txt", "text/plain"))).toBe(
-      "unsupported_type",
+  it("★ keeps the code the uploader tagged it with, so no surface offers it a Retry", async () => {
+    mockUploadFile.mockImplementation(async ({ file: f }: { file: File }) =>
+      f.type === "text/plain"
+        ? {
+            ok: false,
+            code: "unsupported_type",
+            message: "That file type isn't supported.",
+          }
+        : {
+            ok: false,
+            code: "too_large",
+            message: "This file is larger than the 10 GB maximum.",
+          },
     );
-    expect(localRefusalCode(file("noname", ""))).toBe("unsupported_type");
-    expect(
-      localRefusalCode(file("big.mov", "video/quicktime", 11 * 1024 ** 3)),
-    ).toBe("too_large");
-    expect(localRefusalCode(file("a.jpg", "image/jpeg"))).toBeUndefined();
+    const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+    act(() =>
+      q.result.current.addFiles([
+        file("notes.txt", "text/plain"),
+        file("big.mov", "video/quicktime", 11 * 1024 ** 3),
+      ]),
+    );
+    await waitFor(() =>
+      expect(q.items().every((it) => it.status === "error")).toBe(true),
+    );
+    expect(q.items().map((it) => it.errorCode)).toEqual([
+      "unsupported_type",
+      "too_large",
+    ]);
+    expect(q.items().map((it) => it.error)).toEqual([
+      "That file type isn't supported.",
+      "This file is larger than the 10 GB maximum.",
+    ]);
   });
 
-  it("★ is given its code, so no surface offers it a Retry; a file that passes keeps its code-less failure", async () => {
+  it("★ makes no code up: a code-less failure stays one worth another go, whatever the file it was", async () => {
     mockUploadFile.mockResolvedValue({
       ok: false,
       message: "That upload didn't go through. Please try again.",
@@ -1194,10 +1429,10 @@ describe("a refusal of the file itself that the uploader made locally", () => {
     await waitFor(() =>
       expect(q.items().every((it) => it.status === "error")).toBe(true),
     );
-    // The sentences are the uploader's, untouched; only what a surface may do about them has a code now.
+    // The old queue asked the file itself again here and named the first two `unsupported_type` and `too_large`.
     expect(q.items().map((it) => it.errorCode)).toEqual([
-      "unsupported_type",
-      "too_large",
+      undefined,
+      undefined,
       undefined,
     ]);
   });

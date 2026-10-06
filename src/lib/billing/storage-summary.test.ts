@@ -15,11 +15,9 @@
  * item asked to leave for good, and nothing past the 30-day window, where a held item would be the one byte count
  * telling her a hold exists.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 vi.mock("server-only", () => ({}));
@@ -231,8 +229,6 @@ describe("the admin's account view reads the same aggregate", () => {
    eviction (`leave_deleted`) drains too, so the arms are read off that function's WHERE.
    ──────────────────────────────────────────────────────────────────────────── */
 describe("host_storage_summary's figures, read off the migrations", () => {
-  const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
-
   function newestBody(fn: string): {
     file: string;
     body: string;
@@ -243,14 +239,7 @@ describe("host_storage_summary's figures, read off the migrations", () => {
       `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${fn}\\s*\\(`,
       "i",
     );
-    const hits = readdirSync(MIGRATIONS)
-      .filter((file) => file.endsWith(".sql"))
-      .sort()
-      .map((file) => ({
-        file,
-        sql: readFileSync(join(MIGRATIONS, file), "utf8"),
-      }))
-      .filter(({ sql }) => definition.test(sql));
+    const hits = readMigrations().filter(({ sql }) => definition.test(sql));
     const newest = hits.at(-1);
     if (!newest) throw new Error(`No migration defines public.${fn}.`);
     const start = newest.sql.search(definition);
@@ -411,10 +400,8 @@ describe("host_storage_summary's figures, read off the migrations", () => {
   /** media_host_all's USING as the live DB holds it: the last CREATE or ALTER of it across the set, comments out. */
   function hostMediaUsing(): string {
     let using: string | null = null;
-    for (const file of readdirSync(MIGRATIONS)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()) {
-      const sql = readFileSync(join(MIGRATIONS, file), "utf8")
+    for (const migration of readMigrations()) {
+      const sql = migration.sql
         .split("\n")
         .map((line) => line.replace(/--.*$/, ""))
         .join(" ")

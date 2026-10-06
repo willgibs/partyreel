@@ -32,7 +32,10 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   `NEXT_PUBLIC_SITE_URL=http://localhost:3000` (sign-in prefers that variable over the page's origin, and Supabase
   allows `http://localhost:3000/**`): Google's chooser returns there. Will's desk is the same build in
   `../partyreel-wt/desk` (a detached worktree at launch-prep; refresh it by checking out, building and restarting
-  `pnpm start -p 3000`).
+  `pnpm start -p 3000`). A cloud walk, with no chooser to press, signs a test host in on its own headless Chrome:
+  `usher/kit/redteam/signin.mjs <email> http://localhost:3000 <device>` mints a magic link with the service key (no
+  mail is sent), verifies its token into the app's own SSR cookies and sets them on that device; it serves the two
+  test hosts alone and refuses the operator, whose session stands behind her second factor.
 - **Confirming a deploy is READY at a SHA:** `GET https://api.vercel.com/v6/deployments?projectId=…&teamId=…&limit=12`
   with `$VERCEL_TOKEN` (the ids are in `usher/kit/vercel-lib.mjs`; `&target=production` for production), match
   `meta.githubCommitSha` and wait for `READY`; `/v3/deployments/<uid>/events` is the build log, the Ignored Build
@@ -40,6 +43,19 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
 - **A curl with a matching `If-None-Match` reads Vercel's edge, not the function:** the edge turns the 200 into a 304
   and strips its `Set-Cookie` ([guest-flow.md](guest-flow.md)), so check a header with no validator first.
 - **The Vercel Toolbar** overlaps the UI only for a logged-in team member, never a guest or curl: not a layout bug.
+
+## What a new test must earn
+
+So the suite stays lean round over round (test-slim, 2026-10-06): a behaviour is pinned once, at the layer that owns
+it: a validator's rule in its own unit test, not again in the route and the component that call it, and a component
+test asserts what the component does (attributes, callbacks, payloads), never the output of a pure function it could
+import and call. The inputs of one rule are one table (`it.each`), never copies of one `it`. Copy is asserted against
+its home (import the constant or the copy function), so a voice round changes words without touching tests; a string
+is typed out only where its exact wording is the guarantee. A test that reads the repository as data lists through
+`@/testing/source-tree` (`walk-policy.test.ts` refuses its own `readdirSync`) and parses only the files a token filter
+keeps. The cost is per file, not per test (a jsdom window and the RTL setup for each `.test.tsx`, about a second of a
+core inside a full run, against 14 s for all 9,500 tests that run under 10 ms each), so a `.test.tsx` earns its file
+by rendering, and a Server Component's test is a node `.test.ts`.
 
 ## Test accounts and fixtures
 
@@ -54,7 +70,8 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   two and hi@willgibs.com's none, so walk the hide from hi@willgibs.com on one of willg97's albums (it never hides on
   the reporter's own).
 - **Seed through real uploads, never raw rows:** a `media` row with no R2 object renders broken and poisons later
-  checks. The media fixtures are at `/Users/gibby/local/ai/partyreel-test-media`; `scripts/seed-demo-event.mjs`
+  checks. Test media comes from `usher/kit/media-gen.mjs` (a phone's photographs with a capture time, a short video,
+  unique bytes every run; the capture-time edge cases are `src/lib/media/strip-metadata-fixtures/`); `scripts/seed-demo-event.mjs`
   drives the real write path from Node (its header gives the flags; a run replaces the event's media). The demo
   event's own reseed is the Orchestrator's, since partyreel.com and the alias share it.
 - **The scale probe, for anything that can outgrow 1,000 rows:** the event "Scale probe"
@@ -72,6 +89,14 @@ The local-first-then-live policy, the gate's steps, the account chooser and the 
   one it held live).
 
 ## When a browser check disagrees
+
+- **Distrust a CDP verdict on the heavy host pages:** a programmatic click can miss React's delegated events and fiber
+  inspection can misread hydration; retry once or twice, then use a light probe page or Will's browser.
+- **The Chrome extension's `file_upload` takes only files from a folder Will connected to the session;** without one,
+  hand him the native picker, or script an R2 PUT plus `create_media_as_host` (real objects, a real ledger). The host's
+  file input mounts only after "Add photos" opens the panel.
+- **A risky change ships in separately verifiable increments,** never one bundled commit (a bundle once hid a hydration
+  regression).
 
 ★ **The Browser pane and the Chrome MCP's tab usually run hidden (`document.hidden`), and a hidden document behaves
 differently, not only looks different.** Rendering is suspended between tool calls, so:
@@ -135,6 +160,9 @@ function of elapsed time can be frozen at a chosen moment and shot.
   `javascript_tool`.
 - **A raw headless `--screenshot` cannot scroll** (a fragment URL paints black; a tall window stretches a 100vh hero),
   so a board is captured through `lab:demo` (`--save-shots`), whose scrolled capture is how subtle light is judged.
+- ★ **A headless Chrome of your own asks for port 0 and reads `DevToolsActivePort` off its own profile** (`lab:demo`;
+  `--chrome-port` pins one and refuses a port that answers). A port taken from a pid or a random number can land on
+  another lane's Chrome, which the script then connects to and drives (brand-r1 did).
 - **A dev server that never answers an image size** (`lab:demo`'s `Page.navigate did not answer`, or an `UNANSWERED`
   line under a step) is Next 16.2's image optimizer, not a hung page: a size whose first requester hung up is never
   answered again (`next dev` and `next start` alike; Vercel optimizes on its own platform), and six of them hold every

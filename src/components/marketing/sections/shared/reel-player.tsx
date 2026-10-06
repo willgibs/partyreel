@@ -93,7 +93,7 @@ export function ReelPlayScreen({
           aria-haspopup="dialog"
           onClick={(e) => open(e.currentTarget)}
           {...trackAttrs("reel_play", { source })}
-          className="absolute inset-0 flex items-center justify-center rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+          className="absolute inset-0 flex items-center justify-center rounded-xl outline-none focus-halo halo-inset"
         >
           <span
             aria-hidden

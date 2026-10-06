@@ -1,10 +1,8 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { isTextLikeInputType } from "@/lib/adopt-typed-value";
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * A TEXT FIELD THAT REACT CONTROLS KEEPS WHAT WAS TYPED BEFORE REACT OWNED IT (crumbs-25: the ROADMAP's line
@@ -68,15 +66,8 @@ const ALLOWED: Readonly<Record<string, { fields: number; why: string }>> = {
   },
 };
 
-const ROOT = process.cwd();
-const SKIP = /\.test\.tsx?$|\.d\.ts$/;
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
+/** A file that draws a raw field spells its tag: only those are parsed. */
+const DRAWS_A_FIELD = /<\s*(?:input|textarea)\b/;
 
 type Bare = { line: number; tag: "input" | "textarea"; type: string | null };
 
@@ -312,13 +303,11 @@ describe("the scan sees what it should", () => {
 });
 
 describe("no controlled text field loses what was typed before hydration", () => {
-  const files = filesUnder("src");
+  const files = sources().filter((rel) => rel.endsWith(".tsx"));
   const offenders = new Map(
     files
-      .map((rel) => [
-        rel,
-        bareTextFields(readFileSync(join(ROOT, rel), "utf8"), rel),
-      ])
+      .filter((rel) => DRAWS_A_FIELD.test(read(rel)))
+      .map((rel) => [rel, bareTextFields(read(rel), rel)])
       .filter(([, found]) => (found as Bare[]).length > 0) as [
       string,
       Bare[],

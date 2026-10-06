@@ -148,7 +148,7 @@ export function SignIn({
               type="button"
               onClick={() => setShow((s) => !s)}
               aria-label={show ? "Hide password" : "Show password"}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90"
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90 rounded-lg outline-none focus-halo halo-inset"
             >
               {show ? (
                 <EyeOff className="size-4" />
@@ -160,10 +160,11 @@ export function SignIn({
         </div>
         <Button
           type="submit"
-          className={`w-full active:scale-[0.99] motion-reduce:active:scale-100 ${buttonClassName ?? ""}`}
-          disabled={pending}
+          className={`w-full ${buttonClassName ?? ""}`}
+          working={pending}
+          workingLabel="Signing in"
         >
-          {pending ? "Signing in…" : "Sign in"}
+          Sign in
         </Button>
       </ClientForm>
       {/* Promoting a link means the link goes (the board's own capture): while
@@ -255,7 +256,7 @@ export function SetInitialPassword({
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90 rounded-lg outline-none focus-halo halo-inset"
           >
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
@@ -273,10 +274,11 @@ export function SetInitialPassword({
       </div>
       <Button
         type="submit"
-        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
-        disabled={pending}
+        className="w-full"
+        working={pending}
+        workingLabel="Saving"
       >
-        {pending ? "Saving…" : submitLabel}
+        {submitLabel}
       </Button>
     </ClientForm>
   );

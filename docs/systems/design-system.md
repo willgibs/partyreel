@@ -20,11 +20,12 @@ pages and content are [marketing-content.md](marketing-content.md)'s.
 
 The chrome is a cool grey with no brand hue, so photographs carry the colour and only state and actions are coloured.
 
-Nothing in the component library is protected: it is a working version that still reads as the shadcn foundation at
-the atomic level, and its actions and fields still wear their shadcn build. An identity is the sum of every part read
-together (primitives, materials, type, motion, composition), so a button made different on its own is not one, and
-atoms left at a generator's defaults read as generic however custom the layout above them. The current direction is a
-camera's own instruments, carried by the voice (Type), the display (the floating layer) and status as light (below).
+Nothing in the component library is protected: it is a working version whose actions and fields still wear their shadcn
+forms, though every atom's focus and press and the light on what floats are the house's (below). An identity is the sum
+of every part read together (primitives, materials, type, motion, composition), so a button made different on its own
+is not one, and atoms left at a generator's defaults read as generic however custom the layout above them. The current
+direction is a camera's own instruments, carried by the voice (Type), the display (the floating layer) and status as
+light (below).
 It is pitched at the crowd that actually comes, about 18 at a party to about 50 at a wedding: bespoke and current to
 them, never a developer's tool, and never flattened for the lowest common denominator, since the core path (scan, add,
 view) is plain to anyone already.
@@ -233,6 +234,67 @@ math, twice as round as the surface under it, so the contrast says what is press
   `@theme inline`, so the custom property is emitted only where a source writes `var(--radius-<step>)`; an empty var
   voids its whole `calc()`, and deleting the last spelling empties every reader. Derive from the four real tokens.
 
+## The atoms' focus and press
+
+Every focusable atom wears one focus mark and every action one press, each a utility in globals.css that carries its
+board's words (identity r4: focus=halo, press=shrink): `focus-halo` and `press-shrink`. An atom wears the class and
+spells no focus ring or active scale of its own (`ui/identity-traits.test.ts`, which pins the edge below too).
+
+- **The halo is drawn whole in Tailwind's ring slot** (`--tw-ring-shadow`: a painted band, the ink line, a bloom), so an
+  atom's own shadow stays under it, and a call site that gives an atom a ring of its own (`focus-visible:ring-*`)
+  replaces it whole: a part that is not a field in a box opts out so (Create's name on its rule,
+  `focus-visible:ring-0`).
+- ★ **Its band is painted, so it is a ground's token**: `--halo-gap` and `--halo-bloom` are declared on every ground
+  (paper's white, the atom's own `--background` in the room and on the display), and a photograph's set rides
+  `data-surface="photo"` and Button's `on-photo` and `glass` wherever they stand. A subtree painted dark in literal
+  colours (the camera's black) wears `dark`, or its halo is paper's ink on black.
+- **An atom whose own light stands outside its box** (the shutter's ring) sets `--halo-at` and `--halo-band` to stand
+  beyond it (`ui/shutter.css`); an element that stands for a focus it does not hold (the code field's caret slot) pins
+  the halo with `data-halo`; a control filling a box that clips (a row's stretched button, an overlay, a field's eye)
+  draws it inside with `halo-inset`. An atom's error is drawn inside it (a key's and a switch's `inset-ring`, a
+  field's well rim), never in the ring slot, where it would replace the halo.
+- ★ **A trigger a layer hands its focus back to after a pointer's choice wears no halo** (`ui/quiet-focus.ts`, worn
+  by DropdownMenu and ResponsiveMenu: Chrome reads that programmatic focus as the keyboard's); a new layer that gives
+  focus back calls it too.
+- **A focusable atom transitions no `box-shadow`**: the halo arrives in its own 140ms beat (out of the registered
+  `--halo-t`) and leaves at once, where a fade would show two marks as a key moves on.
+- **The press lands in the frame the finger does and lets go on the atom's own transition**, which must name `scale`
+  (its 0ms is `!important`, to outrank a transition an atom's own sheet declares outside every layer). Each size names
+  its give in `--press-scale`, about two pixels at every size. It never fires on a popup trigger (`aria-haspopup`),
+  whose layer Radix anchors to the trigger in that same frame. The camera's shutter keeps a camera's press.
+
+## The atoms' set: sunk, flat, afloat
+
+Every atom is built from one set (identity r5, set=house): **a field is a well**, **a key lies flat**, **what is chosen
+floats**. Their values are THE HOUSE SET'S GROUNDS in globals.css, declared on every ground; the constructions are
+utilities beside the halo, each writing its own slot of the shadow every utility composes, so the halo stands over
+any of them whole.
+
+- **`field-well`**: Input, Textarea, Select's trigger, the code's slots and any native field (Settings' Max size). A
+  shade inside its top, a rim, a lit lip; the rim firms under a pointer, the inside lightens holding the caret, red
+  rim in error. A field in the set wears no border.
+- **The keys** are Button's variants on the tokens directly: ink (`default`), a tone (`secondary`), clear inside a
+  hairline (`outline`), nothing (`ghost`), a red tint (`destructive`). Off, a key with a face settles clear with a
+  quiet hairline and faint words, unless it is working.
+- **`afloat`** (with `afloat-card` for a card in a clipping wrapper): a chosen segment, chip, tab or radio card, white
+  on its lift on paper, lit graphite with the bright edge on its `::after` in the room. A segment's track is
+  `bg-(--track)`; a radio card waits as `bg-(--choice)`; a radio waits as a ring of tone and fills with ink. A note
+  set into a control's place (the consequence line, "31 guests are already in") is a flat tone with no line.
+  Production's corners and boxes stand: the set is bodies, never sizes.
+- **A switch** is a flat track of tone that turns to ink, its thumb `toggle-thumb` (white on both grounds, a seam).
+
+## Working: the arc and its words
+
+A key working on what was pressed says so twice (identity r5, loading=words): Button's `working` and `workingLabel`
+draw `working-arc` (a third of a ring turning round a faint whole ring, in the key's ink, sized by `--arc` per size) in
+its icon's place, and its words turn to what it is doing ("Saving", "Creating your event", never an ellipsis, never
+"Still saving"). Both faces stand in one grid cell from the first paint, so the key never changes width.
+
+- **Busy, never off**: a working key keeps its face and its focus (`aria-busy`, `aria-disabled`) and swallows a
+  second press, a submit included; a `disabled` beside it keeps the face while it works.
+- **A field checking what was typed** puts the arc in its status slot (`working-arc text-muted-foreground`), as the
+  handle and the event link do. Under reduced motion the arc rests as a ring a third filled.
+
 ## Elevation contract (four heights, one job each)
 
 Four techniques, one job each, the same in both modes: the **step** (a surface a shade off its ground), the **ring**
@@ -240,15 +302,15 @@ Four techniques, one job each, the same in both modes: the **step** (a surface a
 photographs, a card across a chapter cut, a chip on a photograph, the code's white mat) and the **layer**
 (`shadow-layer`, under anything the page lives behind: menus, dialogs, sheets, tooltips, toasts). A card lies flat as
 its tone alone, with no ring and no shadow in either mode; the ring is left to what a step cannot part (a body panel
-such as the marketing nav's, the display's edge in the room).
+such as the marketing nav's), and what floats ends in light instead (the bright edge, below).
 
 - **One light, two sizes, one alpha ramp per ground**, all in globals.css; `.dark` and `.surface-ink` carry a darker
   ramp, since the paper ramp is invisible over the dark room. A call site names a role, never a stock or arbitrary
   Tailwind shadow or an inline `box-shadow`, so a retune reaches it; a lift over a photograph that reads weak in light
   gets a ramp declared on the media ground.
 - **A shadow can delete a ring**: `ring-1` is a box-shadow composed with `--tw-shadow`, so a bare `box-shadow` on a
-  ringed surface deletes its hairline (wear the utility, or re-state the ring first, as the toast does for sonner's
-  focus ring), and an unlayered rule such as marketing.css's outranks every utility whatever the specificity (a shadow
+  ringed surface deletes its hairline (wear the utility, or re-state the ring first, as the toast does for its focus
+  mark), and an unlayered rule such as marketing.css's outranks every utility whatever the specificity (a shadow
   that must beat that sheet is carried inline as the token).
 - **No surface token is translucent**: an alpha reads solid over a page and turns to glass over a photograph, and glass
   is its own material (below). The lines are the exception, because they are never surfaces: paper's `--border` and
@@ -271,6 +333,16 @@ QR card, through `[data-lit]` in globals.css.
   edge at 100% and under half zoom (CSS `zoom: .33`).
 - **Dark grounds only** (`@variant dark`, so nothing is generated on paper, where a gallery holds hundreds of tiles), and
   only under `@supports` for `color-mix` and `mask-composite`: without the mask the gradient veils the photograph.
+- **What floats wears it too, in place of a hairline** (identity r4, edge=floating), through the floating-layer
+  contract: `lit-display` on every quick layer and the toast, on both grounds (the display is dark on paper too) in the
+  ground's `--display-light`; `lit-work` on every work layer, in the room alone, on its free edge (all round a dialog,
+  along a sheet's top, down a desk panel's left; nothing on a whole screen or a fixed-side Sheet). Cards stay flat.
+- ★ **On paper the display's light steps a pixel in**, since on its outer pixel it read as a grey rim against the
+  page, its corner a pixel tighter through `--lit-r`: a layer whose corner is not the display's 16px names it (the
+  tooltip's capsule does), and a call site's own corner on a quick layer leaves the light off concentric.
+- **A layer that scrolls itself carries its light with its content** (the positioned pseudo-element scrolls with the
+  rows), so a long menu scrolled down loses its top light; a layer that scrolls an inner body (`PopupBody`) keeps it.
+  A toast's light is its `::before`, since sonner's `::after` is its gap's hit area.
 
 ## The glass material: Crystal
 
@@ -303,7 +375,7 @@ still carrying its own.
 
 The album's cover and the hub's head ([guest-flow.md](guest-flow.md), [host-app.md](host-app.md)) stand their
 controls on a photograph, which no paper atom was made for. Their atoms live in `src/components/ui/` under one
-contract: the hooks below are what identity's lab sheets style while production draws them, so a name here never
+contract: the hooks below are what a lab sheet styles the atoms by while production draws them, so a name here never
 moves without both (a rule naming a hook the atom does not draw reaches nothing).
 
 | Hook | The atom |
@@ -355,7 +427,8 @@ production build with `scripts/album-perf.mjs` at `/design/album-scale` (the gri
   arrival or a hide re-solves a pinned window of at most four old rows, and a change outside the rows in view never
   re-lays them (`rowsInView`); and the window pays a change by scrolling exactly as far as the photograph at the view's
   top moved (`overflow-anchor: none`, since the browser cannot anchor through a spacer and Safari has no anchoring),
-  waiting out a touch flick, since a scroll written mid-flick stops it.
+  waiting out a touch flick, since a scroll written mid-flick stops it. What lands out of sight is said by one glass
+  pill (`album-window-news.tsx`).
 - **The rows mount only around the view** (`lib/shared/album-window.ts`), the keyboard's row pinned; a scroll reads the
   view by arithmetic on a cached offset, never a rect, since a rect read mid-frame forces a layout every frame.
 - **An arrival pushes**: the rows write `data-entering` on what their reflow brought in, in the same render (a
@@ -433,10 +506,12 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 - **Two materials, by what a layer is for.** A quick layer, what a press opens and the next press closes (a menu and
   its submenu, a select's list, a popover, the Add's rows, the palette, a tooltip, a toast), is the display:
   `floatingDisplayPanel` (`floatingTip` for a tooltip's capsule) on the `.surface-display` ground, the camera's own
-  screen, near-black on paper and lit graphite in the room. A work layer, where a host does something (a dialog, the popup's shapes,
-  the Sheet), is the body's: `floatingWorkSurface` over `floatingScrim`. A body panel that is neither (the marketing
-  nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring. Whatever a quick layer holds reads
-  the screen's tokens and names no colour of its own, which `ui/display.test.ts` holds.
+  screen, near-black on paper and lit graphite in the room, its edge light rather than a ring (the bright edge). A
+  work layer, where a host does something (a dialog, the popup's shapes, the Sheet), is the body's:
+  `floatingWorkSurface`, which `PopupContent`, the Dialog and the Sheet all read, over `floatingScrim`. A body panel
+  that is neither (the marketing nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring.
+  Whatever a quick layer holds reads the screen's tokens and names no colour of its own, which `ui/display.test.ts`
+  holds.
 - **The product has one responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
   posture pair lives in `floating-layer.ts`; the guest's door and its held sheets and the upload failure sheet wear it;
@@ -451,12 +526,21 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 - **A confirm speaks as an `alertdialog`** (`role` is a column of its kind's row, spread only where a row names one,
   never as `role={undefined}`, which would erase Radix's own), so anything asking whether a layer is up asks
   `layerIsUp()` (`ui/layer-is-up.ts`, the one home of the layer roles; `layer-is-up.test.tsx` refuses a hand-written
-  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
+  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing. A surface that
+  is itself a layer and owns the keys (the viewer's arrows) asks `insideAnotherLayer(target)` instead: the layer the
+  key came from, so a layer stacked over it takes its keys and one under it never does.
 - **In a hand, a screen, a cover or a sheet is a place the phone's Back closes** (`ui/popup-back.ts` on
-  `lib/history-entry.ts`, whose header holds what Next does to an entry), so over the photograph viewer Back peels one
-  layer a press; a dialog is a question and holds no entry, and a page that already routes the place (`routed`,
-  `?room=`) keeps its own. A link inside a place replaces the place's entry as it navigates, so Back from the next
-  page lands on the page beneath, never on a same-URL entry with nothing open.
+  `lib/history-entry.ts`, whose header holds what Next does to an entry), so Back peels one layer a press: a question
+  (a dialog) holds an entry only over another layer (the viewer's Delete, a look's Block screen) and none over the
+  bare page, and a page that already routes the place (`routed`, `?room=`) keeps its own. Entries leave in stack
+  order, one landing at a time, a person's Back pops only the top one, and a push waits for a Back of ours still on
+  its way; a reload's dead entry (a marker this page life never wrote) is stepped over as the first popup hook or the
+  album mounts. A link inside a place replaces the place's entry as it navigates, so Back from the next page lands on
+  the page beneath, never on a same-URL entry with nothing open; and an entry whose popup has gone another way is
+  stepped over when a press lands on it, the way the press was going: one a person's Back (or ours) left above the
+  window only a Forward reaches, and it is undone, the popup beneath untouched; one left under a page the popup's act
+  went on to (`router.push`, a server action's redirect) is gone over Back to the page beneath, or Forward again. The
+  way out for Stripe's page goes Back over the places' entries without closing them (`ui/popup-back-way-out.ts`).
 - **Focus** lands on the popup itself in a hand, never its first field (which would raise the keyboard into a surface
   still arriving), and where the row's `deskFocus` says at a desk; a popup with no trigger of its own gives focus back
   to the control that opened it, inside the layer still open behind it when it was stacked over one, and a menu or a
@@ -501,7 +585,8 @@ to `[data-mkt]`, a sibling scope.
 - **Every toast is the display, and its state is a light**: a success, a warning or a failure is its glyph lit in the
   state's colour, and a destructive act that succeeded is a success. `ui/sonner.tsx` hands sonner the display's colours
   and runs its dark theme, and globals.css's toast rules say why they sit three attributes deep (sonner appends its
-  sheet after ours at runtime), so a check reads the computed colour, not that the rule loaded.
+  sheet after ours at runtime), so a check reads the computed colour, not that the rule loaded. The toast's edge light
+  and the halo on it and on its buttons are composed there past sonner's own rules for the same reason.
 - The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`), and the one Undo,
   `showUndoToast` (`shared/undo-toast.ts`): an act that already landed, named on its surface's one toast, whose Undo
   puts the items back first and then reverses on the server. `vitest.setup.ts` mocks sonner globally for the component
@@ -592,6 +677,14 @@ board, its own sheet and scenes), found by the registry and the board route and 
   in production, radix's focus trap, and history (a place popup drawn open at a hand's width costs the tab's Back one
   press); and a frame's elements wear the frame's own prototypes, so production's `instanceof HTMLElement` answers false
   there.
+- **A frame takes its pane's theme and its option's pause** (`frame-theme.ts`, `frame-pause.ts`). A portalled scene
+  wears the class of the nearest `.dark` or `.surface-paper` above its frame (the page's with none) and follows it while
+  open, so the Specimen's light and dark split draws it once in each; a routed frame keeps its site's own provider's
+  theme. A frame in a hidden option holds still: the step's `data-paused` on a view cannot reach a document of its own,
+  so `Frame` mirrors it into the one it holds, routed or portalled and on every new document. The root wears
+  `data-lab-paused`, one adopted rule freezes every CSS animation under it, and its video and audio stop (one that starts
+  while hidden is stopped as it starts) and start again only if the frame stopped them. A loop in script is the frame's
+  own and reads that mark; a board needs no bridge of its own.
 - **The Library draws what answers to the screen in a frame pair** (`library/device-frames.tsx`: a laptop's 1440 zoomed
   to the column and a phone's 375 beside it, each a portalled `Frame`), and four things follow that no frame tells you.
   ★ `lab:smoke` reads server HTML and a frame mounts on the client when the reader nears it, so a scene in a frame is
@@ -603,8 +696,7 @@ board, its own sheet and scenes), found by the registry and the board route and 
   `data-keyboard`) and holds them against the hook's own clearing. ★ Next's dev check for a `fill` image told
   `sizes="100vw"` compares its width with the LAB's window, so a full-bleed plate (`PhotoSection`) is drawn in a frame as
   wide as the window (a phone-wide frame in a laptop's window warns; so does a plate in the Library's column), and an
-  image in a frame is never the lab's largest paint (no LCP warning). A frame wears the lab's own theme class, so the
-  Specimen's light and dark split draws its scene twice in one theme; and two popovers drawn open in one jsdom document
+  image in a frame is never the lab's largest paint (no LCP warning). Two popovers drawn open in one jsdom document
   leave neither standing, so a test draws one screen at a time.
 
 ## Gotchas / don't-revert

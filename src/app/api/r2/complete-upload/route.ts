@@ -12,21 +12,30 @@ import {
   recordAbuseEvent,
 } from "@/lib/security/abuse-rate-limit-store";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
+import { readPartyZone } from "@/lib/event/zone.server";
+import { wallInPartyZone } from "@/lib/media/capture-time";
 import {
+  completeCaptureTime,
+  completeCaptureWall,
   runCompletePipeline,
   type CompleteStrategy,
 } from "@/lib/upload/server-pipeline";
 import { completeUploadSchema } from "@/lib/validation/upload";
 
 /**
- * THE GUEST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field. `reel_eligible`
- * is false only for a clip the on-device creator adds to the album (`addClipToAlbum`), so the live
- * reel never plays a reel; absent is the column's default (true). Extended here rather than in the
- * shared validation module, so the host's completion shape is untouched until its own route passes
- * the field.
+ * THE GUEST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field and the capture
+ * time. `reel_eligible` is false only for a clip the on-device creator adds to the album
+ * (`addClipToAlbum`), so the live reel never plays a reel; absent is the column's default (true).
+ * `captured_at` is when the original says it was taken (Will's X7), held to its bounds as it is
+ * parsed (`completeCaptureTime`): none, or one outside them, leaves the arrival to stand.
+ * `captured_wall` is the original's zoneless wall clock as it is (`captureWall`), read here in the
+ * PARTY's zone (`wallInPartyZone`, crumbs-85), the claim beside it the fallback. Extended here rather
+ * than in the shared validation module, as the host's route extends its own.
  */
 const guestCompleteSchema = completeUploadSchema.extend({
   reel_eligible: z.boolean().optional(),
+  captured_at: completeCaptureTime,
+  captured_wall: completeCaptureWall,
 });
 
 /**
@@ -140,6 +149,23 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
         };
       }
     }
+    // ★ A ZONELESS WALL CLOCK IS READ IN THE PARTY'S ZONE (crumbs-85): what it costs is one primary-key read of
+    // `events.time_zone`, once a burst (`burst.memo`) and only for a file that carries such a clock (a camera that wrote
+    // no zone; an iPhone writes its own), beside the context read the burst already shares. A failed read is no zone
+    // (`readPartyZone` reports it), and the browser's reading stands.
+    let capturedAt = parsed.captured_at ?? null;
+    if (parsed.captured_wall && ctx.ok && ctx.data.event_id) {
+      const eventId = ctx.data.event_id;
+      const zone = await burst.memo(`zone:${eventId}`, () =>
+        readPartyZone(eventId),
+      );
+      capturedAt = wallInPartyZone(
+        parsed.captured_wall,
+        zone,
+        capturedAt,
+        Date.now(),
+      );
+    }
     const created = await createMedia({
       sessionToken: token,
       mediaId: parsed.media_id,
@@ -155,6 +181,8 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
       phoneBytes: phone?.bytes ?? null,
       // Only a clip says anything here; every other upload leaves the column's default.
       reelEligible: parsed.reel_eligible,
+      // Inside its bounds, or none (the arrival stands).
+      capturedAt,
     });
     /* ★ THE FLIP IS A COOKIE AND THEN A REFRESH. On an event requiring an upload to view, THIS is
        the write that opens the album, and the client calls `router.refresh()` the moment it lands:

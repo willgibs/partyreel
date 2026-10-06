@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -209,10 +209,11 @@ export function EventSlugControl({
               variant="ghost"
               size="sm"
               onClick={() => setConfirm({ mode: "remove" })}
-              disabled={clearing}
               className="text-destructive hover:text-destructive"
+              working={clearing}
+              workingLabel="Removing"
             >
-              {clearing ? "Removing…" : "Remove"}
+              Remove
             </Button>
           </div>
         </div>
@@ -245,7 +246,7 @@ export function EventSlugControl({
               />
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 {status.kind === "checking" && (
-                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  <span aria-hidden className="working-arc text-muted-foreground" />
                 )}
                 {status.kind === "available" && (
                   <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
@@ -258,9 +259,11 @@ export function EventSlugControl({
             <Button
               type="button"
               onClick={onSaveClick}
-              disabled={saving || status.kind !== "available"}
+              disabled={status.kind !== "available"}
+              working={saving}
+              workingLabel="Saving"
             >
-              {saving ? "Saving…" : "Save link"}
+              Save link
             </Button>
             {slug && (
               <Button
@@ -359,9 +362,10 @@ export function EventSlugControl({
                 <Button
                   type="button"
                   onClick={() => runSave(confirm.slug)}
-                  disabled={saving}
+                  working={saving}
+                  workingLabel="Saving"
                 >
-                  {saving ? "Saving…" : "Change link"}
+                  Change link
                 </Button>
               </PopupFooter>
             </>
@@ -392,9 +396,10 @@ export function EventSlugControl({
                   type="button"
                   variant="destructive"
                   onClick={runRemove}
-                  disabled={clearing}
+                  working={clearing}
+                  workingLabel="Removing"
                 >
-                  {clearing ? "Removing…" : "Remove link"}
+                  Remove link
                 </Button>
               </PopupFooter>
             </>

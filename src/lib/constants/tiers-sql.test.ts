@@ -23,9 +23,6 @@
  * Same method as the parity test: TEXT-parsed (Vitest has no Postgres), the newest definition wins
  * (filenames sort in apply order), and anything unreadable throws rather than passing quietly.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -40,19 +37,13 @@ import {
   GATED_EVENT_SETTINGS,
   type GatedEventSetting,
 } from "@/lib/constants/tiers";
-
-const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /** The winning body of `public.<name>(`, comments stripped, from its `as $tag$` to its close. */
 function newestBody(name: string): { file: string; body: string } {
   let newest: { file: string; body: string } | null = null;
-  for (const file of readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(MIGRATIONS, file), "utf8").replace(
-      /--[^\n]*/g,
-      "",
-    );
+  for (const { file, sql: raw } of readMigrations()) {
+    const sql = raw.replace(/--[^\n]*/g, "");
     const re = new RegExp(
       `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${name}\\s*\\(`,
       "g",
@@ -190,20 +181,30 @@ describe("the uploads allowance is one number over one window", () => {
     "get_host_upload_context",
   ];
 
+  // ★ Reshaped by billing-integrity (20261005181000; scar kept: every reader holds her plan's own number over its window,
+  // never the retired multiplier): each now asks the one home of that line, `uploads_refused`, with her own figures,
+  // where each read `upload_allowance` and `uploads_used` itself (and the advisories missed a lapsed pass).
   it.each(READERS)(
     "%s reads her plan's own number over its window, never the retired multiplier",
     (name) => {
       const flat = newestBody(name).body.replace(/\s+/g, " ");
       expect(flat).toMatch(
-        /public\.upload_allowance\(v_(profile\.)?tier, v_(profile\.)?storage_cap(_bytes)?\)/,
-      );
-      expect(flat).toMatch(
-        /public\.uploads_used\(v_(event\.host_id|host), v_(profile\.)?tier\)/,
+        /public\.uploads_refused\(v_(event\.host_id|host), v_(profile\.)?tier, v_(profile\.)?storage_cap(_bytes)?, (p_file_size_bytes|p_bytes|1)\)/,
       );
       expect(flat).not.toContain("monthly_ingress_cap");
       expect(flat).not.toMatch(/cumulative_bytes, 0\) (\+|>=)/);
     },
   );
+
+  it("the one home reads her plan's own number over its window, a strict line, or a lapsed pass", () => {
+    const flat = newestBody("uploads_refused").body.replace(/\s+/g, " ");
+    expect(flat).toContain(
+      "from (select public.upload_allowance(p_tier, p_storage_cap_bytes) as allowance) a",
+    );
+    expect(flat).toContain(
+      "when a.allowance is null then false else public.uploads_used(p_host_id, p_tier) + p_bytes > a.allowance end or public.pass_lapsed(p_host_id, p_tier)",
+    );
+  });
 
   it("counts a pass's year only in the two completes, on her live pass that ends soonest, after the ledger", () => {
     const writers = READERS.filter((name) =>
@@ -220,22 +221,24 @@ describe("the uploads allowance is one number over one window", () => {
         flat.indexOf("insert into public.storage_ledger"),
       );
       expect(flat.indexOf("for update")).toBeLessThan(
-        flat.indexOf("public.uploads_used("),
+        flat.indexOf("public.uploads_refused("),
       );
     }
   });
 
   // ★ The Advisor's Q26 F1: a pass whose last live row has ended before the nightly recompute moves her plan would
   // otherwise upload counted nowhere; both writers refuse her in the allowance's words, after the allowance block.
+  // ★ Reshaped by billing-integrity (20261005181000; scar kept: refused at both writers, in the allowance's words,
+  // before the insert): the lapsed pass is `pass_lapsed`, asked inside the writers' one call, `uploads_refused`.
   it("refuses a lapsed pass at both writers until the recompute moves her plan", () => {
+    expect(newestBody("pass_lapsed").body.replace(/\s+/g, " ")).toContain(
+      "select p_tier = 'event_pass' and not exists ( select 1 from public.event_passes q where q.profile_id = p_host_id and q.consumed_at is null and q.start_at <= now() and q.expires_at > now());",
+    );
     for (const name of ["create_media", "create_media_as_host"]) {
       const flat = newestBody(name).body.replace(/\s+/g, " ");
       const clause =
-        "if v_profile.tier = 'event_pass' and not exists ( select 1 from public.event_passes q where q.profile_id = v_event.host_id and q.consumed_at is null and q.start_at <= now() and q.expires_at > now()) then raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation'; end if;";
+        "if public.uploads_refused(v_event.host_id, v_profile.tier, v_profile.storage_cap_bytes, p_file_size_bytes) then raise exception 'Upload limit reached for this plan.' using errcode = 'check_violation'; end if;";
       expect(flat, name).toContain(clause);
-      expect(flat.indexOf(clause), name).toBeGreaterThan(
-        flat.indexOf("v_allowance := public.upload_allowance("),
-      );
       expect(flat.indexOf(clause), name).toBeLessThan(
         flat.indexOf("insert into public.media ("),
       );
@@ -253,12 +256,8 @@ describe("the uploads allowance is one number over one window", () => {
   });
 
   it("keeps both new functions the service role's alone", () => {
-    const all = readdirSync(MIGRATIONS)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()
-      .map((f) =>
-        readFileSync(join(MIGRATIONS, f), "utf8").replace(/--[^\n]*/g, ""),
-      )
+    const all = readMigrations()
+      .map(({ sql }) => sql.replace(/--[^\n]*/g, ""))
       .join("\n");
     for (const sig of [
       "public.upload_allowance(public.tier_type, bigint)",

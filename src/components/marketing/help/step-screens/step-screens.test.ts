@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { entries, read } from "@/testing/source-tree";
 
 import {
   DESK_SCREENS,
@@ -22,13 +24,14 @@ import {
  */
 
 const ROOT = process.cwd();
-const HELP = join(ROOT, "content", "help");
+const HELP = "content/help";
 
-const articles = readdirSync(HELP)
+const articles = entries(HELP)
+  .map((entry) => entry.name)
   .filter((file) => file.endsWith(".mdx"))
   .map((file) => ({
     slug: file.replace(/\.mdx$/, ""),
-    body: readFileSync(join(HELP, file), "utf8"),
+    body: read(`${HELP}/${file}`),
   }));
 
 /** Every opening `<Step …>` and `<Callout …>` tag, with its attributes. */
@@ -125,8 +128,8 @@ const QUOTES: { file: string; words: string[] }[] = [
     ],
   },
   {
-    // The event page's living reel card (desk `reel-card`).
-    file: "src/components/app/event-feed/reel-card.tsx",
+    // The event page's living reel card (desk `reel-card`), whose words are the doors' own (`reelCardFace`).
+    file: "src/components/app/event-feed/room-card.ts",
     words: ["Live for guests"],
   },
   {

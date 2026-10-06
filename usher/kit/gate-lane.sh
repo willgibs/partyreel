@@ -15,8 +15,8 @@ N="$1"; BOARD="$2"
 : "${S:?set S to this session's scratchpad (every kit script writes its logs there)}"
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
 PORT="${GATE_PORT:-3130}"
-source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
-export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
+source "$KIT/kit-env.sh"
+export DESIGN_PREVIEW_KEY="$(kit_env DESIGN_PREVIEW_KEY)"
 echo "GATE$N on $(git rev-parse --short HEAD) $(date -u)"
 # the contention nobody's manifest names (siliconsadie, m/builds, 2026-09-20): the load beside the exit codes, so a
 # timed-out step can be read against what the machine was doing (gate 62's two timeouts sat under a load of seven).
@@ -67,7 +67,7 @@ else
     *) echo "LAB on: the lane brings what the lab renders, $(first "$LABS")" ;;
   esac
   if [ -n "$LABS" ]; then
-    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1
+    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT; sleep 1
     # The server starts on an empty dev cache, whichever way the merge was made: one warmed on another tree can hand a
     # frame a stale chunk that reloads it for ever (gate 123: a MERGE RED resolved by hand never reaches merge-lane.sh's
     # clear, so event-ready ran on gate 122's cache and every lab:demo step read "(reading 'dock')"; green on an empty
@@ -89,6 +89,16 @@ else
     case ",$DEMOBOARDS," in *,all,*) DEMOARGS=(--all) ;; *) DEMOARGS=(--board "$DEMOBOARDS") ;; esac
     if [ -z "$DEMOBOARDS" ]; then echo "lab:demo: the merge reached no board, so no step to press"
     else
+      # The demo gets a fresh server (gate 39, 2026-10-06: on the cloud seat's 15 GB container one server compiled the
+      # whole lab through lab:smoke --all, grew past 10 GB in lab:demo --all and was OOM-killed mid-step), and on an
+      # empty cache: gate 42's restart on the cache its stopped server left sat over seven minutes compiling the Library
+      # and never served it (26 s on an empty one), as gate 39's re-run on a killed server's cache answered 404.
+      lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT; sleep 1
+      for k in $(seq 1 10); do [ -z "$(kit_port_pids $PORT)" ] && break; sleep 1; done
+      rm -rf .next/dev
+      (pnpm dev -p $PORT >>"$S/dev$PORT.log" 2>&1 &)
+      for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PORT/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
+      echo "dev restarted for the demo: lab ready after ${j}x2s"
       # a cold frame compile under load stalls CDP past its 60 s (gate 62, 2026-09-20: two TIMED OUT steps, green on the
       # warm re-run): one retry on the warm server; both logs kept; the exit is the last attempt's.
       t=$SECONDS; DEMO=1
@@ -105,7 +115,7 @@ else
       elif [ "$FROZE" -gt 0 ]; then echo "HARNESS unproven: no step moved in this run; read $S/gate$N-demo.log per step before calling a FROZEN the board's"; fi
       echo "EXIT[lab:demo $DEMOBOARDS]=$DEMO ($(( SECONDS - t ))s)"; [ "$DEMO" = 0 ] || RED=$(( RED + 1 ))
     fi
-    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null
+    lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; kit_free_port $PORT
   fi
 fi
 echo "GATE$N DONE $(date -u) (${SECONDS}s) red steps: $RED"

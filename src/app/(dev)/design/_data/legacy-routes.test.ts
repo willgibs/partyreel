@@ -1,7 +1,9 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 import { BOARDS } from "../sandbox/registry";
 import { LAB_REDIRECTS, TRACED_DOC_GLOBS } from "./legacy-routes";
@@ -117,8 +119,8 @@ function matches(glob: string): string[] {
   if (!name.includes("*")) return existsSync(join(ROOT, rel)) ? [rel] : [];
   if (!existsSync(join(ROOT, dir))) return [];
   const re = new RegExp(`^${name.split("*").map(escape).join(".*")}$`);
-  return readdirSync(join(ROOT, dir), { withFileTypes: true })
-    .filter((e) => e.isFile() && re.test(e.name))
+  return entries(dir)
+    .filter((e) => !e.isDirectory && re.test(e.name))
     .map((e) => `${dir}/${e.name}`);
 }
 

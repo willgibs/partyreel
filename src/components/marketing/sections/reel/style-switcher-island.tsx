@@ -150,7 +150,7 @@ export function StyleSwitcherIsland() {
               onClick={() => selectStyle(style.id)}
               className={cn(
                 "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150",
-                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                "focus-halo",
                 style.id === active.id
                   ? "border-foreground/40 bg-popover text-foreground"
                   : "text-muted-foreground hover:text-foreground",

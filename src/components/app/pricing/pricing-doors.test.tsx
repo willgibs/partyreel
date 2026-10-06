@@ -1,14 +1,10 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CheckoutButton } from "@/components/app/checkout-button";
-import type { ManageBillingButton } from "@/components/app/manage-billing-button";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import { GIGABYTE, planById, plansForTier } from "@/lib/constants/tiers";
+import { filesUnder, read } from "@/testing/source-tree";
 
 import { PricingDoorsProvider, type PricingDoors } from "./pricing-doors";
 import { PricingSheet } from "./pricing-sheet";
@@ -20,9 +16,10 @@ import { WelcomeToPro } from "./welcome-to-pro";
  * Two halves, and each fails the way it should. With no provider, which is every page of the app, the sheet reads the
  * server's route exactly as it did and every press reaches the route it reached: Checkout, the billing portal, the
  * change-plan route. With a provider, the Library's, none of it does: nothing is fetched at all, the sheet opens on what
- * the doors answer, the stand-in buttons stand where the real ones did, and the receipt's router verbs go to the router
- * the specimen named. A door a stand-in forgot would not compile (`PricingDoors` is named in full), so the one thing a
- * test must hold is the behaviour on each side. And the provider is the lab's: nothing in the product imports it.
+ * the doors answer, the REAL buttons press the doors' verbs and take the doors' way out (there are no stand-in buttons:
+ * a specimen swaps a verb, never a button), and the receipt's router verbs go to the router the specimen named. A door a
+ * stand-in forgot would not compile (`PricingDoors` is named in full), so the one thing a test must hold is the behaviour
+ * on each side. And the provider is the lab's: nothing in the product imports it.
  */
 
 const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn() };
@@ -76,8 +73,14 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   Object.values(router).forEach((fn) => fn.mockClear());
 });
+const realLocation = window.location;
 afterEach(() => {
   vi.unstubAllGlobals();
+  // A test that watched the window's own navigation put the real location back.
+  Object.defineProperty(window, "location", {
+    configurable: true,
+    value: realLocation,
+  });
 });
 
 const calls = (path: string) =>
@@ -178,28 +181,20 @@ describe("with no provider, the surface reaches what it always reached", () => {
   });
 });
 
-/** The stand-ins a Library specimen would hand in: the buttons keep their contract (their types are the real ones'). */
-const StandInCheckout: typeof CheckoutButton = ({ planId, children }) => (
-  <button type="button" data-stand-in-checkout={planId}>
-    {children}
-  </button>
-);
-const StandInPortal: typeof ManageBillingButton = () => (
-  <button type="button" data-stand-in-portal="">
-    Manage billing
-  </button>
-);
+/** The stripe address a stand-in route would answer: the real buttons take it through the doors' way out. */
+const STRIPE = "https://stripe.invalid/the-library-stops-here";
 
+/** The doors a Library specimen would hand in: every route answers an address, and the way out goes nowhere. */
 function doors(over: Partial<PricingDoors> = {}): PricingDoors {
   return {
     readFacts: vi.fn(async () => ({ ok: true, facts: PRO_FACTS })),
-    changePlan: vi.fn(async () => ({
-      kind: "error" as const,
-      message: "The Library stops here.",
-      code: "already_on_plan",
+    startCheckout: vi.fn(async () => ({
+      kind: "redirect" as const,
+      url: STRIPE,
     })),
-    CheckoutButton: StandInCheckout,
-    ManageBillingButton: StandInPortal,
+    openPortal: vi.fn(async () => ({ kind: "redirect" as const, url: STRIPE })),
+    changePlan: vi.fn(async () => ({ kind: "redirect" as const, url: STRIPE })),
+    leave: vi.fn(),
     router: {
       push: vi.fn(),
       replace: vi.fn(),
@@ -222,7 +217,7 @@ async function pressSwitch() {
 }
 
 describe("with a provider, nothing reaches the network or the app's router", () => {
-  it("★ opens on what the doors answer, draws the stand-in buttons and fetches nothing", async () => {
+  it("★ opens on what the doors answer, draws the real portal button and fetches nothing", async () => {
     const own = doors();
     render(
       <PricingDoorsProvider doors={own}>
@@ -242,14 +237,65 @@ describe("with a provider, nothing reaches the network or the app's router", () 
     expect(vi.mocked(own.readFacts).mock.calls[0][0]).toBeInstanceOf(
       AbortSignal,
     );
-    expect(dialog.querySelector("[data-stand-in-portal]")).toBeTruthy();
+    // The product's own button, not a redrawn one: its label and its width are the real component's.
+    const portal = within(dialog).getByRole("button", {
+      name: /manage billing/i,
+    });
+    expect(portal.getAttribute("data-slot")).toBe("button");
     // Not one request, the facts' own included.
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("★ a free host's Get Pro is the stand-in, never the Checkout route", async () => {
+  it("★ a free host's Get Pro and Buy a pass ask the doors' Checkout, with the plan and where to come back to, never the route", async () => {
+    const own = doors({ readFacts: async () => null });
     render(
-      <PricingDoorsProvider doors={doors({ readFacts: async () => null })}>
+      <PricingDoorsProvider doors={own}>
+        <PricingSheet
+          open
+          onOpenChange={() => {}}
+          trigger={{ kind: "plan" }}
+          plan={{ tier: "free", hasBilling: false }}
+          returnTo="/account"
+        />
+      </PricingDoorsProvider>,
+    );
+    const dialog = screen.getByRole("dialog");
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: /^get pro/i }),
+    );
+    await waitFor(() =>
+      expect(own.startCheckout).toHaveBeenCalledWith(OPENING, {
+        renewal: undefined,
+        next: "/account",
+      }),
+    );
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: /buy a pass/i }),
+    );
+    await waitFor(() =>
+      expect(own.startCheckout).toHaveBeenCalledWith("event_pass", {
+        renewal: undefined,
+        next: "/account",
+      }),
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("★ what a route answers is taken through the doors' way out, never the window's", async () => {
+    const own = doors({ readFacts: async () => null });
+    const assigned = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: {
+        ...window.location,
+        set href(url: string) {
+          assigned(url);
+        },
+        replace: assigned,
+      },
+    });
+    render(
+      <PricingDoorsProvider doors={own}>
         <PricingSheet
           open
           onOpenChange={() => {}}
@@ -258,17 +304,38 @@ describe("with a provider, nothing reaches the network or the app's router", () 
         />
       </PricingDoorsProvider>,
     );
-    const dialog = screen.getByRole("dialog");
-    // Both the Pro card's buy and the pass line's are the surface's Checkout door.
-    const stand = dialog.querySelectorAll("[data-stand-in-checkout]");
-    expect(
-      [...stand].map((el) => el.getAttribute("data-stand-in-checkout")),
-    ).toEqual([OPENING, "event_pass"]);
-    await userEvent.click(stand[0]);
+    await userEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /^get pro/i,
+      }),
+    );
+    await waitFor(() => expect(own.leave).toHaveBeenCalledWith(STRIPE));
+    expect(assigned).not.toHaveBeenCalled();
+  });
+
+  it("★ Manage billing asks the doors' portal, and goes where it answers by the doors' way out", async () => {
+    const own = doors();
+    render(
+      <PricingDoorsProvider doors={own}>
+        <PricingSheet
+          open
+          onOpenChange={() => {}}
+          trigger={{ kind: "plan" }}
+          plan={{ tier: "pro", hasBilling: true }}
+        />
+      </PricingDoorsProvider>,
+    );
+    await userEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /manage billing/i,
+      }),
+    );
+    await waitFor(() => expect(own.openPortal).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(own.leave).toHaveBeenCalledWith(STRIPE));
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("★ a Switch asks the doors' change-plan, with the plan and where to come back to", async () => {
+  it("★ a Switch asks the doors' change-plan, with the plan and where to come back to, and leaves by the doors' way out", async () => {
     const own = doors();
     render(
       <PricingDoorsProvider doors={own}>
@@ -285,11 +352,14 @@ describe("with a provider, nothing reaches the network or the app's router", () 
     await waitFor(() =>
       expect(own.changePlan).toHaveBeenCalledWith("pro_1tb", "/account"),
     );
+    await waitFor(() => expect(own.leave).toHaveBeenCalledWith(STRIPE));
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("★ a lapsed session's sign-in goes to the doors' router, never the app's", async () => {
+  it("★ a lapsed session's sign-in goes to the doors' router, never the app's, from every press", async () => {
     const signedOut = doors({
+      startCheckout: vi.fn(async () => ({ kind: "signin" as const })),
+      openPortal: vi.fn(async () => ({ kind: "signin" as const })),
       changePlan: vi.fn(async () => ({ kind: "signin" as const })),
     });
     render(
@@ -302,8 +372,44 @@ describe("with a provider, nothing reaches the network or the app's router", () 
         />
       </PricingDoorsProvider>,
     );
+    const dialog = screen.getByRole("dialog");
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: /manage billing/i }),
+    );
+    await waitFor(() =>
+      expect(signedOut.router!.push).toHaveBeenCalledTimes(1),
+    );
     await pressSwitch();
-    await waitFor(() => expect(signedOut.router!.push).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(signedOut.router!.push).toHaveBeenCalledTimes(2),
+    );
+    expect(router.push).not.toHaveBeenCalled();
+    expect(signedOut.leave).not.toHaveBeenCalled();
+  });
+
+  it("★ a lapsed session's Get Pro does the same", async () => {
+    const signedOut = doors({
+      readFacts: async () => null,
+      startCheckout: vi.fn(async () => ({ kind: "signin" as const })),
+    });
+    render(
+      <PricingDoorsProvider doors={signedOut}>
+        <PricingSheet
+          open
+          onOpenChange={() => {}}
+          trigger={{ kind: "plan" }}
+          plan={{ tier: "free", hasBilling: false }}
+        />
+      </PricingDoorsProvider>,
+    );
+    await userEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /^get pro/i,
+      }),
+    );
+    await waitFor(() =>
+      expect(signedOut.router!.push).toHaveBeenCalledTimes(1),
+    );
     expect(router.push).not.toHaveBeenCalled();
   });
 
@@ -416,27 +522,22 @@ describe("a door's read is as forgiving as the route's was", () => {
 });
 
 /** Every source file under src, relative, minus tests: what ships or builds. */
-function sources(dir: string, out: string[] = []): string[] {
-  for (const name of readdirSync(dir)) {
-    const p = join(dir, name);
-    if (statSync(p).isDirectory()) sources(p, out);
-    else if (/\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name)) out.push(p);
-  }
-  return out;
+function sources(dir: string): string[] {
+  return filesUnder(dir).filter(
+    (p) => /\.tsx?$/.test(p) && !/\.test\.tsx?$/.test(p),
+  );
 }
 
 describe("the provider is the lab's", () => {
   it("★ no product file hands the surface its own doors", () => {
-    const root = process.cwd();
-    const strays = sources(join(root, "src"))
-      .map((p) => relative(root, p))
+    const strays = sources("src")
       // Where it is defined, and the lab, whose specimens are what it is for.
       .filter((f) => f !== "src/components/app/pricing/pricing-doors.tsx")
       .filter((f) => !f.startsWith("src/app/(dev)/design/"))
       // An IMPORT of it, not a mention: the sheet's own header names the provider it reads from.
       .filter((f) =>
         /import\s*(?:type\s*)?\{[^}]*\bPricingDoorsProvider\b[^}]*\}\s*from/.test(
-          readFileSync(join(root, f), "utf8"),
+          read(f),
         ),
       );
     expect(

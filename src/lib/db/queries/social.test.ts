@@ -54,6 +54,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 const {
   countMyGuestEventCards,
+  countWaitingGuestShots,
   getEventGuests,
   getMyAttendedEvents,
   getMyBlocks,
@@ -241,6 +242,141 @@ describe("getEventGuests: the one count, past the row cap", () => {
     const guests = await getEventGuests(EVENT);
     const names = guests.unverifiedRows.map((r) => r.displayName).sort();
     expect(names).toEqual(["Guest 1", "Guest 3"]);
+  });
+});
+
+// ★ WHAT A SEALED ALBUM HOLDS FOR ITS GUESTS (crumbs-81): the one count `getEventGuests` cannot give, since a sealed
+// upload makes nobody a guest yet. The Guests room says "Nobody has added photos yet" to a host whose guests have
+// filled a roll, unless this number tells it otherwise.
+describe("countWaitingGuestShots: the shots a sealed album holds for its guests", () => {
+  const EVENT = uuid("e", 7);
+  const HOST = uuid("h", 1);
+  const tomorrow = () => new Date(Date.now() + 86_400_000).toISOString();
+  const yesterday = () => new Date(Date.now() - 86_400_000).toISOString();
+  /** A sealed guest shot; its ticket's account, where a test gives it one, rides the `guests` embed (the join). */
+  const shot = (n: number, over: Record<string, unknown> = {}) => ({
+    id: uuid("m", n),
+    event_id: EVENT,
+    status: "approved",
+    guest_id: uuid("g", n),
+    sealed_until: tomorrow(),
+    guests: { user_id: null },
+    ...over,
+  });
+  /** The album's own row: whose it is, which is whose tickets are left out. */
+  const events = [{ id: EVENT, host_id: HOST }];
+
+  it("★ counts a guest's approved shots still under their seal in this event, and nothing else", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events,
+        media: [
+          shot(1),
+          shot(2),
+          // Open (never sealed) and developed by the clock (its seal passed, no write has cleared it yet): nobody waits.
+          shot(3, { sealed_until: null }),
+          shot(4, { sealed_until: yesterday() }),
+          // Held, hidden and removed wait for the host, or for nothing: Review's, or nobody's.
+          shot(5, { status: "pending" }),
+          shot(6, { status: "hidden" }),
+          shot(7, { status: "removed" }),
+          // The host's own upload seals with everyone's and is no guest's.
+          shot(8, { guest_id: null, guests: null }),
+          // Another event's.
+          shot(9, { event_id: uuid("e", 8) }),
+        ],
+      },
+    });
+    await expect(countWaitingGuestShots(EVENT)).resolves.toBe(2);
+  });
+
+  // ★ A TICKET THE HOST CLAIMED IS HERS (crumbs-83): she is on no list (`resolveEventGuests` leaves the host out), so
+  // her shots on it counted here read to her as "their guests join" with nobody to join. The old count was 5.
+  it("★ leaves out the shots on a ticket the host claimed, and keeps every guest's, claimed or not", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events,
+        media: [
+          // Her own ticket on her own album, claimed after: two shots.
+          shot(1, { guests: { user_id: HOST } }),
+          shot(2, { guest_id: uuid("g", 1), guests: { user_id: HOST } }),
+          // A guest who confirmed an account, and two who never did.
+          shot(3, { guests: { user_id: uuid("p", 3) } }),
+          shot(4),
+          shot(5),
+        ],
+      },
+    });
+    await expect(countWaitingGuestShots(EVENT)).resolves.toBe(3);
+  });
+
+  it("★ asks nothing of her tickets for an album nothing waits in: one count, and no other read", async () => {
+    fake = createFakePostgrest({
+      tables: { events, media: [shot(1, { sealed_until: null })] },
+    });
+    await expect(countWaitingGuestShots(EVENT)).resolves.toBe(0);
+    expect(fake.requests.map((r) => r.name)).toEqual(["media"]);
+  });
+
+  // RESHAPED ON PURPOSE (crumbs-83; scar kept: a number rides out, never a shot or an id, counted in the database). It
+  // was "one request": an album with shots waiting now reads its host and counts her own tickets' shots apart.
+  it("★ is a head count, no row or id travelling: a number rides out, never a shot", async () => {
+    fake = createFakePostgrest({
+      tables: { events, media: [shot(1), shot(2)] },
+    });
+    await countWaitingGuestShots(EVENT);
+    const reads = fake.requests.filter((r) => r.name === "media");
+    expect(reads.map((r) => r.method)).toEqual(["HEAD", "HEAD"]);
+    expect(reads.every((r) => r.returned === 0)).toBe(true);
+    // Asked of the sealed rows themselves, null-safe (an unsealed row compares false), never a NOT of the visible one.
+    for (const read of reads)
+      expect(read.filters).toEqual(
+        expect.arrayContaining([
+          { column: "event_id", op: "eq", value: EVENT },
+          { column: "status", op: "eq", value: "approved" },
+          { column: "sealed_until", op: "gt", value: expect.any(String) },
+        ]),
+      );
+    // Hers by a join on the ticket's account, never a list of her ticket ids riding the URL.
+    expect(reads[1].filters).toEqual(
+      expect.arrayContaining([
+        { column: "guests.user_id", op: "eq", value: HOST },
+      ]),
+    );
+    expect(reads[1].url).toContain("guests%21media_guest_id_fkey%21inner");
+  });
+
+  it("★ counts past PostgREST's 1,000-row cut: the count is the database's, not a page's", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events,
+        media: Array.from({ length: 2500 }, (_, i) =>
+          shot(i + 1, i < 1200 ? { guests: { user_id: HOST } } : {}),
+        ),
+      },
+    });
+    await expect(countWaitingGuestShots(EVENT)).resolves.toBe(1300);
+  });
+
+  it("answers zero for an album nothing waits in", async () => {
+    fake = createFakePostgrest({
+      tables: { events, media: [shot(1, { sealed_until: null })] },
+    });
+    await expect(countWaitingGuestShots(EVENT)).resolves.toBe(0);
+  });
+
+  it("★ throws when her tickets cannot be read, never a count that still holds her shots", async () => {
+    fake = createFakePostgrest({ tables: { media: [shot(1)] } });
+    await expect(countWaitingGuestShots(EVENT)).rejects.toThrow(
+      /social: waiting guest shots, the host/,
+    );
+  });
+
+  it("★ throws for a read that failed, never a confident zero (the room would say nobody had added a photo)", async () => {
+    fake = createFakePostgrest({ tables: {} });
+    await expect(countWaitingGuestShots(EVENT)).rejects.toThrow(
+      /social: waiting guest shots/,
+    );
   });
 });
 

@@ -61,38 +61,39 @@ describe("the integration gate's dev server", () => {
  * same way, unless another dev server runs from the same tree (the gate's on 3130 shares the primary checkout's
  * cache, and emptying it under a running gate would break that gate instead).
  */
-describe.each(["usher/kit/capture.sh", "usher/kit/capture-all.sh"])(
-  "%s's dev server",
-  (script) => {
-    const lines = codeLines(join(process.cwd(), script));
-    const start = lines.findIndex((line) =>
-      /\(pnpm dev -p \$PORT\b/.test(line),
+describe.each([
+  "usher/kit/capture.sh",
+  "usher/kit/capture-all.sh",
+  // The gate's lone demo re-run (gate 39, 2026-10-06): after the gate's server was OOM-killed mid-demo, a server
+  // started on its cache answered every lab route 404.
+  "usher/kit/demo-rerun.sh",
+])("%s's dev server", (script) => {
+  const lines = codeLines(join(process.cwd(), script));
+  const start = lines.findIndex((line) => /\(pnpm dev -p \$PORT\b/.test(line));
+  const stop = lines
+    .slice(0, Math.max(start, 0))
+    .findLastIndex((line) =>
+      /lsof -ti tcp:\$PORT \| xargs -r kill\b/.test(line),
     );
-    const stop = lines
-      .slice(0, Math.max(start, 0))
-      .findLastIndex((line) =>
-        /lsof -ti tcp:\$PORT \| xargs -r kill\b/.test(line),
-      );
-    const between = lines.slice(stop + 1, start);
+  const between = lines.slice(stop + 1, start);
 
-    it("is started after the script stops whatever held its port", () => {
-      expect(start).toBeGreaterThan(-1);
-      expect(stop).toBeGreaterThan(-1);
-    });
+  it("is started after the script stops whatever held its port", () => {
+    expect(start).toBeGreaterThan(-1);
+    expect(stop).toBeGreaterThan(-1);
+  });
 
-    it("empties .next/dev between that stop and the start, unless another dev server runs from this tree", () => {
-      const clear = between.find((line) => /rm -rf \.next\/dev\b/.test(line));
-      expect(
-        clear,
-        `${script} no longer empties .next/dev before its server`,
-      ).toBeDefined();
-      expect(clear).toMatch(/OTHERS/);
-      expect(
-        between.some(
-          (line) => /pgrep -f 'next dev'/.test(line) && /-d cwd/.test(line),
-        ),
-        `${script} no longer asks which dev servers run from this tree`,
-      ).toBe(true);
-    });
-  },
-);
+  it("empties .next/dev between that stop and the start, unless another dev server runs from this tree", () => {
+    const clear = between.find((line) => /rm -rf \.next\/dev\b/.test(line));
+    expect(
+      clear,
+      `${script} no longer empties .next/dev before its server`,
+    ).toBeDefined();
+    expect(clear).toMatch(/OTHERS/);
+    expect(
+      between.some(
+        (line) => /pgrep -f 'next dev'/.test(line) && /-d cwd/.test(line),
+      ),
+      `${script} no longer asks which dev servers run from this tree`,
+    ).toBe(true);
+  });
+});

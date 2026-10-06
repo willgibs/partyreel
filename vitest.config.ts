@@ -19,12 +19,23 @@ import { defineConfig } from "vitest/config";
 // declared per project.
 export default defineConfig({
   test: {
+    // `pnpm test:coverage` (test-slim): lines, branches and functions per file across both projects, so a lane that
+    // deletes a test proves in one command that it lost nothing. Coverage is a root option (never a project's) and
+    // runs only when `--coverage` asks, so `pnpm test` is unchanged.
+    coverage: {
+      provider: "v8",
+      include: ["src/**"],
+      reporter: ["text-summary", "json-summary"],
+    },
     projects: [
       {
         resolve: { tsconfigPaths: true },
         test: {
           name: "unit",
           environment: "node",
+          // Worker threads, not forks (test-slim, measured about 9% off a full run with every test green). Set per
+          // project: vitest 4's projects inherit no root option without `extends: true`.
+          pool: "threads",
           include: ["src/**/*.test.ts"],
         },
       },
@@ -34,6 +45,7 @@ export default defineConfig({
         test: {
           name: "component",
           environment: "jsdom",
+          pool: "threads",
           include: ["src/**/*.test.tsx"],
           setupFiles: ["./vitest.setup.ts"],
         },

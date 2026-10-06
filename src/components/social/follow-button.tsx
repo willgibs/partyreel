@@ -24,11 +24,6 @@ export function FollowButton({
   name,
 }: {
   profileId: string;
-  /**
-   * The person's handle. A relation needs none (its Server Function revalidates every profile by
-   * route), and the album's and the claims' callers still hand it over, so it is taken and unread.
-   */
-  slug?: string | null;
   initialFollowing: boolean;
   quiet?: boolean;
   /** The button's size; the quiet one defaults to `sm`, the page's to the default. */

@@ -1,18 +1,19 @@
 // page-console.mjs <base> [path] [--probe]: load one page of the dev tree in headless Chrome and print the browser's console errors and
-// exceptions. The preview key is read from .env.local (a light guard, not a secret). Modeled on scripts/lab-demo.mjs.
+// exceptions. The preview key is read from .env.local or the environment (a light guard, not a secret). Modeled on
+// scripts/lab-demo.mjs.
 import { spawn } from "node:child_process";
-import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { chromePath, devToolsPort, envValue } from "./kit-env.mjs";
 const base = process.argv[2] || "http://localhost:3140"; const path = process.argv[3] || "/design/library"; const probe = process.argv.includes("--probe");
-const env = readFileSync(".env.local", "utf8");
-const key = (env.match(/^DESIGN_PREVIEW_KEY=(.*)$/m)?.[1] ?? "").trim().replace(/^"|"$/g, "");
-if (!key) { console.error("no key in .env.local"); process.exit(2); }
-const CHROME = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const port = 9400 + Math.floor(Math.random() * 100);
+const key = envValue("DESIGN_PREVIEW_KEY");
+if (!key) { console.error("no DESIGN_PREVIEW_KEY in .env.local or the environment"); process.exit(2); }
+const CHROME = chromePath("page-console.mjs");
 const profile = mkdtempSync(join(tmpdir(), "lib-console-"));
-const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, "--no-first-run", "--no-default-browser-check", "--window-size=1440,900", "about:blank"], { stdio: "ignore" });
+const chrome = spawn(CHROME, ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "--no-first-run", "--no-default-browser-check", "--window-size=1440,900", "about:blank"], { stdio: "ignore" });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const port = await devToolsPort(profile, chrome).catch((e) => { chrome.kill("SIGKILL"); throw e; });
 let list = null;
 for (let i = 0; i < 40 && !list; i++) { try { list = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json(); } catch { await sleep(250); } }
 if (!list) { chrome.kill("SIGKILL"); throw new Error("Chrome never opened its port"); }

@@ -17,9 +17,6 @@
  * unreadable redefinition is a LOUD failure rather than a silent hole. That fail-closed posture is
  * the point: the previous version failed OPEN.
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -32,8 +29,7 @@ import {
   type Tier,
   UPLOADS_BYTES,
 } from "@/lib/constants/tiers";
-
-const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 /** Matches every way a fn gets (re)defined; a return-type change forces DROP + CREATE. */
 const definitionRe = (fn: string) =>
@@ -49,14 +45,9 @@ const DEFINITION_RE = definitionRe("tier_limits");
  */
 function newestDefinition(fn = "tier_limits"): { file: string; sql: string } {
   const re = definitionRe(fn);
-  const hits = readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS, file), "utf8"),
-    }))
-    .filter(({ sql }) => re.test(stripComments(sql)));
+  const hits = readMigrations().filter(({ sql }) =>
+    re.test(stripComments(sql)),
+  );
   if (hits.length === 0) {
     throw new Error(`No migration defines public.${fn}().`);
   }

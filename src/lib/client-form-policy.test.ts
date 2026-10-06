@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * A `<form>` NEVER SUBMITS ITSELF INTO THE ADDRESS (crumbs-20: the ROADMAP's forms line, from
@@ -29,15 +28,8 @@ import { describe, expect, it } from "vitest";
  * `method` set, on purpose), nor one a spread hands its attributes to.
  */
 
-const ROOT = process.cwd();
-const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/app\/\(dev\)\//;
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
+/** Outside the guard: the lab (`src/app/(dev)/`), whose forms are demos on a keyed page. */
+const LAB = /^src\/app\/\(dev\)\//;
 
 type RawForm = { line: number; named: boolean };
 
@@ -141,16 +133,21 @@ describe("the scan sees what it should", () => {
 });
 
 describe("no form pressed before hydration sends its fields into the address", () => {
-  const files = filesUnder("src");
+  const files = sources().filter(
+    (rel) => rel.endsWith(".tsx") && !LAB.test(rel),
+  );
+  // Only a file that spells the tag draws one, so only those are parsed.
+  const drawing = files.filter((rel) => /<\s*form\b/.test(read(rel)));
 
   it("scanned the product's source, and the one home of the guard", () => {
     expect(files.length).toBeGreaterThan(200);
     expect(files).toContain("src/components/ui/client-form.tsx");
+    expect(drawing).toContain("src/components/ui/client-form.tsx");
   });
 
   it("every `<form>` is a `ClientForm`, or names its own native answer", () => {
-    const offenders = files.flatMap((rel) =>
-      rawForms(readFileSync(join(ROOT, rel), "utf8"), rel)
+    const offenders = drawing.flatMap((rel) =>
+      rawForms(read(rel), rel)
         .filter((form) => !form.named)
         .map((form) => `${rel}:${form.line}`),
     );

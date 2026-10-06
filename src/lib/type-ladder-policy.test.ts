@@ -1,10 +1,8 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { cn, RADIUS_TOKENS, SHADOW_TOKENS, TYPE_STEPS } from "@/lib/utils";
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * THE TYPE STEPS, RADIUS TOKENS AND SHADOW TOKENS STAY REACHABLE, AND NO CLASS
@@ -38,16 +36,18 @@ import { cn, RADIUS_TOKENS, SHADOW_TOKENS, TYPE_STEPS } from "@/lib/utils";
  *    something else is a change to the utility, which moves every heading at
  *    once.
  */
-const theme = readFileSync(join(process.cwd(), "src/app/theme.css"), "utf8");
+const theme = read("src/app/theme.css");
 
 /**
  * Every `--text-<name>` declared in theme.css. The `--` filter drops the
  * companions: `--text-display--line-height` captures as `display--line-height`,
- * and a companion is not a step.
+ * and a companion is not a step. `--text-color-*` is Tailwind's other namespace
+ * under the same prefix, a colour only `text-*` reads (the warning's words,
+ * a11y-halo), never a step.
  */
 const declared = [...theme.matchAll(/^\s*--text-([a-z0-9-]+):\s/gm)]
   .map((m) => m[1])
-  .filter((name) => !name.includes("--"));
+  .filter((name) => !name.includes("--") && !name.startsWith("color-"));
 
 describe("the type steps, radius tokens and shadow tokens", () => {
   it("are the same list theme.css and cn() are working from", () => {
@@ -112,26 +112,14 @@ describe("the type steps, radius tokens and shadow tokens", () => {
 
 /* ── 3. The heading face's one weight ───────────────────────────────────── */
 
-const SRC = join(process.cwd(), "src");
-
 /**
- * Not scanned: tests and vendored source. The lab IS scanned (the lab revamp,
+ * Not scanned: tests (`sources()` skips them) and vendored source. The lab IS scanned (the lab revamp,
  * 2026-09-29, taking in crumbs-12's finding): a board draws production's type
  * for Will to judge, so a lighter weight beside the heading face on a board is
  * the same lie it is on a page, and three boards and the keyboard bench were
  * telling it.
  */
-const SKIP = /\.test\.tsx?$|^components\/vendor\//;
-
-function sources(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return sources(full);
-    return /\.tsx?$/.test(entry.name) && !SKIP.test(relative(SRC, full))
-      ? [full]
-      : [];
-  });
-}
+const VENDOR = /^src\/components\/vendor\//;
 
 /** A class token's utility, variants and `!` stripped: `sm:!font-medium` is `font-medium`. */
 const utility = (token: string) => token.split(":").at(-1)!.replace(/^!/, "");
@@ -149,7 +137,7 @@ const WEIGHT =
 function classExpressions(file: string): { line: number; strings: string[] }[] {
   const source = ts.createSourceFile(
     file,
-    readFileSync(file, "utf8"),
+    read(file),
     ts.ScriptTarget.Latest,
     true,
     file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
@@ -197,14 +185,14 @@ function classExpressions(file: string): { line: number; strings: string[] }[] {
 }
 
 describe("the heading face's one weight", () => {
-  const files = sources(SRC);
+  const files = sources().filter((file) => !VENDOR.test(file));
   const withFace = files.flatMap((file) =>
-    readFileSync(file, "utf8").includes(HEADING)
+    read(file).includes(HEADING)
       ? classExpressions(file)
           .filter(({ strings }) =>
             strings.some((s) => s.split(/\s+/).map(utility).includes(HEADING)),
           )
-          .map((expr) => ({ ...expr, file: `src/${relative(SRC, file)}` }))
+          .map((expr) => ({ ...expr, file }))
       : [],
   );
 

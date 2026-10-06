@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 
 import { useFinishedFields } from "@/components/app/event-settings/camera-settings-finish";
+import { PartyZoneLine } from "@/components/app/event-settings/party-zone";
 import {
   SettingsCard,
   SwitchSetting,
@@ -368,7 +369,7 @@ function EventDatesField() {
         ) : v.eventDate ? (
           <button
             type="button"
-            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-halo"
             onClick={() => setAdding(true)}
           >
             Add an end date
@@ -378,6 +379,8 @@ function EventDatesField() {
       <p id={lineId} className="text-caption text-pretty text-muted-foreground">
         For your reference only: events never expire.
       </p>
+      {/* The party's own zone, captured and never asked: one quiet choice for a party far from home (event-zone). */}
+      <PartyZoneLine />
       <p
         id={errorId}
         aria-live="polite"

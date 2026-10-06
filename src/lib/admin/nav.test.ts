@@ -1,9 +1,9 @@
-import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { NAV, isNavActive, navGroups } from "@/lib/admin/nav";
+import { entries } from "@/testing/source-tree";
 
 // The header nav dropdown highlights the current surface; the match logic must treat /admin (Overview)
 // as exact-only (it prefixes every route) while every other surface also claims its sub-paths.
@@ -63,14 +63,18 @@ const NOT_A_DESTINATION: Record<string, string> = {};
 
 describe("the nav covers the portal", () => {
   it("lists every route segment that renders a page", () => {
-    const segments = readdirSync(ADMIN)
-      .filter((name) => !name.startsWith("[") && !name.startsWith("_"))
-      .filter((name) => statSync(join(ADMIN, name)).isDirectory())
+    const segments = entries(ADMIN)
+      .filter(({ name }) => !name.startsWith("[") && !name.startsWith("_"))
+      .filter((entry) => entry.isDirectory)
+      .map((entry) => entry.name)
       .filter((name) => {
         // A folder with a page.tsx is a surface; one with only actions or a
-        // route handler is machinery.
+        // route handler is machinery. (An empty folder makes `entries` throw:
+        // it holds no page either.)
         try {
-          return readdirSync(join(ADMIN, name)).includes("page.tsx");
+          return entries(join(ADMIN, name)).some(
+            (entry) => entry.name === "page.tsx",
+          );
         } catch {
           return false;
         }

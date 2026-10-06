@@ -10,7 +10,8 @@ import {
 /**
  * ★ THE PARTY OF THE MOMENT: the one event the stage leads with (host-dashboard r1, `purpose=stage`,
  * Will 2026-10-02: "in 1 event dashboards (which every user will experience creating their first and
- * only event, until adding more), the experience feels much more alive"). In order:
+ * only event, until adding more), the experience feels much more alive"). It is the stage's whole rule until she chooses
+ * another (`lead.ts`, r4: Newest IS this, and a party on its day, steps 1 below, leads under every rule). In order:
  *
  *  1. THE ONE ON ITS DAY. A date the host set first (any day of a range: lane `event-dates`), then an
  *     undated album whose photographs are landing today (Create asks no date, so a wedding nobody

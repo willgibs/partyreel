@@ -29,6 +29,7 @@ import {
   AccessPanel,
   RollDonePanel,
 } from "@/components/guest/camera/camera-panels";
+import { usePartyZone } from "@/components/guest/party-zone";
 import { Button } from "@/components/ui/button";
 import { CameraReel } from "@/components/guest/camera/camera-reel";
 import { CameraShutter } from "@/components/guest/camera/camera-shutter";
@@ -196,6 +197,8 @@ export function CameraScreen({
   onClose: () => void;
 }) {
   const hintId = useId();
+  // The party's zone, for a far party's develop time in both clocks (`party-zone.tsx`).
+  const partyZone = usePartyZone();
   const visible = usePageVisible();
   const [facing, setFacing] = useState<Facing>("environment");
   const [attempt, setAttempt] = useState(0);
@@ -393,7 +396,8 @@ export function CameraScreen({
           type: "image/jpeg",
           lastModified: takenAt,
         }),
-        {},
+        // A canvas JPEG keeps no Exif: the moment the shutter fired is its capture time (crumbs-85).
+        { takenAt },
       );
     } catch {
       onShotLost(key);
@@ -453,7 +457,7 @@ export function CameraScreen({
           type: result.type,
           lastModified: takenAt,
         }),
-        result.poster ? { poster: result.poster } : {},
+        result.poster ? { poster: result.poster, takenAt } : { takenAt },
       );
     },
     [aspectNow, onShot, onShotFile, say, shoot],
@@ -609,7 +613,8 @@ export function CameraScreen({
     const key = crypto.randomUUID();
     const takenAt = Date.now();
     onShot({ key, kind: "photo", takenAt, frozen: null, thumb: file });
-    onShotFile(key, file, {});
+    // The phone's own camera writes its Exif, which wins; this is the fallback where it wrote none.
+    onShotFile(key, file, { takenAt });
     say(afterShotHint(frame));
   };
 
@@ -665,6 +670,7 @@ export function CameraScreen({
               developsAt,
               recording: filming !== null,
               done,
+              zone: partyZone,
             })}
           </p>
         </div>
@@ -793,7 +799,7 @@ export function CameraScreen({
             <button
               type="button"
               onClick={onRetryUnsent}
-              className="cam-hint-action"
+              className="cam-hint-action press-shrink focus-halo"
             >
               <RefreshCw className="size-3.5" aria-hidden />
               {CAMERA_HINT.retry}

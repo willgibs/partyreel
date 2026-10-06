@@ -45,6 +45,11 @@ def board_brief(board, desk):
 for arg in sys.argv[2:]:
     s = json.loads(pathlib.Path(arg).read_text())
     track, board = s["track"], s.get("board", "none")
+    # A read resolves from each worktree's own root (track-manifests.test.ts), so a scratch path, which exists only from
+    # the primary checkout, fails that test in every lane's worktree: it belongs in the brief's prose (2026-10-05, twice).
+    outside = [p for p in s.get("reads", []) if p.startswith(("/", ".."))]
+    if outside:
+        sys.exit(f"{track}: a read is repo-relative (a scratch path goes in the brief); refused: {', '.join(outside)}")
     if board != "none":
         shared = [p for p in s["owns"] if any(p == x or x.startswith(p) for x in SHARED)]
         if shared:

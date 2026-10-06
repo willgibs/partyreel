@@ -121,7 +121,7 @@
  *      own form, keeps a row the new address already had without ever raising, still returns first for an account
  *      being deleted, and stays trivial and uncallable by a client role.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -137,6 +137,7 @@ import {
 } from "@/lib/db/testing/migrations";
 import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
+import { filesUnder, read as readFile } from "@/testing/source-tree";
 
 const ROOT = join(__dirname, "..", "..", "..");
 
@@ -736,10 +737,12 @@ describe("the door round, wave 0 — Require an upload to view", () => {
     // expression in both): the storage line is `host_room_used`, what she keeps less Deleted while
     // her setting lets an upload make room from it, the same line the presign's meter refuses past. ★ And by Ladder A
     // (20261004100000; scar kept: one expression in both): the uploads line is her plan's own number over its window.
+    // ★ And by billing-integrity (20261005181000; scar kept: one expression in both): that line is the completes' own
+    // question, `uploads_refused`, asked of the smallest file, so a lapsed pass reads full here as the presign refuses it.
     const ctx = latestDefinition("get_upload_context").body;
     for (const expr of [
       "public.host_room_used(v_event.host_id) >= v_cap + (v_cap / 10)",
-      "public.uploads_used(v_event.host_id, v_profile.tier) >= v_allowance",
+      "public.uploads_refused(v_event.host_id, v_profile.tier, v_profile.storage_cap_bytes, 1)",
     ]) {
       expect(body).toContain(expr);
       expect(ctx).toContain(expr);
@@ -1719,7 +1722,7 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
     const shapes = {
       create_media: {
         params:
-          "p_session_token text, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null",
+          "p_session_token text, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null, p_captured_at timestamptz default null",
         before:
           "text, uuid, public.media_type, text, bigint, text, double precision, integer, integer",
         guest: "v_guest.id",
@@ -1734,7 +1737,7 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       },
       create_media_as_host: {
         params:
-          "p_host_id uuid, p_event_id uuid, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null",
+          "p_host_id uuid, p_event_id uuid, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null, p_captured_at timestamptz default null",
         before:
           "uuid, uuid, uuid, public.media_type, text, bigint, text, double precision, integer, integer",
         guest: "null",
@@ -1750,21 +1753,25 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
     // the same words): the cap holds everything she keeps, her Deleted included, read off the one
     // summary, and with her setting on Deleted makes room for a file that fits beside her albums. ★ And by
     // Ladder A (20261004100000; scar kept: the uploads line binds every upload, refused under "limit"): the
-    // allowance is her plan's own number over its window, a month or a pass's year.
+    // allowance is her plan's own number over its window, a month or a pass's year. ★ And by billing-integrity
+    // (20261005181000; same scar): the line is one call, `uploads_refused`, a lapsed pass included.
     const shared = [
       "if p_original_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Object key does not belong to this event.'",
       "if p_preview_key is not null and p_preview_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Preview key does not belong to this event.'",
       "if p_file_size_bytes > c_max_upload_bytes then raise exception 'File exceeds the 10 GB maximum.'",
       "from public.profiles where id = v_event.host_id for update;",
       "if p_type = 'video' and v_profile.tier = 'free' then raise exception 'Video uploads are available on paid plans.'",
-      "if v_uploaded + p_file_size_bytes > v_allowance then raise exception 'Upload limit reached for this plan.'",
+      "if public.uploads_refused(v_event.host_id, v_profile.tier, v_profile.storage_cap_bytes, p_file_size_bytes) then raise exception 'Upload limit reached for this plan.'",
       "select s.active_bytes, s.standby_bytes into v_active, v_deleted from public.host_storage_summary(v_event.host_id) s;",
       "and v_profile.make_room_from_deleted and v_active + p_file_size_bytes <= v_cap + (v_cap / 10) then perform public.leave_deleted(v_event.host_id, v_active + v_deleted + p_file_size_bytes - (v_cap + (v_cap / 10)), true);",
       "if v_active + v_deleted + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
     ];
 
+    // ★ Reshaped by capture-time (20261005200000; scar kept: every earlier parameter by name, the defaulted ones last,
+    // so a deployed call that names none of the newer ones still lands here): `p_captured_at` joins last, so the
+    // signature the grants name ends in it.
     for (const [name, shape] of Object.entries(shapes)) {
-      const after = `${shape.before}, boolean, text, bigint`;
+      const after = `${shape.before}, boolean, text, bigint, timestamptz`;
 
       it(`${name}: every earlier parameter by name, then p_reel_eligible defaulting to true`, () => {
         // PostgREST resolves by argument names, so the deployed calls (without the new one) still
@@ -1786,10 +1793,10 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
 
       // ★ Reshaped by disposable-foundation (20261002200000): the insert also writes the seal it decided
       // (`v_sealed_until`, the album's develop time while it is ahead, else null), last; every earlier
-      // column and value where it was.
+      // column and value where it was. ★ And by capture-time (20261005200000; same scar): the capture time last.
       it(`${name}: writes reel_eligible, and an explicit null reads as the default`, () => {
         expect(code(name)).toContain(
-          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible, sealed_until, phone_key, phone_bytes ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true), v_sealed_until, p_phone_key, p_phone_bytes );`,
+          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible, sealed_until, phone_key, phone_bytes, captured_at ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true), v_sealed_until, p_phone_key, p_phone_bytes, p_captured_at );`,
         );
       });
 
@@ -4138,24 +4145,16 @@ describe("a report is open exactly when it has no resolved_at (crumbs-29, 202609
 
   it("★ every write of a report's status in the app writes its resolved_at beside it", () => {
     const writes: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) walk(path);
-        else if (
-          /\.tsx?$/.test(entry.name) &&
-          !/\.test\.tsx?$/.test(entry.name)
-        ) {
-          const source = collapse(readFileSync(path, "utf8"));
-          for (const [, fields] of source.matchAll(
-            /\.from\("reports"\) \.update\(\{([^}]*)\}\)/g,
-          )) {
-            if (/\bstatus:/.test(fields)) writes.push(`${path}: ${fields}`);
-          }
+    for (const path of filesUnder("src")) {
+      if (/\.tsx?$/.test(path) && !/\.test\.tsx?$/.test(path)) {
+        const source = collapse(readFile(path));
+        for (const [, fields] of source.matchAll(
+          /\.from\("reports"\) \.update\(\{([^}]*)\}\)/g,
+        )) {
+          if (/\bstatus:/.test(fields)) writes.push(`${path}: ${fields}`);
         }
       }
-    };
-    walk(join(ROOT, "src"));
+    }
     // The portal's close, its reopen and the Undo of an action: the scan is not vacuous.
     expect(writes.length).toBeGreaterThanOrEqual(3);
     for (const write of writes) {

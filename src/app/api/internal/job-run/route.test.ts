@@ -207,3 +207,252 @@ describe("a held prune raises, where its report lands", () => {
     );
   });
 });
+
+/**
+ * ★ THE BACKUP'S LONE COPIES, RAISED AT THEIR SOURCE (durability-restore): a report carrying `primary_missing` (the
+ * prune's run or the restore's pass, the catalog's reading names both) raises a Sentry warning every time and the ops
+ * mail at most once a day, where it lands, as the dead letters and a held prune raise theirs; before, only the card
+ * and the bell carried them.
+ */
+describe("the backup's lone copies raise where their report lands", () => {
+  it("★ raises a Sentry warning and the ops mail from the prune's run, the mail once a day", async () => {
+    const res = await finish(
+      "backup_prune",
+      { primary_missing: 3, scanned: 4_000, restore_mode: "dryrun" },
+      "Dry run, deleted nothing.",
+    );
+    expect(res.status).toBe(200);
+    expect(sentry.captureWarning).toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      { job: "backup_prune", keys: 3, restore_mode: "dryrun" },
+    );
+    expect(mail.sendOnce).toHaveBeenCalledTimes(1);
+    const sent = mail.sendOnce.mock.calls[0][0];
+    expect(sent).toMatchObject({
+      kind: "prune_breaker",
+      dedupeKey: "lone:2026-10-12",
+    });
+    expect(sent.subject).toBe("[Partyreel] 3 keys held by the backup alone");
+    expect(sent.text).toContain("Dry run: the restore copies nothing");
+    expect(sent.text).toContain("Dry run, deleted nothing.");
+    expect(sent.text).toContain("/admin/jobs#job-backup_restore");
+    expect(jobs.finishJobRun).toHaveBeenCalledTimes(1);
+  });
+
+  it("raises them from the restore's pass too, its skipped one with the mode off included", async () => {
+    await call({
+      phase: "finish",
+      job: "backup_restore",
+      runId: RUN_ID,
+      startedAtMs: STARTED,
+      status: "skipped",
+      counts: { restore_mode: "off", primary_missing: 1 },
+    });
+    expect(sentry.captureWarning).toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      { job: "backup_restore", keys: 1, restore_mode: "off" },
+    );
+    expect(mail.sendOnce.mock.calls[0][0].subject).toBe(
+      "[Partyreel] 1 key held by the backup alone",
+    );
+  });
+
+  it("raises nothing for a zero, a report without the count, or a job whose reports never carry it", async () => {
+    await finish("backup_prune", { primary_missing: 0, scanned: 4_000 });
+    await finish("backup_restore", {
+      restore_mode: "on",
+      restored: 2,
+      primary_missing: 0,
+    });
+    await finish("backup_prune", { scanned: 12, deleted: 0 });
+    // A job outside the reading's sources (the reconcile was one until backup-reconcile gave it the young ones).
+    await finish("db_backup", { primary_missing: 5 });
+    expect(sentry.captureWarning).not.toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      expect.anything(),
+    );
+    expect(mail.sendOnce).not.toHaveBeenCalled();
+  });
+
+  it("never lets a failed mail cost the run its row", async () => {
+    mail.sendOnce.mockRejectedValue(new Error("Resend is down"));
+    const res = await finish("backup_restore", {
+      primary_missing: 2,
+      failed: 2,
+    });
+    expect(res.status).toBe(200);
+    expect(jobs.finishJobRun).toHaveBeenCalledTimes(1);
+    expect(sentry.captureError).toHaveBeenCalledWith(
+      "cron",
+      expect.any(Error),
+      expect.objectContaining({ job: "backup_restore", phase: "lone_alert" }),
+    );
+  });
+
+  it("raises the young ones the reconcile's run found, as the prune's run raises its own", async () => {
+    await finish(
+      "backup_reconcile",
+      {
+        primary_missing: 2,
+        lone_found: 2,
+        restore_mode: "on",
+        pass_complete: true,
+      },
+      "The pass reached the end: 5,862 keys compared with the backup's, every one backed up.",
+    );
+    expect(sentry.captureWarning).toHaveBeenCalledWith(
+      "cron",
+      "backup_primary_missing",
+      { job: "backup_reconcile", keys: 2, restore_mode: "on" },
+    );
+    expect(mail.sendOnce.mock.calls[0][0]).toMatchObject({
+      dedupeKey: "lone:2026-10-12",
+      subject: "[Partyreel] 2 keys held by the backup alone",
+    });
+  });
+
+  it("opens the restore's run as manual for an operator's press, and carries no release stamp", async () => {
+    const res = await call({
+      phase: "start",
+      job: "backup_restore",
+      triggeredBy: "manual",
+    });
+    const body = await res.json();
+    expect(body).toEqual({
+      ok: true,
+      paused: false,
+      runId: RUN_ID,
+      startedAtMs: STARTED,
+    });
+    expect(jobs.startJobRun).toHaveBeenCalledWith("backup_restore", "manual");
+    expect(hold.releasedAtMs).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ A RECONCILE THAT DID NOT END CLEAN, RAISED AT ITS SOURCE (backup-reconcile item 3): the media backup's backstop
+ * stopping early, failing, or finding copies that differ leaves media with no faithful backup copy, so it raises a
+ * Sentry warning every time and the ops mail at most once a day where its report lands, as the lone copies raise
+ * theirs. On the old code a reconcile's report raised nothing at all: only its card said so, to someone already looking.
+ */
+describe("a reconcile that did not end clean raises where its report lands", () => {
+  function reconcile(
+    status: "ok" | "error",
+    counts: Record<string, unknown>,
+    note?: string,
+  ) {
+    return call({
+      phase: "finish",
+      job: "backup_reconcile",
+      runId: RUN_ID,
+      startedAtMs: STARTED,
+      status,
+      counts,
+      note,
+    });
+  }
+
+  it("★ raises a run that stopped early: a Sentry warning and the ops mail, once a day", async () => {
+    const res = await reconcile(
+      "ok",
+      {
+        checked: 40_000,
+        copied: 120,
+        pass_complete: false,
+        pass_walked: 40_000,
+        stopped_early: true,
+      },
+      "Stopped at its deadline with 40,000 keys compared so far this pass; the next run carries on.",
+    );
+    expect(res.status).toBe(200);
+    expect(sentry.captureWarning).toHaveBeenCalledWith(
+      "cron",
+      "backup_reconcile_unfinished",
+      {
+        job: "backup_reconcile",
+        failed: false,
+        stopped_early: true,
+        mismatched: 0,
+      },
+    );
+    expect(mail.sendOnce).toHaveBeenCalledTimes(1);
+    const sent = mail.sendOnce.mock.calls[0][0];
+    expect(sent).toMatchObject({
+      kind: "prune_breaker",
+      dedupeKey: "reconcile:2026-10-12",
+      subject:
+        "[Partyreel] The backup reconcile stopped before the end of its pass",
+    });
+    expect(sent.text).toContain("Stopped early; the next run carries on");
+    expect(sent.text).toContain("40,000 keys compared so far this pass");
+    expect(sent.text).toContain("/admin/jobs#job-backup_reconcile");
+    expect(jobs.finishJobRun).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ raises a run that failed, and one that found copies that differ, each in its own words", async () => {
+    await reconcile(
+      "error",
+      { checked: 10, copied: 1, failed: 2, pass_complete: true },
+      "2 keys failed to copy (Error: R2 is unavailable): the next pass tries again.",
+    );
+    expect(mail.sendOnce.mock.calls[0][0].subject).toBe(
+      "[Partyreel] The backup reconcile's run failed",
+    );
+    mail.sendOnce.mockClear();
+    await reconcile("ok", {
+      checked: 5_862,
+      mismatched: 2,
+      breaker_tripped: true,
+      pass_complete: true,
+    });
+    expect(sentry.captureWarning).toHaveBeenLastCalledWith(
+      "cron",
+      "backup_reconcile_unfinished",
+      {
+        job: "backup_reconcile",
+        failed: false,
+        stopped_early: false,
+        mismatched: 2,
+      },
+    );
+    const sent = mail.sendOnce.mock.calls[0][0];
+    expect(sent.subject).toBe(
+      "[Partyreel] 2 keys differ between the media buckets",
+    );
+    expect(sent.text).toContain("never overwritten");
+  });
+
+  it("raises nothing for a run that ended clean, nor for another job that stopped early", async () => {
+    await reconcile("ok", {
+      checked: 5_862,
+      copied: 3,
+      pass_complete: true,
+      primary_missing: 0,
+    });
+    await finish("purge_orphans", { stopped_early: true, remaining: 40 });
+    expect(sentry.captureWarning).not.toHaveBeenCalledWith(
+      "cron",
+      "backup_reconcile_unfinished",
+      expect.anything(),
+    );
+    expect(mail.sendOnce).not.toHaveBeenCalled();
+  });
+
+  it("never lets a failed mail cost the run its row", async () => {
+    mail.sendOnce.mockRejectedValue(new Error("Resend is down"));
+    const res = await reconcile("error", { failed: 1, pass_complete: true });
+    expect(res.status).toBe(200);
+    expect(jobs.finishJobRun).toHaveBeenCalledTimes(1);
+    expect(sentry.captureError).toHaveBeenCalledWith(
+      "cron",
+      expect.any(Error),
+      expect.objectContaining({
+        job: "backup_reconcile",
+        phase: "reconcile_alert",
+      }),
+    );
+  });
+});

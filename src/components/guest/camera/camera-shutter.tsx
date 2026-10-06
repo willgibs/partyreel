@@ -9,6 +9,9 @@
  * ★ ITS RING IS DRAWN FROM THE CLOCK, NEVER AN ANIMATION'S TIMELINE. The ring is information (how long is left), so
  * under reduced motion it still fills, step by step as the clock ticks, where a CSS animation of the clip's length
  * would be clamped to its end by the global guard and read "full" from the first frame.
+ *
+ * ★ ITS FOCUS IS THE HOUSE'S HALO, ITS PRESS ITS OWN (identity r4): the keyboard's mark is every control's (`focus-halo`),
+ * but a press here is a camera's, the face sinking and turning red to film, which says more than a control's give.
  */
 import type { Ref } from "react";
 
@@ -55,7 +58,7 @@ export function CameraShutter({
       data-cam-shutter=""
       data-pressed={pressed ? "" : undefined}
       data-filming={filming ? "" : undefined}
-      className="cam-shutter"
+      className="cam-shutter focus-halo"
       {...handlers}
     >
       <svg aria-hidden viewBox="0 0 96 96" className="cam-shutter-ring">

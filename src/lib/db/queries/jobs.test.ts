@@ -170,6 +170,8 @@ describe("getJobSignals", () => {
     const now = Date.parse("2026-09-28T12:00:00.000Z");
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -230,6 +232,8 @@ describe("getJobSignals", () => {
   it("throws when the beacon's table cannot be read, never reading it as quiet", async () => {
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -256,6 +260,8 @@ describe("getJobSignals", () => {
     });
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -318,6 +324,8 @@ describe("getJobSignals", () => {
     });
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -378,6 +386,8 @@ describe("getJobSignals", () => {
     const now = Date.parse("2026-10-05T12:00:00.000Z");
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -412,6 +422,8 @@ describe("getJobSignals", () => {
   it("★ throws when the kept notices cannot be read, never reading them as none", async () => {
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -431,6 +443,8 @@ describe("getJobSignals", () => {
     const now = Date.parse("2026-10-05T12:00:00.000Z");
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -438,7 +452,13 @@ describe("getJobSignals", () => {
         export_log: [],
         notice_retries: [],
         job_runs: [
-          runRow(1, "drive_transfer", "error", "2026-10-05T08:00:00.000000+00:00", null),
+          runRow(
+            1,
+            "drive_transfer",
+            "error",
+            "2026-10-05T08:00:00.000000+00:00",
+            null,
+          ),
         ],
         cloud_export_items: [
           { status: "sent", sent_at: "2026-10-05T11:00:00.000000+00:00" },
@@ -448,7 +468,10 @@ describe("getJobSignals", () => {
           { status: "pending", sent_at: null },
         ],
         cloud_exports: [
-          { status: "sending", stuck_since: "2026-10-05T10:00:00.000000+00:00" },
+          {
+            status: "sending",
+            stuck_since: "2026-10-05T10:00:00.000000+00:00",
+          },
           { status: "sending", stuck_since: null },
           // A stuck mark left on a send that has since paused is not owed.
           { status: "paused", stuck_since: "2026-10-05T09:00:00.000000+00:00" },
@@ -462,6 +485,8 @@ describe("getJobSignals", () => {
   it("throws when Drive's items cannot be read, never reading them as quiet", async () => {
     state.fake = createFakePostgrest({
       tables: {
+        // (credit-watch) the pass-to-Pro credit's signal reads its claims.
+        pass_credits: [],
         sent_emails: [],
         action_attempts: [],
         unlock_attempts: [],
@@ -473,5 +498,141 @@ describe("getJobSignals", () => {
       },
     });
     await expect(getJobSignals()).rejects.toThrow(/sent to Drive/);
+  });
+
+  // credit-watch: the pass-to-Pro credit's signal. A credit converted in the day is the success half (a conversion
+  // follows only a grant), its failure rows the other (a credited checkout's delivery that failed), and a claim stuck
+  // past its hour is owed: never granted (no live lease), or granted and never converted; a released one never is.
+  it("★ counts the day's credits honoured, the credited deliveries that failed, and the credits stuck past their hour", async () => {
+    const now = Date.parse("2026-10-05T12:00:00.000Z");
+    const claim = (over: Record<string, unknown>) => ({
+      stripe_session_id: `cs_${Math.random().toString(36).slice(2)}`,
+      profile_id: "44444444-4444-4444-8444-444444444444",
+      credit_cents: 1850,
+      pass_ids: ["00000000-0000-4000-8000-00000000000a"],
+      claimed_until: null,
+      balance_transaction_id: null,
+      granted_at: null,
+      converted_at: null,
+      converted_count: null,
+      released_at: null,
+      created_at: "2026-10-05T11:30:00.000000+00:00",
+      ...over,
+    });
+    state.fake = createFakePostgrest({
+      tables: {
+        pass_credits: [
+          // Honoured in the day, and one honoured yesterday.
+          claim({
+            balance_transaction_id: "cbtxn_1",
+            granted_at: "2026-10-05T09:00:00.000000+00:00",
+            converted_at: "2026-10-05T09:00:01.000000+00:00",
+            converted_count: 2,
+          }),
+          claim({
+            balance_transaction_id: "cbtxn_2",
+            granted_at: "2026-10-03T09:00:00.000000+00:00",
+            converted_at: "2026-10-03T09:00:01.000000+00:00",
+            converted_count: 1,
+          }),
+          // Converted in the day, but none of its passes (credited already): not a credit honoured.
+          claim({
+            balance_transaction_id: "cbtxn_5",
+            granted_at: "2026-10-05T09:30:00.000000+00:00",
+            converted_at: "2026-10-05T09:30:01.000000+00:00",
+            converted_count: 0,
+          }),
+          // Stuck: claimed at 08:00 and never granted, its lease long over.
+          claim({
+            created_at: "2026-10-05T08:00:00.000000+00:00",
+            claimed_until: "2026-10-05T08:10:00.000000+00:00",
+          }),
+          // Stuck: granted at 10:30, never converted.
+          claim({
+            created_at: "2026-10-05T10:29:59.000000+00:00",
+            balance_transaction_id: "cbtxn_3",
+            granted_at: "2026-10-05T10:30:00.000000+00:00",
+          }),
+          // Not stuck: claimed an hour and a half ago, but a delivery holds it right now (a retry at work).
+          claim({
+            created_at: "2026-10-05T10:30:00.000000+00:00",
+            claimed_until: "2026-10-05T12:05:00.000000+00:00",
+          }),
+          // Not stuck: claimed twenty minutes ago, lease over, Stripe's retry on its way.
+          claim({
+            created_at: "2026-10-05T11:40:00.000000+00:00",
+            claimed_until: "2026-10-05T11:50:00.000000+00:00",
+          }),
+          // Not stuck: released (another checkout credited its passes), with and without a grant beside it.
+          claim({
+            created_at: "2026-10-04T08:00:00.000000+00:00",
+            released_at: "2026-10-04T09:00:00.000000+00:00",
+          }),
+          claim({
+            created_at: "2026-10-04T08:00:00.000000+00:00",
+            balance_transaction_id: "cbtxn_4",
+            granted_at: "2026-10-04T09:00:00.000000+00:00",
+            released_at: "2026-10-04T09:00:00.000000+00:00",
+          }),
+        ],
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [],
+        notice_retries: [],
+        cloud_export_items: [],
+        cloud_exports: [],
+        job_runs: [
+          runRow(
+            1,
+            "pass_credit",
+            "error",
+            "2026-10-05T08:00:30.000000+00:00",
+            null,
+          ),
+          runRow(
+            2,
+            "pass_credit",
+            "error",
+            "2026-10-04T08:00:30.000000+00:00",
+            null,
+          ),
+        ],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.pass_credit).toEqual({
+      ok24h: 1,
+      failed24h: 1,
+      owed: 2,
+      // The oldest owing: the claim never granted, owing since it was taken.
+      owedSinceMs: Date.parse("2026-10-05T08:00:00.000Z"),
+    });
+  });
+
+  it("★ says no owed time when nothing is stuck, and throws when the claims cannot be read, never reading them as none", async () => {
+    const tables = {
+      sent_emails: [],
+      action_attempts: [],
+      unlock_attempts: [],
+      article_feedback: [],
+      export_log: [],
+      notice_retries: [],
+      cloud_export_items: [],
+      cloud_exports: [],
+      job_runs: [],
+    };
+    state.fake = createFakePostgrest({
+      tables: { ...tables, pass_credits: [] },
+    });
+    expect((await getJobSignals()).pass_credit).toEqual({
+      ok24h: 0,
+      failed24h: 0,
+      owed: 0,
+      owedSinceMs: null,
+    });
+    state.fake = createFakePostgrest({ tables });
+    await expect(getJobSignals()).rejects.toThrow(/credit/);
   });
 });

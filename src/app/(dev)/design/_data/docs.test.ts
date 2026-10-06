@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { compileMDX } from "next-mdx-remote/rsc";
@@ -22,6 +22,7 @@ import {
   readDoc,
 } from "./docs";
 import { TRACED_DOC_GLOBS } from "./legacy-routes";
+import { entries } from "@/testing/source-tree";
 
 /**
  * The lab's doc reader against the real repo files: every doc the shell
@@ -52,7 +53,8 @@ const isTraced = (path: string) => traced.some((re) => re.test(path));
 
 /** Every file the shell renders: any proposal and the manifests. */
 function renderedDocs(): string[] {
-  const manifests = readdirSync(join(root, "docs", "tracks"))
+  const manifests = entries("docs/tracks")
+    .map((entry) => entry.name)
     .filter((f) => f.endsWith(".md") && f !== "README.md")
     .map((f) => `docs/tracks/${f}`);
   return [...listSpecs().map((s) => `docs/specs/${s.slug}.md`), ...manifests];

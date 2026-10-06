@@ -105,7 +105,7 @@ export function WeekRow({ cards }: { cards: readonly WeekCard[] }) {
                 <h3 className="truncate font-heading text-card-title md:mt-0.5">
                   <Link
                     href={card.href}
-                    className="outline-none hover:underline hover:underline-offset-4 focus-visible:ring-2 focus-visible:ring-ring/50"
+                    className="outline-none hover:underline hover:underline-offset-4 focus-halo"
                   >
                     {card.name}
                   </Link>

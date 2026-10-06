@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * A CLIENT-SIDE 401 FALLBACK NEVER SENDS A BARE `/login` (crumbs-20: the ROADMAP's six, from
@@ -13,7 +12,8 @@ import { describe, expect, it } from "vitest";
  * and whatever they were doing is gone (a mail's Renew button, the storage list, a plan switch).
  * `loginPath(window.location.pathname)` (`lib/auth/return-path.ts`) carries the page, on the same
  * allow-list the gate's own redirect uses, and is the bare `/login` itself for a page no sign-in may
- * return to (the public pricing page), so it costs nothing where there is nothing to carry.
+ * return to (the help center, say; the public pricing page is on the list since pricing-doors), so it costs nothing
+ * where there is nothing to carry.
  *
  * WHAT IS REFUSED: `router.push("/login")`, `router.replace("/login")`, `location.assign("/login")`,
  * `location.replace("/login")` and `location.href = "/login"`, the literal and nothing else. A
@@ -21,15 +21,8 @@ import { describe, expect, it } from "vitest";
  * (`<Link href="/login">`) is a person's own choice to go there.
  */
 
-const ROOT = process.cwd();
-const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/app\/\(dev\)\//;
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
+/** Not the product's: the lab (`src/app/(dev)/`). */
+const LAB = /^src\/app\/\(dev\)\//;
 
 const NAVIGATORS = new Set(["push", "replace", "assign"]);
 
@@ -104,18 +97,19 @@ describe("the scan sees what it should", () => {
 });
 
 describe("no client fallback sends a bare /login", () => {
-  const files = filesUnder("src");
+  const files = sources().filter((rel) => !LAB.test(rel));
 
   it("scanned the product's source", () => {
     expect(files.length).toBeGreaterThan(500);
   });
 
   it("every navigation to /login carries the page, or is not a fallback", () => {
-    const offenders = files.flatMap((rel) =>
-      bareLogins(readFileSync(join(ROOT, rel), "utf8"), rel).map(
-        (line) => `${rel}:${line}`,
-      ),
-    );
+    // Only a file that spells `/login` can navigate to it, so only those are parsed.
+    const offenders = files
+      .filter((rel) => read(rel).includes("/login"))
+      .flatMap((rel) =>
+        bareLogins(read(rel), rel).map((line) => `${rel}:${line}`),
+      );
     expect(
       offenders,
       "a 401 fallback that sends `/login` bare lands the person on the dashboard after signing in: send `loginPath(window.location.pathname)` (lib/auth/return-path.ts), which is the bare login for a page no sign-in may return to",

@@ -15,7 +15,9 @@
  * build dropped, can only ever fall back to a default. The column's own CHECK is an envelope (an object, 512 bytes).
  *
  * ★ A KEY A ROW HAS NOTHING FOR SORTS AFTER THE REST, EITHER WAY: an undated event by date, an event she never
- * opened by Last opened, a guest album by size. A tie keeps the newest made first, so a sort never shuffles.
+ * opened by Last opened, a guest album by size. A tie keeps the newest made first, and two made at one instant fall to
+ * their ids, so every order is total over distinct rows: a sort never shuffles, and her list is the same whatever order
+ * its rows arrive in (the dashboard recomposes it around another lead on a press, `leading.ts`, and the two must agree).
  */
 
 import {
@@ -243,7 +245,7 @@ export function yearsOf(
 function passesWhen(r: EventListRow, when: WhenFilter, today: string): boolean {
   if (when === "any") return true;
   if (when === "undated") return r.kind === "hosted" && !r.dated;
-  // An undated, empty album has no day at all and waits with what is coming (`seasons.ts`' old rule, kept).
+  // An undated, empty album has no day at all and waits with what is coming.
   if (when === "upcoming") return r.day === null || daysFrom(today, r.day) >= 0;
   return r.day !== null && daysFrom(today, r.day) < 0;
 }
@@ -269,7 +271,7 @@ export function sorted(
   desc: boolean,
 ): EventListRow[] {
   const made = (a: EventListRow, b: EventListRow) =>
-    instant(b.sortDate) - instant(a.sortDate);
+    instant(b.sortDate) - instant(a.sortDate) || a.id.localeCompare(b.id);
   const dir = desc ? -1 : 1;
   const keyed =
     (key: (r: EventListRow) => number | string | null) =>
@@ -289,10 +291,12 @@ export function sorted(
   else if (sort === "opened")
     out.sort(keyed((r) => (r.openedAt ? instant(r.openedAt) : null)));
   else if (sort === "name")
-    out.sort((a, b) =>
-      desc
-        ? b.name.localeCompare(a.name, undefined, { numeric: true })
-        : a.name.localeCompare(b.name, undefined, { numeric: true }),
+    out.sort(
+      (a, b) =>
+        (desc
+          ? b.name.localeCompare(a.name, undefined, { numeric: true })
+          : a.name.localeCompare(b.name, undefined, { numeric: true })) ||
+        made(a, b),
     );
   else if (sort === "photos")
     out.sort(keyed((r) => (r.kind === "hosted" ? r.items : null)));
@@ -378,6 +382,9 @@ export function recentRowsOf(
     .filter(
       (r) => r.kind === "hosted" && r.openedAt !== null && !above.has(r.id),
     )
-    .sort((a, b) => instant(b.openedAt!) - instant(a.openedAt!))
+    .sort(
+      (a, b) =>
+        instant(b.openedAt!) - instant(a.openedAt!) || a.id.localeCompare(b.id),
+    )
     .slice(0, max);
 }

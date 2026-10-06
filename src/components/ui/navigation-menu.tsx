@@ -100,8 +100,10 @@ function NavigationMenuItem({
   )
 }
 
+// A trigger wears the house's focus mark (identity r4, `focus-halo`); a link
+// inside the panel is a row, and its focus is the row's own wash.
 const navigationMenuTriggerStyle = cva(
-  "group/navigation-menu-trigger inline-flex h-9 w-max items-center justify-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-[color,background-color] duration-[var(--mkt-dropdown-ink-ms,60ms)] ease-emphasis outline-none hover:bg-muted focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-open:bg-muted/50 data-open:hover:bg-muted data-open:focus:bg-muted"
+  "group/navigation-menu-trigger inline-flex h-9 w-max items-center justify-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-[color,background-color] duration-[var(--mkt-dropdown-ink-ms,60ms)] ease-emphasis outline-none hover:bg-muted focus:bg-muted focus-halo disabled:pointer-events-none disabled:opacity-50 data-open:bg-muted/50 data-open:hover:bg-muted data-open:focus:bg-muted"
 )
 
 function NavigationMenuTrigger({
@@ -214,7 +216,10 @@ function NavigationMenuLink({
       className={cn(
         // The corner is the contract's row, not `rounded-md`: a link IS a row
         // inside the panel above it, and a nested corner shares a centre.
-        "flex items-center gap-2 p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
+        // Standing in the bar it wears the house's focus mark (identity r4,
+        // `focus-halo`); inside the panel the content's own rule takes the
+        // ring slot back, and the row's wash is its focus.
+        "flex items-center gap-2 p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-halo data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
         floatingRow,
         className
       )}

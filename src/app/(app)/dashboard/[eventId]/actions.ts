@@ -31,14 +31,9 @@ import {
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
 import { setEventDoor } from "@/lib/db/mutations/event-doors";
-import { readHostManifestPage } from "@/lib/db/queries/album-host";
 import { getEvent } from "@/lib/db/queries/events";
-import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { BULK_LIMIT_MESSAGE, MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
-import { readHubReel, readRestOfManifest } from "@/lib/event/host-album.server";
-import type { HubReel } from "@/lib/event/reel-progress";
 import { isDoor } from "@/lib/event/door/door";
-import { ALBUM_MANIFEST_PAGE } from "@/lib/events/album-wire";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -349,46 +344,6 @@ export async function setRowStepAction(step: number): Promise<void> {
     path: "/",
     httpOnly: false,
   });
-}
-
-/**
- * THE HIGHLIGHT REEL CARD, READ AGAIN (the album-host-wiring lane). The hub's album is live, so the
- * card's state and pips move with it on the client (`isPlayableEntry` over the manifest); what the
- * client cannot make is the card's stills, which are the reel's own opening take over a spread of the
- * album with its quick-add signals (who uploaded, how liked) and presigned. So when the card's state
- * changes, or a still it shows leaves the album, it asks here: the page's own read (`readHubReel`),
- * for this event alone. A public endpoint like every Server Function: the id is parsed, the session
- * re-verified with `getUser()`, the event read through RLS.
- */
-export async function refreshHubReelAction(
-  eventId: unknown,
-): Promise<{ ok: true; reel: HubReel } | { ok: false }> {
-  const parsed = z.uuid().safeParse(eventId);
-  if (!parsed.success) return { ok: false };
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false };
-  const event = await getEvent(parsed.data);
-  if (!event) return { ok: false };
-  try {
-    const [first, facts] = await Promise.all([
-      readHostManifestPage(supabase, event.id, null, ALBUM_MANIFEST_PAGE),
-      getLiveReelServerFacts(event.id),
-    ]);
-    const entries = await readRestOfManifest(supabase, event.id, first);
-    const reel = await readHubReel(
-      supabase,
-      { id: event.id, showReel: event.show_reel },
-      entries,
-      facts.liveReelEnabled,
-    );
-    return { ok: true, reel };
-  } catch (error) {
-    captureError("reel", error, { action: "hub_reel_refresh", eventId });
-    return { ok: false };
-  }
 }
 
 /** The door's answer: what the database did beside the door it set. */

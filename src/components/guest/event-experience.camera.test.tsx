@@ -1,4 +1,4 @@
-import { Suspense, use, type ReactNode } from "react";
+import { Suspense, use, useEffect, type ReactNode } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -56,26 +56,44 @@ const seen = vi.hoisted(() => ({
   developsAtChange: null as ((developsAt: string | null) => void) | null,
   waitingChange: null as ((waits: boolean) => void) | null,
   countWordsChange: null as ((words: string) => void) | null,
+  uploadsWordChange: null as ((accepting: boolean) => void) | null,
+}));
+// The live source's handle as the page holds it: what the page asks of the album.
+const galleryHandle = vi.hoisted(() => ({
+  notifyUploaded: vi.fn(),
+  renameMine: vi.fn(),
+  askUploadsWord: vi.fn(),
 }));
 
 vi.mock("@/components/guest/gallery-live", () => ({
   // A live source that records the files the page says are still its own to hold (the head's stack).
   GalleryLiveProvider: ({
+    ref,
     galleryPromise,
     pendingUploads,
     onDevelopsAtChange,
     onWaitingChange,
     onCountWordsChange,
+    onUploadsWord,
     children,
   }: {
+    ref?: (handle: unknown) => void;
     galleryPromise: Promise<unknown>;
     pendingUploads?: unknown[];
     onDevelopsAtChange?: (developsAt: string | null) => void;
     onWaitingChange?: (waits: boolean) => void;
     onCountWordsChange?: (words: string) => void;
+    onUploadsWord?: (accepting: boolean) => void;
     children: ReactNode;
   }) => {
     use(galleryPromise);
+    // The source's handle, as the page attaches it (its ask for the album's word on uploads is recorded).
+    useEffect(() => {
+      ref?.(galleryHandle);
+      return () => ref?.(null);
+    }, [ref]);
+    // ... and whether the album takes uploads, each full answer's word (guest-requests).
+    seen.uploadsWordChange = onUploadsWord ?? null;
     seen.pending = pendingUploads ?? [];
     // The album's sync, as the source tells the page what it carries about the develop.
     seen.developsAtChange = onDevelopsAtChange ?? null;
@@ -295,6 +313,7 @@ beforeEach(() => {
   seen.developsAtChange = null;
   seen.waitingChange = null;
   seen.countWordsChange = null;
+  seen.uploadsWordChange = null;
 });
 
 const keepDue = () => seen.door?.keepDue;
@@ -642,5 +661,33 @@ describe("a page whose develop comes while it is open", () => {
     });
     expect(seen.gallery?.addsWait).toBe(true);
     expect(seen.tracker?.moderated).toBe(true);
+  });
+});
+
+/**
+ * ★ THE ALBUM'S WORD ON UPLOADS, HANDED TO THE CAMERA (guest-requests): the page holds whether the album takes uploads,
+ * the server's reading at render and then each word the album's sync carries, every one counted (`useLiveUploadsWord`),
+ * and hands it to the camera, whose closed refusal waits for a word heard after it; the camera's ask for the word afresh
+ * reaches the album's live source.
+ */
+describe("the album's word on uploads, handed to the camera (guest-requests)", () => {
+  it("★ is the page's render first, then each word the album's sync carries, every one counted", async () => {
+    await page();
+    expect(seen.upload?.uploadsWord).toEqual({ open: true, heard: 0 });
+    expect(typeof seen.uploadsWordChange).toBe("function");
+    act(() => seen.uploadsWordChange?.(false));
+    expect(seen.upload?.uploadsWord).toEqual({ open: false, heard: 1 });
+    act(() => seen.uploadsWordChange?.(false));
+    expect(seen.upload?.uploadsWord).toEqual({ open: false, heard: 2 });
+    act(() => seen.uploadsWordChange?.(true));
+    expect(seen.upload?.uploadsWord).toEqual({ open: true, heard: 3 });
+  });
+
+  it("★ the camera's ask for the word afresh reaches the album's live source", async () => {
+    await page();
+    act(() => {
+      (seen.upload?.onAskUploadsWord as () => void)();
+    });
+    expect(galleryHandle.askUploadsWord).toHaveBeenCalledTimes(1);
   });
 });

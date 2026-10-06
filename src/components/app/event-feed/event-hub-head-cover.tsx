@@ -19,11 +19,11 @@ import { ConsequenceLine } from "@/components/ui/consequence-line";
 import { type HerShot, SHEET_CAP } from "@/lib/disposable/contact-sheet";
 import {
   coverWaitingOf,
+  hubDevelopWhen,
   type HubDevelopFacts,
 } from "@/lib/disposable/host-cover";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { ENTRY_VIDEO, WHO_HOST } from "@/lib/events/album-wire";
-import { developsWhen } from "@/lib/guest/camera/words";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { GLASS } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -137,7 +137,10 @@ export function HostAlbumCover({
   const hers = useHerShots(facts.ids);
 
   const nowMs = useWaitClock();
-  const when = nowMs !== null ? developsWhen(developsAt, nowMs) : null;
+  const when =
+    nowMs !== null
+      ? hubDevelopWhen(developsAt, nowMs, develop.time_zone)
+      : null;
   const router = useRouter();
   const [asking, setAsking] = useState(false);
   const [developing, setDeveloping] = useState(false);
@@ -212,13 +215,16 @@ export function HostAlbumCover({
  */
 export function LookingEarly({
   developsAt,
+  zone = null,
   onCover,
 }: {
   developsAt: string;
+  /** The party's zone, for its place where it is not hers (`hubDevelopWhen`). */
+  zone?: string | null;
   onCover: () => void;
 }) {
   const nowMs = useWaitClock();
-  const when = nowMs !== null ? developsWhen(developsAt, nowMs) : null;
+  const when = nowMs !== null ? hubDevelopWhen(developsAt, nowMs, zone) : null;
   const words = when
     ? `Looking early. Your guests see these when it develops ${when}.`
     : "Looking early. Your guests see these when it develops.";

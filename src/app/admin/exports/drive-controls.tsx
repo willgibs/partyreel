@@ -258,7 +258,7 @@ export function DriveConnectionActs({
         open={asking === "disconnect"}
         onOpenChange={(open) => setAsking(open ? "disconnect" : null)}
         title="Disconnect this Google Drive?"
-        lede="For an account's recovery: Partyreel deletes its key to the Drive and revokes it at Google, exactly as her own Disconnect does."
+        lede="For an account's recovery: Partyreel forgets its key to the Drive and revokes it at Google, exactly as her own Disconnect does."
         verb="Disconnect"
         touches={[
           `${host}, connected as ${drive}`,

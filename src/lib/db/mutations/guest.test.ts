@@ -147,7 +147,10 @@ describe("the camera's refusals, by their own words", () => {
       message: "You've taken all 24 shots on your roll.",
     });
     refused("You've taken all 12 shots on your roll.");
-    expect(await shot()).toMatchObject({ code: "roll_spent", message: "You've taken all 12 shots on your roll." });
+    expect(await shot()).toMatchObject({
+      code: "roll_spent",
+      message: "You've taken all 12 shots on your roll.",
+    });
     refused("You've used every retake this roll allows.");
     expect(await shot()).toEqual({
       ok: false,
@@ -167,8 +170,64 @@ describe("the camera's refusals, by their own words", () => {
 
   it("a camera video's bounds are too_long and too_large, as every such refusal is", async () => {
     refused("This video is longer than the 10 seconds a camera shot can be.");
-    expect((await shot()).ok === false && (await shot())).toMatchObject({ code: "too_long" });
+    expect((await shot()).ok === false && (await shot())).toMatchObject({
+      code: "too_long",
+    });
     refused("This video exceeds the 128 MB a camera shot can be.");
     expect(await shot()).toMatchObject({ code: "too_large" });
+  });
+});
+
+/**
+ * ★ THE LINE A COMPLETE MET, IN THE ALBUM'S WORDS (billing-integrity): create_media refuses an upload past her plan's
+ * uploads line ("Upload limit reached for this plan.") or past storage ("Storage capacity exceeded for this plan."), and
+ * a guest got that sentence as it stood, the host's plan named to her. Each now says its line in the presign's own words
+ * for it (`cap-words.ts`), and a cap sentence the wrapper does not know reads as `unknown`, never as a guessed line.
+ */
+describe("the uploads line and storage, each in the album's words", () => {
+  const upload = () =>
+    createMedia({
+      sessionToken: "t".repeat(64),
+      mediaId: "m",
+      type: "photo",
+      originalKey: "k",
+      fileSizeBytes: 1,
+    });
+
+  it("★ the uploads line says the album hit its upload limit, never the plan", async () => {
+    refused("Upload limit reached for this plan.");
+    expect(await upload()).toEqual({
+      ok: false,
+      code: "cap_reached",
+      message: "This album has hit its upload limit for now.",
+    });
+  });
+
+  it("★ storage says the album is full and the host can free space", async () => {
+    refused("Storage capacity exceeded for this plan.");
+    expect(await upload()).toEqual({
+      ok: false,
+      code: "cap_reached",
+      message: "This album is full right now. The host needs to free up space.",
+    });
+  });
+
+  it("each is the presign's own sentence for its line, word for word", async () => {
+    const words = await import("@/lib/upload/cap-words");
+    refused("Upload limit reached for this plan.");
+    expect(await upload()).toMatchObject({
+      message: words.ALBUM_UPLOADS_SPENT,
+    });
+    refused("Storage capacity exceeded for this plan.");
+    expect(await upload()).toMatchObject({ message: words.ALBUM_STORAGE_FULL });
+  });
+
+  it("a cap sentence it does not know is unknown, never a line it guessed, and never the plan's raw words", async () => {
+    refused("Some new limit reached for this plan.");
+    expect(await upload()).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save the upload. Please try again.",
+    });
   });
 });

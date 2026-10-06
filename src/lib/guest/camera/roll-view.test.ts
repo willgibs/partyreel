@@ -18,18 +18,25 @@ describe("rollView", () => {
     expect(rollView({ server: null, rollSize: 12, pending: 0 })).toEqual({
       cap: 12,
       used: 0,
+      held: 0,
       left: 12,
       frame: 1,
       refusal: null,
       ceilingReached: false,
+      removalFrees: true,
     });
-    // No size named (or one past the product's own) is the product's roll.
+    // ★ RESHAPED ON PURPOSE (settings-wiring, 20261005190000; scar kept: no size named, or one past the host's bounds, is
+    // the product's roll; reason dropped: 24 was the most a host could name, so 99 read as 24). Any count to 99 is hers.
     expect(rollView({ server: null, rollSize: null, pending: 0 }).cap).toBe(
       ROLL_SHOTS,
     );
-    expect(rollView({ server: null, rollSize: 99, pending: 0 }).cap).toBe(
-      ROLL_SHOTS,
-    );
+    expect(rollView({ server: null, rollSize: 99, pending: 0 }).cap).toBe(99);
+    expect(rollView({ server: null, rollSize: 50, pending: 0 }).cap).toBe(50);
+    for (const past of [0, 100, 12.5]) {
+      expect(rollView({ server: null, rollSize: past, pending: 0 }).cap).toBe(
+        ROLL_SHOTS,
+      );
+    }
   });
 
   it("steps down by the shots taken since the read, the instant they are taken", () => {
@@ -49,7 +56,8 @@ describe("rollView", () => {
   it("ends at the roll's size in the server's own sentence, and never counts past it", () => {
     const server = { used: 23, cap: 24, taken: 23, ceiling: 72 };
     const spent = rollView({ server, rollSize: 24, pending: 3 });
-    expect(spent).toMatchObject({ used: 24, left: 0, frame: 24 });
+    expect(spent).toMatchObject({ used: 24, held: 24, left: 0, frame: 24 });
+    expect(spent.removalFrees).toBe(true);
     expect(spent.refusal).toBe(rollSpentMessage(24));
     expect(spent.ceilingReached).toBe(false);
   });
@@ -88,5 +96,19 @@ describe("rollView", () => {
       cap: 10,
       left: 8,
     });
+  });
+
+  it("★ holds what she shot when the host made the roll smaller after (red-team 56's LOW): no frame freed by one removal", () => {
+    // Two of hers, and the roll now 1: she holds two, the roll is spent, and removing one leaves it spent.
+    const server = { used: 2, cap: 1, taken: 2, ceiling: 3 };
+    const view = rollView({ server, rollSize: 1, pending: 0 });
+    expect(view).toMatchObject({ cap: 1, used: 1, held: 2, left: 0 });
+    expect(view.refusal).toBe(rollSpentMessage(1));
+    expect(view.removalFrees).toBe(false);
+    // One removed: one held, a roll of 1 spent, and now a removal would free its frame.
+    expect(
+      rollView({ server: { ...server, used: 1 }, rollSize: 1, pending: 0 })
+        .removalFrees,
+    ).toBe(true);
   });
 });

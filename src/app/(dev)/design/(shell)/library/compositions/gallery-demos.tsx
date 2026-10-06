@@ -168,6 +168,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Scrolled into the album",
         hint: "scroll past the head: the band sticks under the bar with its face, the name and the code as a chip",
         bleed: true,
+        sticks: true,
         node: <HubBandDemo />,
       },
     ],

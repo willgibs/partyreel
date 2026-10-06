@@ -9,7 +9,12 @@
  * are on it, never asks her to do what she cannot.
  *
  * ★ DONE IS DONE: "In your Drive, every one checked", Open in Drive. Nothing here suggests deleting what was sent
- * (PRICING.md: "Export is an off-ramp, never a one-click exit"); deleting stays where it already is.
+ * (PRICING.md: "Export is an off-ramp, never a one-click exit"); deleting stays where it already is. "Every one checked"
+ * is said only of a send that sent something (`checkedAll`): the database closes that one only through its closing
+ * check (20261005180000), and a send with nothing sent had nothing to check.
+ *
+ * ★ A STOPPED SEND TELLS WHAT LANDED: files already on their way at her Cancel still land, so while a lane holds any
+ * (`landing`) its numbers say "so far" and Send again waits, never a number frozen at the press.
  *
  * Pure (the clock passed in): Vitest pins every moment.
  */
@@ -49,7 +54,19 @@ export type SendView = {
   closedAt: string | null;
   /** Her stop's flag is due (set at a stop that needs her, not yet shown). */
   flagDue: boolean;
+  /**
+   * A canceled or stopped send a lane still holds files of: the ones already on their way at the stop are still
+   * landing, so its numbers still move (the status route asks the items; absent reads as no).
+   */
+  landing?: boolean;
 };
+
+/** ★ "Every one checked" follows a check that ran: a done send that sent anything closed only through its check. */
+export function checkedAll(
+  send: Pick<SendView, "status" | "itemsSent">,
+): boolean {
+  return send.status === "done" && send.itemsSent > 0;
+}
 
 export type DriveTone = "sending" | "paused" | "done" | "stopped";
 
@@ -228,6 +245,20 @@ export function momentOf(
         send.itemsSkipped > 0
           ? ` · ${n(send.itemsSkipped)} left the album while sending`
           : "";
+      if (!checkedAll(send)) {
+        // Nothing went (every original left the album on the way): nothing to check, and nothing claimed checked.
+        return {
+          tone: "done",
+          word: "Nothing to send",
+          title: `Nothing of ${send.albumName} was left to send`,
+          where,
+          facts:
+            send.itemsSkipped > 0
+              ? `${n(send.itemsSkipped)} left the album while sending`
+              : "The album had nothing to send",
+          acts: [],
+        };
+      }
       return {
         tone: "done",
         word: "In your Drive",
@@ -262,8 +293,12 @@ export function momentOf(
         ],
       };
     case "canceled":
-      return canceledMoment(send, where, sentOf);
+      return send.landing
+        ? landingMoment(send, where, sentOf, canceledTitle(send))
+        : canceledMoment(send, where, sentOf);
     case "stopped":
+      if (send.landing && send.stopReason !== "failed_to_start")
+        return landingMoment(send, where, sentOf, "Stopped after too long");
       return {
         tone: "stopped",
         word: "Stopped",
@@ -279,6 +314,30 @@ export function momentOf(
         acts: [{ id: "send_again", label: "Send again", lead: true }],
       };
   }
+}
+
+/**
+ * A stopped send whose files already on their way are still landing: what reached her Drive so far, said as it moves,
+ * and no Send again until they have landed (a send pressed now would send them a second time).
+ */
+function landingMoment(
+  send: SendView,
+  where: string,
+  sentOf: string,
+  title: string,
+): DriveMoment {
+  return {
+    tone: "stopped",
+    word: "Stopping",
+    title,
+    where,
+    facts:
+      send.itemsSent > 0
+        ? `${sentOf} reached your Drive so far`
+        : "Nothing has reached your Drive yet",
+    line: "The files already on their way are still landing.",
+    acts: [],
+  };
 }
 
 function pausedMoment(
@@ -372,23 +431,31 @@ function pausedMoment(
   }
 }
 
+/**
+ * The words of a canceled send, by who stopped it. ★ None for a Disconnect's or another account's connect
+ * (`disconnected`, `account_changed`): each ends its sends and starts a new connection row, and every place reads only
+ * the connection she has now (`this-connection.ts` drops the sends made before it), so no place draws those. A reason
+ * with no words of its own says only that the send stopped, never that she canceled it.
+ */
+const CANCELED_TITLES: Record<string, string> = {
+  canceled: "You canceled this send",
+  operator: "We stopped this send",
+  album_deleted: "This send stopped when the album was deleted",
+};
+
+function canceledTitle(send: SendView): string {
+  return CANCELED_TITLES[send.stopReason ?? "canceled"] ?? "This send stopped";
+}
+
 function canceledMoment(
   send: SendView,
   where: string,
   sentOf: string,
 ): DriveMoment {
-  const titles: Record<string, string> = {
-    canceled: "You canceled this send",
-    operator: "We stopped this send",
-    disconnected: "This send stopped when Google Drive was disconnected",
-    account_changed:
-      "This send stopped when another Google account was connected",
-    album_deleted: "This send stopped when the album was deleted",
-  };
   return {
     tone: "stopped",
     word: "Canceled",
-    title: titles[send.stopReason ?? "canceled"] ?? titles.canceled!,
+    title: canceledTitle(send),
     where,
     facts:
       send.itemsSent > 0
@@ -403,7 +470,7 @@ function canceledMoment(
 
 /**
  * The dashboard tile's light for an album's send: a running one's percent, a stop's word, a fresh done. None for a
- * send closed more than a day ago, canceled, or stopped quietly.
+ * send closed more than a day ago, canceled, stopped quietly, or done with nothing sent.
  */
 export function tileLight(
   send: SendView,
@@ -422,7 +489,7 @@ export function tileLight(
   if (send.status === "paused") return { label: "Paused", tone: "paused" };
   if (send.status === "partly_done")
     return { label: "Partly done", tone: "paused" };
-  if (send.status === "done") return { label: "In your Drive", tone: "done" };
+  if (checkedAll(send)) return { label: "In your Drive", tone: "done" };
   return null;
 }
 

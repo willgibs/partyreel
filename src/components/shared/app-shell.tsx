@@ -64,7 +64,7 @@ export function AppShell({ children, headerActions }: AppShellProps) {
             <Link
               href="/dashboard"
               aria-label="Partyreel dashboard"
-              className="shrink-0"
+              className="shrink-0 rounded-md outline-none focus-halo"
             >
               <Logo />
             </Link>

@@ -6,8 +6,8 @@
 > everything else is opened when a task touches it.
 
 Partyreel is a guest-powered event media platform: a host creates an event and shares a **QR code**; guests scan it
-and upload photos and videos from their phones with no app required (an account, and a confirmed email, when the host
-asks for one); the host curates; the link doubles as the shareable album. It is live at partyreel.com with zero real
+and upload photos and videos from their phones with no app required (by default with an email confirmed by a code, which is their
+account); the host curates; the link doubles as the shareable album. It is live at partyreel.com with zero real
 users (Stripe in TEST mode, the launch switches unspent), in the **elevation program** ([`docs/PROGRAM.md`](docs/PROGRAM.md)).
 
 **Rising tides**, the bible's first principle (`/design/library`; Will owns the ten): nothing is protected or
@@ -47,7 +47,8 @@ A system doc (what exists) wins over the ROADMAP (what might be).
    its manifest's Questions with a recommended answer, builds that answer and lists it as Will's to overrule; a
    one-way door is never guessed: it is written as a question and the lane hands off what it has. The expensive
    failure is a confident agent executing the wrong strategy.
-4. **Build** from the brand kit, the bible's ten and production. The tests are the real rules: a failing one names
+4. **Build** from the brand kit, the bible's ten and production, one component per purpose (two that serve one
+   purpose unify by props; two purposes stay two). The tests are the real rules: a failing one names
    what broke, and one reshaped on purpose keeps its real scar, drops its expired reason and says which. Leave
    WHY-comments.
 5. **Test**: Vitest for pure logic; a rolled-back Supabase-MCP check for new SQL; the gate.
@@ -133,4 +134,6 @@ history. **Every fact has one home**, the doc whose question it answers, **edite
 place**: a new note, Will's included, is synthesized into the line it refines rather than quoted beside it; a stale
 line is deleted; what shipped lives in its merge commit; a deferred task is one ROADMAP line. Every added line dilutes
 the rest, so a one-off mistake is fixed and left in git, and only a recurring one earns a line or a tool's refusal. A
-new gotcha goes in its `docs/systems/` doc.
+new gotcha goes in its `docs/systems/` doc. **Agent memory holds nothing the repo lacks:** every lesson, preference
+and decision goes in its repo home, so every Orchestrator and Agent, local or cloud, on any account, works from the
+same knowledge; a session's memory, if kept at all, only points here.

@@ -1,0 +1,240 @@
+-- =============================================================================================
+-- THE PARTY'S OWN TIME ZONE (lane `event-zone`; Will, 2026-10-05: "It feels unfair to unlock the album at different
+-- times for certain guests based on geographical location. Is there a way to standardize this?").
+--
+-- WHAT IT GIVES: an event keeps one IANA zone, so the morning after the party is ONE morning, the party's, for every
+-- reader wherever she is: its album turns at 9 am there (album-order's turn, computed on the page's server and handed to
+-- the browser as an instant, never a zone), and a disposable's default develop is the same 9 am. The app captures it,
+-- never asks it: Create sends the host's own browser zone, a Settings save of a time writes it where a row has none, and
+-- only her explicit choice of the party's city in Settings moves it (`src/lib/event/zone.ts`).
+--
+-- THE MODEL, AS BUILT:
+--   1. `events.time_zone text`, NULL for every row that exists (test data: the app turns a party with no zone in UTC,
+--      its one fallback), under a CHECK (`events_time_zone_shape`): 1 to 64 characters, a letter first, then letters,
+--      digits and `_ + / -`. An ENVELOPE, never the list of zones: Postgres's database of zones is not the app's ICU, and
+--      a zone added upstream must need no migration. The app reads a zone with its runtime's own `Intl` before it stores
+--      one, and every reader treats one it cannot read as none; the CHECK bounds what a host's own PostgREST write can
+--      store (her column grant, below), and refuses an offset ("+05:30", which `Intl` reads as a zone).
+--      `zone-migration.test.ts` holds it to the app's `ZONE_MAX_LENGTH` and `ZONE_PATTERN`.
+--   2. It joins the INSERT and UPDATE column grants on `events` for `authenticated`, additively (a table-level revoke
+--      would cascade to every column grant: database-security.md, Gotchas). SELECT is table-level, so it reads with no
+--      grant; `anon` holds nothing on the table.
+--   3. Nothing in the database reads it: no function, trigger, policy or RPC. The guest page reads it on the service
+--      role by the event's id (`src/lib/event/zone.server.ts`) and hands the browser only the instant it names;
+--      `get_event_by_qr_token` is untouched, so the zone never reaches an anon read.
+--
+-- AN EXPAND: partyreel.com's build (milestone 37) never names the column. A new nullable column, a CHECK every row
+-- passes (every value is NULL) and two column grants: the deployed build reads and writes every column where it does
+-- today. What it meets meanwhile (test data only): its Create sends no zone, so an event it makes stays zoneless and
+-- turns in the fallback on the alias until a Settings save of its dates there writes the host's zone.
+--
+-- LOCKS AT APPLY: `alter table` on events takes ACCESS EXCLUSIVE for an instant (no rewrite: a NULL column, no default);
+-- the CHECK scans the table under it.
+--
+-- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (0) ★ APPLY BEFORE THE ALIAS BUILD THAT CARRIES THE LANE: its Create inserts the column (PostgREST refuses an unknown
+--       column, PGRST204: Create down without it) and its Settings save of a time fills it where missing; the guest
+--       page's read of it fails soft (the fallback, reported to Sentry).
+--   (1) drift, read-only: no `time_zone` column on events, and no constraint named `events_time_zone_shape`.
+--   (2) the rolled-back check at the foot: red on today's schema (0 fixtures green; 1 to 4 red, the column missing),
+--       green with this file between `begin;` and the block; then apply verbatim.
+--   (3) get_advisors, EXPECTED DELTA: none (no new function, table or policy).
+--   (4) regenerate src/lib/db/types.ts (events: time_zone), then retire the typed seam the lane names in its handoff
+--       (`zoneOfRow` and `withZone` in src/lib/event/zone.ts, and the `select("time_zone")` read's untyped row).
+-- =============================================================================================
+
+-- =============================================================================================
+-- 1. The column, its CHECK and its words.
+-- =============================================================================================
+alter table public.events add column time_zone text;
+
+alter table public.events
+  add constraint events_time_zone_shape
+  check (time_zone is null
+         or (char_length(time_zone) between 1 and 64 and time_zone ~ '^[A-Za-z][A-Za-z0-9_+/-]*$'));
+
+comment on column public.events.time_zone is
+  'The party''s own IANA time zone (the host''s browser zone, captured at create; her explicit choice of the party''s city in Settings moves it), NULL for a row from before it. Its album turns at 9 am the morning after its last day in this zone and its default develop is the same 9 am, one moment for every reader. The CHECK is an envelope; the app reads the zone with its own Intl.';
+
+-- =============================================================================================
+-- 2. The host writes it as she writes her other settings: a bare additive column grant, INSERT and UPDATE.
+-- =============================================================================================
+grant insert (time_zone), update (time_zone) on public.events to authenticated;
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Proved before applying, each run ONE execute_sql call of `begin;`, the block below and
+-- `rollback;` (GREEN: this file's statements between `begin;` and the block; RED: the block alone, where every step
+-- after the fixtures fails on the missing column). Fixtures: a Pro host with one dated event, and another account; each
+-- step traps its own failure into `proof`, and the last statement reads it.
+--
+-- create temp table proof (n serial, step text, ok boolean, detail text) on commit drop;
+-- create temp table fx (k text primary key, id uuid) on commit drop;
+--
+-- do $$
+-- declare
+--   v_host uuid := 'e20e0000-0000-4000-8000-000000000001';
+--   v_other uuid := 'e20e0000-0000-4000-8000-000000000002';
+--   v_event uuid := 'e20e0000-0000-4000-8000-0000000000e1';
+-- begin
+--   insert into auth.users (id, email, email_confirmed_at) values
+--     (v_host, 'ez-host@check.invalid', now()),
+--     (v_other, 'ez-other@check.invalid', now());
+--   update public.profiles set tier = 'pro' where id = v_host;
+--   insert into public.events (id, host_id, name, event_date) values (v_event, v_host, 'Zone check', '2026-10-03');
+--   insert into fx values ('host', v_host), ('other', v_other), ('event', v_event);
+--   insert into proof (step, ok, detail) values ('0 fixtures', true, 'a Pro host, one dated event, another account');
+-- exception when others then insert into proof (step, ok, detail) values ('0 fixtures', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 1. the column: text, nullable, NULL on every existing row, under its CHECK, with its words ──
+-- do $$
+-- declare t text; c text; filled int;
+-- begin
+--   select data_type || ':' || is_nullable || ':' || coalesce(column_default, 'none') into t from information_schema.columns
+--    where table_schema = 'public' and table_name = 'events' and column_name = 'time_zone';
+--   if t is distinct from 'text:YES:none' then raise exception 'column %', coalesce(t, 'missing'); end if;
+--   select count(*) into filled from public.events where time_zone is not null;
+--   if filled <> 0 then raise exception 'rows filled: %', filled; end if;
+--   select pg_get_constraintdef(oid) into c from pg_constraint
+--    where conrelid = 'public.events'::regclass and conname = 'events_time_zone_shape';
+--   if c is null or c not like '%char_length(time_zone) >= 1%' or c not like '%<= 64%'
+--      or c not like '%^[A-Za-z][A-Za-z0-9_+/-]*$%' then
+--     raise exception 'check %', coalesce(c, 'missing');
+--   end if;
+--   if col_description('public.events'::regclass,
+--        (select attnum from pg_attribute where attrelid = 'public.events'::regclass and attname = 'time_zone'))
+--      not like '%one moment for every reader%' then
+--     raise exception 'comment';
+--   end if;
+--   insert into proof (step, ok, detail) values ('1 the column, its CHECK and its words', true, c);
+-- exception when others then insert into proof (step, ok, detail) values ('1 the column, its CHECK and its words', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 2. the CHECK: IANA names in, every other shape out, in its own name ──
+-- do $$
+-- declare v uuid; bad text := ''; z text;
+-- begin
+--   select id into v from fx where k = 'event';
+--   foreach z in array array['America/Mexico_City', 'Pacific/Auckland', 'America/Argentina/Buenos_Aires', 'Etc/GMT+5',
+--                            'UTC', 'America/Port-au-Prince', 'EST5EDT', repeat('a', 64)] loop
+--     update public.events set time_zone = z where id = v;
+--   end loop;
+--   update public.events set time_zone = null where id = v; -- none again: legal
+--   foreach z in array array['+05:30', '', 'America/New York', '/UTC', 'America/Mexico_City;', 'Europe/Londön',
+--                            repeat('a', 65), '9am'] loop
+--     begin
+--       update public.events set time_zone = z where id = v;
+--       bad := bad || ' admitted:' || quote_literal(z);
+--     exception when check_violation then
+--       if sqlerrm not like '%events_time_zone_shape%' then bad := bad || ' words:' || sqlerrm; end if;
+--     end;
+--   end loop;
+--   if bad <> '' then raise exception 'check:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('2 the CHECK: names in, every other shape out', true,
+--     'eight names in (a city, a region, a 64-char envelope); an offset, empty, a space, a leading slash, a semicolon, a non-ASCII letter, 65 chars, a digit first out');
+-- exception when others then insert into proof (step, ok, detail) values ('2 the CHECK: names in, every other shape out', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 3. the grants: the host writes it as she writes her settings (insert and update), anon never, nothing cascaded ──
+-- do $$
+-- declare v uuid; v_host uuid; v_other uuid; n int; bad text := '';
+-- begin
+--   select id into v from fx where k = 'event';
+--   select id into v_host from fx where k = 'host';
+--   select id into v_other from fx where k = 'other';
+--   if not has_column_privilege('authenticated', 'public.events', 'time_zone', 'INSERT') then bad := bad || ' auth-insert'; end if;
+--   if not has_column_privilege('authenticated', 'public.events', 'time_zone', 'UPDATE') then bad := bad || ' auth-update'; end if;
+--   if not has_column_privilege('authenticated', 'public.events', 'time_zone', 'SELECT') then bad := bad || ' auth-select'; end if;
+--   if has_column_privilege('anon', 'public.events', 'time_zone', 'SELECT')
+--      or has_column_privilege('anon', 'public.events', 'time_zone', 'UPDATE')
+--      or has_column_privilege('anon', 'public.events', 'time_zone', 'INSERT') then bad := bad || ' anon-holds'; end if;
+--   -- Additive: the columns granted before it still are (a table-level revoke would have cascaded them away).
+--   if not has_column_privilege('authenticated', 'public.events', 'event_end_date', 'UPDATE')
+--      or not has_column_privilege('authenticated', 'public.events', 'develops_at', 'UPDATE')
+--      or not has_column_privilege('authenticated', 'public.events', 'name', 'INSERT') then bad := bad || ' cascaded'; end if;
+--   -- Never a column the host may not write.
+--   if has_column_privilege('authenticated', 'public.events', 'qr_token', 'UPDATE')
+--      or has_column_privilege('authenticated', 'public.events', 'event_password_hash', 'UPDATE') then bad := bad || ' widened'; end if;
+--
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_host::text, true);
+--   update public.events set time_zone = 'Pacific/Auckland' where id = v;
+--   get diagnostics n = row_count;
+--   if n <> 1 then bad := bad || ' host-update'; end if;
+--   insert into public.events (host_id, name, time_zone) values (v_host, 'Zone check made with a zone', 'America/Mexico_City');
+--   get diagnostics n = row_count;
+--   if n <> 1 then bad := bad || ' host-insert'; end if;
+--   begin
+--     update public.events set time_zone = '+13:00' where id = v;
+--     bad := bad || ' host-offset';
+--   exception when check_violation then null;
+--   end;
+--   reset role;
+--
+--   -- Another account's session moves nothing on her event: the grant names the column, RLS names the rows.
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_other::text, true);
+--   update public.events set time_zone = 'Europe/London' where id = v;
+--   get diagnostics n = row_count;
+--   if n <> 0 then bad := bad || ' cross-tenant-update'; end if;
+--   reset role;
+--
+--   set local role anon;
+--   perform set_config('request.jwt.claim.sub', '', true);
+--   begin
+--     update public.events set time_zone = 'Europe/London' where id = v;
+--     bad := bad || ' anon-update';
+--   exception when insufficient_privilege then null;
+--   end;
+--   reset role;
+--   if (select time_zone from public.events where id = v) is distinct from 'Pacific/Auckland' then
+--     bad := bad || ' moved-by-another';
+--   end if;
+--   if bad <> '' then raise exception 'grants:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('3 the grants: hers to write, anon none, nothing cascaded', true,
+--     'authenticated insert, update, select; her update and insert land; an offset refused; another account moves 0 rows; anon 42501');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('3 the grants: hers to write, anon none, nothing cascaded', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 4. ★ the app's fill where missing (`updateEvent`) never moves a zone: a date saved from another zone keeps it ──
+-- do $$
+-- declare v uuid; v_host uuid; n int; bad text := '';
+-- begin
+--   select id into v from fx where k = 'event';
+--   select id into v_host from fx where k = 'host';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_host::text, true);
+--   -- The party keeps Auckland (step 3); a date saved from London fills only where the row has none.
+--   update public.events set event_date = '2026-10-10' where id = v and deleted_at is null;
+--   update public.events set time_zone = 'Europe/London' where id = v and deleted_at is null and time_zone is null;
+--   get diagnostics n = row_count;
+--   if n <> 0 then bad := bad || ' fill-moved-a-zone'; end if;
+--   -- A row with none takes it.
+--   update public.events set time_zone = null where id = v;
+--   update public.events set time_zone = 'Europe/London' where id = v and deleted_at is null and time_zone is null;
+--   get diagnostics n = row_count;
+--   if n <> 1 then bad := bad || ' fill-missed'; end if;
+--   reset role;
+--   if (select time_zone from public.events where id = v) is distinct from 'Europe/London' then bad := bad || ' not-filled'; end if;
+--   -- Nothing else in the catalog names the column: no function, no trigger, no policy.
+--   if exists (select 1 from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+--               where s.nspname = 'public' and p.prosrc like '%time\_zone%') then
+--     bad := bad || ' a-function-reads-it';
+--   end if;
+--   if exists (select 1 from pg_policies where qual like '%time\_zone%' or with_check like '%time\_zone%') then
+--     bad := bad || ' policy';
+--   end if;
+--   if exists (select 1 from pg_trigger where not tgisinternal and pg_get_triggerdef(oid) like '%time\_zone%') then
+--     bad := bad || ' trigger';
+--   end if;
+--   if bad <> '' then raise exception 'fill:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('4 the fill where missing: a zone kept, a gap filled, nothing else reads it', true,
+--     'a date saved from another zone moves 0 zones; a row with none takes it; no function, trigger or policy names the column');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('4 the fill where missing: a zone kept, a gap filled, nothing else reads it', false, sqlerrm);
+-- end $$;
+--
+-- select n, step, ok, detail from proof order by n;

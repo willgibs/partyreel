@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 
@@ -55,6 +55,13 @@ import { cn } from "@/lib/utils";
  * at the door or a queue that grows changes the act as it changes the number. The wall's tiles keep
  * the arrival fade (no `data-static`): the one place on the page whose photographs literally just
  * arrived, the place Just arrived used to be.
+ *
+ * ★ THREE SLOTS, FOR THE STAGE'S OWN WORDS (host-dashboard r4, `chooser=words`; `stage-lead.tsx` fills them): `eyebrow`
+ * stands before the phase word in the first line, where the reason this event leads is the control that chooses what
+ * leads; `className` is the band's own classes (the turn's entrance, its room at a phone); `plateCaption` is words
+ * under the code in place of its opened line (a preview naming the event whose code it shows). The phase word has a
+ * hook (`data-stage-phase`) so the reason can stand alone in the line while it is the control. With none of them the
+ * stage is exactly what it was.
  */
 
 function Ticks({
@@ -187,6 +194,9 @@ export function Stage({
   photos: initialPhotos,
   share,
   qrToken,
+  eyebrow,
+  className,
+  plateCaption,
 }: {
   event: HomeEvent;
   ctx: HomeContext;
@@ -197,6 +207,12 @@ export function Stage({
   share: ShareFacts;
   /** The album's doorbell channel, heard only on its day. */
   qrToken: string;
+  /** Before the phase word, in the stage's first line. */
+  eyebrow?: ReactNode;
+  /** The band's own classes, after its own. */
+  className?: string;
+  /** Words under the plate in place of its opened line. */
+  plateCaption?: ReactNode;
 }) {
   // What the doorbell's answers have moved since the server drew the stage. A new drawing from the
   // server (a refresh behind the claims review, a return to the page) starts from its own facts again.
@@ -263,7 +279,10 @@ export function Stage({
       data-stage={phase}
       data-stage-lit={plate ? lamp : undefined}
       aria-label={event.name}
-      className="dark relative isolate flex flex-col overflow-hidden rounded-2xl bg-gallery text-gallery-foreground ring-1 ring-gallery-border lg:grid lg:h-[clamp(420px,30vw,560px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
+      className={cn(
+        "dark relative isolate flex flex-col overflow-hidden rounded-2xl bg-gallery text-gallery-foreground ring-1 ring-gallery-border lg:grid lg:h-[clamp(420px,30vw,560px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]",
+        className,
+      )}
     >
       {/* The light: the event's own lamp until its first photograph, then the lead photograph, blurred into the dark
           behind the words. */}
@@ -297,8 +316,9 @@ export function Stage({
             data-stage-word={phase}
             className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-gallery-muted uppercase"
           >
+            {eyebrow}
             {words.live && <LiveDot />}
-            {words.word}
+            <span data-stage-phase="">{words.word}</span>
             {/* The party's pulse, beside the word that says it is on. */}
             {words.pulse !== null && (
               <span className="tracking-normal normal-case">
@@ -316,7 +336,7 @@ export function Stage({
           ) : (
             <Link
               href={settingsPageHref(event.id, "event")}
-              className="mt-1.5 inline-block text-sm text-gallery-muted underline decoration-gallery-muted/40 underline-offset-4 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/50"
+              className="mt-1.5 inline-block text-sm text-gallery-muted underline decoration-gallery-muted/40 underline-offset-4 outline-none hover:text-white focus-halo"
             >
               Add the date
             </Link>
@@ -379,12 +399,13 @@ export function Stage({
             share={share}
             opened={event.ready?.opened ?? null}
             lamp={lamp}
+            caption={plateCaption}
           />
         ) : (
           <Link
             href={`/dashboard/${event.id}`}
             aria-label={`Open ${event.name}`}
-            className="absolute inset-0 outline-none focus-visible:ring-3 focus-visible:ring-white/50 focus-visible:ring-inset"
+            className="absolute inset-0 outline-none focus-halo halo-inset"
           >
             {wall ? (
               <Wall photos={photos} fresh={event.arrivals.lastHour > 0} />

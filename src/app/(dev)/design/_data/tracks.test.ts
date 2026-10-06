@@ -1,11 +1,10 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it, vi } from "vitest";
 
 // The reader is `server-only` (node:fs at request time); the unit project has
 // no react-server condition, so the marker module is stubbed out here.
 vi.mock("server-only", () => ({}));
+
+import { entries, read } from "@/testing/source-tree";
 
 import { __manifestParsers, readTrackStates, trackList } from "./tracks";
 
@@ -86,13 +85,12 @@ describe("the manifests on disk", () => {
     // manifest is written: a body carrying `**Goal.**` must yield a sentence,
     // and one without (the orchestrator's own record, a manifest that opens
     // with its review notes) must yield null rather than a wrong guess.
-    const dir = join(process.cwd(), "docs", "tracks");
+    const dir = "docs/tracks";
     const stated = new Set(
-      readdirSync(dir)
+      entries(dir)
+        .map((entry) => entry.name)
         .filter((f) => f.endsWith(".md") && f !== "README.md")
-        .filter((f) =>
-          /^\*\*Goal\.\*\*/m.test(readFileSync(join(dir, f), "utf8")),
-        )
+        .filter((f) => /^\*\*Goal\.\*\*/m.test(read(`${dir}/${f}`)))
         .map((f) => f.replace(/\.md$/, "")),
     );
     // A directory with only the Orchestrator's manifest states no goal at all.

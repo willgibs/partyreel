@@ -1,6 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join, relative } from "node:path";
 
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -8,6 +6,7 @@ import ts from "typescript";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * THE SPACE BEFORE A WORD SURVIVES THE BUILD (build 20's red-team, 2026-09-29: "30days" in the
@@ -28,7 +27,6 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  * `&rsquo;`), or the space moved inside the element before it.
  */
 
-const ROOT = process.cwd();
 const require = createRequire(import.meta.url);
 
 type Swc = {
@@ -63,7 +61,7 @@ async function shipped(
 ): Promise<string> {
   const source = ts.createSourceFile(
     file,
-    readFileSync(join(ROOT, file), "utf8"),
+    read(file),
     ts.ScriptTarget.Latest,
     true,
     ts.ScriptKind.TSX,
@@ -99,7 +97,7 @@ const ENTITY = /&(?:#\d+|#x[0-9a-f]+|[a-z]+);/i;
  * first line opening on a space, running over several lines, with an entity in it.
  */
 function spaceLosers(file: string): string[] {
-  const text = readFileSync(file, "utf8");
+  const text = read(file);
   if (!ENTITY.test(text)) return [];
   const source = ts.createSourceFile(
     file,
@@ -115,9 +113,7 @@ function spaceLosers(file: string): string[] {
         if (i === 0 || !ts.isJsxText(child)) return;
         const raw = text.slice(child.pos, child.end);
         if (/^[ \t]+\S/.test(raw) && raw.includes("\n") && ENTITY.test(raw)) {
-          found.push(
-            `src/${relative(join(ROOT, "src"), file)}: "${raw.split("\n")[0].trim()}"`,
-          );
+          found.push(`${file}: "${raw.split("\n")[0].trim()}"`);
         }
       });
     }
@@ -125,24 +121,6 @@ function spaceLosers(file: string): string[] {
   };
   visit(source);
   return found;
-}
-
-/**
- * The lab and the Library are scanned too (the lab revamp, 2026-09-29, taking in crumbs-12's
- * finding): a board's words ship on the same build, and the old toolbox read "sandbox/<name>/renders
- * bare", this very bug.
- */
-const SKIP = /\.test\.tsx$/;
-
-function tsx(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return tsx(full);
-    return entry.name.endsWith(".tsx") &&
-      !SKIP.test(relative(join(ROOT, "src"), full))
-      ? [full]
-      : [];
-  });
 }
 
 /**
@@ -191,7 +169,9 @@ describe("the space before a word survives the build", () => {
   });
 
   it("finds no JSX text elsewhere that would ship without its leading space", () => {
-    const files = tsx(join(ROOT, "src"));
+    // The lab and the Library are scanned too (the lab revamp, 2026-09-29, taking in crumbs-12's finding): a
+    // board's words ship on the same build, and the old toolbox read "sandbox/<name>/renders bare", this very bug.
+    const files = sources().filter((file) => file.endsWith(".tsx"));
     expect(files.length, "the walk found no components").toBeGreaterThan(300);
     const found = files.flatMap(spaceLosers);
     const unpaid = found.filter((hit) => !(hit in DEBTS));

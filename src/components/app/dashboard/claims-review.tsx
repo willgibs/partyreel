@@ -10,7 +10,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Lock, Mail } from "lucide-react";
+import { Check, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 import type {
@@ -352,10 +352,7 @@ export function ClaimsReview({
                 onClick={onDelete}
               >
                 {writingDisown && (
-                  <Loader2
-                    className="animate-spin motion-reduce:animate-none"
-                    aria-hidden
-                  />
+                  <span aria-hidden className="working-arc" />
                 )}
                 Delete
               </Button>
@@ -606,7 +603,6 @@ function FollowUp({ next }: { next: ClaimedEventNext }) {
       {next.host && (
         <FollowButton
           profileId={next.host.id}
-          slug={next.host.slug}
           initialFollowing={next.host.following}
           quiet
           size="xs"

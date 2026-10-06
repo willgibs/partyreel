@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * EVERY SIGN-OUT NAMES ITS SCOPE (the rule `(auth)/actions.ts` holds, build 20's red-team; enforced here since
@@ -18,16 +17,6 @@ import { describe, expect, it } from "vitest";
  * `signOut: async () => …` is a property, not a call. A scope handed in through a variable (`signOut(opts)`)
  * is refused too: the scan cannot see it, and neither can a reviewer.
  */
-
-const ROOT = process.cwd();
-const SKIP = /\.test\.tsx?$|\.d\.ts$/;
-
-function sourcesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
 
 /** Whether a call's first argument is an object literal that names `scope` itself. */
 function namesScope(call: ts.CallExpression): boolean {
@@ -100,10 +89,11 @@ describe("the scan sees what it should", () => {
 
 describe("every sign-out in the app names its scope", () => {
   it("★ finds no bare signOut(): auth-js reads it as every session, on every device", () => {
-    const found = sourcesUnder("src").flatMap((rel) =>
-      unscopedSignOuts(readFileSync(join(ROOT, rel), "utf8"), rel).map(
-        (line) => `${rel}:${line}`,
-      ),
+    // Only a file that names `signOut` can call it, so only those are parsed; the rule's own home is one.
+    const naming = sources().filter((rel) => read(rel).includes("signOut"));
+    expect(naming).toContain("src/app/(auth)/actions.ts");
+    const found = naming.flatMap((rel) =>
+      unscopedSignOuts(read(rel), rel).map((line) => `${rel}:${line}`),
     );
     expect(
       found,

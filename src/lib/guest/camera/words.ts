@@ -17,12 +17,22 @@
  */
 
 import { daysBetween } from "@/lib/events/dates";
+import { deviceZone, farZone } from "@/lib/event/zone";
+import { bothClocksWhen } from "@/lib/event/zone-words";
 import {
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
 } from "@/lib/guest/upload-tracker";
 
-export type CameraReveal = "develop" | "approve" | "live";
+/**
+ * Which album the camera shoots for: a develop time ahead, the host's approval, straight in, or, at the held door, none
+ * yet (`door`: her shots wait in the page's queue until the host lets her in, crumbs-85; never derived from the event,
+ * `revealFor`, only said by the door that holds them).
+ */
+export type CameraReveal = "develop" | "approve" | "live" | "door";
+
+/** What the held door's camera says of her shots: they wait for the let-in, never "straight in" (red-team's crumbs). */
+export const DOOR_HOLDS = "They go in once you’re let in";
 
 /** Which album the camera shoots for, now: a develop time ahead, the host's approval, or straight in. */
 export function revealFor(
@@ -68,8 +78,20 @@ export function calendarDaysBetween(from: Date, to: Date): number {
 /**
  * When the roll develops, from now: "at 9 am" today, "tomorrow at 9 am", "Saturday at 9 am" inside the week, "Oct 14
  * at 9 am" beyond it. The week ends at six days on: a seventh would say today's own weekday.
+ *
+ * ★ A FAR PARTY IN BOTH CLOCKS (crumbs-85): where `zone` (the party's, `events.time_zone`) is not this browser's own
+ * (`farZone`), the time is the party's, its day and place named, then hers ("Sun, Oct 4 at 9 am in Bali, 6 pm yours",
+ * `bothClocksWhen`): a relative day across two zones is plainly neither. A browser's answer, so said only after
+ * hydration, as every caller already says a time.
  */
-export function developsWhen(iso: string, nowMs: number = Date.now()): string {
+export function developsWhen(
+  iso: string,
+  nowMs: number = Date.now(),
+  zone?: string | null,
+): string {
+  const far = zone ? farZone(zone) : null;
+  const mine = far ? deviceZone() : null;
+  if (far && mine) return bothClocksWhen(iso, far, mine);
   const at = new Date(iso);
   const clock = clockWords(at);
   const days = calendarDaysBetween(new Date(nowMs), at);
@@ -86,12 +108,15 @@ export function cameraSubLine(input: {
   recording: boolean;
   done: boolean;
   nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
 }): string {
   if (input.recording) return "Filming";
   if (input.done) return "Your roll is done";
   if (input.reveal === "develop" && input.developsAt) {
-    return `Develops ${developsWhen(input.developsAt, input.nowMs)}`;
+    return `Develops ${developsWhen(input.developsAt, input.nowMs, input.zone)}`;
   }
+  if (input.reveal === "door") return DOOR_HOLDS;
   return input.reveal === "approve"
     ? "The host approves each shot"
     : "Every shot goes straight in";
@@ -157,15 +182,19 @@ export function unsentLine(n: number): string {
 export const ROLL_DONE_TITLE = "That’s your roll";
 
 export function rollDoneLine(input: {
-  cap: number;
+  /** Her shots on the spent roll: the roll's size, or more where the host made it smaller after she shot. */
+  held: number;
   reveal: CameraReveal;
   developsAt: string | null | undefined;
   nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
 }): string {
-  const shots = `${input.cap} ${input.cap === 1 ? "shot" : "shots"}`;
+  const shots = `${input.held} ${input.held === 1 ? "shot" : "shots"}`;
   if (input.reveal === "develop" && input.developsAt) {
-    return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs)}.`;
+    return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
   }
+  if (input.reveal === "door") return `${shots}. ${DOOR_HOLDS}.`;
   return input.reveal === "approve"
     ? `${shots}, waiting for the host.`
     : `${shots}, all in the album.`;
@@ -188,10 +217,13 @@ export function yourShotsLine(input: {
   reveal: CameraReveal;
   developsAt: string | null | undefined;
   nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
 }): string {
   if (input.reveal === "develop" && input.developsAt) {
-    return `Only you can see these until they develop ${developsWhen(input.developsAt, input.nowMs)}.`;
+    return `Only you can see these until they develop ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
   }
+  if (input.reveal === "door") return `${DOOR_HOLDS}.`;
   return input.reveal === "approve"
     ? "Each one waits for the host before it joins the album."
     : "They’re in the album as you take them.";
@@ -207,6 +239,8 @@ export const SHOT_WORDS = {
   in: TRACKER_WORDS.approved,
   sealed: TRACKER_SEALED_WORDS,
   held: TRACKER_WORDS.waiting,
+  /** Taken at the held door, waiting in the page's queue for the let-in: nothing of it is sending. */
+  door: "Waiting to go in",
   failed: "Didn’t send",
   removing: "Removing…",
   removeFailed: "Couldn’t remove it",
@@ -230,10 +264,20 @@ export const CAMERA_ACCESS = {
 /** The host's own camera has no roll (`roll-view.ts`'s `HOST_FRESH_FRAMES`). */
 export const HOST_NO_ROLL = "No roll for the host";
 
+/**
+ * HER ROLL AS A COUNT: "6 of 24", and what she truly holds where it is more than the roll ("2 on a roll of 1": the host
+ * made the roll smaller after she shot, red-team 56's LOW), never "1 of 1" beside two shots.
+ */
+export function rollCount(held: number, cap: number): string {
+  return held > cap ? `${held} on a roll of ${cap}` : `${held} of ${cap}`;
+}
+
 /** The reel's caption: "Frame 7 of 24", "24 of 24" once it is spent, and how many are still on their way. */
 export function reelCaption(input: {
   frame: number;
   cap: number;
+  /** Her shots, uncapped (`RollView.held`): read once the roll is spent; absent reads as the roll's size. */
+  held?: number;
   done: boolean;
   host: boolean;
   sending: number;
@@ -241,7 +285,7 @@ export function reelCaption(input: {
   const base = input.host
     ? HOST_NO_ROLL
     : input.done
-      ? `${input.cap} of ${input.cap}`
+      ? rollCount(Math.max(input.held ?? input.cap, input.cap), input.cap)
       : `Frame ${input.frame} of ${input.cap}`;
   return input.sending > 0 ? `${base} · sending ${input.sending}` : base;
 }

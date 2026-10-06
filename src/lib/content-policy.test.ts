@@ -1,7 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { readMigrations } from "@/lib/db/testing/migrations";
+import { filesUnder, read } from "@/testing/source-tree";
 
 // Content-policy guard for the marketing/reading surfaces (Track B, B3). Two halves:
 //
@@ -33,22 +33,14 @@ import { describe, expect, it } from "vitest";
 // tiers.ts) reach MDX through the spec-tag components (UploadSize, PlanStorage,
 // PlanUploads, ...), so a plan number is never typed into content.
 
-const ROOT = process.cwd();
-
 function collectMdx(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...collectMdx(full));
-    // .md too (R6): content/help/AUTHORING.md is the content agent's brief and
-    // must obey the same policy it teaches (it never renders — the loader only
-    // reads .mdx — but its text trains the library's voice).
-    else if (/\.mdx?$/.test(entry.name)) out.push(full);
-  }
-  return out;
+  // .md too (R6): content/help/AUTHORING.md is the content agent's brief and
+  // must obey the same policy it teaches (it never renders — the loader only
+  // reads .mdx — but its text trains the library's voice).
+  return filesUnder(dir).filter((file) => /\.mdx?$/.test(file));
 }
 
-const mdxFiles = collectMdx(join(ROOT, "content"));
+const mdxFiles = collectMdx("content");
 
 /**
  * An unpublished breaker's number, read from the newest migration that sets it (`c_<name> constant integer := N`),
@@ -56,12 +48,9 @@ const mdxFiles = collectMdx(join(ROOT, "content"));
  * whose number is gone would pass everything.
  */
 function breaker(name: string): number {
-  const dir = join(ROOT, "supabase", "migrations");
   let found: number | null = null;
-  for (const file of readdirSync(dir)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(dir, file), "utf8").replace(/--[^\n]*/g, "");
+  for (const migration of readMigrations()) {
+    const sql = migration.sql.replace(/--[^\n]*/g, "");
     for (const m of sql.matchAll(
       new RegExp(`\\b${name} constant integer := (\\d+);`, "g"),
     )) {
@@ -95,14 +84,9 @@ const BREAKER_NUMBERS_RE = new RegExp(
 // marketing page, marketing component, and copy constant. A tree walk so new
 // pages are covered the day they land.
 function collectSource(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...collectSource(full));
-    else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name))
-      out.push(full);
-  }
-  return out;
+  return filesUnder(dir).filter(
+    (file) => /\.tsx?$/.test(file) && !/\.test\.tsx?$/.test(file),
+  );
 }
 
 // THE CONSTANTS THE CLAIMS FENCE READS PAST, each with its reason. Every other
@@ -123,11 +107,11 @@ const CLAIM_EXEMPT_CONSTANTS: Record<string, string> = {};
 // a binding claim, and the footer's assistant row, which ships its question to
 // third-party assistants.
 const CLAIM_FILES = [
-  ...collectSource(join(ROOT, "src/lib/constants")).filter(
-    (file) => !(relative(ROOT, file) in CLAIM_EXEMPT_CONSTANTS),
+  ...collectSource("src/lib/constants").filter(
+    (file) => !(file in CLAIM_EXEMPT_CONSTANTS),
   ),
-  join(ROOT, "src/components/marketing/faq-data.ts"),
-  join(ROOT, "src/lib/content/llms.ts"),
+  "src/components/marketing/faq-data.ts",
+  "src/lib/content/llms.ts",
 ];
 
 function scanLines(
@@ -141,13 +125,13 @@ function scanLines(
   if (files.length === 0) throw new Error("content-policy: scanned no files");
   const found: string[] = [];
   for (const file of files) {
-    readFileSync(file, "utf8")
+    read(file)
       .split("\n")
       .forEach((line, i) => {
         const match = hit(line);
         if (match !== null) {
           found.push(
-            `${relative(ROOT, file)}:${i + 1} [${match}]: "${line.trim().slice(0, 80)}"`,
+            `${file}:${i + 1} [${match}]: "${line.trim().slice(0, 80)}"`,
           );
         }
       });
@@ -198,11 +182,10 @@ describe("content policy", () => {
   });
 
   it("reads every constant's claims but the ones it names, the events pages' copy included", () => {
-    const scanned = new Set(CLAIM_FILES.map((file) => relative(ROOT, file)));
+    const scanned = new Set(CLAIM_FILES);
     // The gap this walk closed: the events pages' copy single-source.
     expect(scanned).toContain("src/lib/constants/events.ts");
-    for (const file of collectSource(join(ROOT, "src/lib/constants"))) {
-      const rel = relative(ROOT, file);
+    for (const rel of collectSource("src/lib/constants")) {
       expect(
         scanned.has(rel) || rel in CLAIM_EXEMPT_CONSTANTS,
         `${rel} is neither scanned nor exempt with a reason`,
@@ -211,9 +194,7 @@ describe("content policy", () => {
     // An exemption is a reason about a real file: one whose file is gone is stale.
     for (const rel of Object.keys(CLAIM_EXEMPT_CONSTANTS)) {
       expect(
-        collectSource(join(ROOT, "src/lib/constants")).map((f) =>
-          relative(ROOT, f),
-        ),
+        collectSource("src/lib/constants"),
         `${rel} is exempt from the claims fence but no longer exists`,
       ).toContain(rel);
     }
@@ -246,9 +227,9 @@ describe("content policy", () => {
       ...new Set([
         ...mdxFiles,
         ...CLAIM_FILES,
-        ...collectSource(join(ROOT, "src/app/(marketing)")),
-        ...collectSource(join(ROOT, "src/components/marketing")),
-        ...collectSource(join(ROOT, "src/lib/constants")),
+        ...collectSource("src/app/(marketing)"),
+        ...collectSource("src/components/marketing"),
+        ...collectSource("src/lib/constants"),
       ]),
     ];
     // Whole-file scan with whitespace COLLAPSED, not a line scan: JSX wraps
@@ -262,12 +243,12 @@ describe("content policy", () => {
     );
     expect(BANNED.length, "the banned list is empty").toBeGreaterThan(0);
     for (const file of surfaces) {
-      const flat = readFileSync(file, "utf8").replace(/\s+/g, " ");
+      const flat = read(file).replace(/\s+/g, " ");
       for (const { why, re } of BANNED) {
         const m = re.exec(flat);
         if (m) {
           found.push(
-            `${relative(ROOT, file)} [${why}]: "...${flat.slice(Math.max(0, m.index - 30), m.index + m[0].length + 10)}..."`,
+            `${file} [${why}]: "...${flat.slice(Math.max(0, m.index - 30), m.index + m[0].length + 10)}..."`,
           );
         }
       }
@@ -302,22 +283,17 @@ describe("content policy", () => {
       ...new Set([
         ...mdxFiles,
         ...CLAIM_FILES,
-        ...collectSource(join(ROOT, "src/app/(marketing)")),
-        ...collectSource(join(ROOT, "src/components/marketing")),
-        ...collectSource(join(ROOT, "src/lib/constants")),
+        ...collectSource("src/app/(marketing)"),
+        ...collectSource("src/components/marketing"),
+        ...collectSource("src/lib/constants"),
       ]),
     ];
     const found: string[] = [];
     for (const file of surfaces) {
-      const withoutBlockComments = readFileSync(file, "utf8").replace(
-        /\/\*[\s\S]*?\*\//g,
-        "",
-      );
+      const withoutBlockComments = read(file).replace(/\/\*[\s\S]*?\*\//g, "");
       withoutBlockComments.split("\n").forEach((line, i) => {
         if (BANNED.some((re) => re.test(line))) {
-          found.push(
-            `${relative(ROOT, file)}:${i + 1}: "${line.trim().slice(0, 80)}"`,
-          );
+          found.push(`${file}:${i + 1}: "${line.trim().slice(0, 80)}"`);
         }
       });
     }

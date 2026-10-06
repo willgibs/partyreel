@@ -5,21 +5,66 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 ## Seat in (every session start, compaction or restart)
 
 1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
-   next, waiting on Will), then `docs/STATUS.md`.
+   next, waiting on Will), then `docs/STATUS.md`. **In a cloud session** (seated there since 2026-10-06): an export lasts
+   one command, so append `S`, `CHROME_PATH`, `NODE_USE_ENV_PROXY=1` and `NEXT_PUBLIC_SITE_URL=http://localhost:3000` to
+   this session's newest shell snapshot (`~/.claude/shell-snapshots/`), again after every worker restart (they came
+   hourly on 2026-10-06; the container's disk, scratchpad and wrapper survive one, `uptime` says whether it rebooted),
+   and a background command reads none, so set them inside it;
+   `apt-get update && apt-get install -y zsh`; the Chrome wrapper `spawn-prompt-cloud.txt` makes; a gitignored
+   `.env.local` written from the environment by `spawn-prompt-cloud.txt`'s recipe (the environment holds every app value
+   since 2026-10-06; its own `NEXT_PUBLIC_SITE_URL` is production's, so the file and the snapshot override it). The kit needs nothing else there: it sources nvm only where it exists and reads each value from
+   `.env.local` or the environment (`kit-env.sh`, `kit-env.mjs`). A full `pnpm test` takes about 8.5 minutes on its 4
+   cores.
 2. `git status --short` (empty), the root on `launch-prep` (a fresh session can open on `main`, and `merge-lane.sh`
-   refuses any other branch), `git worktree list`, the ports 3130 to 3139, `memory_pressure`; kill by port a dev
-   server whose lane is gone.
+   refuses any other branch), `git worktree list`, the ports 3130 to 3139, the memory (`memory_pressure` on the Mac,
+   `free -g` on Linux); kill by port a dev server whose lane is gone.
 3. The lanes: a `handed-off` manifest in `docs/tracks/` waits to be integrated; `git branch -r --list 'origin/lp/*'`
    finds a branch without one. A lane is integrated when its manifest is gone from HEAD, not merely when its tip is an
    ancestor (a fresh lane's tip is one until its first commit). A lane that was mid-work: "Resume a lane".
 4. The build the alias serves against the `launch-prep` tip, and the desk (`/design/lab?key=`) for what waits on Will.
+
+## Working with Will
+
+Will owns the product and its money decisions; the Orchestrator runs the program so he is never the bottleneck, while
+the lines he holds stay his. Nothing here or anywhere lives only in an agent's memory (CLAUDE.md).
+- **Chat, plainly.** He reads chat, never plan files or scratch: a question is asked in chat in plain text with its
+  context and links (never only in a widget or a file), reports are brief, and he is never asked what to do next.
+- **Continuous.** Finish a thing and choose the next; his messages and lane handoffs come first. Wakes are his messages
+  and agent notifications: a timed wake only for external state nothing reports, and the hourly heartbeat only for an
+  unattended night, deleted the moment he is back. Questions are banked, never a stall.
+- **Pace the desk, not the plumbing.** New boards wait for his paste on the standing ones (one desk served at a time,
+  the next pre-integrated behind it), since keeping standing asks true while production moves under them is rework;
+  fixes and plumbing off the boards' surfaces run at full speed. His sitting never blocks the Orchestrator: say so.
+- **The calls lab** ([`docs/calls.md`](../../docs/calls.md)): lettered sections, each call in plain words (what and
+  why, then "Push back if"), open questions first, so he answers in batches; each merge's calls his to overrule join
+  as its own section at the record. A call about how something looks or moves is drawn on a board, never asked in
+  text, and an answer leaves the lab once it is routed.
+- **Standing permissions:** push and branch freely; the data architecture is the Orchestrator's to rebuild and optimize,
+  drops included, timed so partyreel.com's live build never reads a dropped thing; a milestone needs his explicit yes; a
+  one-way door goes to him with the Advisor's view beside the Orchestrator's. A classifier refusal, here or in a lane,
+  stops that step and goes to him with the smallest action it needs, never re-run another way.
+- **Pacing and seats:** weekly usage is no constraint (two Claude accounts: willg97@gmail.com resets Sunday 9am ET,
+  hi@willgibs.com Tuesday 5pm ET; plus cloud credit), so lanes run to the machine's measured memory. Near a week's
+  end he may call a wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current into
+  the auto-kill at 100%, so the next account's Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
+  lanes come first while cloud credit lasts: from a cloud seat, each lane is a cloud session of its own ("Cut a
+  lane", step 4); from a desktop session the Agent tool's remote flag runs on the Mac, so the route there is a
+  claude.ai routine (a saved item: his yes first).
+- **His browser and accounts:** never click Copy or "Copy so far" in the built-in browser (a stray paste reads as a real
+  answer); his Supabase dashboard is read-only to agents; Moltbook runs only on his word (`usher/moltbook/README.md`).
+- **The tools' reach:** the Cloudflare MCP cannot mint R2 tokens or set bucket CORS, and the Vercel MCP never sets env
+  vars or domains (the REST API with `$VERCEL_TOKEN` does): those are his, or the kit's.
+- **The Orchestrator's own budget:** from about 85% of its context window, keep the pickup current after every step and
+  pull no large outputs. Kids are never a target user (a steer for briefs, never copy or a product rule).
 
 ## Resume a lane
 
 After a restart, a kill, a usage limit or plan mode (which pauses every running lane), message each lane that was
 mid-work by SendMessage to its agent id; its transcript survives, so it keeps its context. Say what died, what is on
 disk (its branch head, uncommitted files), that a stale `.next/dev/lock` may be deleted, and to continue from its
-commits to its own handoff. An agent id lives only in the session that spawned it: when the Orchestrator's own session
+commits to its own handoff. A cloud lane is its own session: `send_message` to its session id says the same, and a
+session that is gone is respawned on its pushed branch from `spawn-prompt-cloud.txt` plus what remains. An agent id
+lives only in the session that spawned it: when the Orchestrator's own session
 is gone (another account, a closed session), respawn the lane on its worktree from `spawn-prompt.txt` plus what its
 predecessor did, what remains and what it measured, read from its transcript
 (`~/.claude/projects/<project>/<old session>/subagents/agent-<id>.jsonl`), so nothing is redone. Never integrate a
@@ -77,8 +122,12 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
      returns at the lane's merge.
    - `reads`: paths that exist and stay; never another lane's manifest (it dies at that lane's merge), its board's
      `spec.ts` instead.
-   - `brief`: the task's intent, synthesized (his exact words only where the wording itself is the point). A lab
-     lane's brief stays light on rules, so its creative energy goes to the board.
+   - `brief`: the task's intent, synthesized (his exact words only where the wording itself is the point). It opens
+     with the round's standing direction, one line naming Will's principles a lane meets every day (PRD.md's "Will's
+     product principles" and CLAUDE.md hold each with its reason): never dev-tool-ish; a host of 1 to about 10 events
+     first, scaling to hundreds; delight where it costs nothing in clarity; nothing depends on a timeline; immediate,
+     or a clear state and a way to stop it; no AI managing it; cost designed like the architecture; production the
+     working version. A lab lane's brief stays light on rules, so its creative energy goes to the board.
    - `board` and `desk`: a board lane owns its folder and its place on the desk; `cut-lane.py` adds the folder to its
      `owns`, writes the board's shape into its brief (the toolbox page, `/design/lab/kit`, is the rest), and refuses a
      spec whose `owns` names a shared list.
@@ -86,11 +135,27 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    `pnpm vitest run src/lib/track-manifests.test.ts`.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
-   `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
-   3139, at most four lanes at once (`memory_pressure` first; full speed is the default and a 5-hour cut-off is accepted, but
-   near 95% of the weekly window (`get_usage`) keep the pickup's handoff block current for the auto-kill at 100%; more run the machine out of memory), their production builds taking turns through
+   `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included; the scratch is a
+   lane's working area by design, so what a successor needs goes to the repo at the merge), one port each from 3131 to
+   3139, as many lanes as measured memory allows (`memory_pressure` first, `free -g` on Linux: six to eight on the
+   36 GB Mac, at 60% free or more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
+   current for the auto-kill at 100%), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
+   **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,
+   `source_revision` `launch-prep`, `outcome_branch` `lp/<track>`, the tag `partyreel-lane`, `permission_mode` `auto` (a
+   child is born in `default` otherwise), the model, and `spawn-prompt-cloud.txt` filled: `{track}`); its session id is
+   its In-flight row's agent. The server writes `config:auto-create-pr:draft` and no tag changes it after, so every
+   check-in lists open PRs (none opened in a night of eleven lanes). A lane's permission check may refuse a boot step
+   (the Chrome wrapper, `.env.local`, a `useradd`): never worked around, by the lane or from this seat (this seat's own
+   check names that an auto-mode bypass); the environment's Setup script is where the wrapper belongs, and its variables
+   carry what a boot once overrode (the localhost site URL, `CHROME_PATH`, `NODE_USE_ENV_PROXY`), so no lane writes
+   `.env.local` or a snapshot. A lane's final report is its `result` event (`list_events` with `kinds: ["result"]`) and
+   its cost `get_session`'s `usage.cost_usd`: a board lane ran $9 to $15, a production lane $6 to $29. A probe on a
+   small model needs its who and why, or it reads a bare list of commands as an injection. A lane cannot message back,
+   so its pushed head (`git ls-remote origin lp/<track>`) and its last events (`list_events`) are how it reports, with a
+   `send_later` check-in while lanes run; its own container sets no limit on how many run, only the integrations' pace
+   does.
 
 ## Integrate a handoff (one lane on the tree at a time)
 
@@ -108,7 +173,8 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 4. With a clean tree (the kit refuses a dirty one, so commit record edits first; the day's first integration runs
    `zsh usher/kit/negative.sh` before it), run
    `S=$S zsh usher/kit/integrate.sh <track> <sha> <board|none> $S/msg-<track>.txt > $S/integrate-<track>.log` in the
-   background: the `--no-ff` merge with the manifest deleted, then the gate on what the lane never gated (its `SCOPE`
+   background (with the longest limit, 7200000 ms: a full gate with the lab's demo passes 30 minutes, and gate 42 died
+   at a 30-minute one; commit nothing to the tree until it ends, since its lab steps scope from `HEAD`): the `--no-ff` merge with the manifest deleted, then the gate on what the lane never gated (its `SCOPE`
    and `LAB` lines say which; `FULL=1` in front forces everything, for a lane whose own gate is in doubt). Read `INTEGRATE DONE green merged=<m> gate=<N>`,
    and `<n> checks, 0 failing` when the lab ran, before anything depends on them, and every result from its own exit
    code, never through a pipe to `grep`. A `PREMISE` line names a board whose open asks describe a path the merge
@@ -133,11 +199,18 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 
 **Migrations** are global state (one Supabase behind prod and every preview): a lane writes the SQL file; you apply it
 (`apply_migration`, the whole file, trailing newline included: `md5(statements[1])` in
-`supabase_migrations.schema_migrations` then equals the file's `md5 -q`, the proof it went in verbatim),
+`supabase_migrations.schema_migrations` then equals the file's `md5 -q` on the Mac, `md5sum` on Linux, the proof it
+went in verbatim),
 additive-only while an open lane's code still calls what a contract migration would drop, and a
 destructive one only on Will's yes; then `get_advisors` (the accepted set: `docs/systems/database-security.md`),
 regenerate `src/lib/db/types.ts`, and commit both. A migration that replaces a function starts from its newest
-definition in `supabase/migrations/`.
+definition in `supabase/migrations/`. ★ From a cloud seat the stock Supabase connector asks its own confirm (an MCP
+elicitation) before any `DELETE` or `DROP`, as a statement or inside a function body, even in a rolled-back proof; no
+claude.ai client renders it, so the call reads "timed out after 60s" and nothing runs. The seat's SQL goes through a
+custom connector at
+`https://mcp.supabase.com/mcp?project_ref=ddafaemglzmuekbtjwzn&skip_elicitations=execute_sql,apply_migration`
+(Supabase's documented setting, added by Will in claude.ai's Connectors), and never rewords a `DELETE` or `DROP` past
+the detector. Every SQL call still waits on Will's Allow, so run them with him watching the session.
 
 **A change touching more than one open lane** is yours alone, announced in `orchestrator.md` first.
 
@@ -209,6 +282,12 @@ a line when a lever lands.
 - `negative.sh`: every refusal fed its known-bad input, after any kit change and before a day's first integration
   (`cost-readings.mjs` re-reads the cost each refusal was written for).
 - `alias-ensure.mjs` (with `vercel-lib.mjs`): the alias deployment; `DRY=1` reports without creating.
+- `kit-env.sh` and `kit-env.mjs`: what every script shares so it runs alike on the Mac and a cloud seat: the repo from
+  the script's own checkout, nvm only where it exists, a value from `.env.local` or else the environment
+  (`kit_env NAME`, `envValue(name)`), Chrome from `CHROME_PATH` (`chromePath`) and its DevTools port read from the
+  profile it was started with (`--remote-debugging-port=0`, then `devToolsPort`), never a port from a pid or at random;
+  `kit_port_pids` and `kit_free_port` find a port's listener through `fuser` where `lsof` sees no socket (a cloud
+  container), so a kill by port frees it there too.
 - `page-console.mjs <base> [path]`: one page in headless Chrome, its console errors, the key redacted.
 - `board-card.mjs <board...>|--desk`: one screen per board, in desk order (its place, `lives`, its opening and terms,
   every ask with its context, and the answers of its own round); `desk-sections.mjs`: the served desk per section.
@@ -219,3 +298,19 @@ a line when a lever lands.
 - `test-delta.sh <base-sha>`: the tests at HEAD against a base by name, for a count that moved with no test file in the
   diff.
 - `moltbook.mjs`: the Moltbook client (`../moltbook/README.md`).
+- `desk-refresh.sh <sha>`: Will's desk (:3000, the `../partyreel-wt/desk` worktree) rebuilt and restarted at a
+  launch-prep sha, ending `DESK READY` once the lab's stamp names it; never while a red-team walks the desk. Local only.
+- `media-gen.mjs [dir]`: test media with no Mac (ffmpeg alone): a phone's photographs with their capture time in the
+  minimal Exif, a short video, the red-team's fake camera and `compute:model`'s six shapes, unique bytes every run
+  (`$PARTYREEL_TEST_MEDIA`, else `<tmp>/partyreel-test-media`); `--capture-fixtures` regenerates the capture-time walk's
+  `imageio-nozone.jpg` and `imageio-lying.jpg` in `src/lib/media/strip-metadata-fixtures/`.
+- `redteam/signin.mjs <email> <base> <key> [--open <path>]`: a test host's session (willg97, hi@willgibs) in a walk's
+  own headless Chrome on a local build, minted with the service key and never mailed; the operator, a stranger and a
+  remote base are refused (`negative.sh`). The cloud seat's sign-in; on the Mac, Will's Chrome and the chooser.
+- `redteam-brief.txt`: a red-team's brief, its walk's specifics in braces (what changed since the last base, the walks
+  in order); the rules and the driving notes are every walk's. Its tools are `redteam/` (a headless Chrome of the
+  walk's own, the driver `drv.mjs` and how to start it in its head, fresh devices with Vercel and partyreel.com blocked,
+  real taps and presses, a guest's join, a send with its in-flight recorder), every record in the walk's `RT_DIR`.
+- `cost-model/`: the dollar model behind PRICING.md's "What it costs us": `node plans.mjs` prints each plan's worst
+  month, the archetypes and the breakeven, `node atlas.mjs` the events' once-costs; a vendor price or a plan changes
+  in `model.mjs` or `plans.mjs` beside PRICING.md's line, in the same edit.

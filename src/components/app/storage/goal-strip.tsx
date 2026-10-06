@@ -56,15 +56,14 @@ export function GoalStrip({
   const fit = goal.kind === "fit";
   const step = fit ? fitStep(count) : goalStep(count);
   const label =
-    phase === "deleting"
-      ? "Deleting…"
-      : phase === "opening"
-        ? "Opening…"
-        : step === "delete-and-switch"
-          ? "Delete and switch"
-          : goal.kind === "fit"
-            ? null
-            : `Switch to ${planWithBilling(goal.target)}`;
+    step === "delete-and-switch"
+      ? "Delete and switch"
+      : goal.kind === "fit"
+        ? null
+        : `Switch to ${planWithBilling(goal.target)}`;
+  // Working = words (identity r5): the key says what it is doing beside the arc, and holds its width.
+  const workingLabel =
+    phase === "deleting" ? "Deleting" : phase === "opening" ? "Opening" : undefined;
   const words = goalWords(goal, count);
   return (
     <div data-storage-goal="" data-state={step} className="border-b px-4 py-3">
@@ -92,7 +91,8 @@ export function GoalStrip({
             type="button"
             size="sm"
             data-storage-finish={step}
-            disabled={phase !== "idle"}
+            working={phase !== "idle"}
+            workingLabel={workingLabel}
             onClick={onFinish}
             // Beside the count when both fit; on its own line, at the end, when not.
             className="ml-auto"

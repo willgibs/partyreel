@@ -206,7 +206,7 @@ export function EventCard({
         <Link
           href={href}
           data-lit=""
-          className="relative block aspect-[16/10] overflow-hidden rounded-xl transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100"
+          className="relative block aspect-[16/10] overflow-hidden rounded-xl transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.99] motion-reduce:active:scale-100"
         >
           {surface}
         </Link>

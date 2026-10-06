@@ -25,14 +25,26 @@ import { cn } from "@/lib/utils"
  * text-xs = 12). The step NAMES do not exist yet — Tailwind v4 emits no utility
  * for an undeclared `--text-working`, so the element would silently inherit and
  * nothing in the gate would see it.
+ *
+ * ★ A CHIP AND A SEGMENT WEAR THE HOUSE'S FOCUS AND PRESS (identity r4:
+ * focus=halo, press=shrink; globals.css's `focus-halo` and `press-shrink`),
+ * a chip's give 0.95 like a small key's. They name their transitions (scale for
+ * the press's let-go, never `box-shadow`: the halo arrives in its own beat).
+ *
+ * ★ WHAT IS CHOSEN FLOATS (identity r5, set=house): an item that is on stands
+ * up over its ground as an object (globals.css's `afloat`: white on its lift on
+ * paper, lit graphite in the room), one language for a chip and a segment. A
+ * segment's group is a flat track (`bg-(--track)`, the default variant); a chip
+ * waits as a flat tone.
  */
 const toggleVariants = cva(
-  "group/toggle inline-flex items-center justify-center gap-1 rounded-lg text-sm font-medium whitespace-nowrap transition-all outline-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-pressed:bg-muted data-[state=on]:bg-muted [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/toggle relative inline-flex items-center justify-center gap-1 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground transition-[color,background-color,border-color,scale] duration-150 ease-emphasis outline-none hover:text-foreground focus-halo press-shrink [--press-scale:0.95] disabled:pointer-events-none disabled:opacity-50 aria-pressed:afloat data-[state=on]:afloat [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
+        // A segment lies clear in its group's flat track; a chip is a flat tone of its own.
         default: "bg-transparent",
-        outline: "border border-input bg-transparent hover:bg-muted",
+        outline: "bg-(--key-tone) hover:bg-(--key-tone-up)",
       },
       size: {
         default: "h-8 min-w-8 px-2.5",
@@ -68,6 +80,8 @@ function ToggleGroup({
       data-size={size}
       className={cn(
         "group/toggle-group flex w-fit flex-row items-center gap-0.5 rounded-lg",
+        variant !== "outline" && "rounded-[11px] bg-(--track) p-[3px]",
+        variant === "outline" && "gap-1.5",
         className
       )}
       {...props}

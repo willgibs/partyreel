@@ -5,10 +5,12 @@
  * app selects; the one lock order; no exit and nothing that deletes anything of hers; the spend watch's readings
  * restated byte for byte but for the Drive section; the switch seeded on.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
 const raw = readFileSync(
@@ -257,22 +259,16 @@ describe("what the functions do", () => {
 describe("the spend watch's readings, restated", () => {
   it("★ are the last definition's body byte for byte, but for the Drive section (nothing of another lane reverted)", () => {
     // The newest migration before this one that DEFINES the function (a mention in a comment is not one).
-    const prior = readdirSync(MIGRATIONS)
-      .filter(
-        (f) => f.endsWith(".sql") && f < "20261005120000_cloud_export.sql",
-      )
-      .sort()
+    const prior = readMigrations()
+      .filter((f) => f.file < "20261005120000_cloud_export.sql")
       .filter((f) =>
         /create or replace function public\.spend_watch_readings\(/.test(
-          executable(readFileSync(join(MIGRATIONS, f), "utf8")),
+          executable(f.sql),
         ),
       )
       .pop();
-    expect(prior).toBe("20261003190000_spend_watch.sql");
-    const before = bodyOf(
-      executable(readFileSync(join(MIGRATIONS, prior!), "utf8")),
-      "spend_watch_readings",
-    );
+    expect(prior?.file).toBe("20261003190000_spend_watch.sql");
+    const before = bodyOf(executable(prior!.sql), "spend_watch_readings");
     const mine = bodyOf(sql, "spend_watch_readings");
     const section =
       /\n  begin\n    select coalesce\(sum\(h\.bytes\), 0\)::bigint into v_n[\s\S]*?jsonb_build_object\('drive_bytes', sqlerrm\);\n  end;\n/.exec(

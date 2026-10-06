@@ -1,7 +1,7 @@
 "use client";
 
 import { type Ref, useEffect, useState } from "react";
-import { Loader2, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { ClaimableEvent } from "@/lib/db/queries/claims";
@@ -121,7 +121,7 @@ export function ClaimCard({
       aria-label={row.eventName}
       data-claim-card={row.eventId}
       className={cn(
-        "relative flex flex-col gap-3 rounded-xl border border-border bg-card p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        "relative flex flex-col gap-3 rounded-xl border border-border bg-card p-4 outline-none focus-halo",
         arriving &&
           "animate-in duration-200 ease-emphasis fade-in-0 slide-in-from-right-3 motion-reduce:animate-none",
       )}
@@ -164,10 +164,7 @@ export function ClaimCard({
           onClick={() => answers && onClaim()}
         >
           {slow && (
-            <Loader2
-              className="animate-spin motion-reduce:animate-none"
-              aria-hidden
-            />
+            <span aria-hidden className="working-arc" />
           )}
           Claim
         </Button>

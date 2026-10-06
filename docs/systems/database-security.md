@@ -14,7 +14,7 @@ semantics live in its doc.
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 25 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
+`get_advisors` (security) after every schema change reads 26 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`. Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -87,22 +87,26 @@ semantics live in its doc.
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
   step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
   `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
-  `consume_passes_for_pro_credit` (INVOKER, the webhook's pass-to-Pro conversion), the paged album's
-  reader `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's
-  prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's
-  `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
+  `consume_passes_for_pro_credit` (INVOKER, milestone 37's pass-to-Pro conversion, kept until no deployed build names
+  it), the credit's `claim_pass_credit`, `record_pass_credit_grant`, `convert_pass_credit`, `release_pass_credit` and
+  `adopt_pass_credit_orphans` and the pass recompute `recompute_pass_entitlement` (INVOKER, the webhook's and the
+  nightly sweep's, each taking her profiles row first), `pass_lapsed` (INVOKER, the operator's `uploads_windows` asks
+  it), the paged album's reader `album_changes_since` (an INVOKER read the Next routes call after their own capability
+  check) and its log's prune `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the
+  develop's `develop_due` and `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds;
   [disposable-mode.md](disposable-mode.md)), `media_like_counts` (an INVOKER read the host's links route and the hub
   page call after their `getEvent` check), the per-event block's reads (`event_ticket_blocked` and
   `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it reads `auth.users`, which the service
-  role cannot) and its four predicates (INVOKER, run inside the guest paths' DEFINER bodies), the claims'
-  `whose_ticket` (the same shape), Send to Google Drive's `cloud_*` functions (DEFINER, one jsonb each, every Drive
-  write and the Worker's lease and report behind the app's signed routes: [drive-export.md](drive-export.md)), and the
-  trigger functions, whose EXECUTE is revoked from the client roles and
-  which still fire (EXECUTE is checked when a trigger is created, never when it fires).
+  role cannot) and its four predicates (INVOKER, run inside the guest paths' DEFINER bodies), the claims' `whose_ticket`
+  (the same shape), Send to Google Drive's `cloud_*` functions (DEFINER, one jsonb each, every Drive write and the
+  Worker's lease and report behind the app's signed routes: [drive-export.md](drive-export.md)), and the trigger
+  functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger is
+  created, never when it fires).
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
   its ticket in it), Deleted's one definition `host_deleted_media` and the upload's line `host_room_used` (both
-  SECURITY INVOKER, read only by the four capacity bodies), and the develop's five (`album_bits`, `album_doorbell`,
+  SECURITY INVOKER, read only by the four capacity bodies), the uploads line `uploads_refused` (SECURITY INVOKER, read
+  only by the six definer bodies that judge an upload: the two completes, the meter and the three advisories), and the develop's five (`album_bits`, `album_doorbell`,
   `seal_disagrees`, `guest_roll`, `develop_rows`), and Send to Google Drive's two helpers (`cloud_export_pause`,
   `cloud_export_settle`).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
@@ -110,7 +114,8 @@ semantics live in its doc.
   DEFINER body uses dynamic SQL.
 - **Deny-all tables** (RLS on, no policy, no client grant, service role only: the accepted `rls_enabled_no_policy`
   set): `guests`, `reports`, `sent_emails`, `newsletter_signups`, `unlock_attempts`, `action_attempts`,
-  `contact_submissions`, `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the
+  `contact_submissions`, `job_applications`, `event_passes`, `pass_credits` (the pass-to-Pro credit's claims, written by
+  the webhook's three functions alone), `job_runs`, `export_log` (an HMAC of the IP, never the
   IP), `ops_flags` (the kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is
   the containment: [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the
   paged album's versions and change log: service_role SELECT only, written by the deferred triggers and the log's
@@ -185,8 +190,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). A column the host
   writes straight through PostgREST carries the app's own bound, since her session passes no schema:
   `events_name_len` and `events_description_len` mirror `validation/event.ts` under a parity guard, and
-  `events_qr_style_len` is an envelope, never the preset list, so a new preset needs no migration. A paid gate on an
-  event setting lives inside its setter RPC ([billing-caps.md](billing-caps.md)).
+  `events_qr_style_len` is an envelope, never the preset list, so a new preset needs no migration, as is
+  `events_time_zone_shape` (the app reads a zone with its own `Intl`). A paid gate on an event setting lives inside
+  its setter RPC ([billing-caps.md](billing-caps.md)).
 - ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, uploads and event-slot
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
@@ -332,4 +338,6 @@ across the files (a body is its last definition; grants and policies replay stat
   which is how a check gets an unconfirmed account.
 - **An unapplied migration is proved on the live schema inside `begin; … rollback;` in ONE `execute_sql` call:** the
   call returns the LAST row-returning statement's result even after the rollback, so a temp `proof` table carries
-  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback).
+  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback). That
+  a deployed build's call still resolves to a changed signature is proved with no fixtures: call it the old way with
+  arguments its body refuses first (an unknown session, a foreign event) and read the refusal's words.

@@ -40,7 +40,9 @@ never reachability.
 - ★ **The rule reaches every path only on the admin project's hosts.** The proxy's matcher takes the session pages
   everywhere and every path only where the host is `admin.<domain>` or a `partyreel-admin` vercel.app host (a matcher
   is literals read at build, so it cannot see `NEXT_PUBLIC_SURFACE`); an admin domain outside that pattern would serve
-  the app's static pages and API routes unrefused, so a new one joins it in `src/proxy.ts`.
+  the app's static pages and API routes unrefused, so a new one joins it in `src/proxy.ts`. Less the files the shared
+  layout links from every page: Next's build output, the beacons, static images and `/manifest.webmanifest` (that one
+  path, a static route that renders no session; the allow-list would 404 it on every portal page view).
 - **A cron runs on the app surface only.** `vercel.json` is one file, so both projects register every cron and Vercel
   calls each route once per project; a cron route stops on the admin surface before any read (`servesApp()`), because
   a second run a day would fake a cadence and mask a real missed run.
@@ -106,9 +108,10 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   the purge cron: each run checks every job for a terminal row within 1.5 times its cadence and raises one
   `job_missed_run` warning per silent job. A depth reading raises `job_dead_letters_pending` or `job_queue_backlog`
   inside `/api/internal/job-run` as the Worker hands it over, as does a held backup prune (`backup_prune_held` and the
-  ops mail), and a signal failure raises where it happens (`jobs/failure-log.ts`). The prune's lone copies
-  (`primary_missing`) ring the bell from their card alone so far (ROADMAP). `jobHealth` without its inputs
-  answers `never`, not `missed`, so the scan never pages on a number it did not take.
+  ops mail) and any report carrying the backup's lone copies (`primary_missing`, the prune's run or the restore's
+  pass: `backup_primary_missing`, and the ops mail at most once a day), and a signal failure raises where it happens
+  (`jobs/failure-log.ts`). `jobHealth` without its inputs answers `never`, not `missed`, so the scan never pages on a
+  number it did not take.
 - **A sub-sweep can be a job of its own** (which, and why, is [lifecycle-recovery.md](lifecycle-recovery.md)'s): it
   opens and closes its own row inside the parent run through `createSweepRunner`, with its own switch and card; the
   rest ride the parent's row.
@@ -131,7 +134,9 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains), and only a
   `scheduled` job may open a run there, since a start against a signal or a reading would leave a `running` row
   nothing closes; its one other answer is the backup prune's release stamp
-  ([durability-backups.md](durability-backups.md)).
+  ([durability-backups.md](durability-backups.md)). The one start the app has is the backup restore's Restore now
+  (AAL2), which goes to the Worker's own door instead (`BACKUP_WORKER_URL`, the same bearer; durability-backups.md,
+  "The restore").
   ★ The export Worker's daily heartbeat (the `export` job) rides its own signed report instead (`/api/export/report`,
   [uploads-and-r2.md](uploads-and-r2.md)), written as one closed row, so a Worker whose export secret drifted from the
   app's reads Missed, where the shared bearer would have let it check in healthy. The Drive Worker's sweep does the
@@ -309,7 +314,9 @@ reader sees the same thank-you either way and nothing else would ever show it. A
 `/admin/accounts` and an account's page are read-only (billing changes go through Stripe: the webhook is the sole writer
 of tier and cap), and they say what the product enforces on an upload, so "why was this host refused" needs no SQL. The
 reads are `lib/db/queries/accounts.ts`; the words are `app/admin/accounts/uploads.ts`, shared by the list and the page so
-a row and its card never disagree.
+a row and its card never disagree. The list also carries two billing checks, the pass-to-Pro credits stuck past their
+hour or waiting on Stripe and Stripe's change-plan configuration against every Pro price, and an account's page her
+credits, a stuck one with its Retry, which runs the webhook's own credit path ([billing-caps.md](billing-caps.md)).
 - ★ **A host's uploads are `uploads_used` asked with HER OWN tier,** as `create_media*` and `meter_upload` ask it (this
   calendar month's ledger for Free and Pro, her live passes' own year for a pass holder), against `uploadAllowance` (the
   one home, tiers.ts). `readHostMonthUploads` asks as `pro` on purpose, for the plan sheet's "what a switch to Pro is

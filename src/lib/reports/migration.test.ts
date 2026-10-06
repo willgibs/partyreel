@@ -14,31 +14,26 @@
  *  - the meter releases at an operator's removal and never twice; a quietly held row takes her own acts; the
  *    proof mail's switch is seeded off.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const DIR = join(process.cwd(), "supabase", "migrations");
+import { readMigrations } from "@/lib/db/testing/migrations";
+
 const FILE = "20260929140000_triage_r2.sql";
-const FILES = readdirSync(DIR)
-  .filter((f) => f.endsWith(".sql"))
-  .sort();
+const FILES = readMigrations();
 
 const strip = (sql: string) => sql.replace(/--[^\n]*/g, "");
 const collapse = (sql: string) => sql.replace(/\s+/g, " ");
-const read = (file: string) => strip(readFileSync(join(DIR, file), "utf8"));
 
 /** This file, comments stripped and whitespace collapsed. */
-const OWN = collapse(read(FILE));
+const OWN = collapse(strip(FILES.find((f) => f.file === FILE)!.sql));
 /** Every migration, in order, the same way. */
-const ALL = FILES.map((f) => collapse(read(f))).join("\n");
+const ALL = FILES.map((f) => collapse(strip(f.sql))).join("\n");
 
 /** The newest definition of `public.<name>` across the set: from its `create` to its closing dollar-quote. */
 function newest(name: string): string {
   let latest: string | null = null;
-  for (const file of FILES) {
-    const sql = read(file);
+  for (const { file, sql: raw } of FILES) {
+    const sql = strip(raw);
     const opener = new RegExp(
       `create (or replace )?function public\\.${name}\\(`,
       "g",

@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * EVERY POINTER TO THE DEMO IS A DEMO DOOR (`system/demo-modal/demo-door.tsx`).
@@ -17,21 +16,15 @@ import { describe, expect, it } from "vitest";
  * anchor or `Link` handed the demo's address. Pinned for non-emptiness: a scan that sees no door is a
  * broken scan, not a clean site.
  */
-const ROOT = process.cwd();
-
 function tsx(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return tsx(full);
-    return /\.tsx$/.test(entry.name) && !/\.test\.tsx$/.test(entry.name)
-      ? [full]
-      : [];
-  });
+  return filesUnder(dir).filter(
+    (file) => /\.tsx$/.test(file) && !/\.test\.tsx$/.test(file),
+  );
 }
 
 const FILES = [
-  ...tsx(join(ROOT, "src/components/marketing")),
-  ...tsx(join(ROOT, "src/app/(marketing)")),
+  ...tsx("src/components/marketing"),
+  ...tsx("src/app/(marketing)"),
 ];
 
 /**
@@ -46,11 +39,9 @@ const OWN = new Set([
 ]);
 
 const code = (file: string) =>
-  readFileSync(file, "utf8")
+  read(file)
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
-
-const rel = (file: string) => relative(ROOT, file);
 
 describe("every pointer to the demo", () => {
   it("finds the doors at all", () => {
@@ -63,8 +54,8 @@ describe("every pointer to the demo", () => {
 
   it("★ is a demo door, never a plain link carrying the demo's own event", () => {
     const offenders = FILES.filter(
-      (f) => !OWN.has(rel(f)) && /["']demo_open["']/.test(code(f)),
-    ).map(rel);
+      (f) => !OWN.has(f) && /["']demo_open["']/.test(code(f)),
+    );
     expect(
       offenders,
       `These write the demo_open event themselves, so they are plain links to the demo: draw a DemoDoor ` +
@@ -77,9 +68,7 @@ describe("every pointer to the demo", () => {
     // are the stragglers (the short `/demo` is the code's own value, never a destination written by hand).
     const plain =
       /<(?:Link|a)\b[^>]*\bhref=(?:\{DEMO_EVENT_URL\}|"\/demo"|'\/demo'|\{"\/demo"\})/;
-    const offenders = FILES.filter(
-      (f) => !OWN.has(rel(f)) && plain.test(code(f)),
-    ).map(rel);
+    const offenders = FILES.filter((f) => !OWN.has(f) && plain.test(code(f)));
     expect(offenders, offenders.join("\n")).toEqual([]);
   });
 });

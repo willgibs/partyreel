@@ -170,6 +170,8 @@ export function GuestNameStep({
   }
 
   function submit() {
+    // The key works rather than going off (Button's `working`), so the Enter key's second submit is held here.
+    if (saving) return;
     const checked = checkDisplayName(value);
     if (!checked.ok) {
       setRefusal(checked.refusal);
@@ -465,7 +467,7 @@ export function GuestNameStep({
             type="button"
             data-email-ghost
             onClick={openEmail}
-            className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 text-left text-working text-muted-foreground transition-colors duration-150 ease-emphasis outline-none hover:border-foreground/30 hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex min-h-11 w-full focus-halo items-center gap-2 rounded-lg border border-dashed border-border px-3 text-left text-working text-muted-foreground transition-colors duration-150 ease-emphasis outline-none hover:border-foreground/30 hover:text-foreground"
           >
             {/* The envelope is a glyph inside a line, so it takes the lamp's light (`icons=lit`);
                 under 360px it steps aside so the words still hold one line at 320. */}
@@ -482,9 +484,11 @@ export function GuestNameStep({
           type="submit"
           size="cta"
           className="w-full"
-          disabled={saving || !value.trim()}
+          working={saving}
+          workingLabel="Saving"
+          disabled={!value.trim()}
         >
-          {saving ? "Just a second…" : editing ? "Save name" : "Continue"}
+          {editing ? "Save name" : "Continue"}
         </Button>
       </div>
     </ClientForm>

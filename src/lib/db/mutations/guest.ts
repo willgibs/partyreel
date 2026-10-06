@@ -16,6 +16,11 @@ import { rollRefusalSentence } from "@/lib/disposable/roll";
 import { FALLBACK_MESSAGES } from "@/lib/errors/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import {
+  ALBUM_STORAGE_FULL,
+  ALBUM_UPLOADS_SPENT,
+  capLineOf,
+} from "@/lib/upload/cap-words";
 
 type MediaType = Database["public"]["Enums"]["media_type"];
 type MediaStatus = Database["public"]["Enums"]["media_status"];
@@ -434,9 +439,10 @@ export type UploadContext =
       // same sense `visibility` is — create_media stays authoritative.
       require_verified_email: boolean;
       guest_verified: boolean;
-      // Account-level (storage-cap model): at_storage_cap = host's total bytes are
-      // at/over cap; at_monthly_cap = host hit the monthly ingress meter. Both coarse
-      // pre-checks — create_media is authoritative (see get_upload_context).
+      // Account-level: at_storage_cap = what the host keeps is at her cap and its 10%;
+      // at_monthly_cap = her uploads line is met (her plan's own number over its window, or a
+      // lapsed pass: `uploads_refused`, the completes' own question), whatever the window. Both
+      // coarse pre-checks — create_media is authoritative (see get_upload_context).
       at_storage_cap: boolean;
       at_monthly_cap: boolean;
       // Phase 2: true when this is a video request on a FREE host (video is paid-only).
@@ -525,12 +531,16 @@ export async function createMedia(input: {
   width?: number | null;
   height?: number | null;
   reelEligible?: boolean; // the live reel: false only for a clip added to the album
+  /** When the original says it was taken (Will's X7), already held to its bounds by the route; null for none. */
+  capturedAt?: string | null;
 }): Promise<CreateMediaResult> {
   // Server-mediated (H1): create_media is service-role-only (revoked from anon/authenticated), so it can't
   // be called directly via PostgREST with a spoofed size — the complete-upload route HEADs R2 for the real
   // size and calls here via the admin client. The session_token in the body remains the guest capability.
   const supabase = createAdminClient();
-  // The phone copy's two arguments are left out of the body when there is no copy (create_media refuses one alone).
+  // The phone copy's two arguments are left out of the body when there is no copy (create_media refuses one alone),
+  // and so is the capture time when the upload kept none: its default applies, so an upload without one resolves the
+  // same function either way.
   const { data, error } = await supabase.rpc("create_media", {
     p_session_token: input.sessionToken,
     p_media_id: input.mediaId,
@@ -544,6 +554,7 @@ export async function createMedia(input: {
     p_reel_eligible: input.reelEligible,
     p_phone_key: input.phoneKey ?? undefined,
     p_phone_bytes: input.phoneBytes ?? undefined,
+    p_captured_at: input.capturedAt ?? undefined,
   });
 
   if (error) {
@@ -647,8 +658,16 @@ function mapCheckViolation(message: string): CreateMediaResult {
       message: "This event doesn't accept videos.",
     };
   }
-  if (m.includes("limit") || m.includes("capacity")) {
-    return { ok: false, code: "cap_reached", message };
+  // ★ THE LINE IT MET, IN THE ALBUM'S WORDS (billing-integrity): the uploads line or storage, each the sentence the
+  // presign says for it (`cap-words.ts`), never the SQL's own, which names the host's plan to her guest. A cap sentence
+  // this code does not know reads as `unknown`, which the engine reports, never as a guess at a line.
+  const line = capLineOf(message);
+  if (line) {
+    return {
+      ok: false,
+      code: "cap_reached",
+      message: line === "uploads" ? ALBUM_UPLOADS_SPENT : ALBUM_STORAGE_FULL,
+    };
   }
   return {
     ok: false,

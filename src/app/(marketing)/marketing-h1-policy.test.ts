@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * THE H1 NEVER MOVES (the LCP rule, made mechanical at the feature-pages
@@ -19,18 +18,11 @@ import { describe, expect, it } from "vitest";
  * ★ Pinned for non-emptiness (the round-0 rule): a scan that finds no h1 is a
  * broken scan, not a clean site.
  */
-function tsx(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return tsx(full);
-    return entry.name.endsWith(".tsx") ? [full] : [];
-  });
-}
+const tsx = (dir: string) => filesUnder(dir).filter((f) => f.endsWith(".tsx"));
 
-const ROOT = process.cwd();
 const FILES = [
-  ...tsx(join(ROOT, "src/app/(marketing)")),
-  ...tsx(join(ROOT, "src/components/marketing")),
+  ...tsx("src/app/(marketing)"),
+  ...tsx("src/components/marketing"),
 ];
 
 /** Every `<h1 ...>` opening tag in the file, attributes included. */
@@ -40,7 +32,7 @@ function h1Tags(code: string): string[] {
 
 describe("the marketing h1 policy", () => {
   it("finds the site's h1s at all", () => {
-    const tags = FILES.flatMap((f) => h1Tags(readFileSync(f, "utf8")));
+    const tags = FILES.flatMap((f) => h1Tags(read(f)));
     // Nine after the hero registers round (2026-09-11) moved the utility trio
     // and /pricing onto PageHero: the bespoke heroes, the article and role
     // headers, and PageHero's own h1.
@@ -50,19 +42,14 @@ describe("the marketing h1 policy", () => {
   it("never gates an h1 on the cut, the rise or the blur-rise", () => {
     const offenders: string[] = [];
     for (const file of FILES) {
-      const code = readFileSync(file, "utf8").replace(
-        /\{\/\*[\s\S]*?\*\/\}/g,
-        "",
-      );
+      const code = read(file).replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
       for (const tag of h1Tags(code)) {
         if (
           /data-mkt-cut|data-mkt-reveal|mkt-line|\.\.\.cut\(|\.\.\.rise\(|\.\.\.mark\(/.test(
             tag,
           )
         ) {
-          offenders.push(
-            `${file.replace(ROOT + "/", "")}: ${tag.slice(0, 60)}`,
-          );
+          offenders.push(`${file}: ${tag.slice(0, 60)}`);
         }
       }
     }

@@ -16,6 +16,14 @@
  * The per-RUN delete cap (PRUNE_DELETE_CAP_PER_RUN) is enforced WORKER-SIDE across batches; this route
  * is stateless per batch and returns the raw gone set for the Worker to accumulate, clamp, and
  * HEAD-confirm. If ANY batch trips the breaker, the Worker aborts the whole run (deletes nothing).
+ *
+ * ITS SECOND QUESTION, `{ loneKeys }` → `{ named }` (durability-backups.md, "The restore"): which of these keys the
+ * backup alone holds does a live row still NAME, as its original, its preview or its phone copy (`mediaKeysOf`, the
+ * one home of "every object a row owns")? The prune asks it before it counts a lone copy, and the restore before it
+ * copies one back, so neither ever counts or restores a key its row let go of (a phone copy dropped at an upload's
+ * complete for being over its cap): restored, such a key would be an object no row names, which no sweep reclaims
+ * (the orphan sweep keys on the row's id). A key outside our layout is never named, and a read that fails answers
+ * nothing (500), so the Worker copies nothing on a question it could not get answered.
  */
 import { z } from "zod";
 
@@ -23,10 +31,16 @@ import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks, MAX_ROWS } from "@/lib/db/read-all";
+import {
+  MEDIA_KEY_COLUMNS,
+  mediaKeysOf,
+  type MediaKeyRow,
+} from "@/lib/lifecycle/reclaim";
 import { sendOnce } from "@/lib/email/send";
 import { pruneBreakerEmail } from "@/lib/email/templates";
 import { assertPruneApiEnv, serverEnv } from "@/lib/env";
 import { captureError } from "@/lib/observability/sentry";
+import { parseMediaIdFromKey } from "@/lib/r2/keys";
 import { evaluatePrune } from "@/lib/r2/prune-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -48,6 +62,48 @@ const bodySchema = z.object({
   mode: z.string().min(1).max(20),
 });
 
+// The second question (the header): a batch of lone keys, each at most R2's 1,024-byte key length.
+const namedSchema = z.object({
+  loneKeys: z.array(z.string().min(1).max(1024)).min(1).max(MAX_BATCH),
+});
+
+/**
+ * Which of these keys a live row still names. A key that is not exactly our layout names no row; the rows are read
+ * by the ids the keys carry, in `IN_CHUNK`-id chunks, and ANY failed chunk fails the whole answer, so a key whose row
+ * was never read is never answered as named or as not.
+ */
+async function answerNamed(
+  admin: ReturnType<typeof createAdminClient>,
+  keys: string[],
+): Promise<Response> {
+  const ids = new Set<string>();
+  for (const key of keys) {
+    const id = parseMediaIdFromKey(key);
+    if (id) ids.add(id);
+  }
+  let rows: MediaKeyRow[] = [];
+  if (ids.size > 0) {
+    try {
+      rows = await inChunks(
+        "prune confirm named",
+        [...ids],
+        async (chunk) =>
+          (await mustQuery(
+            admin.from("media").select(MEDIA_KEY_COLUMNS).in("id", chunk),
+            "prune confirm named",
+          )) ?? [],
+      );
+    } catch (e) {
+      captureError("cron", e, { job: "backup_restore", phase: "named" });
+      return new Response("Named query failed", { status: 500 });
+    }
+  }
+  const owned = new Set(mediaKeysOf(rows));
+  return Response.json({
+    named: keys.filter((key) => parseMediaIdFromKey(key) && owned.has(key)),
+  });
+}
+
 export async function POST(request: Request): Promise<Response> {
   let secret: string;
   try {
@@ -62,14 +118,27 @@ export async function POST(request: Request): Promise<Response> {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let body: z.infer<typeof bodySchema>;
+  let raw: unknown;
   try {
-    body = bodySchema.parse(await request.json());
+    raw = await request.json();
   } catch {
     return new Response("Bad request", { status: 400 });
   }
 
   const admin = createAdminClient();
+
+  if (raw && typeof raw === "object" && "loneKeys" in raw) {
+    const named = namedSchema.safeParse(raw);
+    if (!named.success) return new Response("Bad request", { status: 400 });
+    return answerNamed(admin, named.data.loneKeys);
+  }
+
+  let body: z.infer<typeof bodySchema>;
+  try {
+    body = bodySchema.parse(raw);
+  } catch {
+    return new Response("Bad request", { status: 400 });
+  }
 
   // Which of the sent ids STILL have a media row? Anything not returned is gone (the DB half of the
   // dual-gate). Indexed PK lookups in `IN_CHUNK`-id chunks (`inChunks`). ★ FAIL CLOSED: an id this

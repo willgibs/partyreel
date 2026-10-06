@@ -10,6 +10,7 @@
  *   pnpm compute:model --port 3131 --host-cookie-env PR_HOST_COOKIE   # the host's session ("name=value; ..."), env only
  *   pnpm compute:model --port 3131 --out <dir>            # where results.json and requests.jsonl go (default: a temp dir)
  *   pnpm compute:model --port 3131 --lab-board <id>       # the lab demo's board (default: the desk's first open one)
+ *   pnpm compute:model --port 3131 --event-name "<name>"  # the guest scenarios on an album of your own (default below)
  *   pnpm compute:model --reproject <dir> [--write-budget] # units, projections and levers again from a run's own ledger
  *
  * Exit 0 within budget, 1 when a scenario exceeds it (calls or CPU), 2 when it could not measure. Not in the gate: it
@@ -26,9 +27,11 @@
  * (`phones.mjs` keeps what a scenario's phones are owed: all of them closed when it ends, errored or not, and the door
  * walked by pressing what is on screen). ★ LOCAL ONLY: the base is always http://localhost:<port>, every device blocks
  * Vercel's and Partyreel's hosts, and nothing here sends a request to Vercel. The guest scenarios run on the test event
- * "Compute model (test)" (willg97's, 1,000 photos seeded through the real write path by `scripts/seed-demo-event.mjs`);
- * its token is read with the service key from `.env.local` and never printed. Each run adds one guest row per joining
- * device and ten photos to that event.
+ * "Compute model (test)" (willg97's, 1,000 photos seeded through the real write path by `scripts/seed-demo-event.mjs`),
+ * or the live event `--event-name` names; its token is read with the service key from `.env.local` or the environment
+ * and never printed. Each run adds one guest row per joining device and ten photos to that event. The photos it sends
+ * are copies of six shapes in `$PARTYREEL_TEST_MEDIA/images` (the kit's `usher/kit/media-gen.mjs` writes them; a
+ * folder without them is generated first, so a machine with no media of its own still runs).
  *
  * THE HOUR, COMPRESSED. A guest's hour plays in 60/K minutes (`--k`, default 20; the 12 s-poll hour at K/2, so a round
  * trip stays well inside its compressed interval): the page's Date runs K times fast and
@@ -37,7 +40,13 @@
  * slot's give-up, a join's timeout) keep real time, because network round trips do.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { cpus, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -76,8 +85,10 @@ const only = opt("--scenarios", "").split(",").filter(Boolean);
 const budgetFile = opt("--budget", join(HERE, "budget.json"));
 const labBoard = opt("--lab-board", "");
 const hostCookieEnv = opt("--host-cookie-env", "");
-const EVENT_NAME = "Compute model (test)";
-const FIXTURES = "/Users/gibby/local/ai/partyreel-test-media/images";
+const EVENT_NAME = opt("--event-name", "Compute model (test)");
+const MEDIA =
+  process.env.PARTYREEL_TEST_MEDIA || join(tmpdir(), "partyreel-test-media");
+const FIXTURES = join(MEDIA, "images");
 
 // ★ EVERY PHONE A SCENARIO OPENS IS CLOSED WHEN IT ENDS, errored or not (`phones.mjs`). A scenario that threw used to leave
 // its devices open, polling under the labels of the scenarios after it; the scenarios open theirs through this one.
@@ -153,6 +164,26 @@ async function testEvent() {
 
 /** Ten distinct photos (a fixture with a few bytes after its end marker, so no two hash alike), in the out dir. */
 function photos(n = 10) {
+  if (!existsSync(join(FIXTURES, "wide-1920x1080.jpg"))) {
+    const r = spawnSync(
+      process.execPath,
+      [
+        join(ROOT, "usher/kit/media-gen.mjs"),
+        MEDIA,
+        "--photos",
+        "0",
+        "--videos",
+        "0",
+        "--prefix",
+        "cm",
+      ],
+      { encoding: "utf8" },
+    );
+    if (r.status !== 0)
+      fail(
+        `no photos in ${FIXTURES}, and media-gen.mjs could not write them: ${(r.stderr || "").trim().slice(0, 200)}`,
+      );
+  }
   const dir = join(out, "photos");
   mkdirSync(dir, { recursive: true });
   const names = [

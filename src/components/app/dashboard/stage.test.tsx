@@ -11,6 +11,9 @@ import { homeContext, homeEvent } from "@/lib/dashboard/testing/home";
  * it draws in each phase, that before its first photograph it is lit by the event's own lamp with Settings' five
  * steps under its name, and that on its day the doorbell's answers move its photographs, its numbers and its
  * act together, through the same rules the server drew it with. Never a look.
+ *
+ * ★ ITS THREE SLOTS (host-dashboard r4, `chooser=words`, filled by `stage-lead.tsx`): an eyebrow before the phase word
+ * in the first line, the band's own classes, and words under the plate. With none of them it is the stage it was.
  */
 
 const doorbell = vi.hoisted(() => ({
@@ -348,5 +351,68 @@ describe("on its day", () => {
       />,
     );
     expect(screen.getByText("160")).toBeInTheDocument();
+  });
+});
+
+describe("its slots (host-dashboard r4, `chooser=words`)", () => {
+  const draw = (extra: Partial<React.ComponentProps<typeof Stage>> = {}) =>
+    render(
+      <Stage
+        event={homeEvent({
+          date: "2026-10-09",
+          ready: { opened: 0, guestsIn: 0 },
+        })}
+        ctx={homeContext(FRIDAY)}
+        guests={null}
+        photos={[]}
+        share={share}
+        qrToken="tok"
+        {...extra}
+      />,
+    );
+
+  it("stands an eyebrow in the first line, before the phase word, which keeps a hook of its own", () => {
+    draw({ eyebrow: <button type="button">Your newest</button> });
+    const line = document.querySelector("[data-stage-word]") as HTMLElement;
+    const children = [...line.children].map((el) => el.textContent);
+    expect(children[0]).toBe("Your newest");
+    const phase = line.querySelector("[data-stage-phase]") as HTMLElement;
+    expect(phase.textContent).toBe("In 7 days");
+    expect(line.textContent).toBe("Your newestIn 7 days");
+  });
+
+  it("draws the first line exactly as it was without one: the phase word alone, hooked", () => {
+    draw();
+    const line = document.querySelector("[data-stage-word]") as HTMLElement;
+    expect(line.textContent).toBe("In 7 days");
+    expect(line.querySelector("[data-stage-phase]")?.textContent).toBe(
+      "In 7 days",
+    );
+  });
+
+  it("adds the band's own classes after its own", () => {
+    draw({ className: "sl-turned" });
+    const band = document.querySelector("[data-stage]") as HTMLElement;
+    expect(band.classList.contains("sl-turned")).toBe(true);
+    // Its own look is untouched.
+    expect(band.classList.contains("bg-gallery")).toBe(true);
+    expect(band.classList.contains("rounded-2xl")).toBe(true);
+  });
+
+  it("puts words under the plate in place of how often the code was opened", () => {
+    draw({ plateCaption: "Our Engagement Party · photos Sep 26" });
+    expect(
+      screen.getByText("Our Engagement Party · photos Sep 26"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Not opened yet: scan it once from your phone"),
+    ).toBeNull();
+  });
+
+  it("says how often the code was opened when no words stand under it", () => {
+    draw();
+    expect(
+      screen.getByText("Not opened yet: scan it once from your phone"),
+    ).toBeInTheDocument();
   });
 });

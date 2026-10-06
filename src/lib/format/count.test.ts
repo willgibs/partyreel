@@ -1,9 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { runAsGermanNumberRuntime } from "@/lib/test-utils/german-runtime";
+import { filesUnder, read } from "@/testing/source-tree";
 
 import {
   formatCompactNumber,
@@ -137,26 +135,21 @@ describe("a count in another runtime's locale", () => {
     // The product's own source: the dev routes (the lab and the Library) are not the product, and a test file may
     // name the calls it pins. `utils.test.ts` answers the dates and leaves a bare `toLocaleString()` to this one,
     // since a number's call and a date's are spelled alike: any call that names no locale prints the runtime's.
-    const ROOT = join(__dirname, "..", "..");
+    const ROOT = "src";
     const SKIP = /\/\(dev\)\/|\.test\.tsx?$/;
     const RUNTIME_LOCALE =
       /\.toLocaleString\(\s*(?:undefined\b|\))|Intl\.NumberFormat\(\s*(?:undefined\b|\))/;
     const found: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) walk(path);
-        else if (/\.tsx?$/.test(entry.name) && !SKIP.test(path)) {
-          const source = readFileSync(path, "utf8");
-          for (const [i, line] of source.split("\n").entries()) {
-            if (/^\s*(?:\*|\/\/)/.test(line)) continue;
-            if (RUNTIME_LOCALE.test(line))
-              found.push(`${path.slice(ROOT.length)}:${i + 1}: ${line.trim()}`);
-          }
+    for (const path of filesUnder(ROOT)) {
+      if (/\.tsx?$/.test(path) && !SKIP.test(path)) {
+        const source = read(path);
+        for (const [i, line] of source.split("\n").entries()) {
+          if (/^\s*(?:\*|\/\/)/.test(line)) continue;
+          if (RUNTIME_LOCALE.test(line))
+            found.push(`${path.slice(ROOT.length)}:${i + 1}: ${line.trim()}`);
         }
       }
-    };
-    walk(ROOT);
+    }
     expect(found).toEqual([]);
   });
 });

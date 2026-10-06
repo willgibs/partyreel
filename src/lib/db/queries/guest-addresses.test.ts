@@ -12,15 +12,13 @@
  * 2026-09-23: the read pages on `id` through `readAllPages`, whose short page is the end only while the live
  * `max_rows` is at least 1,000, which `row-cap-policy.test.ts` pins).
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   asSupabase,
   createFakePostgrest,
 } from "@/lib/db/testing/fake-postgrest";
+import { filesUnder, read } from "@/testing/source-tree";
 
 vi.mock("server-only", () => ({}));
 
@@ -307,28 +305,21 @@ describe("getConfirmedGuestAddresses: every row, past the row cap", () => {
    address is a deliberate edit to the list below.
    ──────────────────────────────────────────────────────────────────────────── */
 describe("where an address may go", () => {
-  const SRC = join(process.cwd(), "src");
+  const SRC = "src";
   // The Guests room's read: the room stands over the hub (event-header r2, `rooms=over`), read where it opens (the
   // hub's render, the room's own ask), so its one read moved from the room's page into `room.server.ts`.
   const ALLOWED = ["src/app/(app)/dashboard/[eventId]/guests/room.server.ts"];
 
   function sourceFiles(dir: string): string[] {
-    return readdirSync(dir).flatMap((entry) => {
-      const full = join(dir, entry);
-      if (statSync(full).isDirectory()) return sourceFiles(full);
-      return /\.(ts|tsx|mts|mjs)$/.test(entry) ? [full] : [];
-    });
+    return filesUnder(dir).filter((file) => /\.(ts|tsx|mts|mjs)$/.test(file));
   }
 
   it("★ the Guests room is the only importer", () => {
     const importers = sourceFiles(SRC)
       .filter((file) => !file.endsWith("guest-addresses.test.ts"))
       .filter((file) =>
-        /from\s+["'][^"']*queries\/guest-addresses["']/.test(
-          readFileSync(file, "utf8"),
-        ),
-      )
-      .map((file) => relative(process.cwd(), file));
+        /from\s+["'][^"']*queries\/guest-addresses["']/.test(read(file)),
+      );
     expect(importers).toEqual(ALLOWED);
   });
 });

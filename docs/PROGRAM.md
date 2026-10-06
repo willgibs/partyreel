@@ -103,6 +103,12 @@ thinking. A bug found at the desk is fixed then. Wiring lanes keep the whole gat
 - A board that is not about the words judges its placeholder copy for size and wrapping; the words are the voice's
   (`marketing-voice.ts`).
 
+### Design boldly; Will is the tastemaker
+
+The Orchestrator and its lanes are the designers: a board opens on any surface that could be better, at the boldest
+the brief allows, with no request needed, and Will picks and steers. The generic shadcn feel is the thing to beat, down
+to the atoms, and the identity is the sum of the parts, never each borrowed component made different.
+
 ### Fast, focused rounds
 
 Fast iterative rounds beat slow meticulous ones: focused per-dimension rounds rather than mega-plans, and iterate

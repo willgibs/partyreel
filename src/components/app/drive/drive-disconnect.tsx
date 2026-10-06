@@ -2,8 +2,12 @@
 
 /**
  * DISCONNECT, ASKED FIRST (the board's confirm): what stops (a send under way) and what stays (everything already in
- * her Drive). Partyreel deletes its key at once and revokes it at Google; when Google does not confirm, she is told how
+ * her Drive). Partyreel forgets its key at once and revokes it at Google; when Google does not confirm, she is told how
  * to finish it herself.
+ *
+ * ★ NO WORD ON THIS SURFACE DELETES (crumbs-82; the Drive re-walk's finding): "deletes its key to it" was the one delete
+ * word on a Drive surface, beside "Everything already sent stays in your Drive", and Partyreel deletes nothing in
+ * her Drive. The key is forgotten.
  */
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -42,7 +46,7 @@ export function DriveDisconnect({
           description: "Everything already sent stays in your Drive.",
         });
       } else {
-        toast.warning("Partyreel deleted its key to your Drive.", {
+        toast.warning("Partyreel forgot its key to your Drive.", {
           description:
             "To be sure, remove Partyreel in your Google account too.",
           duration: Infinity,
@@ -72,7 +76,7 @@ export function DriveDisconnect({
         <PopupContent kind="confirm">
           <PopupHeader
             title="Disconnect Google Drive?"
-            description={`Partyreel stops sending to ${email ?? "your Google Drive"} and deletes its key to it. Everything already sent stays in your Drive.${
+            description={`Partyreel stops sending to ${email ?? "your Google Drive"} and forgets its key to it. Everything already sent stays in your Drive.${
               running > 0
                 ? ` ${running === 1 ? "1 send in progress" : `${formatCount(running)} sends in progress`} will stop.`
                 : ""

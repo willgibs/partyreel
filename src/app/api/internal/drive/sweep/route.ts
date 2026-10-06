@@ -1,5 +1,5 @@
 /**
- * THE SWEEP (`POST /api/internal/drive/sweep`, the Worker's cron every 5 minutes; drive-export.md): the backstop of
+ * THE SWEEP (`POST /api/internal/drive/sweep`, the Worker's cron every 15 minutes; drive-export.md): the backstop of
  * every kick. `cloud_export_sweep` answers which connections to kick (and how many lanes each, already stamped), and
  * does in SQL what time alone decides: a pause whose time came, what ran too long, what stuck, the breakers, the
  * connections failing or near a grant's end. The Worker enqueues the lanes this answers.
@@ -36,7 +36,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/** The heartbeat's cadence: one row an hour, though the sweep runs every five minutes. */
+/** The heartbeat's cadence: one row an hour, though the sweep runs every fifteen minutes. */
 const HEARTBEAT_EVERY_MS = 55 * 60 * 1000;
 
 async function followUp(

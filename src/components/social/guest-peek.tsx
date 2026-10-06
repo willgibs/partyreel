@@ -103,11 +103,7 @@ function LookActions({
   return (
     <div className="flex flex-col gap-2 pt-1">
       {canFollow ? (
-        <FollowButton
-          profileId={item.id}
-          slug={item.slug}
-          initialFollowing={false}
-        />
+        <FollowButton profileId={item.id} initialFollowing={false} />
       ) : null}
       <Button asChild className="w-full">
         <Link href={`/u/${item.slug}`}>Open full profile</Link>

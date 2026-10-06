@@ -21,6 +21,8 @@
  * (prune-strategy.ts) each stop it with the cursor at the first thing it did not finish, so the next run carries
  * on; a run that reaches the end of the listing completes the pass and the next starts at the head.
  */
+import type { LoneWalk } from "./lone-store";
+import { NAMED_BATCH, type NamedAnswer } from "./named";
 import {
   decideHold,
   nextLedger,
@@ -31,12 +33,14 @@ import {
   PRUNE_CONFIRM_BATCH,
   PRUNE_DELETE_CAP_PER_RUN,
   PRUNE_HEAD_CONCURRENCY,
+  PRUNE_LOCK_MIN_AGE_MS,
   PRUNE_RUN_DEADLINE_MS,
   PRUNE_SUBREQUEST_BUDGET,
   isPrunableAge,
   parseMediaIdFromKey,
   shouldDelete,
 } from "./prune-strategy";
+import type { RestoreMode } from "./restore-run";
 
 export type ListedObject = { key: string; uploaded: Date };
 export type ListedPage = { objects: ListedObject[]; truncated: boolean };
@@ -66,6 +70,17 @@ export type PrunePorts = {
   backup: PruneBackupBucket;
   primary: PruneBucket;
   confirm(mediaIds: string[], objectsScanned: number): Promise<ConfirmAnswer>;
+  /**
+   * Which of these lone keys a live row still names (named.ts), asked when the restore is on or in dry run. Absent,
+   * every lone key counts.
+   */
+  named?(keys: string[]): Promise<NamedAnswer>;
+  /**
+   * The lone copies' table (lone-store.ts, in the prune's Durable Object): settles the range this run judged into it
+   * (null: nothing settled, a count only) and answers how many keys the whole backup holds alone after it. Absent,
+   * a run counts its own range alone.
+   */
+  lone?: { record(walk: LoneWalk | null): Promise<number> };
   /** The wall clock the deadline is read from (injected so a test can walk it). */
   now(): number;
 };
@@ -103,6 +118,11 @@ export type PruneRunInput = {
    * or null for none: `decideHold` honours it only when it is newer than the standing hold.
    */
   releasedAtMs?: number | null;
+  /**
+   * `RESTORE_MODE` (restore-run.ts). The prune copies nothing either way; in dry run or on it asks which lone keys a
+   * live row names, so it counts only those, and its report says what the restore will do with them. Absent: off.
+   */
+  restoreMode?: RestoreMode;
   limits?: Partial<PruneLimits>;
 };
 
@@ -162,6 +182,12 @@ export const PRIMARY_MISSING_KEY = "primary_missing";
 
 /** At most this many lone copies are logged by key a run (Workers Logs keeps them for the restore); the count is whole. */
 const PRIMARY_MISSING_LOGGED = 200;
+
+/**
+ * At most this many lone keys a run carries to the named check and into the table; past it a key is counted, not
+ * kept (a disaster's volume, which the whole-bucket restore is for), and the report says so. Ten confirm calls.
+ */
+export const LONE_KEYS_PER_RUN = 10_000;
 
 type Stop = "deadline" | "subrequests" | "delete_cap";
 
@@ -233,6 +259,10 @@ export async function runPrune(
   };
   const pending = new Map<string, Candidate>();
   const deletable = new Map<string, string[]>();
+  /** The keys of the lone copies this run found, in listing order, at most LONE_KEYS_PER_RUN. */
+  const loneKeys: string[] = [];
+  /** Lone keys past LONE_KEYS_PER_RUN: counted, never kept. */
+  let loneUnkept = 0;
 
   /** The primary's keys in (after, through]: one listing call per 1,000, usually one. Null when the budget ran out. */
   async function primaryKeysThrough(
@@ -333,6 +363,10 @@ export async function runPrune(
           // the log for the restore (PRIMARY_MISSING_KEY).
           tally.primaryMissing += candidate.keys.length;
           tally.primaryMissingItems += 1;
+          for (const key of candidate.keys) {
+            if (loneKeys.length < LONE_KEYS_PER_RUN) loneKeys.push(key);
+            else loneUnkept += 1;
+          }
           if (tally.primaryMissingItems <= PRIMARY_MISSING_LOGGED) {
             console.error(
               "prune: held by the backup alone (its row lives, its primary object is gone); restore it from the backup",
@@ -378,6 +412,126 @@ export async function runPrune(
     if (left.length === 0) return;
     resumeFrom = left[0].from;
     tally.leftKeys += left.reduce((n, c) => n + c.keys.length, 0);
+  }
+
+  /**
+   * THE RUN'S LONE COPIES, SETTLED: which of the keys it found a live row still names (asked when the restore is on or
+   * in dry run, so a key a row let go of is never counted or copied back), this run's range put into the lone copies'
+   * table, and the whole backup's count read back, which is what the run reports: a pass that spans runs then reads
+   * the whole backup's lone copies after each one, never its own range alone. Its counts and its note's lines.
+   */
+  async function settleLone(): Promise<{
+    counts: Record<string, number | string | boolean>;
+    lines: string[];
+    tableFailed: boolean;
+  }> {
+    const restoreMode = input.restoreMode ?? "off";
+    let found = loneKeys;
+    let unnamed = 0;
+    let unasked = false;
+    if (restoreMode !== "off" && ports.named && loneKeys.length > 0) {
+      const named = new Set<string>();
+      for (let i = 0; i < loneKeys.length; i += NAMED_BATCH) {
+        if (!inTime() || !afford(1)) {
+          unasked = true;
+          break;
+        }
+        used += 1;
+        const answer = await ports.named(loneKeys.slice(i, i + NAMED_BATCH));
+        if (answer.kind === "unavailable") {
+          unasked = true;
+          break;
+        }
+        for (const key of answer.named) named.add(key);
+      }
+      if (!unasked) {
+        found = loneKeys.filter((key) => named.has(key));
+        unnamed = loneKeys.length - found.length;
+      }
+    }
+
+    // The range this run settled: after where it began, through where the next run resumes (to the end for a run
+    // that reached it). A run cut short at the first key it listed settled nothing, and only reads the count. It
+    // judged only the keys past the gate, so it settles only the table's old side: the young lone copies are the
+    // reconcile's (reconcile-run.ts), and a walk that settled them would drop every one it never looked at.
+    const walk: LoneWalk | null =
+      resumeFrom === null
+        ? null
+        : {
+            after: startCursor,
+            through:
+              resumeFrom !== undefined
+                ? resumeFrom
+                : reachedEnd
+                  ? null
+                  : position,
+            found,
+            judged: {
+              side: "old",
+              cutMs: input.startedAtMs - PRUNE_LOCK_MIN_AGE_MS,
+            },
+          };
+    let held = found.length;
+    let tableFailed = false;
+    if (ports.lone) {
+      used += 1;
+      try {
+        held = await ports.lone.record(walk);
+      } catch (err) {
+        tableFailed = true;
+        console.error("prune: the lone copies' table was not written", {
+          err: String(err),
+        });
+      }
+    }
+    const reported = held + loneUnkept;
+    const thisRun = found.length + loneUnkept;
+
+    const counts: Record<string, number | string | boolean> = {
+      [PRIMARY_MISSING_KEY]: reported,
+    };
+    if (input.restoreMode !== undefined) counts.restore_mode = restoreMode;
+    if (thisRun !== reported) counts.lone_found = thisRun;
+    if (unnamed > 0) counts.lone_unnamed = unnamed;
+    if (loneUnkept > 0) counts.lone_unkept = loneUnkept;
+
+    const lines: string[] = [];
+    if (reported > 0) {
+      const items = itemsOf(found);
+      const head =
+        thisRun === reported
+          ? `${plural(reported, "key")} of ${plural(items, "item")} ${reported === 1 ? "is" : "are"} held by the backup alone`
+          : thisRun === 0
+            ? `${plural(reported, "key")} ${reported === 1 ? "is" : "are"} held by the backup alone, none of them in this run's range`
+            : `${plural(reported, "key")} are held by the backup alone across the pass (${fmt(thisRun)} in this run's range)`;
+      lines.push(
+        `${head}: ${reported === 1 ? "its row lives, its primary object is" : "their rows live, their primary objects are"} gone. ` +
+          RESTORE_WORDS[input.restoreMode ?? "unset"],
+      );
+    }
+    if (unnamed > 0) {
+      lines.push(
+        `${plural(unnamed, "key")} under living rows ${unnamed === 1 ? "is" : "are"} named by none of them (an upload's ` +
+          "dropped phone copy, say): left alone, never counted or copied back.",
+      );
+    }
+    if (unasked) {
+      lines.push(
+        "Could not ask which a live row names, so every lone key counts.",
+      );
+    }
+    if (loneUnkept > 0) {
+      lines.push(
+        `${fmt(loneUnkept)} past the first ${fmt(LONE_KEYS_PER_RUN)} are counted, not kept for the restore: ` +
+          "copy the bucket back whole (durability-backups.md, Restore).",
+      );
+    }
+    if (tableFailed) {
+      lines.push(
+        "The lone copies' table could not be written, so this count is this run's range alone.",
+      );
+    }
+    return { counts, lines, tableFailed };
   }
 
   /** Confirm and re-check the pending candidates in batches; with `all`, the last short batch too. */
@@ -478,6 +632,10 @@ export async function runPrune(
     };
   }
 
+  // THE LONE COPIES, settled before the hold, which reports them too: what a live row names of what this run found,
+  // and the whole backup's count once the table has this run's range.
+  const lone = await settleLone();
+
   // THE HOLD, over everything the run judged prunable, before a single delete.
   const goneMedia = deletable.size;
   const deleteKeys = [...deletable.values()].flat();
@@ -498,11 +656,13 @@ export async function runPrune(
       .toISOString()
       .slice(0, 10);
     return {
-      status: "ok",
-      note:
+      status: lone.tableFailed ? "error" : "ok",
+      note: [
         `Held since ${since}: ${fmt(goneMedia)} items gone against a usual ${fmt(decision.usual)} (it holds past ` +
-        `${fmt(decision.threshold)}), deleted nothing. It waits for Release the hold here; pause the prune if the ` +
-        "backlog looks wrong.",
+          `${fmt(decision.threshold)}), deleted nothing. It waits for Release the hold here; pause the prune if the ` +
+          "backlog looks wrong.",
+        ...lone.lines,
+      ].join(" "),
       counts: {
         remaining: deleteKeys.length + tally.leftKeys,
         gone_media: goneMedia,
@@ -510,7 +670,7 @@ export async function runPrune(
         mode,
         hold_threshold: decision.threshold,
         // A held run judged its candidates all the same, so what it found the backup alone holds stands.
-        [PRIMARY_MISSING_KEY]: tally.primaryMissing,
+        ...lone.counts,
         ...holdCounts(decision.nextHold),
         breaker_tripped: true,
         ...(stop ? { stopped_early: true } : {}),
@@ -560,7 +720,7 @@ export async function runPrune(
   if (stop) counts.stopped_early = true;
   if (tally.absent > 0) counts.absent_from_primary = tally.absent;
   // Always, zero included: the app reads a missing count as no reading, never as none missing.
-  counts[PRIMARY_MISSING_KEY] = tally.primaryMissing;
+  Object.assign(counts, lone.counts);
   if (tally.keptOnHead > 0) counts.kept_on_recheck = tally.keptOnHead;
   if (tally.checksFailed > 0) counts.checks_failed = tally.checksFailed;
   if (!live && decision.verdict === "hold") {
@@ -575,13 +735,8 @@ export async function runPrune(
       ? `Deleted ${fmt(deleted)} keys of ${fmt(goneMedia)} items.`
       : `Dry run, deleted nothing: ${fmt(deleteKeys.length)} keys of ${fmt(goneMedia)} items would go.`,
   ];
-  // Second, so a long note's truncation never takes it: the one line about the primary.
-  if (tally.primaryMissing > 0) {
-    lines.push(
-      `${fmt(tally.primaryMissing)} keys of ${fmt(tally.primaryMissingItems)} items are held by the backup alone: ` +
-        "their rows live, their primary objects are gone. Restore them from the backup; this run's log names each.",
-    );
-  }
+  // Second, so a long note's truncation never takes it: the lines about the primary.
+  lines.push(...lone.lines);
   if (decision.verdict === "released") {
     lines.push("The hold was released on /admin/jobs, so this run went ahead.");
   }
@@ -604,7 +759,10 @@ export async function runPrune(
   }
 
   return {
-    status: errored > 0 || tally.checksFailed > 0 ? "error" : "ok",
+    status:
+      errored > 0 || tally.checksFailed > 0 || lone.tableFailed
+        ? "error"
+        : "ok",
     note: lines.join(" "),
     counts,
     ledger: nextLedger(input.ledger, {
@@ -628,6 +786,24 @@ function assertAdvances(objects: ListedObject[], after: string | null): void {
 
 function fmt(n: number): string {
   return n.toLocaleString("en-US");
+}
+
+/** What the run's note says the restore does with the lone copies, by `RESTORE_MODE` (unset: a run without one). */
+const RESTORE_WORDS: Record<RestoreMode | "unset", string> = {
+  on: "The restore copies them back next (RESTORE_MODE on); its card says what it copied.",
+  dryrun:
+    "The restore is in dry run, so it copies nothing until RESTORE_MODE is on; this run's log names each.",
+  off: "The restore is off (RESTORE_MODE): copy each from the backup by hand; this run's log names each.",
+  unset: "Restore them from the backup; this run's log names each.",
+};
+
+function plural(n: number, noun: string): string {
+  return `${fmt(n)} ${noun}${n === 1 ? "" : "s"}`;
+}
+
+/** The media items a set of keys belongs to. */
+function itemsOf(keys: readonly string[]): number {
+  return new Set(keys.map((key) => parseMediaIdFromKey(key) ?? key)).size;
 }
 
 /**

@@ -10,22 +10,29 @@
  * set a 'develop' time guests can see"). Develop now writes now: the database stores anything within a minute of its
  * own clock as its own now, so a caller's clock never decides.
  *
- * Pure and isomorphic: the host's control computes its default in the host's own time zone, in her browser, which is
- * the only place that knows what "9 am" means to her party.
+ * Pure and isomorphic. `defaultDevelopAt` reads the party's own zone where it is handed one (the event keeps its zone,
+ * `events.time_zone`), and the browser's own only where no zone can be named.
  */
 
-import { lastDayOf } from "@/lib/events/dates";
+import { dayInZone } from "@/lib/dashboard/viewer-day";
+import { wallTimeIn } from "@/lib/event/wall-time";
+import { partyZoneOf } from "@/lib/event/zone";
+import { lastDayOf, shiftDay } from "@/lib/events/dates";
 
 /** The furthest ahead a develop time may be set: a year and a day (the zod bound; the column holds a finite time). */
 export const DEVELOP_MAX_AHEAD_DAYS = 366;
 
-/** The default develop time's hour, local to the host (r1's pick, `reveal=morning`: 9 am the next day). */
+/** The default develop time's hour, on the party's clock (r1's pick, `reveal=morning`: 9 am the next day). */
 export const DEFAULT_DEVELOP_HOUR = 9;
 
 /**
- * 9 AM THE MORNING AFTER THE PARTY, in the host's own time zone: the day after the event's LAST day (a range's end,
- * else its date: lane `event-dates`) when it is still ahead (or today), else the day after today. A party on Saturday
- * develops on Sunday morning, and a weekend from Friday to Sunday on Monday morning, whenever she sets it up.
+ * 9 AM THE MORNING AFTER THE PARTY, in the party's own time zone: the day after the event's LAST day (a range's end,
+ * else its date: lane `event-dates`) when it is still ahead (or today there), else the day after today there. A party
+ * on Saturday develops on Sunday morning, and a weekend from Friday to Sunday on Monday morning, whenever and wherever
+ * she sets it up: ★ `zone` IS THE PARTY'S (`events.time_zone`, or the zone Create will carry: `hostPartyZone`), so a
+ * destination wedding set up from home develops in the party's morning, the morning its album turns (album-order's
+ * `albumTurnAt` reads the same 9 am through the same `wallTimeIn`). An unreadable zone is UTC (`partyZoneOf`). Without
+ * one (null or absent: no zone can be named) it is the browser's own 9 am, as before the party kept a zone.
  */
 export function defaultDevelopAt(input: {
   /** `events.event_date` (`YYYY-MM-DD`), or null: a range's first day. */
@@ -33,8 +40,17 @@ export function defaultDevelopAt(input: {
   /** `events.event_end_date` (`YYYY-MM-DD`), or null for one day; absent reads as one day. */
   eventEndDate?: string | null;
   now?: Date;
+  /** The party's zone, or null where none can be named (the browser's clock is read). */
+  zone?: string | null;
 }): Date {
   const now = input.now ?? new Date();
+  if (input.zone != null) {
+    const party = partyZoneOf(input.zone);
+    const today = dayInZone(now.getTime(), party);
+    const last = lastDayOf(input.eventDate, input.eventEndDate);
+    const base = last !== null && last >= today ? last : today;
+    return new Date(wallTimeIn(shiftDay(base, 1), DEFAULT_DEVELOP_HOUR, party));
+  }
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   let base = today;
   const last = lastDayOf(input.eventDate, input.eventEndDate);

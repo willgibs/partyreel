@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 
@@ -37,6 +43,9 @@ import { cn } from "@/lib/utils";
 const lamp = (n: number, alpha: number) =>
   `color-mix(in oklch, var(--lamp-${n}) ${alpha}%, transparent)`;
 const nextLamp = (n: number) => (n % 5) + 1;
+
+/** A lamp's light and the lamp beside it, for another place that draws an event's own light (the chooser's faces). */
+export { lamp as lampLight, nextLamp };
 
 /**
  * The ignition: the lamp's main light comes up from dark and a hair smaller to full over 1.8 s, on the soft curve the
@@ -177,6 +186,7 @@ export function Plate({
   share,
   opened,
   lamp: n,
+  caption,
 }: {
   eventId: string;
   name: string;
@@ -184,6 +194,8 @@ export function Plate({
   /** Visits to the code's link, the host's own included; null where readiness was not read. */
   opened: number | null;
   lamp: 1 | 2 | 3 | 4 | 5;
+  /** Words under the code in place of its opened line (the chooser's preview naming the event whose code this is). */
+  caption?: ReactNode;
 }) {
   const router = useRouter();
   const look = useMemo(() => resolveQrPreset(share.qrStyle), [share.qrStyle]);
@@ -208,7 +220,7 @@ export function Plate({
             type="button"
             data-stage-plate=""
             aria-label={`Show ${name}'s code`}
-            className="relative rounded-xl bg-white p-2.5 shadow-lift transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-white/60 active:scale-[0.98] motion-reduce:active:scale-100"
+            className="relative rounded-xl bg-white p-2.5 shadow-lift transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.98] motion-reduce:active:scale-100"
           >
             <span className="block size-[176px]">
               <StyledQr
@@ -221,7 +233,13 @@ export function Plate({
           </button>
         }
       />
-      {line && <p className="relative text-xs text-gallery-muted">{line}</p>}
+      {caption ? (
+        <p className="relative max-w-[80%] truncate text-xs text-gallery-foreground">
+          {caption}
+        </p>
+      ) : (
+        line && <p className="relative text-xs text-gallery-muted">{line}</p>
+      )}
     </div>
   );
 }

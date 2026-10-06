@@ -79,7 +79,7 @@ export function RecentRow({
                 <Link
                   href={row.href ?? "#"}
                   title={row.name}
-                  className="flex h-7 items-center gap-1.5 rounded-full bg-muted py-0.5 pr-2.5 pl-0.5 text-xs outline-none hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring/50"
+                  className="flex h-7 items-center gap-1.5 rounded-full bg-muted py-0.5 pr-2.5 pl-0.5 text-xs outline-none hover:bg-muted/70 focus-halo"
                 >
                   <Face row={row} />
                   <span className="max-w-32 truncate">{row.name}</span>
@@ -92,7 +92,7 @@ export function RecentRow({
           type="button"
           aria-expanded={!folded}
           onClick={() => onFold(!folded)}
-          className="ml-auto flex h-7 items-center gap-1 rounded-full px-2.5 text-xs text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="ml-auto flex h-7 items-center gap-1 rounded-full px-2.5 text-xs text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-halo"
         >
           {folded ? "Show" : "Hide"}
           <ChevronDown

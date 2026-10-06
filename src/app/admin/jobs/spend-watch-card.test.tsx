@@ -300,3 +300,64 @@ describe("what it can stop", () => {
     }
   });
 });
+
+describe("the change-plan configuration's line (billing-orphans)", () => {
+  it("★ names each Pro price the tagged configuration lacks, in the band's voice", () => {
+    const { container } = render(
+      <SpendWatchReadings
+        latest={{
+          ...latest(quiet),
+          changePlan: {
+            state: "missing",
+            configuration_id: "bpc_test",
+            sold: 6,
+            missing: [
+              {
+                plan_id: "pro_50_yr",
+                label: "Pro 50 GB, $90/yr",
+                price_id: "price_50y",
+              },
+            ],
+          },
+        }}
+        unreadable={null}
+      />,
+    );
+    const line = container.querySelector('[data-line="change-plan"]');
+    expect(line?.textContent).toBe(
+      "Change plan in Stripe: the tagged configuration (bpc_test) lacks Pro 50 GB, $90/yr (price_50y), so Stripe refuses a switch to it.",
+    );
+    expect(line?.querySelector(".bg-warning\\/8")).not.toBeNull();
+  });
+
+  it("is quiet when whole, the failure's when unread, and absent from a run before it", () => {
+    const { container, rerender } = render(
+      <SpendWatchReadings
+        latest={{
+          ...latest(quiet),
+          changePlan: { state: "whole", configuration_id: "bpc_test", sold: 6 },
+        }}
+        unreadable={null}
+      />,
+    );
+    expect(
+      container.querySelector('[data-line="change-plan"]')?.textContent,
+    ).toBe("Change plan in Stripe lists all 6 Pro prices (bpc_test).");
+    rerender(
+      <SpendWatchReadings
+        latest={{
+          ...latest(quiet),
+          changePlan: { state: "unread", message: "Stripe timed out" },
+        }}
+        unreadable={null}
+      />,
+    );
+    const unread = container.querySelector('[data-line="change-plan"]');
+    expect(unread?.textContent).toBe(
+      "Change plan in Stripe: no reading (Stripe timed out).",
+    );
+    expect(unread?.className).toContain("text-destructive");
+    rerender(<SpendWatchReadings latest={latest(quiet)} unreadable={null} />);
+    expect(container.querySelector('[data-line="change-plan"]')).toBeNull();
+  });
+});

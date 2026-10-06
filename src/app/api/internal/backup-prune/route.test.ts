@@ -120,3 +120,101 @@ describe("POST /api/internal/backup-prune", () => {
     expect((await POST(unauthorized)).status).toBe(401);
   });
 });
+
+/**
+ * ITS SECOND QUESTION (durability-restore): which of these lone keys a live row still names. The prune asks it
+ * before it counts a key held by the backup alone, the restore before it copies one back; a key its row let go of
+ * (a phone copy dropped at the complete), a key whose row is gone and a key outside our layout are never named.
+ */
+describe("POST /api/internal/backup-prune, which lone keys a live row names", () => {
+  const E = "0000000e-0000-4000-8000-000000000001";
+  const key = (id: string, variant: string) =>
+    `events/${E}/photo/${id}/${variant}`;
+
+  beforeEach(() => {
+    state.fake = createFakePostgrest({
+      tables: {
+        media: [
+          {
+            id: uuid(1),
+            original_key: key(uuid(1), "original.jpg"),
+            preview_key: key(uuid(1), "preview.webp"),
+            // Over its cap at the complete: deleted, and the row recorded without it.
+            phone_key: null,
+          },
+          {
+            id: uuid(2),
+            original_key: key(uuid(2), "original.jpg"),
+            preview_key: null,
+            phone_key: key(uuid(2), "phone.jpg"),
+          },
+        ],
+      },
+    });
+  });
+
+  it("★ names exactly the keys a live row holds, and never one its row let go of, a gone row's or a stranger's", async () => {
+    const asked = [
+      key(uuid(1), "original.jpg"),
+      key(uuid(1), "phone.jpg"),
+      key(uuid(1), "preview.webp"),
+      key(uuid(2), "phone.jpg"),
+      key(uuid(2), "preview.webp"),
+      key(uuid(9), "original.jpg"),
+      "events/not-ours/original.jpg",
+      `preservation/${E}/${uuid(1)}/original.jpg`,
+    ];
+    const response = await POST(request({ loneKeys: asked }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      named: [
+        key(uuid(1), "original.jpg"),
+        key(uuid(1), "preview.webp"),
+        key(uuid(2), "phone.jpg"),
+      ],
+    });
+  });
+
+  it("reads a full batch in chunks inside the URL budget", async () => {
+    const asked = Array.from({ length: MAX_ROWS }, (_, i) =>
+      key(uuid(100 + i), "original.jpg"),
+    );
+    const response = await POST(request({ loneKeys: asked }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ named: [] });
+    const reads = state.fake!.requests.filter((r) => r.name === "media");
+    expect(reads.length).toBeGreaterThan(5);
+    expect(
+      state.fake!.requests.every((r) => !r.failed && r.urlLength <= 8_000),
+    ).toBe(true);
+  });
+
+  it("refuses a batch past MAX_ROWS, an empty one, and keys that are not strings", async () => {
+    const tooMany = Array.from({ length: MAX_ROWS + 1 }, (_, i) =>
+      key(uuid(i), "original.jpg"),
+    );
+    for (const loneKeys of [tooMany, [], [42], "x"]) {
+      const response = await POST(request({ loneKeys }));
+      expect(response.status, JSON.stringify(loneKeys).slice(0, 40)).toBe(400);
+    }
+  });
+
+  it("answers nothing when the rows cannot be read: a key never read is never named", async () => {
+    delete (state.fake!.tables as Record<string, unknown>).media;
+    const response = await POST(
+      request({ loneKeys: [key(uuid(1), "original.jpg")] }),
+    );
+    expect(response.status).toBe(500);
+  });
+
+  it("refuses a caller without the bearer", async () => {
+    const unauthorized = new Request(
+      "https://partyreel.test/api/internal/backup-prune",
+      {
+        method: "POST",
+        body: JSON.stringify({ loneKeys: [key(uuid(1), "original.jpg")] }),
+      },
+    );
+    expect((await POST(unauthorized)).status).toBe(401);
+  });
+});

@@ -22,6 +22,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GIGABYTE } from "@/lib/constants/tiers";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
+import { HOLD_FLOOR_MS } from "@/components/app/pricing/leave";
+import { PricingDoorsProvider } from "@/components/app/pricing/pricing-doors";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -84,8 +86,14 @@ beforeEach(() => {
     },
   });
 });
+/** The page coming back from the browser's back/forward cache, as the browser tells it. */
+function pageshow(persisted: boolean) {
+  window.dispatchEvent(Object.assign(new Event("pageshow"), { persisted }));
+}
 afterEach(() => {
   vi.unstubAllGlobals();
+  // A press that left holds every door until the page comes back (`leave.ts`): this page always does, for the next test.
+  pageshow(true);
 });
 
 async function press(
@@ -331,8 +339,11 @@ describe("the ordinary paths", () => {
  * ★ A SIGNED-OUT PRESS CARRIES ITS OWN PAGE THROUGH THE SIGN-IN (crumbs-20: the ROADMAP's six
  * bare `/login` fallbacks, from `crumbs-11`). A session that lapsed while a host sat on a page comes
  * back to that page after the sign-in, not to the dashboard. The page rides only where it is one a
- * sign-in may return to (`loginPath`, lib/auth/return-path.ts): the public pricing page is not, so
- * its visitor still gets the bare login it always had.
+ * sign-in may return to (`loginPath`, lib/auth/return-path.ts): the app's pages, and, since
+ * pricing-doors, /pricing, the one marketing page on the list, so the visitor who pressed Get Pro
+ * there comes back to the plans she came for instead of an empty dashboard. A page off the list
+ * still gets the bare login it always had (reshaped on purpose: /pricing used to be that page's
+ * example, and the scar moved to /help, which is still not a place a sign-in may return to).
  */
 describe("a signed-out press carries the page it was pressed on", () => {
   it("returns to the host's page after signing in", async () => {
@@ -357,10 +368,125 @@ describe("a signed-out press carries the page it was pressed on", () => {
     );
   });
 
-  it("leaves the public pricing page's visitor on the bare login", async () => {
+  it("★ brings the pricing page's visitor back to the pricing page, not to the dashboard", async () => {
     pathname = "/pricing";
     replies["/api/stripe/checkout"] = { status: 401, body: {} };
     await press();
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/login?next=%2Fpricing"),
+    );
+  });
+
+  it("does the same for a pass pressed on that page, a renewal included", async () => {
+    pathname = "/pricing";
+    replies["/api/stripe/checkout"] = { status: 401, body: {} };
+    render(
+      <CheckoutButton planId="event_pass" renewal>
+        Renew
+      </CheckoutButton>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Renew" }));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/login?next=%2Fpricing"),
+    );
+  });
+
+  it("keeps the bare login on a page no sign-in returns to", async () => {
+    pathname = "/help";
+    replies["/api/stripe/checkout"] = { status: 401, body: {} };
+    await press();
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login"));
+  });
+});
+
+/**
+ * ★ PRESSED UNTIL THE PAGE HAS GONE (crumbs-83; the ROADMAP's "Checkout, Manage billing and Switch re-enable the moment
+ * Stripe's address is assigned, so a second tap while Stripe's page loads opens a second session"). Assigning the address
+ * only starts the browser's navigation; the page stands, live, until Stripe answers, so the press holds (`leave.ts`): the
+ * button keeps saying it is working until the page hides, a page the browser brings back from its cache lets it go, and so
+ * does a page that never left, after the floor.
+ */
+describe("★ pressed until the page has gone (crumbs-83)", () => {
+  const STRIPE = "https://checkout.stripe.com/c/pay/cs_test_hold";
+  beforeEach(() => {
+    replies["/api/stripe/checkout"] = {
+      status: 200,
+      body: { ok: true, url: STRIPE },
+    };
+  });
+  const checkouts = () => calls.filter((c) => c.url === "/api/stripe/checkout");
+
+  it("★ stays Starting… and pressed once Stripe's address is assigned: a second tap opens no second session", async () => {
+    await press();
+    await waitFor(() => expect(assigned).toBe(STRIPE));
+    // The old button came back here, "Get Pro" and enabled, while Stripe's page was still on its way.
+    const button = screen.getByRole("button", { name: "Starting…" });
+    expect(button).toBeDisabled();
+    await userEvent.click(button);
+    expect(checkouts()).toHaveLength(1);
+  });
+
+  it("lets go when the browser brings the page back from its cache (Back from Stripe)", async () => {
+    await press();
+    await waitFor(() => expect(assigned).toBe(STRIPE));
+    act(() => pageshow(false));
+    expect(screen.getByRole("button", { name: "Starting…" })).toBeDisabled();
+    act(() => pageshow(true));
+    expect(screen.getByRole("button", { name: "Get Pro" })).toBeEnabled();
+  });
+
+  it("stands every door down while one is leaving: another press opens nothing", async () => {
+    render(<CheckoutButton planId="event_pass">Buy a pass</CheckoutButton>);
+    await press();
+    await waitFor(() => expect(assigned).toBe(STRIPE));
+    // The other door keeps its words, and takes no press.
+    const other = screen.getByRole("button", { name: "Buy a pass" });
+    expect(other).toBeDisabled();
+    await userEvent.click(other);
+    expect(checkouts()).toHaveLength(1);
+  });
+
+  describe("a page that never left", () => {
+    // Real time moves the clock too (userEvent and waitFor lean on timers); the floor itself is stepped.
+    beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }));
+    afterEach(() => vi.useRealTimers());
+
+    it("lets go after the floor, so no door is left dead (a load she stopped)", async () => {
+      await press();
+      await waitFor(() => expect(assigned).toBe(STRIPE));
+      await vi.advanceTimersByTimeAsync(HOLD_FLOOR_MS - 1_000);
+      expect(screen.getByRole("button", { name: "Starting…" })).toBeDisabled();
+      await vi.advanceTimersByTimeAsync(2_000);
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Get Pro" })).toBeEnabled(),
+      );
+    });
+  });
+
+  it("holds nothing for a way out that does not leave (the Library's doors stop where they would)", async () => {
+    const leave = vi.fn();
+    render(
+      <PricingDoorsProvider
+        doors={{
+          readFacts: async () => null,
+          startCheckout: async () => ({ kind: "redirect", url: STRIPE }),
+          openPortal: async () => ({ kind: "error", message: "no" }),
+          changePlan: async () => ({
+            kind: "error",
+            message: "no",
+            code: null,
+          }),
+          leave,
+          router: { push: vi.fn(), replace: vi.fn(), refresh: vi.fn() },
+        }}
+      >
+        <CheckoutButton planId="pro_50">Get Pro</CheckoutButton>
+      </PricingDoorsProvider>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Get Pro" }));
+    await waitFor(() => expect(leave).toHaveBeenCalledWith(STRIPE));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Get Pro" })).toBeEnabled(),
+    );
   });
 });

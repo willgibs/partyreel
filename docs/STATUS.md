@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-10-05
+**Updated:** 2026-10-06
 
 ## The era
 
@@ -13,49 +13,45 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, from his desk on build 51
+## The current round: round 15, toward milestone 38
 
-- **Milestone 36 is live** (`28bd6d62`, 2026-10-04 21:00Z): round 15's Ladder A, trash in storage, the round's wirings,
-  the plan limits watch and the compute fixes, red-teamed on builds 52 and 53 and locally (53b). The legal text is
-  rewritten once, right before launch (his word).
-- **`launch-prep` holds milestone 37's work**: 17 lanes since milestone 36 (uploads in bursts, hand-signed links, the S3
-  SDK loaded on first send, upload cancel, the uploads line, the admin's uploads view, crumbs-66 to 74), red-team 54
-  walking it locally; desk 3's four boards merged behind desk 2.
-- **Vercel's Hobby Active CPU** reads about 3.92 of 4 hours over 30 days (2026-10-05; the 2026-10-03 peak rolls off in
-  early November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run on a local
-  production build at port 3000 (`CLAUDE.md`, "Local dev vs. live testing").
+- **Milestone 37 is live** (`b67cdc1f2`, 2026-10-05 16:25Z); the legal text is rewritten once, right before launch.
+- **`launch-prep` holds milestone 38**: the album turning at one moment for every guest (the party's zone), its Sort,
+  Filter and arrivals pill; a photo's capture time kept, never the place or device; Will's house set and working words;
+  the hub's doors as cards; Settings' roll; Back a layer at a time; the dashboard's chooser; the pass credit's integrity
+  and stuck watch; the backup restoring and reconciling again; Drive's fixes and hardening; the lab's frames held still.
+- **Red-team 56** walked it (no HIGH, one MEDIUM, small findings) and crumbs-85 fixed them; billing-orphans (gate 46)
+  and drive-crumbs (gate 47) landed the last of milestone 38's work; red-team 56b re-walked it (no HIGH or MEDIUM).
+  Milestone 38 waits on Will's yes, where Drive's and the backup's Workers deploy (`tracks/orchestrator.md`).
+- **The Orchestrator sits in a cloud session** on hi@willgibs.com's account (Will's $250 credit), each lane in its own.
+- **Vercel's Hobby Active CPU** reads about 3.89 of 4 hours over 30 days (2026-10-06; the peak rolls off in early
+  November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run locally (`CLAUDE.md`).
 
 ## The desk
 
-Desk 2 is Send to Google Drive alone (nine asks), on Will's local desk (`http://localhost:3000/design/lab?key=fiesta`,
-pinned at `94d66338`). Desk 3's four boards (identity r4, customize r1, event-header r4, host-dashboard r4) are merged on
-`launch-prep`, the desk pass clean, served the moment desk 2 is answered; desk 4 is brand r1 alone; then the small
-moments and the brand applied:
-`../partyreel-wt/_scratch/desk/round-15-plan.md`.
+Will's desk (`localhost:3000/design/lab?key=fiesta`; he refreshes it: `git pull && S=/tmp zsh usher/kit/desk-refresh.sh
+<sha>`) holds brand r2's take (Afterglow's light on paper) and, at the next refresh, event-header r6 (the cards' badges,
+then the colour of what needs her) and desk 7's moments (a host's party, seven asks; a guest's night, five; her account,
+five; Create's last steps, four). Desk 6 next.
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-36` (`28bd6d62`, 2026-10-04 21:00Z), both projects READY; the
-  read-only walk PASS (the public pages 200, the lab 404, the cron 401 to a stranger, Ladder A on /pricing with no
-  "ingress", HSTS, nosniff and frame-ancestors, the admin domain at its login). Production's pass prices are Ladder A's
-  TEST prices. Its crons: the purge at 04:00 UTC and the spend watch (now with the plan limits) at 05:00.
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 53 (`31a73a46`, 2026-10-04
-  14:35Z), idle under the CPU limit; the desk build at port 3000 is the working copy of `launch-prep`.
-  Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
-- **The shared database** runs every migration through 2026-10-04, each by protocol: round 13's
-  (`approval_never_with_a_develop`, `phone_copy`, `event_end_date`, `spend_watch`, `event_dates_finite`,
-  `upload_meter`, `doorbell_moment`) and round 15's (`deleted_counts`, `ladder_a`, `camera_clip`, `dashboard_display`
-  20261004084757), each an expand milestone 35 runs beside; no build of either project reads a dropped thing. The
-  album-log prune runs nightly with the purge.
+- **Prod:** partyreel.com is `main` at tag `milestone-37` (`b67cdc1f2`), both projects READY. Its crons: the purge at
+  04:00 UTC and the spend watch at 05:00. Send to Google Drive reads "not set up" there until its Worker deploys with
+  milestone 38 (production holds Drive's four secrets; `DRIVE_WORKER_URL` is set at the deploy).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
+  once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
+- **The shared database** runs every migration through `drive_marks` (2026-10-06), each by protocol (the Advisor read
+  each before its apply, the file's md5 matched), each an expand milestone 37 runs beside; no build of either project
+  reads a dropped thing. Advisors stand at 26 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 11,120 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
-- **Jobs:** the daily purge cron (Vercel Hobby fires it anywhere between 04:00 and 05:00 UTC, seen at 04:48; its first run on milestone 28's sweeps was green:
-  every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none; the standby budget's sweep
-  retired with trash-in-storage), the spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are live, and the export
-  Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware
-  backup prune runs dry (`PRUNE_MODE=live` is a launch flip).
+- **Tests:** about 13,200 green. The gate is local to each seat: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Jobs:** the daily purge cron (Vercel Hobby fires it between 04:00 and 05:00 UTC; the album-log prune rides it), the
+  spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are live, and
+  the export Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware backup prune runs dry
+  (`PRUNE_MODE=live` is a launch flip); the backup's reconcile and restore (`RESTORE_MODE` dryrun) deploy at milestone 38.
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.
 
 ## Infrastructure
@@ -63,18 +59,21 @@ moments and the brand applied:
 Every backing service runs under the owner account **partyr33l@gmail.com ("P3")**: **Supabase** `ddafaemglzmuekbtjwzn`
 (Pro, daily backups, the public `avatars` bucket); **Cloudflare R2** `8bd90d2f6a374d6cdff2f379e929b060`, buckets
 `partyreel` and `partyreel-backup`; **Stripe** `acct_1TcStrPtjqmVkBwk` (TEST; the live cutover is a launch task);
-**Sentry** org `partyreel`; **Resend** (`partyreel.com` verified; auth email rides Resend SMTP); **Google OAuth** P3 web
-client; the in-app operator `partyr33l@gmail.com` (`is_admin` and TOTP MFA); **Vercel** on the P3 team (two projects on one
-repo, `partyreel` and `partyreel-admin`; Hobby; the Pro cutover, DNS to Cloudflare and the repo transfer are launch
-cutovers). "Allow new signups" is off until launch (his choice: the product changes freely); anonymous sign-ins off. Configured once, never redone: the R2 buckets,
-credentials, CORS and the abort-multipart rule; the apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST
-products, prices, webhook, Billing Portal and their env values; Supabase TOTP MFA with the admin callback in the redirect
-allow-list (break-glass: delete the factor in `auth.mfa_factors`); the Sentry project and its env; the backup Worker
-and Action secrets; the prune crons and `PRUNE_API_SECRET`.
+**Sentry** org `partyreel`; **Resend** (`partyreel.com` verified; auth email rides Resend SMTP); **Google OAuth** one P3
+project for sign-in and Drive (Drive's `drive.file` asked only at a host's first send, never at sign-up); the in-app
+operator `partyr33l@gmail.com` (`is_admin` and TOTP MFA); **Vercel** on the P3 team (two projects on one repo,
+`partyreel` and `partyreel-admin`; Hobby; the Pro cutover, DNS to Cloudflare and the repo transfer are launch cutovers).
+"Allow new signups" is off until launch (his choice: the product changes freely); anonymous sign-ins off. Configured once,
+never redone: the R2 buckets, credentials, CORS and the abort-multipart rule; the apex domain; `CRON_SECRET`;
+`profiles.is_admin`; the Stripe TEST products, prices, webhook, Billing Portal and their env values; Supabase TOTP MFA
+with the admin callback in the redirect allow-list (break-glass: delete the factor in `auth.mfa_factors`); the Sentry
+project and its env; the backup Worker and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- Desk 2 (Drive, on the local desk); Claude in Chrome on willg97 (red-team 54's host walks); milestone 37's yes after
-  red-team 54; the calls lab's open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a
-  Cloudflare analytics token, X5 the CDN-cached album, X6 the operator's uploads credit) and the calls built for him to
-  overrule; Vercel Pro or the window; the 26 policy tests; the walks only he can drive (`tracks/orchestrator.md`).
+- His desk (brand r2's take; event-header r6
+  and desk 7 at the next refresh); milestone 38's yes after its last lanes and red-team 56b; the calls lab's open questions (X1 the develop time, X2 a
+  Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the CDN-cached album, X6 the operator's uploads
+  credit, X8 the policy tests' style picks) and the calls built for him to overrule; a Cloudflare token in the cloud
+  environment if the Workers should deploy from there; the two backup copies with old EXIF to delete and the six retired
+  Stripe price names to drop; Vercel Pro or the window; the walks only he can drive (`tracks/orchestrator.md`).

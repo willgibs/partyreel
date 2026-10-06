@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * EVERY RADIX LAYER PORTALS INTO THE CONTAINER IT IS HANDED (lab-sitting, from
@@ -20,32 +19,22 @@ import { describe, expect, it } from "vitest";
  * product and are not read.
  */
 
-const ROOT = join(process.cwd(), "src");
-const SKIP = [
-  join("components", "lab"),
-  join("components", "dev"),
-  join("app", "(dev)"),
-];
+const ROOT = "src";
+const SKIP = ["components/lab", "components/dev", "app/(dev)"];
 
 function sources(dir: string): string[] {
-  const out: string[] = [];
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) {
-      if (SKIP.some((s) => relative(ROOT, path) === s)) continue;
-      out.push(...sources(path));
-    } else if (name.endsWith(".tsx") && !name.includes(".test.")) {
-      out.push(path);
-    }
-  }
-  return out;
+  return filesUnder(dir).filter((path) => {
+    if (SKIP.some((s) => path.startsWith(`${ROOT}/${s}/`))) return false;
+    const name = path.slice(path.lastIndexOf("/") + 1);
+    return name.endsWith(".tsx") && !name.includes(".test.");
+  });
 }
 
 /** Every `<X.Portal ...>` opening tag in a file, whole, with where it stands. */
 function portals(
   path: string,
 ): { at: string; tag: string; reads: boolean }[] {
-  const text = readFileSync(path, "utf8");
+  const text = read(path);
   // A `container={container}` names the hook's answer read at the top.
   const reads = /usePortalContainer\(\)/.test(text);
   const out: { at: string; tag: string; reads: boolean }[] = [];
@@ -64,7 +53,7 @@ function portals(
     }
     const line = text.slice(0, m.index).split("\n").length;
     out.push({
-      at: `${relative(process.cwd(), path)}:${line}`,
+      at: `${path}:${line}`,
       tag: text.slice(m.index, end + 1),
       reads,
     });

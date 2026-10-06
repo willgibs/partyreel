@@ -418,12 +418,19 @@ export function CreateEventWizard({
         </div>
       </RoomPage>
     );
-    foot = arrived ? (
+    // ★ WORKING = WORDS (identity r5): while the event is made the foot is the key it becomes, working
+    // ("Creating your event", with the arc), and it turns to Get it ready in place when the event exists,
+    // holding the wider of its two faces throughout, so nothing in the foot moves.
+    foot = (
       <Button
         type="button"
         size="cta"
-        onClick={() => router.push(settingsPageHref(created.id, "door"))}
-        className={cn(footButton, "cr-beat-go")}
+        onClick={() => {
+          if (created) router.push(settingsPageHref(created.id, "door"));
+        }}
+        working={!arrived}
+        workingLabel="Creating your event"
+        className={cn(footButton, arrived && "cr-beat-go")}
         {...trackAttrs("cta_click", {
           cta: "get-it-ready",
           location: "create-beat",
@@ -431,10 +438,6 @@ export function CreateEventWizard({
       >
         Get it ready
       </Button>
-    ) : (
-      <p aria-hidden className="text-working text-muted-foreground">
-        Creating your event…
-      </p>
     );
   }
 

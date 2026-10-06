@@ -1,8 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { dirname, join, posix } from "node:path";
+import { dirname, posix } from "node:path";
 
 import ts from "typescript";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * ★ THE S3 SDK LOADS ON ITS FIRST SEND, NEVER ON AN IMPORT (compute-lazy-sdk, 2026-10-04). `@aws-sdk/client-s3` costs
@@ -603,18 +604,15 @@ describe("B. every send still sends what it sent", () => {
 
 /* ── C. the graph ─────────────────────────────────────────────────────────── */
 
-const ROOT = process.cwd();
 const CLIENT = "src/lib/r2/client.ts";
-const SKIP = /\.test\.tsx?$|\.d\.ts$/;
 
-function sources(): string[] {
-  return readdirSync(join(ROOT, "src"), { recursive: true })
-    .map((f) => `src/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
+const textOf = read;
 
-const textOf = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
+/** Every module the graph can reach: tests and declarations are no module of the app (the generated types are one). */
+const sources = () =>
+  filesUnder("src").filter(
+    (rel) => /\.tsx?$/.test(rel) && !/\.test\.tsx?$|\.d\.ts$/.test(rel),
+  );
 
 type Use = "static" | "type" | "dynamic" | "require";
 

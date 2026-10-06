@@ -240,9 +240,10 @@ export function SelectableMediaGrid({
                     tabIndex={-1}
                     onClick={() => setPeek(it.id)}
                     aria-label="Preview video"
+                    data-surface="photo"
                     className={cn(
                       "absolute top-1/2 left-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-white outline-none",
-                      "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white active:scale-90 motion-reduce:active:scale-100",
+                      "focus-halo transition-transform duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100",
                       GLASS_MARK,
                     )}
                   >
@@ -306,6 +307,7 @@ export function SelectableMediaGrid({
               preview.type === "video" ? "Video preview" : "Photo preview"
             }
             data-review-peek
+            data-surface="photo"
             tabIndex={-1}
             className={cn(
               "fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none",
@@ -394,7 +396,7 @@ export function SelectableMediaGrid({
               aria-label="Close preview"
               className={cn(
                 "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
-                "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                "focus-halo transition-transform duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100",
                 GLASS,
               )}
             >
@@ -412,7 +414,7 @@ const VERDICT_BUTTON = cn(
   // A thumb's full target on a phone (44px), a pointer's 40 at a desk.
   "flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-white/85 outline-none sm:h-10",
   "transition-[color,background-color,transform] duration-150 ease-emphasis hover:bg-white/10 hover:text-white",
-  "focus-visible:text-white focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 motion-reduce:active:scale-100",
+  "focus-visible:text-white focus-halo active:scale-95 motion-reduce:active:scale-100",
   GLASS_MARK_LIT,
 );
 

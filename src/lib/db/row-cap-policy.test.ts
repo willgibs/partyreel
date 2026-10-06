@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
@@ -10,6 +7,7 @@ import {
   replayFunctions,
   type MigrationFile,
 } from "@/lib/db/testing/migrations";
+import { filesUnder, read } from "@/testing/source-tree";
 
 /**
  * EVERY READ REACHES ITS LAST ROW: the static guard of the 1,000-row round (2026-09-23). The six
@@ -74,25 +72,24 @@ const SINGLE_ROW: Readonly<Record<string, string>> = {
     "one row per host among at most its input ids; the cron lane pins every caller to at most MAX_ROWS ids",
 };
 
-const ROOT = process.cwd();
-
 /* ─────────────────────────────── the walk ─────────────────────────────── */
 
 /** Not scanned: tests, the generated types, and the test fakes (which speak PostgREST's words). */
 const SRC_SKIP =
   /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$|^src\/lib\/db\/testing\//;
 
-function filesUnder(dir: string, keep: (rel: string) => boolean): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter(keep)
-    .sort();
-}
-
 const SOURCES = [
-  ...filesUnder("src", (rel) => /\.tsx?$/.test(rel) && !SRC_SKIP.test(rel)),
-  ...filesUnder("scripts", (rel) => rel.endsWith(".mjs")),
+  ...filesUnder("src").filter(
+    (rel) => /\.tsx?$/.test(rel) && !SRC_SKIP.test(rel),
+  ),
+  ...filesUnder("scripts").filter((rel) => rel.endsWith(".mjs")),
 ];
+
+/**
+ * What a file must spell to hold an offence or a marker: a `.from` / `.in` / `.rpc` member (rules A, B, C), an
+ * `"in"` handed to `.not` or `.filter` (B), or a `row-cap` marker. Only those files are parsed.
+ */
+const MAY_OFFEND = /\.\s*(?:from|in|rpc)\b|["'`](?:not\.)?in["'`]|row-cap/;
 
 /* ───────────────────────────── the migrations ──────────────────────────── */
 
@@ -556,10 +553,9 @@ const PAGED = new Set(
     .filter(([name, sets]) => sets && !(name in SINGLE_ROW))
     .map(([name]) => name),
 );
-const SCANS = SOURCES.map((rel) => ({
-  rel,
-  scan: scanSource(rel, readFileSync(join(ROOT, rel), "utf8"), PAGED),
-}));
+const SCANS = SOURCES.filter((rel) => MAY_OFFEND.test(read(rel))).map(
+  (rel) => ({ rel, scan: scanSource(rel, read(rel), PAGED) }),
+);
 
 describe("the row-cap policy", () => {
   it("scanned the tree: the app, the scripts and the migrations", () => {
@@ -574,9 +570,7 @@ describe("the row-cap policy", () => {
   });
 
   it("D: MAX_ROWS equals supabase/config.toml's [api] max_rows", () => {
-    expect(
-      configMaxRows(readFileSync(join(ROOT, "supabase/config.toml"), "utf8")),
-    ).toBe(MAX_ROWS);
+    expect(configMaxRows(read("supabase/config.toml"))).toBe(MAX_ROWS);
   });
 
   it("C: every SINGLE_ROW entry names a live set-returning function", () => {

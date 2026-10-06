@@ -440,7 +440,7 @@ function QueueTile({
               onClick={onToggle}
               aria-pressed={selected}
               aria-label={selected ? "Deselect" : "Select"}
-              className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+              className="absolute inset-0 outline-none focus-halo halo-inset"
             />
             <span
               className={cn(

@@ -60,6 +60,10 @@ import { PlanLimitsCard, type LatestLimits } from "./limits-card";
 import { owedWords } from "./owed-words";
 import { readLastPruneReport, readPruneHoldReleasedAtMs } from "./prune-hold";
 import { pruneHoldView, type PruneHoldView } from "./prune-hold-view";
+import { reconcileView, type ReconcileLine } from "./reconcile-view";
+import { RestoreNowControl } from "./restore-control";
+import { restoreNowWired } from "./restore-now";
+import { restoreView, type RestoreLine } from "./restore-view";
 import {
   SpendWatchReadings,
   SpendWatchSwitches,
@@ -108,6 +112,7 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
   help_feedback: { ok: "clicks recorded", failed: "clicks dropped" },
   export_delivery: { ok: "downloads finished", failed: "failed" },
   drive_transfer: { ok: "files in hosts' Drives", failed: "failures" },
+  pass_credit: { ok: "credits honoured", failed: "deliveries failed" },
 };
 
 /**
@@ -127,17 +132,18 @@ const READING_LABEL: Partial<
     remedy:
       "The daily backup reconcile copies anything the live queue missed, so a dead letter clears on its next run.",
   },
-  // crumbs-75: the restore path, said where the alert is. Nothing copies a lone backup back on its own: the prune
-  // cannot tell a lost object from one its row no longer names, and a blind copy would be deleted again as an orphan.
+  // The remedy, said where the alert is (durability-restore): the restore copies them back on its own, only keys a
+  // live row names and never over an object that is there, and a person copies by hand only what it cannot.
   backup_primary_missing: {
     term: "Keys",
     unit: "held by the backup alone",
     remedy:
-      'Restore each from the backup: copy it from partyreel-backup into partyreel at the same key (durability-backups.md, Restore), then check its row still names it. The prune\'s own log names every one ("held by the backup alone", Workers Logs for partyreel-backup), and it never deletes one while its row lives.',
+      "The backup restore below copies each back on its own while its RESTORE_MODE is on (a dry run until then): only keys a live row still names, never over an object that is there. Its card says what it copied and what it could not; Restore now there runs a pass at once. A key it cannot copy back is copied by hand from partyreel-backup into partyreel at the same key (durability-backups.md, Restore); the prune never deletes one while its row lives.",
   },
   drive_queue: {
     unit: "lanes waiting",
-    remedy: "Lanes drain on their own; a connection runs at most three, oldest send first.",
+    remedy:
+      "Lanes drain on their own; a connection runs at most three, oldest send first.",
   },
   drive_dead_letters: {
     unit: "lanes given up on",
@@ -165,6 +171,23 @@ function formatMinutes(minutes: number): string {
  * out, and the backlog it left is the thing to see), ahead of the six-part cut below.
  */
 const LEAD_COUNT_KEYS = ["remaining", "sweeps_stopped_early"];
+
+/**
+ * One line of a job's words (the restore's pass, the reconcile's): what waits on a person in the band's attention voice,
+ * a quiet fact muted, work done plain.
+ */
+function viewLine(line: RestoreLine | ReconcileLine) {
+  return line.tone === "attention" ? (
+    <AttentionLine key={line.text}>{line.text}</AttentionLine>
+  ) : (
+    <p
+      key={line.text}
+      className={line.tone === "quiet" ? "text-muted-foreground" : undefined}
+    >
+      {line.text}
+    </p>
+  );
+}
 
 /** A compact one-line rendering of a run's counts, so the card says what the run DID, not just that it ran. */
 function summarizeCounts(counts: JobRunRow["counts"]): string | null {
@@ -305,6 +328,8 @@ export default async function JobsPage() {
     loadLimitsData(),
     loadPruneHold(),
   ]);
+  // Restore now asks the backup Worker's own door: drawn wired only where the app knows where it is.
+  const restoreWired = restoreNowWired();
 
   // Health resolves in TWO passes because a `derived` reading inherits the health of the run that
   // carried it: the Worker's own verdict has to exist before the queue and dead-letter cards can say
@@ -402,6 +427,16 @@ export default async function JobsPage() {
                 ?.lastRunRow?.counts ?? null)
             : null;
         const readingAgeMin = readDepthAgeMinutes(def, readingSource);
+        // The restore's card reads its last pass in words of its own, in place of the raw counts.
+        const restore =
+          def.id === "backup_restore"
+            ? restoreView(last?.counts ?? null)
+            : null;
+        // So does the reconcile's: its pass (it carries a cursor), its last whole pass, what waits on a person.
+        const reconcile =
+          def.id === "backup_reconcile"
+            ? reconcileView(last?.counts ?? null)
+            : null;
 
         return (
           <Fragment key={def.id}>
@@ -556,9 +591,55 @@ export default async function JobsPage() {
                     </div>
                   )}
 
+                  {restore ? (
+                    <>
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">Mode</dt>
+                        <dd>{restore.modeWords}</dd>
+                      </div>
+                      {restore.lines.length > 0 ? (
+                        <div className="flex gap-2 sm:col-span-2">
+                          <dt className="text-muted-foreground">Last pass</dt>
+                          <dd className="min-w-0 flex-1 space-y-1">
+                            {restore.lines.map(viewLine)}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+
+                  {reconcile ? (
+                    <>
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">Pass</dt>
+                        <dd className="min-w-0 flex-1">
+                          {viewLine(reconcile.pass)}
+                        </dd>
+                      </div>
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">
+                          Last full pass
+                        </dt>
+                        <dd className="min-w-0 flex-1">
+                          {viewLine(reconcile.lastPass)}
+                        </dd>
+                      </div>
+                      {reconcile.lines.length > 0 ? (
+                        <div className="flex gap-2 sm:col-span-2">
+                          <dt className="text-muted-foreground">Found</dt>
+                          <dd className="min-w-0 flex-1 space-y-1">
+                            {reconcile.lines.map(viewLine)}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+
                   {counts &&
                   def.kind === "scheduled" &&
-                  def.id !== "spend_watch" ? (
+                  def.id !== "spend_watch" &&
+                  def.id !== "backup_restore" &&
+                  !reconcile ? (
                     <div className="flex gap-2 sm:col-span-2">
                       <dt className="text-muted-foreground">Reported</dt>
                       <dd className="text-muted-foreground">{counts}</dd>
@@ -597,16 +678,23 @@ export default async function JobsPage() {
                   {def.canRunNow ? (
                     <RunJobNowButton jobId={def.id} label={def.label} />
                   ) : null}
+                  {def.id === "backup_restore" ? (
+                    <RestoreNowControl wired={restoreWired} />
+                  ) : null}
                   <p className="text-xs text-muted-foreground">
                     {/* The remedy, said where the problem is: a dead letter is not stuck forever. Only beside a count
                       to act on (crumbs-75): "No reading" is no lone copy to restore, so it keeps the host's note. */}
-                    {def.kind === "derived" &&
-                    health !== "ok" &&
-                    readingWords &&
-                    (reading?.value ?? 0) > 0
-                      ? readingWords.remedy
-                      : (JOB_RUN_NOW_NOTE[def.host] ??
-                        "Pausing takes effect on the next scheduled run.")}
+                    {def.id === "backup_restore"
+                      ? restoreWired
+                        ? "Restore now asks its Worker for a pass at once; otherwise it runs daily with the reconcile and after each prune."
+                        : "Restore now is not wired here: set BACKUP_WORKER_URL to the backup Worker's origin. It runs daily with the reconcile and after each prune."
+                      : def.kind === "derived" &&
+                          health !== "ok" &&
+                          readingWords &&
+                          (reading?.value ?? 0) > 0
+                        ? readingWords.remedy
+                        : (JOB_RUN_NOW_NOTE[def.host] ??
+                          "Pausing takes effect on the next scheduled run.")}
                   </p>
                 </div>
               </CardContent>

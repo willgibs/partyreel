@@ -1,12 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { act, fireEvent, render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { EVENT_ROOMS } from "@/lib/event/sections";
 
-import { EdgeFadeScroller } from "./edge-fade-scroller";
 import { EventCardsRow } from "./event-cards-row";
 
 // The row's own neighbours, stood in for so it mounts without the hub's server graph: the page's
@@ -25,21 +24,24 @@ vi.mock("@/components/app/event-feed/host-album", () => ({
   useHubCounts: () => null,
   useHubEntries: () => null,
 }));
-vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
-  refreshHubReelAction: vi.fn(),
-}));
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({}));
 
 /**
  * THE HUB'S ROW OF DOORS AND THE ALBUM UNDER IT (Will's `event=hub`,
  * `nav=crumbs` and `phone=same`, 2026-09-20).
  *
- * What this guards is FUNCTION: the cards are LINKS and not tabs, the row
- * scrolls sideways in a hand with its fades conditional on there being an edge,
- * the album's count never counts the bin, and the bin is not paid for until a
- * host asks for it. Three of the four are the kind of regression that looks
- * fine in a screenshot: a `role="tablist"` reads correctly to the eye and
- * wrongly to a screen reader; a permanent gradient looks like a design choice;
- * an eager bin is N presigns nobody sees on a waterfall.
+ * What this guards is FUNCTION: the cards are LINKS and not tabs, the row condenses in
+ * place and never loops against its own footprint, the album's count never counts the
+ * bin, and the bin is not paid for until a host asks for it. Three of the four are the
+ * kind of regression that looks fine in a screenshot: a `role="tablist"` reads correctly
+ * to the eye and wrongly to a screen reader; a row that moves the album it sits over
+ * flickers between its two forms for ever; an eager bin is N presigns nobody sees on a
+ * waterfall.
+ *
+ * ★ RESHAPED ON PURPOSE (event-header r4's cards over the seam, Will's pick: every door in sight on a phone): the row no
+ * longer scrolls sideways, so the sideways scroller, its edge fades and the tests that drove them went with it; what the
+ * fades guarded (a permanent gradient that looks like a design choice) cannot happen on a row with no edge. The stick's own
+ * tests below keep their scar and read the row's new DOM (the band is the group's parent now).
  *
  * Not a class, a size, a count or a word is pinned.
  */
@@ -58,7 +60,9 @@ const code = (rel: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 const CARDS = "src/components/app/event-feed/event-cards-row.tsx";
-const SCROLLER = "src/components/app/event-feed/edge-fade-scroller.tsx";
+const FOLD = "src/components/app/event-feed/event-cards-row-fold.ts";
+const ROW_CSS = "src/components/app/event-feed/event-cards-row.css";
+const DOOR_CSS = "src/components/app/event-feed/room-card.css";
 const GALLERY = "src/components/app/event-feed/event-gallery.tsx";
 const HUB = "src/app/(app)/dashboard/[eventId]/page.tsx";
 
@@ -110,25 +114,37 @@ describe("the cards row", () => {
     ).toBe(true);
   });
 
-  it("scrolls sideways inside the scroller whose fades are keyed on the overflow", () => {
-    // ★ THE RESHAPE (crumbs-12): this pin also asked the source for the names
-    // `overflowLeft` and `overflowRight`, and it stayed green for the whole life
-    // of the bug it was written to stop. `el.dataset.x = undefined` stores the
-    // string "undefined", so both flags stood at every width and both fades
-    // showed on a row of four that fits at 1440. The names prove nothing; what
-    // the fades DO is proven by driving the scroller (below). This keeps the
-    // two things only the source can say: the row rides that scroller, and each
-    // mask hangs off its own edge's flag.
+  it("never scrolls sideways, and never ends its own stick by clipping itself wrongly", () => {
+    // Every door is in sight at every width (a hand's grid, a tablet's tiles, a desk's cards, pills sized to a 320px
+    // phone), so nothing here may be a sideways scroller. And the footprint is the sticky element: `overflow: hidden`,
+    // `auto` or `scroll` on it (or on the band inside it) would make it a scroll container and end the stick, which the
+    // crumbs-14 loop below guards from the other side. `clip` is the one overflow it may wear, so a row that ran past the
+    // screen is cut at the window's edge rather than scrolling the whole hub sideways.
+    const css = `${read(ROW_CSS)}\n${read(DOOR_CSS)}`.replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    expect(css, "a sideways scroller came back").not.toMatch(
+      /overflow(-x)?:\s*(auto|scroll)/,
+    );
+    // The rules for the footprint and the band themselves (a piece inside them may clip its own box).
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(
+      (m) => [m[1].trim(), m[2]] as const,
+    );
+    const sticky = rules.filter(([sel]) =>
+      /^(\.hub-row|\.hub-band(\[data-stuck\])?)$/.test(sel),
+    );
+    expect(sticky.length, "the row's own rules were not found").toBeGreaterThan(
+      2,
+    );
+    for (const [sel, body] of sticky)
+      expect(body, `${sel} became a scroll container`).not.toMatch(
+        /overflow(-x|-y)?:\s*(hidden|auto|scroll)/,
+      );
     expect(
-      /<EdgeFadeScroller>/.test(code(CARDS)),
-      "the row stopped riding the scroller",
-    ).toBe(true);
-    const src = read(SCROLLER);
-    expect(/overflow-x-auto/.test(src), "the row stopped scrolling").toBe(true);
-    expect(
-      /data-\[overflow-left\]:\[mask-image/.test(src) &&
-        /data-\[overflow-right\]:\[mask-image/.test(src),
-      "the fades stopped being conditional on the overflow",
+      sticky.some(
+        ([sel, body]) => sel === ".hub-row" && /overflow-x:\s*clip/.test(body),
+      ),
     ).toBe(true);
   });
 
@@ -136,8 +152,14 @@ describe("the cards row", () => {
     // A remount would drop the QR pill's view-transition-name mid-morph and
     // restart the ticking count, so the compact state is STYLING on the same
     // DOM rather than a second component swapped in.
+    // ★ RESHAPED ON PURPOSE (the cards over the seam): the band's `data-stuck` is written by hand, by the fold, between its
+    // two reads (React never writes it), so the pin names the fold's write and keeps the negative.
     const src = code(CARDS);
-    expect(/data-stuck=\{stuck \|\| undefined\}/.test(src)).toBe(true);
+    expect(/toggleAttribute\("data-stuck"/.test(code(FOLD))).toBe(true);
+    expect(
+      /data-stuck=/.test(src),
+      "React started writing the band's stuck attribute, which the fold reads the old form off",
+    ).toBe(false);
     expect(
       /\{stuck \? \(\s*<EventCardsRow/.test(src),
       "the row started swapping itself out on the condense",
@@ -172,85 +194,6 @@ describe("the cards row", () => {
 });
 
 /**
- * jsdom lays nothing out, so a test hands the scroller its geometry: how wide
- * the row runs, how much of it shows, and how far it is scrolled.
- */
-function layOut(
-  el: HTMLElement,
-  box: { scrollWidth: number; clientWidth: number; scrollLeft: number },
-) {
-  for (const [key, value] of Object.entries(box)) {
-    Object.defineProperty(el, key, { configurable: true, get: () => value });
-  }
-}
-
-const fades = (el: HTMLElement) => ({
-  left: el.hasAttribute("data-overflow-left"),
-  right: el.hasAttribute("data-overflow-right"),
-});
-
-describe("the row's edge fades (his `queue` note: conditional per scrollable side)", () => {
-  const mount = () => {
-    const view = render(
-      <EdgeFadeScroller>
-        <div>four doors</div>
-      </EdgeFadeScroller>,
-    );
-    return { view, el: view.container.firstElementChild as HTMLElement };
-  };
-
-  it("shows no fade on a row that fits, from its first paint", () => {
-    // "not exist in the default desktop view when wide enough that scrolling
-    // isn't needed". The first paint is jsdom's all-zero box: a row that fits.
-    const { el } = mount();
-    expect(fades(el)).toEqual({ left: false, right: false });
-    layOut(el, { scrollWidth: 600, clientWidth: 600, scrollLeft: 0 });
-    fireEvent.scroll(el);
-    expect(fades(el)).toEqual({ left: false, right: false });
-    // Nor within the pixel a fractional zoom leaves on a row that fits.
-    layOut(el, { scrollWidth: 601, clientWidth: 600, scrollLeft: 0 });
-    fireEvent.scroll(el);
-    expect(fades(el)).toEqual({ left: false, right: false });
-  });
-
-  it("fades only the side with more of the row past it, and neither end once reached", () => {
-    const { el } = mount();
-    // "if you're at the first/last that shadow disappears, showing you're at
-    // the end with nothing more hidden".
-    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 0 });
-    fireEvent.scroll(el);
-    expect(fades(el), "at the start").toEqual({ left: false, right: true });
-    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 150 });
-    fireEvent.scroll(el);
-    expect(fades(el), "in the middle").toEqual({ left: true, right: true });
-    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 300 });
-    fireEvent.scroll(el);
-    expect(fades(el), "at the end").toEqual({ left: true, right: false });
-    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 0 });
-    fireEvent.scroll(el);
-    expect(fades(el), "back at the start").toEqual({
-      left: false,
-      right: true,
-    });
-    // A flag and never a value: the variants match the attribute's presence.
-    expect(el.getAttribute("data-overflow-right")).toBe("");
-  });
-
-  it("measures again when a render changes the row without a scroll or a resize", () => {
-    // The Invite pill joins a row of tiles at a tablet's width and nothing
-    // resizes: the row simply runs further than the screen.
-    const { el, view } = mount();
-    layOut(el, { scrollWidth: 760, clientWidth: 600, scrollLeft: 0 });
-    view.rerender(
-      <EdgeFadeScroller>
-        <div>four doors and the Invite pill</div>
-      </EdgeFadeScroller>,
-    );
-    expect(fades(el)).toEqual({ left: false, right: true });
-  });
-});
-
-/**
  * A PAGE TO JUMP IN: the part of a browser the row's stick depends on, at 375. jsdom lays nothing
  * out and anchors nothing, so this plays the browser: where the row rests, the band's two heights,
  * the sticky footprint's box, the IntersectionObserver the row asks (fired on its threshold's
@@ -259,18 +202,16 @@ describe("the row's edge fades (his `queue` note: conditional per scrollable sid
  * the row still by moving the page by whatever the footprint gained or lost.
  */
 function stickPage({ footprintFollowsBand = false, viewport = 812 } = {}) {
-  const REST_TOP = 241; // where the row rests in the page (the hub, measured at 375)
+  const REST_TOP = 333; // where the row rests in the page (the hub, measured at 375: the cards over the seam)
   const VIEWPORT = viewport;
-  const BAND = { rest: 157, stuck: 57 }; // the 2x2 grid, and the pills stuck to the bar
-  const ROW = { rest: 359, stuck: 496, shows: 359 }; // how far the row runs, and how much shows
+  const BAND = { rest: 184, stuck: 64 }; // the 2x2 grid and the guest's view under it, and the pills stuck to the bar
   let scrollY = 0;
 
   const group = () =>
     document.querySelector<HTMLElement>(
       '[role="group"][aria-label="This event"]',
     );
-  const scroller = () => group()!.parentElement!;
-  const band = () => scroller().parentElement!;
+  const band = () => group()!.parentElement!;
   const stuck = () => band().hasAttribute("data-stuck");
   const bandHeight = () => (stuck() ? BAND.stuck : BAND.rest);
 
@@ -448,13 +389,6 @@ function stickPage({ footprintFollowsBand = false, viewport = 812 } = {}) {
         }}
       />,
     );
-    // The pills run past the screen; the resting grid fits it.
-    const el = scroller();
-    Object.defineProperty(el, "clientWidth", { get: () => ROW.shows });
-    Object.defineProperty(el, "scrollLeft", { get: () => 0 });
-    Object.defineProperty(el, "scrollWidth", {
-      get: () => (stuck() ? ROW.stuck : ROW.rest),
-    });
   }
 
   return {
@@ -467,7 +401,6 @@ function stickPage({ footprintFollowsBand = false, viewport = 812 } = {}) {
     at: () => scrollY,
     stuck,
     footprintHeight,
-    fades: () => fades(scroller()),
     /** Where the row first meets the bar, and how much it loses there. */
     band: { from: REST_TOP - 56, loses: BAND.rest - BAND.stuck },
   };
@@ -478,8 +411,8 @@ describe("the row's stick, jumped into (crumbs-14)", () => {
   // viewer scrolls its photo back to the centre, `masonry.tsx`'s `returnTo()`). A jump into the
   // band where the row meets the bar condensed it, scroll anchoring moved the page by what it lost
   // to keep the album still, which took the row off the bar, which expanded it, which anchoring
-  // moved back: 250 to 151 and back for ever at 375, the fades stale both ways, and a jump past the
-  // band landing short by what the row lost.
+  // moved back: 250 to 151 and back for ever at 375, and a jump past the band landing short by what the
+  // row lost.
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -500,8 +433,6 @@ describe("the row's stick, jumped into (crumbs-14)", () => {
       expect(page.footprintHeight(), "nothing below the row moved").toBe(
         footprint,
       );
-      // The fades read the row as it ends up: pills running past the screen, at their start.
-      expect(page.fades()).toEqual({ left: false, right: true });
 
       const back = page.band.from - 40;
       page.jump(back);
@@ -509,10 +440,6 @@ describe("the row's stick, jumped into (crumbs-14)", () => {
       expect(page.stuck()).toBe(false);
       expect(page.at()).toBe(back);
       expect(page.footprintHeight()).toBe(footprint);
-      expect(page.fades(), "a resting grid that fits").toEqual({
-        left: false,
-        right: false,
-      });
     }
   });
 

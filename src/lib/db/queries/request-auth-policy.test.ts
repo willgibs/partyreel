@@ -9,18 +9,20 @@
  * calling convention, not a runtime behavior a unit test can observe without
  * a live auth server.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 const QUERIES_DIR = __dirname;
 const REQUEST_AUTH = path.resolve(__dirname, "../../supabase/request-auth.ts");
 
 function queryModules(): string[] {
-  return readdirSync(QUERIES_DIR).filter(
-    (f) => f.endsWith(".ts") && !f.endsWith(".test.ts"),
-  );
+  return entries(QUERIES_DIR)
+    .map((entry) => entry.name)
+    .filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
 }
 
 describe("request-scoped auth policy", () => {

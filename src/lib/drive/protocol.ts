@@ -14,7 +14,8 @@
  * ★ FRESH OR NOTHING, AND A REPLAY IS HARMLESS BY CONSTRUCTION, so there is no nonce table: every word's `at` must sit
  * within five minutes of the app's clock; a replayed report is a no-op (every write is a transition keyed by its lease
  * token, and a `sent` stays sent), a replayed lease only holds a batch idle until it runs out, a replayed kick
- * enqueues lanes that find nothing to lease. What a forged report CAN do is mark items sent that are not in her
+ * enqueues lanes that find nothing to lease, a replayed dying lane counts once (its Queue message is in the word).
+ * What a forged report CAN do is mark items sent that are not in her
  * Drive: nothing that deletes anything ever reads that word (there is no exit, and the closing check asks Drive).
  *
  * ★ A LEASE'S ACCESS TOKEN TRAVELS SEALED, under a key derived from the same secret (HKDF-SHA256, info
@@ -222,15 +223,25 @@ export const checkWordSchema = z.object({
   lease: uuid,
   results: z.array(checkResultSchema).max(100),
   duplicates: z.number().int().min(0).max(1_000_000).optional(),
-  finding: z.literal("folder_gone").optional(),
+  // throttled: Google's slow down on the check's own asks, past its pace (the connection slows, as a report's does).
+  finding: z.enum(["folder_gone", "throttled"]).optional(),
 });
 export type CheckWord = z.infer<typeof checkWordSchema>;
 
+/**
+ * ★ A dying lane's word names its Queue message (`messageId`): the one word whose replay was no no-op (three of it
+ * inside its five minutes paused her sends) is counted once a message by `cloud_connection_lane_failed`.
+ */
 export const laneFailWordSchema = z.object({
   v,
   kind: z.literal("lanefail"),
   at,
   connectionId: uuid,
+  messageId: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/),
   error: z.string().max(300),
 });
 export type LaneFailWord = z.infer<typeof laneFailWordSchema>;
@@ -258,11 +269,16 @@ export type LeaseItem = {
   contentType: string;
   name: string;
   description: string;
-  /** RFC 3339: when it reached the album, so Drive's own sort agrees with the names. */
+  /** RFC 3339: when it was taken (where the upload kept that, else when it reached the album), as its name says. */
   modifiedTime: string;
   attempts: number;
   /** The file an earlier send on this connection left: asked first, kept when it is still there and whole. */
   priorFileId: string | null;
+  /**
+   * The press found the album's folder by its mark after a reconnect (which forgot every id): the file is looked up by
+   * its own `pr_media` mark before it goes, and kept when it is there and whole.
+   */
+  lookUp: boolean;
   /** A big file's session to resume (Google answers where it stands; we never trust our own offset). */
   session: { uri: string; offset: number } | null;
 };

@@ -1049,6 +1049,63 @@ export const getEventGuests = cache(async function getEventGuests(
   });
 });
 
+/**
+ * THE SHOTS A SEALED ALBUM IS HOLDING FOR ITS GUESTS (crumbs-81): the approved uploads of guests that are still under
+ * their seal until the album develops. `getEventGuests` counts nobody for them (a sealed upload makes nobody a guest
+ * yet), so the Guests room's list is empty while a roll is shot and waits, and the room would tell a host whose
+ * guests have filled it that nobody has added a photo. This is the number that says otherwise, and nothing more.
+ *
+ * ★ THE SEALED ROWS THEMSELVES, SO NEVER A NOT OF THE VISIBLE PREDICATE (disposable-mode.md: it is not null-safe):
+ * `sealed_until > now` compares false for an unsealed row and for one whose time has passed. Approved only (a held
+ * shot waits for the host's word, which Review has; a hidden or removed one waits for nothing) and a guest's own (the
+ * host's uploads seal with everyone's and are no guest's). One bounded probe on `media_sealed_idx`, counted in the
+ * database, so PostgREST's 1,000-row cut never reaches it.
+ *
+ * ★ A TICKET THE HOST CLAIMED IS HERS, NEVER A GUEST'S (crumbs-83). A guest row whose account is the host's (an upload
+ * she made at her own door before she was signed in, claimed after) is on no list (`resolveEventGuests` leaves the
+ * host out), so its shots counted here read to her as "their guests join" when nobody would. They are counted apart
+ * through a join on the ticket's account and taken off, and only when something waits at all: an album holding
+ * nothing for its guests holds nothing of hers either, so that read is never made for it.
+ *
+ * ★ THE HOST'S ROOM ALONE (`readGuestsRoom`, after `getEvent` has proved her host): the admin client, since `media`
+ * is host-scoped by RLS, and a number rides out with no row and no id.
+ */
+export async function countWaitingGuestShots(eventId: string): Promise<number> {
+  const admin = createAdminClient();
+  const now = nowIso();
+  const all = await mustCount(
+    admin
+      .from("media")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
+      .eq("status", "approved")
+      .gt("sealed_until", now)
+      .not("guest_id", "is", null),
+    "social: waiting guest shots",
+  );
+  if (all === 0) return 0;
+  const event = await mustQuery(
+    admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
+    "social: waiting guest shots, the host",
+  );
+  if (!event?.host_id) return all;
+  // The same sealed rows, on a ticket whose account is the host's (the FK pinned: database-security.md's PGRST201).
+  const hers = await mustCount(
+    admin
+      .from("media")
+      .select("id, guests!media_guest_id_fkey!inner(user_id)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("event_id", eventId)
+      .eq("status", "approved")
+      .gt("sealed_until", now)
+      .eq("guests.user_id", event.host_id),
+    "social: waiting guest shots, the host's own tickets",
+  );
+  return Math.max(0, all - hers);
+}
+
 export type GuestListEntry = SocialProfileCard;
 
 /**

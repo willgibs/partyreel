@@ -4,9 +4,6 @@
  * silenced) or never held (a runaway the switch cannot stop). This walks `src/**` with the compiler and holds every
  * kind a send names to exactly one list, and every list entry to a send that still names it.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
@@ -18,24 +15,23 @@ import {
   STATE_NOTICES,
   heldWhilePaused,
 } from "@/lib/email/send-kinds";
+import { filesUnder, read } from "@/testing/source-tree";
 
-const ROOT = process.cwd();
 const SEND_CALLS = new Set(["sendOnce", "sendOncePerWindow"]);
 
 /** Every `kind` a send names, with where: a literal, or `null` where the code computes it. */
 function sentKinds(): { kind: string | null; at: string }[] {
-  const files = readdirSync(join(ROOT, "src"), { recursive: true })
-    .map(String)
+  const files = filesUnder("src")
     .filter((rel) => /\.tsx?$/.test(rel) && !/\.test\.tsx?$|\.d\.ts$/.test(rel))
     // send.ts's own window helper forwards its caller's kind; the form helper forwards its spec's `notify` kind.
     .filter(
       (rel) =>
-        rel !== join("lib", "email", "send.ts") &&
-        rel !== join("lib", "security", "public-form-submit.ts"),
+        rel !== "src/lib/email/send.ts" &&
+        rel !== "src/lib/security/public-form-submit.ts",
     );
   const out: { kind: string | null; at: string }[] = [];
   for (const rel of files) {
-    const text = readFileSync(join(ROOT, "src", rel), "utf8");
+    const text = read(rel);
     if (!/sendOnce|notify:/.test(text)) continue;
     const source = ts.createSourceFile(rel, text, ts.ScriptTarget.Latest, true);
     const kindOf = (obj: ts.ObjectLiteralExpression, node: ts.Node) => {
@@ -49,7 +45,7 @@ function sentKinds(): { kind: string | null; at: string }[] {
         ts.isPropertyAssignment(prop) && ts.isStringLiteral(prop.initializer)
           ? prop.initializer.text
           : null;
-      out.push({ kind: value, at: `src/${rel}:${line}` });
+      out.push({ kind: value, at: `${rel}:${line}` });
     };
     const visit = (node: ts.Node) => {
       if (

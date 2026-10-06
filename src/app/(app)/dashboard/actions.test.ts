@@ -14,15 +14,34 @@ const approveAllPending = vi.fn();
 const captureError = vi.hoisted(() => vi.fn());
 
 // A request-scoped client that records the one UPDATE a Server Function makes: its table, its patch and each
-// filter chained after it, answering what `db.error` says.
+// filter chained after it, answering what `db.error` says; and the one profile read a keep makes first (`events_display`,
+// answering what `db.stored` holds, or `db.readError`).
 const db = vi.hoisted(() => {
   const state = {
     user: { id: "host-1" } as { id: string } | null,
     error: null as unknown,
+    stored: {} as unknown,
+    readError: null as unknown,
     calls: [] as { table: string; patch: unknown; filters: string[] }[],
+    reads: [] as { table: string; columns: string; filters: string[] }[],
   };
   const supabase = {
     from: (table: string) => ({
+      select: (columns: string) => {
+        const read = { table, columns, filters: [] as string[] };
+        state.reads.push(read);
+        const chain: Record<string, unknown> = {
+          eq: (c: string, v: unknown) => (
+            read.filters.push(`eq ${c} ${v}`),
+            chain
+          ),
+          maybeSingle: async () => ({
+            data: state.readError ? null : { events_display: state.stored },
+            error: state.readError,
+          }),
+        };
+        return chain;
+      },
       update: (patch: unknown) => {
         const call = { table, patch, filters: [] as string[] };
         state.calls.push(call);
@@ -46,6 +65,12 @@ const db = vi.hoisted(() => {
   return { state, supabase };
 });
 
+const guests = vi.hoisted(() => ({
+  event: vi.fn(),
+  read: vi.fn(),
+}));
+
+vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/supabase/request-auth", () => ({
@@ -67,10 +92,21 @@ vi.mock("@/lib/db/mutations/my-uploads", () => ({ removeMyUpload: vi.fn() }));
 vi.mock("@/lib/db/mutations/social", () => ({
   setEventSocialSettings: vi.fn(),
 }));
+vi.mock("@/lib/db/queries/events", () => ({
+  getEvent: (...args: unknown[]) => guests.event(...args),
+}));
+vi.mock("@/lib/db/queries/social", () => ({
+  getEventGuests: (...args: unknown[]) => guests.read(...args),
+}));
 vi.mock("@/lib/observability/sentry", () => ({ captureError }));
 
-const { noteEventOpenedAction, setEventsDisplayAction, updateEventAction } =
-  await import("@/app/(app)/dashboard/actions");
+const {
+  noteEventOpenedAction,
+  readStageGuestsAction,
+  setEventsDisplayAction,
+  setLeadRuleAction,
+  updateEventAction,
+} = await import("@/app/(app)/dashboard/actions");
 
 beforeEach(() => {
   updateEvent.mockReset();
@@ -78,7 +114,12 @@ beforeEach(() => {
   captureError.mockReset();
   db.state.user = { id: "host-1" };
   db.state.error = null;
+  db.state.stored = {};
+  db.state.readError = null;
   db.state.calls = [];
+  db.state.reads = [];
+  guests.event.mockReset();
+  guests.read.mockReset();
   updateEvent.mockResolvedValue({ ok: true, data: { id: "event-1" } });
   approveAllPending.mockResolvedValue({ ok: true, data: { count: 0 } });
 });
@@ -161,6 +202,50 @@ describe("setEventsDisplayAction", () => {
     });
   });
 
+  it("★ keeps the stage's rule beside the menu's choices: a layout chosen after a rule never undoes it", async () => {
+    db.state.stored = { layout: "list", lead: "photos" };
+    await setEventsDisplayAction({ layout: "table" });
+    expect(db.state.reads).toEqual([
+      {
+        table: "profiles",
+        columns: "events_display",
+        filters: ["eq id host-1"],
+      },
+    ]);
+    expect(db.state.calls[0]?.patch).toEqual({
+      events_display: { layout: "table", lead: "photos" },
+    });
+    // Reset (the menu's own defaults) leaves the rule where it was.
+    await setEventsDisplayAction({});
+    expect(db.state.calls[1]?.patch).toEqual({
+      events_display: { lead: "photos" },
+    });
+  });
+
+  it("★ never takes the rule from the menu's payload: the rule has one writer", async () => {
+    await setEventsDisplayAction({ layout: "table", lead: "upcoming" });
+    expect(db.state.calls[0]?.patch).toEqual({
+      events_display: { layout: "table" },
+    });
+    db.state.stored = { lead: "photos" };
+    await setEventsDisplayAction({ lead: "upcoming" });
+    expect(db.state.calls[1]?.patch).toEqual({
+      events_display: { lead: "photos" },
+    });
+  });
+
+  it("writes nothing, and says so, when it cannot read the rule it must keep", async () => {
+    db.state.readError = { message: "boom" };
+    expect(await setEventsDisplayAction({ layout: "list" })).toEqual({
+      ok: false,
+      message: "Couldn't keep that for your account. Please try again.",
+    });
+    expect(db.state.calls).toEqual([]);
+    expect(captureError).toHaveBeenCalledWith("account", db.state.readError, {
+      seam: "events_display",
+    });
+  });
+
   it("writes nothing for a signed-out caller", async () => {
     db.state.user = null;
     expect(await setEventsDisplayAction({ layout: "list" })).toEqual({
@@ -180,6 +265,153 @@ describe("setEventsDisplayAction", () => {
     expect(captureError).toHaveBeenCalledTimes(1);
     expect(captureError).toHaveBeenCalledWith("account", db.state.error, {
       seam: "events_display",
+    });
+  });
+});
+
+/**
+ * HER STAGE'S RULE, KEPT ON HER ACCOUNT (host-dashboard r4, `chooser=words`): a public endpoint whose value is the
+ * caller's word, so only one of the four rules is written, to her own row, beside the menu's choices (read back through
+ * the page's own narrowing) and sparse (the default is no key).
+ */
+describe("setLeadRuleAction", () => {
+  it("keeps the rule beside the menu's choices, in her own profile row and nowhere else", async () => {
+    db.state.stored = { layout: "table", sort: "date", recent: "folded" };
+    expect(await setLeadRuleAction("upcoming")).toEqual({ ok: true });
+    expect(db.state.reads).toEqual([
+      {
+        table: "profiles",
+        columns: "events_display",
+        filters: ["eq id host-1"],
+      },
+    ]);
+    expect(db.state.calls).toEqual([
+      {
+        table: "profiles",
+        patch: {
+          events_display: {
+            layout: "table",
+            sort: "date",
+            recent: "folded",
+            lead: "upcoming",
+          },
+        },
+        filters: ["eq id host-1"],
+      },
+    ]);
+  });
+
+  it("keeps the default as no key, so a default changed later reaches whoever never chose", async () => {
+    db.state.stored = { layout: "table", lead: "photos" };
+    await setLeadRuleAction("newest");
+    expect(db.state.calls[0]?.patch).toEqual({
+      events_display: { layout: "table" },
+    });
+  });
+
+  it("★ refuses anything that is not one of the four rules, before it reads or writes", async () => {
+    for (const forged of [
+      "",
+      "UPCOMING",
+      "photos ",
+      "__proto__",
+      null,
+      undefined,
+      7,
+      {},
+      ["opened"],
+      { toString: () => "opened" },
+    ]) {
+      expect(await setLeadRuleAction(forged)).toEqual({
+        ok: false,
+        message: "That isn't a way to lead.",
+      });
+    }
+    expect(db.state.reads).toEqual([]);
+    expect(db.state.calls).toEqual([]);
+  });
+
+  it("★ drops a stranger the column holds as it rewrites it: a forged key or value is never carried", async () => {
+    db.state.stored = {
+      layout: "carousel",
+      sort: "photos",
+      is_admin: true,
+      lead: "everything",
+    };
+    await setLeadRuleAction("opened");
+    expect(db.state.calls[0]?.patch).toEqual({
+      events_display: { sort: "photos", lead: "opened" },
+    });
+  });
+
+  it("writes nothing for a signed-out caller", async () => {
+    db.state.user = null;
+    expect(await setLeadRuleAction("photos")).toEqual({
+      ok: false,
+      message: "Sign in and try again.",
+    });
+    expect(db.state.reads).toEqual([]);
+    expect(db.state.calls).toEqual([]);
+  });
+
+  it("says a failed keep, and reports it once where failures are read, on the read and on the write", async () => {
+    db.state.readError = { message: "boom" };
+    const failed = {
+      ok: false,
+      message: "Couldn't keep that for your account. Please try again.",
+    };
+    expect(await setLeadRuleAction("photos")).toEqual(failed);
+    expect(db.state.calls).toEqual([]);
+    expect(captureError).toHaveBeenLastCalledWith(
+      "account",
+      db.state.readError,
+      {
+        seam: "lead_rule",
+      },
+    );
+    db.state.readError = null;
+    db.state.error = { message: "column does not exist" };
+    expect(await setLeadRuleAction("photos")).toEqual(failed);
+    expect(captureError).toHaveBeenLastCalledWith("account", db.state.error, {
+      seam: "lead_rule",
+    });
+    expect(captureError).toHaveBeenCalledTimes(2);
+  });
+});
+
+/**
+ * WHO CAME, FOR A STAGE A RULE JUST MOVED (host-dashboard r4): the guests are read on the service role, so the event
+ * must be proved the caller's own first, and nobody else's, a gone event's or a malformed id's is simply null.
+ */
+describe("readStageGuestsAction", () => {
+  const ID = "6f1c2c9e-5a3b-4d11-9a0a-1d2f3a4b5c6d";
+
+  it("counts the guests of her own live event, as the album says them", async () => {
+    guests.event.mockResolvedValue({ id: ID });
+    guests.read.mockResolvedValue({
+      verifiedUserIds: ["a", "b"],
+      unverifiedRows: [{ id: "g", displayName: "Sam" }],
+    });
+    expect(await readStageGuestsAction(ID)).toBe(3);
+    expect(guests.event).toHaveBeenCalledWith(ID);
+    expect(guests.read).toHaveBeenCalledWith(ID);
+  });
+
+  it("★ reads nobody's guests for an event that is not hers, gone, or not an id", async () => {
+    guests.event.mockResolvedValue(null);
+    expect(await readStageGuestsAction(ID)).toBeNull();
+    expect(await readStageGuestsAction(undefined)).toBeNull();
+    expect(await readStageGuestsAction({ id: ID })).toBeNull();
+    expect(guests.read).not.toHaveBeenCalled();
+  });
+
+  it("answers null and says so once when a read fails, never throwing into the stage", async () => {
+    const boom = new Error("boom");
+    guests.event.mockResolvedValue({ id: ID });
+    guests.read.mockRejectedValue(boom);
+    expect(await readStageGuestsAction(ID)).toBeNull();
+    expect(captureError).toHaveBeenCalledWith("db", boom, {
+      seam: "dashboard_stage_guests",
     });
   });
 });

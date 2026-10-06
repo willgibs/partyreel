@@ -19,8 +19,12 @@ measurements.
 ## The model: two answers, and a preset
 
 - **How guests add** is `events.capture`: `upload` (free uploads) or `camera` (the album's camera: a roll of
-  `roll_size` shots each, 24 unless a host names fewer, at most 24). A text under a CHECK rather than an enum, so a
+  `roll_size` shots each, 1 to 99, 24 unless a host names another). A text under a CHECK rather than an enum, so a
   third way to add is a constraint swap (an enum value cannot be used in the transaction that adds it).
+- ★ **Her roll outlives the camera** (20261005190000): free uploads keep the last roll she named, so a style switch or
+  the camera off and on comes back to it (the stamp only fills a camera's unnamed roll with 24). A free-upload album's
+  `roll_size` is therefore no sign of a camera: every reader asks `capture` first (the SQL's `v_event.capture =
+  'camera'`, the app's `developFactsOf`), and only Settings reads the kept size (`rollSizeOf`).
 - **When everyone sees what's added** is one three-way answer over two columns: right away (`moderation_mode = live`,
   `develops_at` NULL), once the host approves each (`hold_for_approval`, NULL), or at a develop time (`develops_at`
   set; a time ahead waits, a time reached has developed). `lib/disposable/reveal.ts` reads the pair as one answer.
@@ -69,6 +73,9 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
 - `album_bits` (mirrored by `AlbumSim`) splits a row's move into the host's scope (1), what a guest sees (2: approved
   and unsealed, the only bit that stamps an `album_version`) and **what waits** (4: held, or approved and sealed). Bit 4
   moves `album_max` and stamps nothing, so no waiting id rides the guest's log, nor its tombstone.
+- The host's Guests room asks what waits as one number too, `countWaitingGuestShots` (`social.ts`: approved guest shots
+  under their seal, a head count on `media_sealed_idx`, never an id), to say "N shots are developing" where its list,
+  which a guest joins at the develop, is empty ([host-app.md](host-app.md)).
 - `album_changes_since` (scope `album`) answers what waits as numbers, `waiting: {count, minutes}`, in its one
   snapshot; the sync's full answer carries it as `GuestFullSync.waiting` with the develop time (`waitingFor`), only at
   full access (never the teaser, `require_upload_to_view` or a blocked viewer, which answer before it), and only when
@@ -148,14 +155,19 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   alone: her tracker lists it as developing and removable, and the album's wait counts it
   ([guest-flow.md](guest-flow.md)).
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (never `tell`, which would
-  spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. The host's own
+  spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. Her live shots
+  count uncapped (`RollView.held`, past the roll only by the server's own count), so the counts say "2 on a roll of 1"
+  and never promise a freed frame where removing one frees none (`removalFrees`). The host's own
   camera keeps no roll (`isOwner`) and asks nothing.
 - **The camera over a refusal of the album** (`album-camera.tsx`): a refusal the host can lift (uploads closed, the
-  album full) stops the shutter in the server's words, and nothing tells this page when the host's switch moves (it
-  reads it at render and the sync carries no word of it), so the camera asks again by itself, calmly: after 10 s, then
-  20, 40 and every minute, never while the page is hidden, at once as it comes back (never closer than 10 s to the last
-  ask, so flicking between apps is no presign a return) and when the connection does, and only for those two refusals
-  (a lock, a gone event or a ticket that is not hers are never asked again). The ask is the shots' own Retry through
+  album full) stops the shutter in the server's words. Closed, it hears the album's own word (`uploadsWord`: the
+  sync's `accepting`, each word the page hears counted) and asks again once, on the first word heard after the refusal
+  that says open, never by itself; a refusal over a word that said open asks the album afresh (`askUploadsWord`, one
+  sync with no validator, since that word's validator says open too). Full, and closed where no word comes (the door's
+  camera hears the album's word wherever the album's sync polls), it asks again by itself, calmly: after 10 s, then 20, 40 and every minute, never while the page is
+  hidden, at once as it comes back (never closer than 10 s to the last ask, so flicking between apps is no presign a
+  return) and when the connection does, and only for those two refusals (a lock, a gone event or a ticket that is not
+  hers are never asked again). The ask is the shots' own Retry through
   the queue, and a shot being asked stands as the refusal it was until the album answers, so the banner, the stopped
   shutter and the reel's caption never flicker for it; the answer is the file going up (a refusal comes before a byte
   moves), and a yes takes the banner and the stopped shutter away with the refusal while the shot is still on its way.
@@ -165,7 +177,9 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   another photo"). The door holds that camera itself (`AlbumCamera`, its own lazy chunk fetched as the step shows),
   beside the sheet and never inside a step: at A photo first the album's own slot, which carries a camera, is not
   mounted yet (it stands only at `full`), and the step drops the moment her first shot lands while she goes on
-  shooting. The held door's wait chooser (`door/wait-picks.tsx`) still offers the library.
+  shooting. The held door's wait chooser (`door/wait-picks.tsx`) still offers the library. At the held door the
+  camera's reveal is `door` (`heldAtDoor`): its line says "They go in once you're let in", each shot "Waiting to go in",
+  and the roll's end "N shots. They go in once you're let in."
 - The camera's page half is `event-experience.tsx`'s, the door's camera included: while one is open the keep waits
   (`keepDue && !cameraOpen`) and the page holds the album's failure sheet for as long (`onCameraOpenChange`, said by the
   door's camera as by the slot's own; `onUploadStepActive` is the step's alone, since the page folds the queue's live
@@ -178,10 +192,24 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
 ## The host's control, and her cover
 
 `camera-settings.tsx` asks it as **album styles**, each one save of all three columns (`patchForStyle`) so no
-half-state is ever stored, with the develop time and Develop now in one row where the album has one, and Customize,
-where `CaptureAndReveal` asks the two answers apart. A change that would show waiting photos or release held ones asks
+half-state is ever stored, with the develop time and Develop now in one row where the album has one, Shots each while
+guests add with the camera (`roll-control.tsx`: film's 12, 24 and 36, or Other's stepper to 99; a box saves at once,
+a run of steps once she rests, `RollSetting`; Create's Disposable pick draws the same control), and Customize, where
+`CaptureAndReveal` asks the two answers apart. A change that would show waiting photos or release held ones asks
 before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time that would develop the album does
 (below).
+
+★ **The default develop is the party's 9 am, the morning its album turns** (`developToKeep`, `lib/event/zone-morning.ts`):
+9 am the morning after the party's last day (or after today, once that has passed) in the event's own zone
+(`events.time_zone`), so a destination wedding set up from home develops in the party's morning, not hers, and its
+develop and its album's turn are one morning for every guest. Create offers it in the zone it captures (her browser's);
+Settings in the party's stored zone, else hers. `patchForStyle` and `defaultDevelopAt` take the party's zone themselves
+(`{ zone }`, through `event/wall-time.ts`, the one wall-clock arithmetic the turn shares); `developToKeep` is a thin
+wrapper until Create and Settings drop it. Where the party's zone is not the host's own (`farZone`), the
+develop time is her party's clock throughout Settings: the field takes it both ways (`toZoneInput`/`fromZoneInput`, the
+judge reads it), and every line says its place ("Develops Sun, Oct 4, 9:00 AM in Mexico City", `zone-words.ts`). An
+instant is never moved by a zone: a develop set before she picks another city keeps its moment and is said in the new
+one's clock.
 
 ★ **The develop time is sent only when it is plainly meant** (`DevelopTimeControl`, judged by
 `camera-settings-develop-time.ts`), because a save of a time at or before the database's now is Develop now (above),
@@ -199,10 +227,10 @@ develops without asking.
 **The host's cover** (`event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a develop time is ahead, her
 hub's album is the contact sheet her guests meet, counted from her own manifest (`lib/disposable/host-cover.ts`), until
 Look lifts it for the visit. Her hub's head and its band wear only what her guests can see meanwhile
-(`useHubCoverStills`), following the develop, never Look; the Reel card is the one place that is hers, drawing and
-playing her own scope with the sealed shots in it ([reel.md](reel.md)). What waits on it is read by the seal, the
-period only its floor: the held photos a switch put in the roll (and a camera's shots between a develop time and its
-restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
+(`useHubCoverStills`), following the develop, never Look; the Reel card is the one door that is hers: a press plays her
+own scope over the hub, sealed shots included (the card draws none of them) ([reel.md](reel.md)). What waits on it is
+read by the seal, the period only its floor: the held photos a switch put in the roll (and a camera's shots between a
+develop time and its restamped period) are sealed yet created before `sealed_from`, so the page reads them off the rows
 (`host-cover.server.ts`'s `readJoinedIds`) and hands them down as `joined`; `waitsOf` is the one test the count and the
 head share.
 
@@ -222,7 +250,11 @@ photographs, so both sides count the same ones), so nothing waits to land.
 
 **The wait's clock** (`lib/disposable/use-wait-clock.ts`): every line that says when an album develops is said from now,
 in the reader's own clock and only after hydration (`wait-words.ts`, `lib/guest/camera/words.ts`), and every reader
-decides ahead or reached on `useWaitClock`, one shared store that turns at the develop itself. A reader with a clock of
+decides ahead or reached on `useWaitClock`, one shared store that turns at the develop itself. A far party's develop
+is said in both clocks ("Sun, Oct 4 at 9 am in Bali, Sat 6 pm yours", her weekday only where her day differs:
+`developsWhen(iso, now, zone)`, `bothClocksWhen`), the page handing its zone for words alone (`partyZone`, never behind a
+lock); the cover's eyebrow keeps her own short clock, and the hub names a far party's place as Settings does
+(`hubDevelopWhen`). A reader with a clock of
 its own (a `Date.now()` in a render, an interval of its own) keeps a cover standing after its develop.
 
 ## Verifying it

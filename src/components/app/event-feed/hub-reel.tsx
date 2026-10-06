@@ -205,7 +205,8 @@ function ViewCurtain({ onClose }: { onClose: () => void }) {
         type="button"
         aria-label="Close the reel"
         onClick={onClose}
-        className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/60"
+        data-surface="photo"
+        className="absolute top-4 right-4 flex size-10 focus-halo items-center justify-center rounded-full bg-white/10 text-white outline-none hover:bg-white/20"
       >
         <X className="size-5" aria-hidden />
       </button>

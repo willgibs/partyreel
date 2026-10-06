@@ -21,6 +21,10 @@
  *    row, so a host's new develop time reaches an open page on its next poll. Only when there is one: an album without
  *    a develop time keeps its validator byte for byte, so nothing rolls at the deploy. (What waits needs no slot here:
  *    every change to it, a held row or a sealed one, moves `album_max`.)
+ *  - whether the album TAKES UPLOADS (`accepting`, guest-requests): it rides the payload and lives on the event row,
+ *    and no media row moves when the host closes or reopens uploads, so without it a quiet album's poll answered 304
+ *    through either and an open camera never heard the album reopen. Only while closed: an open album keeps its
+ *    validator byte for byte (nothing rolls at the deploy, and a seed built without the switch still matches it).
  *
  * ★ NEVER THE PRESIGN BUCKET, AT FULL ACCESS. Links no longer ride the poll: a client re-mints its
  * own by id when they age (`ALBUM_LINK_REMINT_MS`), so the validator no longer has to roll every
@@ -85,6 +89,8 @@ export function guestAlbumEtag(input: {
   bucketId?: string | null;
   /** The album's develop time (ISO), or null/absent for none, which leaves the validator as it was. */
   developsAt?: string | null;
+  /** Whether the album takes uploads (`events.accepting_uploads`): only `false` moves the validator, and absent is open. */
+  accepting?: boolean;
 }): string {
   return digest([
     "guest",
@@ -96,6 +102,7 @@ export function guestAlbumEtag(input: {
     reelParts(input.reel),
     input.access === "teaser" ? (input.bucketId ?? null) : null,
     ...(input.developsAt ? [["develops", input.developsAt]] : []),
+    ...(input.accepting === false ? [["closed"]] : []),
   ]);
 }
 

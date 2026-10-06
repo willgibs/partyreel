@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * THE SURFACE RULES (the admin split, 2026-09-18).
@@ -154,21 +156,22 @@ describe("unset serves both surfaces, exactly as before the split", () => {
 
 describe("the 404 sentinel", () => {
   it("is a path no route serves, so the rewrite renders a real not-found", () => {
-    const appDir = join(ROOT, "src", "app");
+    const appDir = "src/app";
     const routes = new Set<string>();
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        if (!entry.isDirectory()) continue;
-        const full = join(dir, entry.name);
+    // The folders are read off the files beneath them (a folder with no file anywhere under it serves no route).
+    for (const file of filesUnder(appDir)) {
+      const folders = file
+        .slice(appDir.length + 1)
+        .split("/")
+        .slice(0, -1);
+      for (let depth = 1; depth <= folders.length; depth++) {
         // Route GROUPS and private folders contribute no URL segment.
-        const segments = relative(appDir, full)
-          .split(/[/\\]/)
+        const segments = folders
+          .slice(0, depth)
           .filter((s) => !s.startsWith("(") && !s.startsWith("_"));
         routes.add(`/${segments.join("/")}`);
-        walk(full);
       }
-    };
-    walk(appDir);
+    }
     expect(routes.size).toBeGreaterThan(20);
     expect(routes.has(SURFACE_404_PATH)).toBe(false);
   });

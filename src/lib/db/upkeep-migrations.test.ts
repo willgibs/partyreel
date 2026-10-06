@@ -5,12 +5,13 @@
  * file that replaces one of these bodies and drops a clause fails here. The lane's own file, beside
  * `migration-guards.test.ts`, which other lanes write in.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { jobById } from "@/app/admin/jobs/catalog";
+import { readMigrations } from "@/lib/db/testing/migrations";
 
 const MIGRATIONS_DIR = join(
   __dirname,
@@ -24,26 +25,16 @@ const MIGRATIONS_DIR = join(
 const collapse = (sql: string) => sql.replace(/\s+/g, " ");
 const stripComments = (sql: string) => sql.replace(/--[^\n]*/g, "");
 
-function files(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS_DIR, file), "utf8"),
-    }));
-}
-
 /** Every migration's executable SQL, comments stripped and whitespace collapsed, in order. */
 const everything = () =>
-  files()
+  readMigrations()
     .map(({ sql }) => collapse(stripComments(sql)))
     .join(" ");
 
 /** The winning body of `public.<name>(`: the last create across the set, to its closing dollar-quote. */
 function latest(name: string): string {
   let body: string | null = null;
-  for (const { file, sql } of files()) {
+  for (const { file, sql } of readMigrations()) {
     const starts = [
       sql.indexOf(`create or replace function public.${name}(`),
       sql.indexOf(`create function public.${name}(`),
@@ -133,7 +124,7 @@ describe("the album change log, pruned under a watermark (20261001150000)", () =
   it("nothing but the prune ever writes a watermark", () => {
     const writers = new Set<string>();
     const fn = /create (?:or replace )?function public\.([a-z_0-9]+)\(/g;
-    for (const { sql } of files()) {
+    for (const { sql } of readMigrations()) {
       const code = stripComments(sql);
       const starts = [...code.matchAll(fn)];
       starts.forEach((m, i) => {

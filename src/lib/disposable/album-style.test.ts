@@ -18,6 +18,7 @@ import {
   styleSwitchConsequence,
 } from "@/lib/disposable/album-style";
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
+import { guestAlbumOrder } from "@/lib/shared/album-order";
 
 const NOW = Date.parse("2026-10-10T20:00:00Z");
 const AHEAD = "2026-10-11T16:00:00.000Z";
@@ -129,6 +130,46 @@ describe("patchForStyle: one save of all three columns, so no half-state is ever
   });
 });
 
+describe("patchForStyle takes the party's zone directly (crumbs-85: the seeding retired in its home)", () => {
+  it("★ offers 9 am the morning after in the PARTY's zone, the very instant its album turns, never the browser's", () => {
+    const fresh = patchForStyle(
+      "disposable",
+      { capture: "upload", review: false, developsAt: null },
+      {
+        eventDate: "2026-10-09",
+        eventEndDate: "2026-10-11",
+        nowMs: Date.parse("2026-10-05T22:00:00Z"),
+        zone: "Pacific/Auckland",
+      },
+    );
+    // Monday 12 October, 9:00 NZDT: the morning its album turns.
+    expect(fresh.developsAt).toBe("2026-10-11T20:00:00.000Z");
+    expect(Date.parse(fresh.developsAt!)).toBe(
+      guestAlbumOrder({
+        facts: { eventDate: "2026-10-09", eventEndDate: "2026-10-11" },
+        zone: "Pacific/Auckland",
+        chosen: null,
+      }).morningAfter,
+    );
+  });
+
+  it("an unreadable zone is the one fallback (UTC); none at all is the browser's own clock", () => {
+    const at = (zone: string | null | undefined) =>
+      patchForStyle(
+        "disposable",
+        { capture: "upload", review: false, developsAt: null },
+        { eventDate: "2026-10-10", nowMs: NOW, zone },
+      ).developsAt;
+    expect(at("Mars/Olympus")).toBe("2026-10-11T09:00:00.000Z");
+    const browser = defaultDevelopAt({
+      eventDate: "2026-10-10",
+      now: new Date(NOW),
+    }).toISOString();
+    expect(at(null)).toBe(browser);
+    expect(at(undefined)).toBe(browser);
+  });
+});
+
 describe("createFieldsOf: a new event is born with a style's three columns in one insert", () => {
   it("★ writes exactly what Settings' press of each style writes, in the create's own field names", () => {
     const fresh = {
@@ -140,21 +181,42 @@ describe("createFieldsOf: a new event is born with a style's three columns in on
     expect(createFieldsOf(patchForStyle("live", fresh, opts))).toEqual({
       capture: "upload",
       moderation_mode: "live",
+      roll_size: null,
       develops_at: null,
     });
     expect(createFieldsOf(patchForStyle("approval", fresh, opts))).toEqual({
       capture: "upload",
       moderation_mode: "hold_for_approval",
+      roll_size: null,
       develops_at: null,
     });
     expect(createFieldsOf(patchForStyle("disposable", fresh, opts))).toEqual({
       capture: "camera",
       moderation_mode: "live",
+      roll_size: null,
       develops_at: defaultDevelopAt({
         eventDate: null,
         now: new Date(NOW),
       }).toISOString(),
     });
+  });
+
+  it("★ the roll she picked rides with the camera alone: a Disposable is born with it, Live and Review with none", () => {
+    const fresh = {
+      capture: "upload" as const,
+      review: false,
+      developsAt: null,
+    };
+    const opts = { eventDate: null, nowMs: NOW };
+    expect(
+      createFieldsOf(patchForStyle("disposable", fresh, opts), 50).roll_size,
+    ).toBe(50);
+    expect(
+      createFieldsOf(patchForStyle("live", fresh, opts), 50).roll_size,
+    ).toBeNull();
+    expect(
+      createFieldsOf(patchForStyle("approval", fresh, opts), 12).roll_size,
+    ).toBeNull();
   });
 
   it("★ no style is ever born holding approval and a develop time together (`both=never`, at birth too)", () => {

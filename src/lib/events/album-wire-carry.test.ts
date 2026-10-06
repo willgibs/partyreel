@@ -59,6 +59,7 @@ function world() {
   const answers: SyncResult[] = [];
   const asked: string[][] = [];
   let failLinks = false;
+  let drift = 0;
   const inner: AlbumTransport<GuestWhoTuple> & {
     forget: (ids: Iterable<string>) => void;
   } = {
@@ -73,7 +74,7 @@ function world() {
     async links(ids) {
       asked.push([...ids]);
       if (failLinks) throw new Error("offline");
-      const served = clock + SKEW;
+      const served = clock + SKEW + drift;
       return {
         ok: true,
         access: "full",
@@ -97,6 +98,7 @@ function world() {
     advance: (ms: number) => (clock += ms),
     now,
     failLinks: (v: boolean) => (failLinks = v),
+    drift: (ms: number) => (drift += ms),
   };
 }
 
@@ -238,6 +240,26 @@ describe("★ a batch arrives in one call", () => {
     expect(w.store.links.get(uuid(1))?.tile).toBe(
       "https://r2.test/fresh/1/tile",
     );
+  });
+
+  it("★ a mixed answer is dated by whichever half dies first: the route's, when its clock has moved on further", async () => {
+    // ★ Pinned here (test-slim): this arm rode another file's clock, and one full coverage run in three missed it.
+    const w = world();
+    await opened(w);
+    const at = w.now();
+    const served = at + SKEW;
+    w.answer(delta(w, { v: 11, upsert: [entry(3)], total: 3, carry: [3] }));
+    await w.store.sync();
+    // The route answers its half a minute further on, in the same bucket: its links die a minute sooner.
+    w.drift(60_000);
+    await w.store.links.ensure([uuid(3), uuid(1)]);
+    const bucketStart =
+      Math.floor(served / PRESIGN_BUCKET_MS) * PRESIGN_BUCKET_MS;
+    for (const id of [uuid(3), uuid(1)]) {
+      expect(w.store.links.get(id)?.remintAt).toBe(
+        at + (bucketStart + ALBUM_LINK_REMINT_MS - (served + 60_000)),
+      );
+    }
   });
 
   it("the server's half failing still lands the carried half", async () => {

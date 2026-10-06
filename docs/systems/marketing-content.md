@@ -119,11 +119,12 @@ hide-on-scroll in `header-shell.tsx`, desktop panels in `marketing-nav.tsx`, a f
   `QrFrame`'s `liveQrUrl` renders a real scannable code when the demo is set.
 - **`/how-it-works`**: `constants/how-it-works.ts` is the one source of both step sets, read by the page, the home's
   stepper and the app's welcome ([host-app.md](host-app.md)).
-- **`/reel`**: the tile is the app's own `PosterCard` over `LivingStills`, so the motion a visitor meets there is the one
-  they meet on their album; the clip table reads `clipTermsFor` (the clip creator's own facts, the pricing matrix's
+- **`/reel`**: the live chapter's laptop is the album's own cover (`AlbumCover` over `HeadStills`) with the round that
+  opens the reel, so the motion a visitor meets there is the one they meet on their album; the clip table reads `clipTermsFor` (the clip creator's own facts, the pricing matrix's
   phrase too) under `TIER_NAMES`; the hero's heading is `REEL_LINE` (`marketing-voice.ts`), the reel door's line, so the
   door and the room it opens agree. The reel engine stays out of first-load marketing chunks (the pure
-  `engine/style-registry` is the one engine module there): /reel reaches `CanvasReelPlayer` only behind a lazy boundary,
+  `engine/style-registry`, and the cover's take picker with `engine/seed`'s PRNG, are the engine's only modules there; no
+  canvas): /reel reaches `CanvasReelPlayer` only behind a lazy boundary,
   and /careers plays `InlineReelPlayer`.
 - **`/pricing`**: one paper chapter (the Free and Pro pair, the Event Pass, the configurator closing it), then one dark
   room (the unlock tiles, the matrix, the FAQ), so a reader sizes their event while the pair is still in their eye and
@@ -140,8 +141,9 @@ hide-on-scroll in `header-shell.tsx`, desktop panels in `marketing-nav.tsx`, a f
   `/pricing`, so a price change never falsifies a contract. **The fences read the legal text and its comments**, so
   their patterns cannot be quoted even in a comment: write "working days", "public authorities", "content that
   sexually exploits minors", "reasonable limits on upload volume". Acceptance is the one `LegalConsentLine`, shown once
-  per surface (in place on `/login`, a new tab elsewhere, none where the surface already carries it): no checkbox,
-  nothing recorded. The reading pieces shared with the articles live in `marketing/reading/`; `ArticleToc` measures the
+  per surface (in place on `/login`, a new tab elsewhere, none where the surface already carries it; on the admin
+  deployment, which 404s both pages, its links are the app's own, absolute and in a new tab): no checkbox, nothing
+  recorded. The reading pieces shared with the articles live in `marketing/reading/`; `ArticleToc` measures the
   first `<header>` for its scroll offset, so the meta card straddling the cut is a `<div>`.
 - **`/about`**: copy in `constants/about.ts`, a `CLAIM_FILES` entry because the page file itself is reached only by the
   weaker neutralization fence. The press kit is a band on it (`about/press-kit-band.tsx`, copy in `ABOUT_PRESS_KIT`,

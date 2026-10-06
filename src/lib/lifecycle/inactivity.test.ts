@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,6 +6,7 @@ import {
   WARN_BEFORE_DAYS,
   inactivityAction,
 } from "@/lib/lifecycle/inactivity";
+import { filesUnder, read } from "@/testing/source-tree";
 
 const DAY = 86_400_000;
 const now = Date.UTC(2026, 0, 1);
@@ -51,32 +49,25 @@ describe("INACTIVE_MONTHS", () => {
 
   it("★ is the only derivation: no source file converts the day count to months itself", () => {
     // The product's own source: a test file may name the arithmetic it pins, and this module is where it lives.
-    const ROOT = join(__dirname, "..", "..");
-    const OWN_HOME = join("lib", "lifecycle", "inactivity.ts");
+    const ROOT = "src";
+    const OWN_HOME = "lib/lifecycle/inactivity.ts";
     // Any division of the day count by a literal is a unit conversion of the window (months, weeks): its home is
     // here. A product (`INACTIVE_DAYS * 86_400_000`) is the sweep's time arithmetic, not a way of saying it.
     const CONVERSION = /INACTIVE_DAYS\s*\/\s*\d/;
     const found: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) walk(path);
-        else if (
-          /\.tsx?$/.test(entry.name) &&
-          !/\.test\.tsx?$/.test(entry.name) &&
-          !path.endsWith(OWN_HOME)
-        ) {
-          for (const [i, line] of readFileSync(path, "utf8")
-            .split("\n")
-            .entries()) {
-            if (/^\s*(?:\*|\/\/)/.test(line)) continue;
-            if (CONVERSION.test(line))
-              found.push(`${path.slice(ROOT.length)}:${i + 1}: ${line.trim()}`);
-          }
+    for (const path of filesUnder(ROOT)) {
+      if (
+        /\.tsx?$/.test(path) &&
+        !/\.test\.tsx?$/.test(path) &&
+        !path.endsWith(OWN_HOME)
+      ) {
+        for (const [i, line] of read(path).split("\n").entries()) {
+          if (/^\s*(?:\*|\/\/)/.test(line)) continue;
+          if (CONVERSION.test(line))
+            found.push(`${path.slice(ROOT.length)}:${i + 1}: ${line.trim()}`);
         }
       }
-    };
-    walk(ROOT);
+    }
     expect(found).toEqual([]);
   });
 });

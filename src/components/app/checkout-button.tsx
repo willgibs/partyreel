@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { announceChangePlanError } from "@/components/app/pricing/change-plan-request";
+import { useLeaveHold } from "@/components/app/pricing/leave";
 import {
-  announceChangePlanError,
-  requestChangePlan,
-} from "@/components/app/pricing/change-plan-request";
+  usePricingDoors,
+  usePricingRouter,
+} from "@/components/app/pricing/pricing-doors";
 import { loginPath } from "@/lib/auth/return-path";
-import {
-  parseStorageRefusal,
-  type StorageRefusal,
-} from "@/lib/billing/storage-guard";
+import type { StorageRefusal } from "@/lib/billing/storage-guard";
 import type { PlanId } from "@/lib/constants/tiers";
-import { isProPlanId } from "@/lib/validation/checkout";
+import { isProPlanId, type ProPlanId } from "@/lib/validation/checkout";
 import { Button } from "@/components/ui/button";
 
 type CheckoutButtonProps = Omit<
@@ -52,9 +50,15 @@ type CheckoutButtonProps = Omit<
  */
 const NOTICE_HOLD_MS = 5_000;
 
-// Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Signed-out
-// visitors (the public pricing page) are sent to /login first. The server route is
-// authoritative — this is just the trigger.
+// Starts a Stripe Checkout session for a plan and leaves for Stripe. Signed-out
+// visitors (the public pricing page) are sent to /login first, and come back to the
+// page they pressed it on (`loginPath`). The server route is authoritative — this is
+// just the trigger.
+//
+// ★ IT REACHES NOTHING ITSELF: Checkout, the change-plan hop and the way out are the
+// surface's doors (`pricing/pricing-doors.tsx`), the real ones on every page of the
+// app and a specimen's own in the Library, so what a reviewer there presses is this
+// very button.
 //
 // Rest props pass through to the Button so MARKETING call sites can attach
 // trackAttrs(...) data attributes. Keep analytics imports OUT of this file: it
@@ -68,8 +72,17 @@ export function CheckoutButton({
   children,
   ...buttonProps
 }: CheckoutButtonProps) {
-  const router = useRouter();
+  const router = usePricingRouter();
+  const { startCheckout, changePlan, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
+  // ★ PRESSED UNTIL THE PAGE HAS GONE (`leave.ts`'s hold): Stripe's address assigned is a page still standing while
+  // Stripe answers, and a second tap there opened a second session.
+  const { away, held, took } = useLeaveHold();
+  /** The way out, and this door's hold on it. */
+  function leaveNow(url: string) {
+    leave(url);
+    took();
+  }
   // The sentence's hold before Stripe's page (below): a timer she can stop, by Stay here or by leaving the page.
   const [holding, setHolding] = useState(false);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -101,98 +114,92 @@ export function CheckoutButton({
     });
   }
 
-  function startCheckout() {
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/stripe/checkout", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ planId, renewal, next }),
+  // ── A PRO HOST CHOOSING A PRO PLAN IS A CHANGE, NOT A PURCHASE ────────────
+  // /pricing is statically generated and therefore tier-blind, so a host
+  // already on Pro clicking a size reaches checkout and is refused there with
+  // `already_subscribed`. Rather than make the page dynamic to relabel one
+  // button, we act on that answer by posting the SAME plan to change-plan, which
+  // runs the storage check and opens Stripe's confirm page for exactly that
+  // price. It never opens the general portal: that portal's switcher cannot
+  // know what a host stores. A Pro host clicking a PASS keeps the checkout's
+  // own sentence (Pro already includes everything a pass adds).
+  async function switchPlan(plan: ProPlanId) {
+    const outcome = await changePlan(plan, next);
+    if (outcome.kind === "redirect") {
+      // ★ A SWITCH BELOW THIS MONTH'S UPLOADS SAYS SO BEFORE IT LEAVES (crumbs-70). The plan sheet says it on the
+      // size's own card before the press; this page is tier-blind and has no card, so the route answers the
+      // sentence (`uploadsPauseNote`) and it is shown here, held one reading while the button still says it is
+      // working, and hers to stop (Stay here, or simply leaving the page: a wait with no way out is not one the
+      // brief allows). Words, never a refusal and never a confirm: the webhook allows the switch, and she goes on
+      // unless she says otherwise.
+      if (outcome.notice) {
+        const url = outcome.url;
+        setHolding(true);
+        holdToast.current = toast(outcome.notice, {
+          duration: NOTICE_HOLD_MS + 1_000,
+          action: { label: "Stay here", onClick: stopHold },
         });
-        if (res.status === 401) {
+        holdTimer.current = setTimeout(() => {
+          holdTimer.current = null;
+          // The reading's hold hands over to the way out's, which lets go if the page comes back (this one never did).
+          leaveNow(url);
+          setHolding(false);
+        }, NOTICE_HOLD_MS);
+        return;
+      }
+      leaveNow(outcome.url);
+      return;
+    }
+    if (outcome.kind === "signin") {
+      router.push(loginPath(window.location.pathname));
+      return;
+    }
+    if (outcome.kind === "refused") {
+      showRefusal(outcome.refusal);
+      return;
+    }
+    announceChangePlanError(outcome, toast);
+  }
+
+  function press() {
+    startTransition(async () => {
+      const outcome = await startCheckout(planId, { renewal, next });
+      switch (outcome.kind) {
+        case "redirect":
+          leaveNow(outcome.url);
+          return;
+        case "signin":
           router.push(loginPath(window.location.pathname));
           return;
-        }
-        const data = await res.json();
-
-        // THE STORAGE GUARD (billing-caps.md): a Pro plan smaller than what the
-        // host stores is refused with the numbers, and they are what a host reads.
-        const refusal = parseStorageRefusal(data);
-        if (refusal) {
-          showRefusal(refusal);
+        case "refused":
+          // THE STORAGE GUARD (billing-caps.md): a Pro plan smaller than what the host stores is refused with the
+          // numbers, and they are what a host reads.
+          showRefusal(outcome.refusal);
           return;
-        }
-
-        // ── A PRO HOST CHOOSING A PRO PLAN IS A CHANGE, NOT A PURCHASE ────────────
-        // /pricing is statically generated and therefore tier-blind, so a host
-        // already on Pro clicking a size reaches checkout and is refused there with
-        // `already_subscribed`. Rather than make the page dynamic to relabel one
-        // button, we act on that code by posting the SAME plan to change-plan, which
-        // runs the storage check and opens Stripe's confirm page for exactly that
-        // price. It never opens the general portal: that portal's switcher cannot
-        // know what a host stores. A Pro host clicking a PASS keeps the checkout's
-        // own sentence (Pro already includes everything a pass adds).
-        if (
-          res.status === 409 &&
-          data?.code === "already_subscribed" &&
-          isProPlanId(planId)
-        ) {
-          const outcome = await requestChangePlan(planId, next);
-          if (outcome.kind === "redirect") {
-            // ★ A SWITCH BELOW THIS MONTH'S UPLOADS SAYS SO BEFORE IT LEAVES (crumbs-70). The plan sheet says it on the
-            // size's own card before the press; this page is tier-blind and has no card, so the route answers the
-            // sentence (`uploadsPauseNote`) and it is shown here, held one reading while the button still says it is
-            // working, and hers to stop (Stay here, or simply leaving the page: a wait with no way out is not one the
-            // brief allows). Words, never a refusal and never a confirm: the webhook allows the switch, and she goes on
-            // unless she says otherwise.
-            if (outcome.notice) {
-              const url = outcome.url;
-              setHolding(true);
-              holdToast.current = toast(outcome.notice, {
-                duration: NOTICE_HOLD_MS + 1_000,
-                action: { label: "Stay here", onClick: stopHold },
-              });
-              holdTimer.current = setTimeout(() => {
-                holdTimer.current = null;
-                window.location.href = url;
-              }, NOTICE_HOLD_MS);
-              return;
-            }
-            window.location.href = outcome.url;
+        case "subscribed":
+          if (isProPlanId(planId)) {
+            await switchPlan(planId);
             return;
           }
-          if (outcome.kind === "signin") {
-            router.push(loginPath(window.location.pathname));
-            return;
-          }
-          if (outcome.kind === "refused") {
-            showRefusal(outcome.refusal);
-            return;
-          }
-          announceChangePlanError(outcome, toast);
-          return;
-        }
-
-        if (!res.ok || !data?.url) {
           toast.error("Couldn't start checkout.", {
-            description: data?.message ?? "Please try again.",
+            description: outcome.message,
           });
           return;
-        }
-        window.location.href = data.url as string;
-      } catch {
-        toast.error("Couldn't start checkout. Please try again.");
+        case "error":
+          toast.error("Couldn't start checkout.", {
+            description: outcome.message,
+          });
       }
     });
   }
 
   return (
     <Button
-      onClick={startCheckout}
-      disabled={isPending || holding}
+      onClick={press}
+      disabled={isPending || holding || away}
       {...buttonProps}
     >
-      {isPending || holding ? "Starting…" : children}
+      {isPending || holding || held ? "Starting…" : children}
     </Button>
   );
 }

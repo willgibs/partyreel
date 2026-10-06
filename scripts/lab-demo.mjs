@@ -13,6 +13,7 @@
  *   pnpm lab:demo --base ... --reach-limit 0.4   # a stricter reach (the stage's top, of a screen)
  *   pnpm lab:demo --base ... --state screen=phone # every step pressed wearing a knob (repeatable)
  *   pnpm lab:demo --base ... --width 375         # the sitting at a phone's width
+ *   pnpm lab:demo --base ... --chrome-port 9511  # pin Chrome's DevTools port (default: Chrome's own free one)
  *
  * ★ IT PRESSES WHAT THE CHANGE REACHED (the lab revamp, 2026-09-29): the boards
  * `scripts/lab-scope.mjs` finds in this tree's change (its own folder, its
@@ -43,7 +44,10 @@
  * 1.9). A step whose options differ only in MOTION (how a surface enters) is
  * still under reduced motion by design, so a stage that fails on pixels is read
  * a second time with motion allowed, and passes when the animations it declares
- * differ between options. A pair that
+ * differ between options, or when its options' motion captures do (a short
+ * loop of each option's whole view: a light driven from script declares no
+ * animation, and moves all the same; `--save-shots` keeps each loop under
+ * `loops/`). A pair that
  * draws the SAME stage is printed as a warning: sometimes that is an option that
  * equals today, sometimes it is the next frozen stage. A step with no stage, or
  * with text-only options, is skipped and says so.
@@ -73,7 +77,10 @@
  *  - TABS: at a phone, the options' row runs past its edge, so an option is
  *    off the screen while he chooses (every option fits as its number, the
  *    shown one with its name; lab-sitting, 2026-10-01);
- *  - NO DOCK: the dock is off screen at the top of the page or at its foot.
+ *  - NO DOCK: the dock is off screen at the top of the page or at its foot;
+ *  - UNPAUSED: with motion allowed, an option that is not shown still runs a
+ *    CSS loop (its view's, or one inside its frames: `getAnimations()`), so
+ *    the pause a hidden option owes (`frame-pause.ts`) is proven at the gate.
  * Every row says where each screen's stage starts and how far above the dock
  * its frames end.
  * And a step whose every capture is ONE FLAT COLOUR is UNPAINTED rather than
@@ -135,9 +142,11 @@ import {
   existsSync,
   mkdtempSync,
   mkdirSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
@@ -194,6 +203,9 @@ for (const s of STATES)
 const scope = scopeFromArgs(argv);
 for (const line of describeScope(scope)) console.log(line);
 const threshold = Number(opt("--threshold", 0.1));
+/** An option's motion capture: LOOP pictures of its whole view, LOOP_GAP ms apart, with motion allowed. */
+const LOOP = Number(opt("--loop", 4));
+const LOOP_GAP = Number(opt("--loop-gap", 250));
 /**
  * THE SETTLE IS A FLOOR, AND THE READINESS CHECK RUNS PAST IT (lab-tides,
  * 2026-09-19).
@@ -373,14 +385,63 @@ function differ(a, b) {
   return (n / px) * 100;
 }
 
+/** Whether anything is listening on a local port: a connection that completes, or one that never answers, is a yes. */
+function answers(onPort) {
+  return new Promise((resolve) => {
+    const socket = createConnection({ port: onPort, host: "127.0.0.1" });
+    socket.setTimeout(800);
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("timeout", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    // Refused: nothing is there.
+    socket.once("error", () => resolve(false));
+  });
+}
+
 // ── Chrome, over its DevTools protocol
-const port = 9400 + (process.pid % 500);
+/**
+ * ★ THE DEBUGGING PORT IS CHROME'S OWN, NEVER A GUESS (lab-kit-2, after
+ * brand-r1's `shoot.mjs`). It was `9400 + pid % 500`, taken without a look, so
+ * on a busy machine a run could land on a port another lane's headless Chrome
+ * already held: this run's Chrome could not bind it, `connect()` found the
+ * OTHER lane's page there and drove it (brand-r1 did, once). Now Chrome is
+ * asked for any free port (`0`) and this run reads the one it opened off the
+ * profile directory it alone owns (`DevToolsActivePort`), so it can only ever
+ * reach a Chrome it started. `--chrome-port <n>` pins one, and a pinned port
+ * something already answers on is refused here, before a profile or a process
+ * exists; taken in the instant after this check, Chrome could not bind it and
+ * would write no file, so the run fails rather than attach to a stranger.
+ */
+const pinned = opt("--chrome-port", "");
+if (pinned) {
+  const wanted = Number(pinned);
+  if (!Number.isInteger(wanted) || wanted < 1024 || wanted > 65535) {
+    console.error(
+      `lab:demo: --chrome-port takes a port from 1024 to 65535, and "${pinned}" is not one.`,
+    );
+    process.exit(2);
+  }
+  if (await answers(wanted)) {
+    console.error(
+      `lab:demo: port ${wanted} already has something on it (another lane's Chrome, likely).\n` +
+        "  Pick another --chrome-port, or leave it off and Chrome picks a free one.",
+    );
+    process.exit(3);
+  }
+}
+/** The port this run's own Chrome opened: null until it has written it. */
+let port = null;
 const profile = mkdtempSync(join(tmpdir(), "lab-demo-"));
 const chrome = spawn(
   CHROME,
   [
     "--headless=new",
-    `--remote-debugging-port=${port}`,
+    `--remote-debugging-port=${pinned || 0}`,
     `--user-data-dir=${profile}`,
     "--hide-scrollbars",
     "--no-first-run",
@@ -502,8 +563,31 @@ function listen(ws) {
   };
 }
 
+/** The port Chrome wrote into this run's own profile (line one of `DevToolsActivePort`), once it has. */
+function openedPort() {
+  try {
+    const first = readFileSync(join(profile, "DevToolsActivePort"), "utf8")
+      .split("\n")[0]
+      .trim();
+    const n = Number(first);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 async function connect() {
   for (let i = 0; i < 80; i++) {
+    // A Chrome that is gone will never open a port: say so now, not after the wait.
+    if (chrome.exitCode !== null || chrome.signalCode !== null)
+      throw new Error(
+        `Chrome exited (${chrome.exitCode ?? chrome.signalCode}) before it opened its debugging port`,
+      );
+    port ??= openedPort();
+    if (port === null) {
+      await sleep(150);
+      continue;
+    }
     try {
       const list = await (
         await fetch(`http://127.0.0.1:${port}/json/list`)
@@ -861,6 +945,35 @@ const PAGE_LIB = `
             out.add(cs.animationName + ' ' + cs.animationDuration + ' ' + cs.animationTimingFunction);
         }
       return [...out].sort().join(' | ');
+    },
+    /**
+     * ★ THE PAUSE, PROVEN (lab-kit-3, from lab-kit-2's ROADMAP line): every CSS
+     * loop still RUNNING in an option that is not shown, read from the
+     * animations themselves (\`getAnimations()\`: the lab's own document for
+     * what the view draws, and each frame's document), as "<option>: <name>".
+     * A hidden option is held still (design.css's \`[data-paused]\`, and
+     * \`frame-pause.ts\` inside its frames), so anything here is a loop nobody
+     * sees, spending the reviewer's machine.
+     */
+    running(shown) {
+      const out = new Set();
+      for (const v of document.querySelectorAll('main [data-lab-stage] [data-lab-view]')) {
+        const id = v.getAttribute('data-option');
+        if (id === shown) continue;
+        const lists = [document.getAnimations().filter((a) => a.effect && a.effect.target && v.contains(a.effect.target))];
+        for (const f of v.querySelectorAll('iframe')) {
+          try { if (f.contentDocument) lists.push(f.contentDocument.getAnimations()); } catch {}
+        }
+        for (const list of lists)
+          for (const a of list) {
+            // A CSS loop: a CSSAnimation (a frame's own realm's, so read by its
+            // name, never instanceof) that repeats for ever and is running.
+            if (a.playState !== 'running' || typeof a.animationName !== 'string') continue;
+            if (a.effect.getComputedTiming().iterations !== Infinity) continue;
+            out.add(id + ': ' + a.animationName);
+          }
+      }
+      return [...out].sort();
     },
     /** Show an option: a press, unless it is already shown (a second press picks). */
     show(i) {
@@ -1357,33 +1470,95 @@ try {
         }
       let ok = max >= threshold;
       let how = `the stage moves by up to ${max.toFixed(2)}%`;
-      if (!ok && !unpainted) {
-        // Still pictures that match may be a question about motion: read what
-        // each option declares, with motion allowed (the next step's `go`
-        // puts the stillness back).
-        await go(ws, url, { metrics: PICTURES, media: MEDIA_MOVING });
-        await evaluate(ws, PAGE_LIB);
-        const motions = [];
-        for (let i = 0; i < count; i++) {
-          const id = await evaluate(ws, `window.__labDemo.show(${i})`);
-          await settleView(ws, id);
-          motions.push(
-            await evaluate(
-              ws,
-              `window.__labDemo.motion(${JSON.stringify(id)})`,
+      // ── THE MOTION, with motion allowed (the next step's `go` puts the
+      // stillness back), every step (lab-kit-3): each option shown in turn,
+      // what it declares, a short loop of its whole view, and the pause of
+      // every option NOT shown.
+      //  - ★ A MOTION CAPTURE PER OPTION (brand-r2's ROADMAP line): a light
+      //    that answers events (the reel's Bloom on each cut, a ring filling
+      //    as files send) is driven from script and declares no animation, so
+      //    a still picture of it, or the declared names alone, judged it still.
+      //    LOOP pictures LOOP_GAP ms apart say whether it moves.
+      //  - ★ THE PAUSE AT THE GATE (lab-kit-2's ROADMAP line): `running`
+      //    names every CSS loop a hidden option still runs, and the step fails
+      //    UNPAUSED on any.
+      await go(ws, url, { metrics: PICTURES, media: MEDIA_MOVING });
+      await evaluate(ws, PAGE_LIB);
+      const motions = [];
+      const loops = [];
+      const unpaused = new Set();
+      for (let i = 0; i < count; i++) {
+        const id = await evaluate(ws, `window.__labDemo.show(${i})`);
+        await settleView(ws, id);
+        motions.push(
+          await evaluate(ws, `window.__labDemo.motion(${JSON.stringify(id)})`),
+        );
+        for (const r of await evaluate(
+          ws,
+          `window.__labDemo.running(${JSON.stringify(id)})`,
+        ))
+          unpaused.add(r);
+        const loop = [];
+        for (let n = 0; n < LOOP; n++) {
+          if (n) await sleep(LOOP_GAP);
+          // The whole view (no frame has index -1), so a light in any of its
+          // frames is in the picture.
+          const shot = await frameShot(ws, id, -1);
+          if (shot) loop.push(shot.png);
+        }
+        const pics = loop.map(decodePng);
+        let moved = 0;
+        for (let n = 1; n < pics.length; n++)
+          moved = Math.max(moved, differ(pics[n - 1], pics[n]));
+        loops.push({ id, label: shots[i]?.label ?? id, pics, moved });
+        if (SAVE_SHOTS) {
+          mkdirSync(join(SAVE_SHOTS, "loops"), { recursive: true });
+          loop.forEach((png, n) =>
+            writeFileSync(
+              join(SAVE_SHOTS, "loops", `${step}.${id}.${n + 1}-${W}.png`),
+              png,
             ),
           );
         }
+      }
+      for (const r of unpaused)
+        layout.push(
+          `UNPAUSED: a hidden option still runs a CSS loop (${r}), nobody sees it`,
+        );
+      const moving = loops.filter((l) => l.moved >= threshold);
+      if (!ok && !unpainted) {
+        // Still pictures that match may be a question about motion: the
+        // animations each option declares, or its loop (one moves and another
+        // does not, or their loops draw different frames).
+        let loopsDiffer = moving.length > 0 && moving.length < loops.length;
+        for (let a = 0; a < loops.length && !loopsDiffer; a++)
+          for (let b = a + 1; b < loops.length && !loopsDiffer; b++)
+            for (
+              let n = 0;
+              n < Math.min(loops[a].pics.length, loops[b].pics.length);
+              n++
+            )
+              if (differ(loops[a].pics[n], loops[b].pics[n]) >= threshold) {
+                loopsDiffer = true;
+                break;
+              }
         if (new Set(motions).size > 1) {
           ok = true;
           how =
             "the options differ in motion only (the animations the stage declares)";
+        } else if (loopsDiffer) {
+          ok = true;
+          how = "the options differ in motion only (their loops)";
         }
-        if (verbose)
-          motions.forEach((m, i) =>
-            console.log(`  ${step}: motion ${i}: ${m}`),
-          );
       }
+      if (moving.length)
+        how += `; moving: ${moving.map((l) => `${l.label} ${l.moved.toFixed(2)}%`).join(", ")}`;
+      if (verbose)
+        motions.forEach((m, i) =>
+          console.log(
+            `  ${step}: motion ${i}: ${m || "none declared"}; its loop moves ${loops[i]?.moved.toFixed(2)}%`,
+          ),
+        );
       const broken = layout.length > 0;
       // UNPAINTED is not a failure: the board may be perfect and this renderer
       // blind to it. It is printed loudly all the same, because a step nobody

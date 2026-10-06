@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { render, screen } from "@testing-library/react";
@@ -11,6 +11,7 @@ import {
   SetCrumbs,
 } from "@/components/shared/crumbs";
 import { RouteSkeleton } from "@/components/shared/route-skeleton";
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * `app-vocabulary` r1, `loading=asneeded`: one shared skeleton, wired to
@@ -139,9 +140,9 @@ describe("RouteSkeleton holds the trail", () => {
   it("is what EVERY loading.tsx of the host app delegates to, so no wait can forget the hold", () => {
     // A loading.tsx that draws its own fallback would blink the bar for the whole of its wait (the failure is
     // safe, and ugly): this is what keeps a third one from being written that way.
-    const files = readdirSync(join(ROOT, "src/app/(app)"), { recursive: true })
-      .map((f) => `src/app/(app)/${String(f).replace(/\\/g, "/")}`)
-      .filter((rel) => rel.endsWith("/loading.tsx"));
+    const files = filesUnder("src/app/(app)").filter((rel) =>
+      rel.endsWith("/loading.tsx"),
+    );
     expect(
       files.length,
       "found the host app's loading files",

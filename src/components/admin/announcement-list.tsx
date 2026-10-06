@@ -64,6 +64,7 @@ function AnnouncementRow({
         title="Delete this announcement?"
         lede="It disappears from every host's notification list, and there is no bin for it."
         verb="Delete announcement"
+        working="Deleting"
         touches={[
           `"${announcement.title}"`,
           scheduled

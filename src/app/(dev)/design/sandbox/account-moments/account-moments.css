@@ -1,0 +1,18 @@
+/* An option's own line arrives as the press lands: a short rise and fade on
+   the emphasis curve, under 300 ms; none at all under reduced motion. */
+@keyframes am-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.am-arrive {
+  animation: am-arrive 240ms var(--ease-emphasis) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .am-arrive {
+    animation: none;
+  }
+}

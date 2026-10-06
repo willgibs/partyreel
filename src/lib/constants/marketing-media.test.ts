@@ -1,6 +1,8 @@
-import { readdirSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 import {
   MARKETING_IMAGES,
@@ -21,8 +23,8 @@ const MARKETING_DIR = join(PUBLIC_DIR, "marketing");
 
 function filesUnder(dir: string): string[] {
   if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && !entry.name.startsWith("."))
+  return entries(dir)
+    .filter((entry) => !entry.isDirectory && !entry.name.startsWith("."))
     .map((entry) => entry.name);
 }
 

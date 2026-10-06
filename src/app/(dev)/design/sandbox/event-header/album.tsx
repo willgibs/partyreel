@@ -28,8 +28,8 @@ import type { ScreenId } from "./scene";
  * first photograph lands on the first screen off the frame itself.
  */
 
-/** Photographs a row at the default step: two at a phone, five at a desk. */
-const PER_ROW: Record<ScreenId, number> = { "375": 2, "1440": 5 };
+/** Photographs a row at the default step: two at a phone, three at a tablet, five at a desk (`ROW_CLASSES`). */
+const PER_ROW: Record<ScreenId, number> = { "375": 2, "820": 3, "1440": 5 };
 
 /** The album, repeated to a real album's depth, so a scrolled frame has somewhere to go. */
 function photos(n: number, album: readonly Still[]): Still[] {
@@ -119,7 +119,7 @@ export function HubAlbum({
             <Button variant="outline" size="sm">
               <ImageUp /> Add photos
             </Button>
-            {has && screen === "1440" ? (
+            {has && screen !== "375" ? (
               <Button variant="outline" size="sm">
                 <Download /> Download
               </Button>

@@ -10,8 +10,8 @@ cd "$REPO"
 # 1. integrate.sh refuses a lane that does not exist, before any gate log is written
 S="$T" zsh "$KIT/integrate.sh" no-such-lane deadbeefcafe body-type /dev/null > "$T/integrate.out" 2>&1
 grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/null 2>&1 && ok "integrate.sh refuses a missing lane and starts no gate" || bad "integrate.sh did not refuse a missing lane"
-# 1c. every merge and gate script refuses to run with no scratchpad, before it touches anything
-for script in integrate.sh merge-lane.sh gate-lane.sh demo-rerun.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
+# 1c. every merge, gate and desk script refuses to run with no scratchpad, before it touches anything
+for script in integrate.sh merge-lane.sh gate-lane.sh demo-rerun.sh desk-refresh.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
 # 2. merge-lane.sh refuses a lane that does not exist (here with a full-length sha) and leaves the tree untouched
 BEFORE="$(git status --short)"; S="$T" zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
 # 3. record.py refuses a changelog and a STATUS row, and writes nothing: what shipped lives in the merge commit, STATUS is a snapshot
@@ -44,6 +44,9 @@ env -u LAB_BASE node scripts/lab-smoke.mjs > "$T/smoke.out" 2>&1; R1=$?; env -u 
 # 11. cut-lane.py refuses a board lane that owns a shared list (a board is its folder), and writes nothing
 mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["src/app/(dev)/design/sandbox/registry.ts"],"goal":"g","brief":"b"}' > "$T/cut/s.json"
 (cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef s.json > "$T/cut.out" 2>&1); [ $? != 0 ] && grep -q "never a shared list" "$T/cut.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a board lane owning a shared list" || bad "cut-lane.py cut a board lane onto a shared list"
+#     and a read outside the repo (a scratch path resolves only from the primary checkout, never from a lane's worktree)
+printf '%s' '{"track":"t","board":"none","owns":["src/lib/zz-negative/"],"reads":["../partyreel-wt/_scratch/x.txt"],"goal":"g","brief":"b"}' > "$T/cut/r.json"
+(cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef r.json > "$T/cutr.out" 2>&1); [ $? != 0 ] && grep -q "a read is repo-relative" "$T/cutr.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a read outside the repo" || bad "cut-lane.py cut a lane whose read resolves only from the primary checkout"
 # 12. new-board.mjs refuses a board that exists, a surface that does not and a missing desk place, and writes nothing (a
 #     board is one folder, and the scaffold never overwrites one). The board it tries is read from the tree at each run:
 #     a named one decays when its board retires (locked-door did, and the scaffold then wrote a real folder, 2026-10-04).
@@ -58,6 +61,17 @@ echo msg > "$T/msg13.txt"; BEFORE="$(git status --short)"; S="$T" KIT_BRANCH=zz-
 # 14. the Vercel guard stands in front of every remote lab run and every deploy (2026-10-04: Hobby's Active CPU, whose
 #     break pauses every function): both lab scripts and alias-ensure.mjs call it, and a local base never spends a read
 grep -q 'guardRemoteBase(base, "lab:demo")' scripts/lab-demo.mjs && grep -q 'guardRemoteBase(base, "lab:smoke")' scripts/lab-smoke.mjs && grep -q 'vercel-usage.mjs' "$KIT/alias-ensure.mjs" && node -e 'import("./scripts/vercel-guard.mjs").then(m=>{m.guardRemoteBase("http://localhost:3131","x");m.guardRemoteBase("http://127.0.0.1:3999","x");console.log("local-ok")})' 2>&1 | grep -qx "local-ok" && ok "the Vercel guard fronts remote lab runs and deploys, and lets a local base through unread" || bad "the Vercel guard is missing from a lab script or alias-ensure, or it reads on a local base"
+# 15. the kit runs on a machine with no nvm (a cloud seat, 2026-10-06: a bare `source ~/.nvm/nvm.sh` under `set -e` killed
+#     every merge before it started): with HOME holding no nvm, merge-lane.sh still reaches its own branch refusal
+mkdir -p "$T/nohome"; S="$T" HOME="$T/nohome" KIT_BRANCH=zz-not-this-branch zsh "$KIT/merge-lane.sh" no-such-lane deadbeef "$T/msg13.txt" > "$T/nonvm.out" 2>&1
+grep -q "not zz-not-this-branch" "$T/nonvm.out" && ! grep -q "STEP FAILED" "$T/nonvm.out" && ok "merge-lane.sh runs on a machine with no nvm" || bad "merge-lane.sh died on a machine with no nvm"
+# 16. signin.mjs mints a session for the two test hosts alone: the operator (her portal stands behind a second factor), a
+#     stranger and a remote base are refused (exit 3) before any key is read or any call is made, and nothing is printed
+#     but the refusal
+SI="$KIT/redteam/signin.mjs"; env -u SUPABASE_SECRET_KEY node "$SI" partyr33l@gmail.com http://localhost:3000 X > "$T/si1.out" 2>&1; S1=$?
+node "$SI" stranger@example.com http://localhost:3000 X > "$T/si2.out" 2>&1; S2=$?; node "$SI" PARTYR33L@Gmail.com http://localhost:3000 X > "$T/si3.out" 2>&1; S3=$?
+node "$SI" willg97@gmail.com https://partyreel.com X > "$T/si4.out" 2>&1; S4=$?
+[ $S1 = 3 ] && [ $S2 = 3 ] && [ $S3 = 3 ] && [ $S4 = 3 ] && grep -q "operator" "$T/si1.out" && grep -q "not a test host" "$T/si2.out" && grep -q "operator" "$T/si3.out" && grep -q "not a local server" "$T/si4.out" && ok "signin.mjs refuses the operator, a stranger and a remote base" || bad "signin.mjs minted, or tried to mint, a session it must refuse"
 # the costs the refusals were written for, re-read from the system as it is now (a report, never a refusal; cost-readings.mjs)
 node "$KIT/cost-readings.mjs" 2>&1 | cut -c1-400 || echo "cost readings: the script failed (read it before the next integration)"
 node "$KIT/vercel-usage.mjs" 2>&1 | cut -c1-400

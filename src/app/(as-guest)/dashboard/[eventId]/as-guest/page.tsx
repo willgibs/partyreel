@@ -76,6 +76,7 @@ export default async function AsGuestPage({ params, searchParams }: PageProps) {
       }}
       joinUrl={read.joinUrl}
       galleryPromise={read.galleryPromise}
+      albumOrder={read.albumOrder}
       stats={read.stats}
       host={read.host}
       guests={read.guests}

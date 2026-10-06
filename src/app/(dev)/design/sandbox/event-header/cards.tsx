@@ -2,439 +2,244 @@
 
 import "./cards.css";
 
-import {
-  type PointerEvent,
-  type RefObject,
-  useLayoutEffect,
-  useRef,
-} from "react";
-
+import type { ReactNode } from "react";
 import { Pause } from "lucide-react";
 
-import { formatCount } from "@/lib/format/count";
-import { cn } from "@/lib/utils";
+import { countWord } from "@/components/app/event-feed/room-card";
 
 import {
-  BandLead,
-  CodeEnd,
-  type DoorDraw,
+  capCount,
+  CardRow,
+  type DoorProps,
+  DoorButton,
+  Glyph,
+  type Look,
+  PillWord,
+  Skin,
+  waitsOf,
+  Words,
+} from "./card-kit";
+import {
   type DoorFace,
   type DoorOption,
-  type DoorPress,
-  doorName,
-  facesOf,
   ROOM_ICON,
-  ROOM_LABEL,
-  ROOM_ORDER,
-  ROOM_SHORT,
   type RoomId,
-  useRestHeight,
 } from "./door-kit";
+import { CoverSeam, seamOf } from "./seam";
 import type { ScreenId } from "./scene";
 
 /**
- * CARDS OVER THE SEAM, ROUND FOUR: the cover's photograph dissolves into the
- * page at its foot and five cards stand across that seam on the lift, App
- * Store depth; as the row reaches the bar the same five fold into pills, one
- * continuous movement, and unfold the same way back.
+ * ROUND SIX'S CARDS: EACH COUNT RIDES ITS GLYPH (Will, round five: "add the
+ * count as a badge on the card icons (option 3), so each card's content can
+ * be absorbed in one glance… Can max at 99+"). Three real answers to how that
+ * card reads, each whole on one row and fold (`card-kit.tsx`), over one Seam
+ * (`seam.tsx`), wearing the one status token for a count that needs her
+ * (`needs.css`):
  *
- * ★ EVERY DOOR AT REST, ON EVERY SCREEN. In a hand the cards are a two by two
- * grid with See it as a guest the full width under it, never a shelf: round
- * three's shelf showed two and a half cards, hid Settings and the guest's view
- * past the screen's edge and cut Review's count mid-word, which is the
- * regression production's own phone grid was built to end (`room-card.ts`).
+ *  - `shoulder`: the badge on the glyph's shoulder, only where a count needs
+ *    her (or is hers to act on); every other glyph bare. An app icon's grammar.
+ *  - `ring`: where something waits the glyph wears a ring of the token, the
+ *    count a tab at its foot. A story ring's grammar: something new inside.
+ *  - `numeral`: where something waits the count takes the glyph's place, a
+ *    numeral on a lit disc with the glyph gone to its shoulder; the glyph
+ *    comes back once she is caught up. A scoreboard's grammar, read across a room.
  *
- * ★ A WAITING COUNT IS A NUMERAL, AMBER ONLY AS ITS POINT. Where something
- * waits on her the count stands big in the heading face at the card's end,
- * today's waiting light beside it, and the line keeps the word it counts; no
- * card is ever washed amber. Settings' steps left stay plain words in the ink
- * (the call G4), and paused uploads read Paused.
+ * ★ THE CAP IS THE BADGE'S OWN (`capCount`, 99+), never the count's format:
+ * the accessible name and the room keep the whole number.
+ * ★ ONE ROW OF FIVE IN A HAND, in every take (round five's `points`): each
+ * glyph and its short word, the count on it, so the cover keeps its words.
  */
 
-/**
- * How far the cards rise into the cover, and how far its photograph dissolves
- * into the page under them: about half a card at a desk, so the seam runs
- * through the row; in a hand the grid's first row stands on the photograph and
- * the seam runs under it.
- */
-const SEAM: Record<ScreenId, { rise: number; fade: number }> = {
-  "375": { rise: 52, fade: 84 },
-  "1440": { rise: 40, fade: 72 },
-};
+export type CardId = "shoulder" | "ring" | "numeral";
 
-/** The fold is occasional (once a pass of the bar), so it is quick: under 300ms. */
-const FOLD_MS = 260;
-
-/** The drawer's curve (`--ease-drawer`), read where the token is unreadable. */
-const DRAWER = "cubic-bezier(0.32, 0.72, 0, 1)";
-
-/** A waiting count's line once its numeral stands on its own: the word it counts ("waiting"). */
-const wordOf = (value: string) => value.replace(/^[\d.,]+\s*/, "");
-
-/**
- * The pointer's place on a card, for the light that follows it in the room
- * (`cards.css`): two properties written, nothing rendered, so a hover costs
- * the page nothing.
- */
-function follow(e: PointerEvent<HTMLButtonElement>) {
-  if (e.pointerType !== "mouse") return;
-  const door = e.currentTarget;
-  const r = door.getBoundingClientRect();
-  door.style.setProperty("--eh-cards-x", `${e.clientX - r.left}px`);
-  door.style.setProperty("--eh-cards-y", `${e.clientY - r.top}px`);
-}
-
-/**
- * ONE DOOR, A CARD AT REST AND A PILL STUCK, and the same element in both
- * (production's own rule: the row never remounts as it condenses). Every piece
- * of both forms is drawn once; the band's `data-stuck` decides which shows,
- * and `data-fold` names what the fold carries from one form to the other.
- */
-function Door({
-  room,
-  face,
-  phone,
-  selected,
-  onOpen,
+/** A badge: the count that needs her in the token, or a quiet ring. */
+function Badge({
+  kind,
+  at = "shoulder",
+  hers = false,
+  children,
 }: {
-  room: RoomId;
-  face: DoorFace;
-  phone: boolean;
-  selected: boolean;
-  onOpen?: DoorPress;
+  kind: "needs" | "quiet";
+  /** On the glyph's shoulder, or a tab at its foot (the ring's). */
+  at?: "shoulder" | "foot";
+  /** Shown only where the door has no line to say it in. */
+  hers?: boolean;
+  children: ReactNode;
 }) {
-  const Icon = ROOM_ICON[room];
-  const waits = face.amber && face.count ? face.count : 0;
   return (
-    <button
-      type="button"
-      data-eh-door={room}
-      aria-pressed={selected || undefined}
-      aria-label={doorName(room, face)}
-      onClick={() => onOpen?.(room)}
-      onPointerMove={follow}
-      className="eh-cards-door"
+    <span
+      data-fold="badge"
+      data-badge={kind}
+      data-at={at}
+      data-hers={hers ? "" : undefined}
+      className="eh-badge"
     >
-      {/* The card's surface on its own layer, so the fold can carry it from
-          the card's box to the pill's without touching the words on it. */}
-      <span aria-hidden data-fold="skin" className="eh-cards-skin" />
-      <span
-        aria-hidden
-        className={cn("eh-cards-glyph", room === "reel" && "eh-cards-reel")}
-      >
-        <span data-fold="disc" className="eh-cards-disc" />
-        <span data-fold="glyph" className="eh-cards-mark">
-          <Icon />
-        </span>
-      </span>
-      <span aria-hidden className="eh-cards-text">
-        <span
-          data-fold="title"
-          className="truncate font-heading text-card-title"
-        >
-          {phone ? ROOM_SHORT[room] : ROOM_LABEL[room]}
-        </span>
-        <span
-          data-fold="text"
-          className={cn(
-            "truncate text-xs",
-            face.strong || face.paused
-              ? "font-medium text-foreground"
-              : "text-muted-foreground",
-          )}
-        >
-          {waits ? wordOf(face.value) : face.value}
-        </span>
-      </span>
-      {phone ? null : (
-        // The pill's word, a control's label (Inter), never the card's title restyled (the ladder's two roles).
-        <span
-          aria-hidden
-          data-fold="word"
-          className="eh-cards-word text-xs font-medium"
-        >
-          {ROOM_SHORT[room]}
-        </span>
-      )}
-      {waits ? (
-        <span aria-hidden className="eh-cards-count">
-          <span data-fold="light" className="eh-amber" />
-          <span data-fold="num" className="eh-cards-num font-heading">
-            {formatCount(waits)}
-          </span>
-        </span>
-      ) : face.left ? (
-        // Settings' steps left, for a pill too small for its words: an unlit ring, never amber.
-        <span aria-hidden className="eh-cards-count eh-cards-left">
-          <span data-fold="light" className="eh-unlit" />
-          <span data-fold="num" className="eh-cards-num font-heading">
-            {formatCount(face.left)}
-          </span>
-        </span>
-      ) : face.paused ? (
-        // Paused uploads on a pill too small for "Paused": the plain pause, the code's own corner glyph.
-        <span
-          aria-hidden
-          className="eh-cards-count eh-cards-left eh-cards-pause"
-        >
-          <Pause data-fold="light" fill="currentColor" strokeWidth={0} />
-        </span>
-      ) : null}
-    </button>
+      {children}
+    </span>
   );
 }
 
-/** Where a piece stands, how round its corner is and how lit, as the eye sees it now (a running fold included). */
-function stance(el: HTMLElement, win: Window) {
-  const style = win.getComputedStyle(el);
+/**
+ * Steps left, or paused uploads: a count hers to act on, never a status (the
+ * call G4). ★ A PILL'S ALONE (`data-hers`, `cards.css`): a card says it in its
+ * own line, production's words ("1 left", "Paused"), so its glyph stays bare;
+ * a pill, and a hand's tile, have no line, so there the glyph carries it.
+ */
+function hersOf(face: DoorFace, at?: "shoulder" | "foot") {
+  if (face.left)
+    return (
+      <Badge kind="quiet" at={at} hers>
+        {capCount(face.left)}
+      </Badge>
+    );
+  if (face.paused)
+    return (
+      <Badge kind="quiet" at={at} hers>
+        <Pause fill="currentColor" strokeWidth={0} />
+      </Badge>
+    );
+  return null;
+}
+
+/** The line once a waiting count has gone up onto the glyph: the word it counts ("waiting"). */
+const lineOf = (face: DoorFace, waits: number) =>
+  waits ? countWord(face.value, waits) : face.value;
+
+/* ── shoulder: the badge where it matters, every other glyph bare ─────────── */
+
+function ShoulderDoor(p: DoorProps) {
+  const { room, face } = p;
+  const waits = waitsOf(face);
+  return (
+    <DoorButton {...p} className="eh-r6-door">
+      <Skin />
+      <Glyph room={room}>
+        {waits ? <Badge kind="needs">{capCount(waits)}</Badge> : hersOf(face)}
+      </Glyph>
+      <Words
+        room={room}
+        line={lineOf(face, waits)}
+        strong={Boolean(waits || face.strong || face.paused)}
+      />
+      <PillWord room={room} />
+    </DoorButton>
+  );
+}
+
+/* ── ring: a ring round the glyph, the count a tab at its foot ───────────── */
+
+function RingDoor(p: DoorProps) {
+  const { room, face } = p;
+  const waits = waitsOf(face);
+  return (
+    <DoorButton {...p} className="eh-r6-door">
+      <Skin />
+      <span data-ring={waits ? "" : undefined} className="eh-ring">
+        <Glyph room={room}>
+          {waits ? (
+            <Badge kind="needs" at="foot">
+              {capCount(waits)}
+            </Badge>
+          ) : (
+            hersOf(face, "foot")
+          )}
+        </Glyph>
+      </span>
+      <Words
+        room={room}
+        line={lineOf(face, waits)}
+        strong={Boolean(waits || face.strong || face.paused)}
+      />
+      <PillWord room={room} />
+    </DoorButton>
+  );
+}
+
+/* ── numeral: the count takes the glyph's place ───────────────────────────── */
+
+/** The glyph gone up to the numeral's shoulder, so the door is still known by its mark. */
+function MarkOn({ room }: { room: RoomId }) {
+  const Icon = ROOM_ICON[room];
+  return (
+    <span data-fold="badge" className="eh-num-mark">
+      <Icon />
+    </span>
+  );
+}
+
+function NumeralDoor(p: DoorProps) {
+  const { room, face } = p;
+  const waits = waitsOf(face);
+  if (!waits)
+    return (
+      <DoorButton {...p} className="eh-r6-door">
+        <Skin />
+        <Glyph room={room}>{hersOf(face)}</Glyph>
+        <Words
+          room={room}
+          line={face.value}
+          strong={face.strong || face.paused}
+        />
+        <PillWord room={room} />
+      </DoorButton>
+    );
+  return (
+    <DoorButton {...p} className="eh-r6-door">
+      <Skin />
+      <span
+        aria-hidden
+        data-numeral=""
+        data-wide={waits > 9 ? "" : undefined}
+        className="eh-ck-glyph"
+      >
+        <span data-fold="disc" className="eh-ck-disc" />
+        <span data-fold="num" className="eh-num">
+          {capCount(waits)}
+        </span>
+        <MarkOn room={room} />
+      </span>
+      <Words room={room} line={lineOf(face, waits)} strong />
+      <PillWord room={room} />
+    </DoorButton>
+  );
+}
+
+const DOOR: Record<CardId, (p: DoorProps) => ReactNode> = {
+  shoulder: ShoulderDoor,
+  ring: RingDoor,
+  numeral: NumeralDoor,
+};
+
+const SEAM: Record<ScreenId, { rise: number; fade: number }> = {
+  "1440": seamOf("1440"),
+  "820": seamOf("820"),
+  "375": seamOf("375"),
+};
+
+/** One take, whole: the row standing on the cover's foot, folding into its band, and the Seam under the cover. */
+function take(look: Look & CardId): DoorOption {
   return {
-    box: el.getBoundingClientRect(),
-    radius: parseFloat(style.borderTopLeftRadius) || 0,
-    opacity: parseFloat(style.opacity),
+    // The cover's foot is the strip alone: the cards stand on the photograph under it.
+    CoverFoot: ({ fact }) => fact,
+    Page: (p) => (
+      <>
+        <CardRow
+          {...p}
+          look={look}
+          rise={SEAM[p.screen].rise}
+          Door={DOOR[look]}
+          pace={{ cascade: 12 }}
+        />
+        <CoverSeam {...p} />
+      </>
+    ),
+    seam: SEAM,
+    stickAt: 57,
   };
 }
 
-/**
- * ★ THE FOLD: the five cards become the five pills as the row reaches the bar,
- * and the pills the cards as it leaves, each piece travelling from where it
- * stood to where it stands (FLIP: first, last, invert, play). The band's
- * `data-stuck` is flipped HERE, by hand, between the two reads; React never
- * writes it, so the old form is still on screen when this effect reads it.
- *
- * ★ CALLED ABOVE `useRestHeight`, AND THAT ORDER IS THE FOOTPRINT RULE: layout
- * effects run in call order, so the band is already in its new form when the
- * footprint reads its rest, and everything that moves is a transform, an
- * opacity or the skin's absolutely placed box. The band's own height never
- * animates, so the footprint can never follow a fold half done (the loop
- * `event-cards-row.tsx` describes).
- *
- * ★ INTERRUPTIBLE: a fold reversed mid-flight starts from where each piece
- * visibly is, since a rect reads its running animation, never from where it
- * was headed. Reduced motion, and a still frame drawn stuck, flip at once.
- */
-function useFold(band: RefObject<HTMLDivElement | null>, stuck: boolean) {
-  const flights = useRef<Animation[]>([]);
-  const ready = useRef(false);
-  useLayoutEffect(() => {
-    const el = band.current;
-    if (!el) return;
-    const win = el.ownerDocument.defaultView ?? window;
-    const first = !ready.current;
-    ready.current = true;
-    if (el.hasAttribute("data-stuck") === stuck) return;
-    const moves =
-      !first &&
-      typeof el.animate === "function" &&
-      win.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-    if (!moves) {
-      el.toggleAttribute("data-stuck", stuck);
-      return;
-    }
-    const parts = [...el.querySelectorAll<HTMLElement>("[data-fold]")];
-    const from = parts.map((p) => stance(p, win));
-    const was = new Map(parts.map((p, i) => [p, from[i]] as const));
-    for (const f of flights.current) f.cancel();
-    flights.current = [];
-    el.toggleAttribute("data-stuck", stuck);
-    const to = parts.map((p) => stance(p, win));
-    const ease =
-      win.getComputedStyle(el).getPropertyValue("--ease-drawer").trim() ||
-      DRAWER;
-    const fly = (
-      p: HTMLElement,
-      frames: Keyframe[],
-      extra: KeyframeAnimationOptions = {},
-    ) =>
-      flights.current.push(
-        p.animate(frames, {
-          duration: FOLD_MS,
-          easing: ease,
-          fill: "backwards",
-          ...extra,
-        }),
-      );
-    parts.forEach((p, i) => {
-      const a = from[i];
-      const b = to[i];
-      // Hidden in the new form: it simply goes, as an exit should (faster than an entrance).
-      if (b.box.width === 0) return;
-      const kind = p.dataset.fold;
-      const arrives = a.box.width === 0;
-      if (kind === "veil") {
-        // The band's ground comes up under the pills rather than cutting the cover's foot off.
-        if (arrives) fly(p, [{ opacity: 0 }, { opacity: 1 }]);
-        return;
-      }
-      if (kind === "lead" || kind === "code") {
-        // The cover's face slides in at the band's head; the code comes last, once the
-        // longest flight (As a guest's, across the row) has passed the place it stands.
-        if (arrives)
-          fly(
-            p,
-            kind === "lead"
-              ? [
-                  { opacity: 0, transform: "translateX(-8px)" },
-                  { opacity: 1, transform: "none" },
-                ]
-              : [
-                  { opacity: 0, transform: "scale(0.9)" },
-                  { opacity: 1, transform: "none" },
-                ],
-            kind === "lead"
-              ? { duration: 200, delay: 60 }
-              : { duration: 140, delay: 150 },
-          );
-        return;
-      }
-      if (kind === "title" || kind === "word") {
-        // The card's title becomes the pill's word and back, flying with its glyph from
-        // wherever its other form stood, so no word lands while a glyph is still crossing it.
-        const other = p
-          .closest(".eh-cards-door")
-          ?.querySelector<HTMLElement>(
-            `[data-fold="${kind === "title" ? "word" : "title"}"]`,
-          );
-        const o = other ? was.get(other) : undefined;
-        if (arrives && o && o.box.width > 0) {
-          fly(p, [
-            {
-              transformOrigin: "0 0",
-              transform: `translate(${o.box.left - b.box.left}px, ${o.box.top - b.box.top}px) scale(${o.box.height / b.box.height})`,
-            },
-            { transformOrigin: "0 0", transform: "none" },
-          ]);
-          return;
-        }
-      }
-      if (kind === "title" || kind === "word" || kind === "text" || arrives) {
-        // Words with no other form to fly from (a card's line, a hand's titles) develop
-        // in the fold's last stretch, once the glyphs beside them have all but landed.
-        if (arrives)
-          fly(p, [{ opacity: 0 }, { opacity: 1 }], {
-            duration: 130,
-            delay: 140,
-            easing: "ease-out",
-          });
-        return;
-      }
-      const dx = a.box.left - b.box.left;
-      const dy = a.box.top - b.box.top;
-      if (kind === "skin") {
-        // The surface's own box travels, so its corner and its shadow never stretch.
-        fly(p, [
-          {
-            left: `${dx}px`,
-            top: `${dy}px`,
-            width: `${a.box.width}px`,
-            height: `${a.box.height}px`,
-            borderRadius: `${Math.min(a.radius, a.box.height / 2)}px`,
-          },
-          {
-            left: "0px",
-            top: "0px",
-            width: `${b.box.width}px`,
-            height: `${b.box.height}px`,
-            borderRadius: `${Math.min(b.radius, b.box.height / 2)}px`,
-          },
-        ]);
-        return;
-      }
-      // A glyph, its disc, a light or a numeral: carried and scaled whole, never stretched.
-      const s =
-        kind === "num"
-          ? a.box.height / b.box.height
-          : a.box.width / b.box.width;
-      fly(p, [
-        {
-          transformOrigin: "0 0",
-          transform: `translate(${dx}px, ${dy}px) scale(${s})`,
-          ...(kind === "disc" ? { opacity: a.opacity } : {}),
-        },
-        {
-          transformOrigin: "0 0",
-          transform: "none",
-          ...(kind === "disc" ? { opacity: b.opacity } : {}),
-        },
-      ]);
-    });
-  }, [band, stuck]);
-}
-
-/**
- * THE ROW OVER THE SEAM, sticky, folding into its band once it reaches the
- * bar: production's footprint and band (`event-cards-row.tsx`), the cover's
- * face leading it stuck and the code's chip closing it.
- *
- * ★ OVER THE SEAM, THE ROW RISES INTO THE COVER by its overlap (an inline
- * margin: the hub's `space-y-6` is a production utility the lab's cannot
- * outrank), and the band takes no top padding at rest, so the cards' tops are
- * exactly the rise; the footprint holds the resting row's height
- * (`useRestHeight`), so folding never moves the album.
- */
-function Row({
-  c,
-  name,
-  screen,
-  selected,
-  onOpen,
-  stuck,
-  mark,
-}: DoorDraw & {
-  stuck: boolean;
-  mark: RefObject<HTMLDivElement | null>;
-}) {
-  const bandRef = useRef<HTMLDivElement | null>(null);
-  useFold(bandRef, stuck);
-  const rest = useRestHeight(bandRef, stuck);
-  const phone = screen === "375";
-  const faces = facesOf(c);
-  const rise = SEAM[screen].rise;
-  return (
-    <div
-      ref={mark}
-      data-eh-row="cards"
-      className="pointer-events-none sticky top-14 z-30 -mx-3 sm:-mx-5"
-      style={{ minHeight: rest || undefined, marginTop: -(24 + rise) }}
-    >
-      <div
-        ref={bandRef}
-        data-eh-band=""
-        data-screen={screen}
-        className="eh-cards-band pointer-events-auto"
-      >
-        <span aria-hidden data-fold="veil" className="eh-cards-veil" />
-        <div
-          data-eh-doors="cards"
-          role="group"
-          aria-label="This event"
-          className="eh-cards-doors"
-        >
-          <span data-fold="lead" className="eh-cards-lead">
-            <BandLead c={c} name={name} phone={phone} />
-          </span>
-          {ROOM_ORDER.map((room) => (
-            <Door
-              key={room}
-              room={room}
-              face={faces[room]}
-              phone={phone}
-              selected={selected === room}
-              onOpen={onOpen}
-            />
-          ))}
-          <span data-fold="code" className="eh-cards-code">
-            <CodeEnd name={name} />
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export const CARDS: DoorOption = {
-  // The cover's foot is the strip alone: the cards stand over the seam under it.
-  CoverFoot: ({ fact }) => fact,
-  Page: (p) => <Row {...p} />,
-  seam: SEAM,
-  stickAt: 57,
+export const CARDS: Record<CardId, DoorOption> = {
+  shoulder: take("shoulder"),
+  ring: take("ring"),
+  numeral: take("numeral"),
 };

@@ -23,7 +23,9 @@
  *    or held by the budget);
  *  - THE BYTES go one file at a time (robust on flaky mobile connections), and a landed file waits for its siblings
  *    (`BURST_RECORD_WAIT_MS`), so the burst is RECORDED together: when its last file has gone up, when the first landed
- *    has waited that long, or at once when the page is hidden (that complete kept alive past the page).
+ *    has waited that long, or at once when the page is hidden (that complete kept alive past the page). A caller with
+ *    a burst after this one begins it on this one's bytes (`onSendDone`) and holds its complete for this one's answer
+ *    (`recordAfter`), so the line never idles for a complete and the completes stay one after another.
  * Every file meets every check it met alone (the server's spine, file by file), a file refused never stops its
  * siblings, and each settles exactly once (`onOutcome`). A refusal of WHO is sending (the burst's whole answer) is
  * every file's not yet presigned, never asked again.
@@ -62,6 +64,11 @@
  * (`WALK_COPY.dropped` and `droppedDetail`), the camera's hint says this very string, and
  * `uploader.transport.test.ts` holds the three to one wording.
  */
+import {
+  captureClaim,
+  captureWall,
+  takenAtClaim,
+} from "@/lib/media/capture-time";
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import {
@@ -129,8 +136,10 @@ export type UploadOutcome =
       sealed?: boolean;
     }
   // `code` is the SERVER's own refusal code when the refusal came from one of
-  // the two routes (absent for a local validation or a transport failure),
-  // passed through verbatim from presign OR complete, since either can refuse.
+  // the two routes, passed through verbatim from presign OR complete, since
+  // either can refuse; or this module's own for a file it refused itself before
+  // any request (`prepare`: `unsupported_type`, `too_large`, the codes the server
+  // says for the same refusals); absent for a transport failure.
   // The guest queue reads exactly two of them by name, both the SESSION's
   // rather than the file's: `verification_required` (a host who turns Require
   // verified emails ON mid-party invalidates every name-only session mid-run)
@@ -529,6 +538,12 @@ export type BurstFile = {
   reelEligible?: boolean;
   /** The image the album shows for this upload, when the caller already has it (a clip's poster). */
   poster?: Blob;
+  /**
+   * WHEN THE CALLER KNOWS IT WAS TAKEN (epoch ms): the album's camera's own shot, a canvas JPEG that carries no Exif, so
+   * without it a shot sent long after it was taken sorts by its arrival (crumbs-85). The claim it makes is the file's
+   * own where the file states one (`captureClaim`), else this; the server holds either to the same bounds.
+   */
+  takenAt?: number;
   /** Its original's bytes going up, 0 to 1. */
   onProgress?: (fraction: number) => void;
   /** Its bytes began to go: it is the file in the air. */
@@ -564,6 +579,19 @@ export async function uploadBurst(args: {
   /** Her cancel: ends what has not been asked to record, and answers `cause: "cancelled"`. */
   signal?: AbortSignal;
   onOutcome?: (index: number, outcome: UploadOutcome) => void;
+  /**
+   * THE BURST'S BYTES ARE UP: every file has gone up, or been refused or stopped short of it, so nothing of it needs
+   * the network but its complete. Said once, maybe before the complete answers; the caller may start its next burst
+   * here (uploads-bursts: the guest's queue no longer idles the line for a complete's round trip).
+   */
+  onSendDone?: () => void;
+  /**
+   * ★ THIS BURST'S COMPLETE WAITS FOR THAT ONE (the caller's last burst, still being recorded): its presign and bytes
+   * may overlap the last complete, its own complete never does, so `create_media*` meets one sender's completes one
+   * after another, in order, as it did when a burst waited for the last one whole (the cap, the month, the roll and a
+   * clip's budget are each judged at the complete on what the one before it recorded). Never rejects by contract.
+   */
+  recordAfter?: Promise<unknown>;
 }): Promise<UploadOutcome[]> {
   const outcomes: (UploadOutcome | undefined)[] = args.files.map(
     () => undefined,
@@ -595,6 +623,10 @@ type Prepared = {
   measured: Measured;
   preview: { blob: Blob } | null;
   phone: { blob: Blob } | null;
+  /** When the original says it was taken (the strip read it before rewriting a byte), as the complete's claim. */
+  capturedAt?: string;
+  /** The original's zoneless wall clock as it is (`captureWall`), for the server to read in the party's zone. */
+  capturedWall?: string;
 };
 
 /** Where a file of the burst stands. `settled` once its outcome is out. */
@@ -696,6 +728,8 @@ async function runBurst(
   const reasked: boolean[] = files.map(() => false);
   let reaskTimer: ReturnType<typeof setTimeout> | undefined;
   let recording = false;
+  /** The caller's last burst is recorded (`recordAfter`): until then this one's landed files wait, whatever the clock. */
+  let afterRecorded = !args.recordAfter;
   const page = pageEvents();
   let hidden = page?.visibilityState === "hidden";
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -930,6 +964,10 @@ async function runBurst(
         phone_key: landed.phoneKey,
         // Only a clip says anything (the live reel never plays a reel); every other entry is unchanged.
         ...(files[i].reelEligible === false ? { reel_eligible: false } : {}),
+        // When it was taken, where the original said (Will's X7): a claim the server holds to its bounds. A kept
+        // complete carries it again as it was first asked.
+        ...(p.capturedAt ? { captured_at: p.capturedAt } : {}),
+        ...(p.capturedWall ? { captured_wall: p.capturedWall } : {}),
         upload_id: put.strategy === "multipart" ? put.upload_id : null,
         parts: landed.parts,
       },
@@ -987,12 +1025,14 @@ async function runBurst(
     }
     sendIndex = n;
     sendDone = true;
+    args.onSendDone?.();
     poke();
   }
 
   // ── Recording: the landed files together (the head note's three moments), one complete at a time ──
   function maybeRecord() {
-    if (recording) return;
+    // The last burst's complete first (`recordAfter`): its answer pokes this again.
+    if (recording || !afterRecorded) return;
     const due: number[] = [];
     for (let i = 0; i < n && due.length < MAX_BURST_FILES; i++) {
       if (stage[i] === "sent") due.push(i);
@@ -1131,6 +1171,11 @@ async function runBurst(
   };
   signal?.addEventListener("abort", onAbort, { once: true });
   page?.addEventListener("visibilitychange", onVisibility);
+  const recorded = () => {
+    afterRecorded = true;
+    poke();
+  };
+  void args.recordAfter?.then(recorded, recorded);
   try {
     // A kept complete is asked before anything else starts.
     poke();
@@ -1148,7 +1193,16 @@ async function runBurst(
   }
 }
 
-/** A file made ready to send (the steps before any request), or the outcome that ends it here. */
+/**
+ * A file made ready to send (the steps before any request), or the outcome that ends it here.
+ *
+ * ★ A REFUSAL OF THE FILE ITSELF CARRIES ITS CODE FROM HERE (crumbs-83; red-team 54's LOW, first answered downstream).
+ * A wrong type and a file over its ceiling are refused before any request, and a refusal with no `code` reads to every
+ * surface as a transport failure worth another go: the failure sheet offered a Retry whose press refused the same file
+ * at once. Each is tagged where it is decided, with the code the server says for the same refusal (`errors/codes.ts`),
+ * so the refusal ladder (`classifyRefusal`) reads it as a file to choose again for whoever reads the outcome: the
+ * guest's queue, the host's rows, the camera. The queue's copy that asked the file again (`localRefusalCode`) went.
+ */
 async function prepare(
   one: BurstFile,
 ): Promise<
@@ -1160,7 +1214,11 @@ async function prepare(
     if (!kind) {
       return {
         ok: false,
-        outcome: { ok: false, message: "That file type isn't supported." },
+        outcome: {
+          ok: false,
+          code: "unsupported_type",
+          message: "That file type isn't supported.",
+        },
       };
     }
     // 0. Strip identifying metadata (EXIF GPS/device tags, XMP, MP4/MOV udta location, the
@@ -1170,8 +1228,13 @@ async function prepare(
     //    -> presign -> PUT) sees. Lossless byte-level surgery, never a pixel re-encode;
     //    orientation survives in every format. Best-effort like generatePreview: input the
     //    parsers cannot walk (truncated, malformed) comes back stripped:false with the
-    //    ORIGINAL - a failed strip never blocks a guest.
+    //    ORIGINAL - a failed strip never blocks a guest. ★ The capture time is read in the
+    //    same walk, from the original before a byte is rewritten (Will's X7), and kept in the
+    //    stored file's minimal Exif too.
     const cleaned = await stripFileMetadata(picked);
+    const capturedAt =
+      captureClaim(cleaned.captured) ?? takenAtClaim(one.takenAt);
+    const capturedWall = captureWall(cleaned.captured);
     const file =
       cleaned.blob === picked
         ? picked
@@ -1187,7 +1250,11 @@ async function prepare(
       sizeBytes: file.size,
     });
     if (!localCheck.ok) {
-      return { ok: false, outcome: { ok: false, message: localCheck.reason } };
+      // Its type passed above (the strip keeps it), so what the validator refuses here is the size.
+      return {
+        ok: false,
+        outcome: { ok: false, code: "too_large", message: localCheck.reason },
+      };
     }
 
     // 0b. Generate a small WebP preview in the browser from the STRIPPED file (best-effort; null on
@@ -1202,7 +1269,18 @@ async function prepare(
     //    after the preview so one photograph is decoded at a time. Best-effort the same way: null for a clip
     //    (videos stay as taken), for a photograph already phone size, or for a copy past its caps.
     const phone = await generatePhoneCopy(file, kind, measured);
-    return { ok: true, prepared: { file, kind, measured, preview, phone } };
+    return {
+      ok: true,
+      prepared: {
+        file,
+        kind,
+        measured,
+        preview,
+        phone,
+        capturedAt,
+        capturedWall,
+      },
+    };
   } catch (e) {
     console.error("uploadBurst: unexpected failure preparing a file", e);
     return { ok: false, outcome: { ok: false, message: SOMETHING_WRONG } };

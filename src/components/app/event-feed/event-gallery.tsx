@@ -8,6 +8,7 @@ import {
   HostAlbumCover,
   LookingEarly,
 } from "@/components/app/event-feed/event-hub-head-cover";
+import { useHubArrivals } from "@/components/app/event-feed/event-gallery-news";
 import {
   HubViewProvider,
   useHostAlbum,
@@ -24,6 +25,10 @@ import { DriveSendStrip } from "@/components/app/drive/send-strip";
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
 import { Button } from "@/components/ui/button";
 import {
+  AlbumNewsContext,
+  type AlbumNews,
+} from "@/components/shared/album-window-news";
+import {
   ViewMenu,
   type ViewMenuDensityGroup,
   type ViewMenuGroup,
@@ -32,6 +37,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 import { hubCovered, type HubDevelopFacts } from "@/lib/disposable/host-cover";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import type { HubSort } from "@/lib/event/hub-album";
+import { sortViewGroup } from "@/lib/shared/album-order";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { perRowFor, type RowStep } from "@/lib/shared/album-rows";
 import { useRowStep } from "@/lib/shared/use-tile-size";
@@ -58,7 +64,8 @@ type View = "album" | "deleted";
  * lane). The album used to be an opaque, server-rendered slot, so Sort was a
  * reserved seat: reordering what happened to be mounted would not have sorted
  * the album. On the paged album the page's store holds every item (the
- * manifest), so Sort reverses the whole album, laid from its start
+ * manifest), so Sort turns the whole album (Oldest first is the night in order,
+ * the guests' own: `hubEntries`), laid from its start
  * (`rowAnchor="start"`: an arrival lands at the end), and Tile size is the rows'
  * density step (`album-columns` r2, `steps=both`: this slider, a pinch, ctrl and
  * the wheel), kept in the one `pr_tile_size` cookie so the first paint is the
@@ -153,17 +160,8 @@ export function EventGallery({
       perRow: width ? (s) => perRowFor(width, s) : undefined,
       disabled: view !== "album",
     },
-    {
-      id: "sort",
-      label: "Sort",
-      value: sort,
-      disabled: view !== "album",
-      onChange: (v) => setSort(v === "oldest" ? "oldest" : "newest"),
-      options: [
-        { value: "newest", label: "Newest first" },
-        { value: "oldest", label: "Oldest first" },
-      ],
-    },
+    // The guests' own control (album-order): the same two words wherever an album is sorted.
+    sortViewGroup(sort, setSort, view !== "album"),
     {
       id: "filter",
       label: "Filter",
@@ -180,6 +178,12 @@ export function EventGallery({
     () => ({ step, setStep, sort }),
     [step, setStep, sort],
   );
+
+  // ★ WHAT LANDED OUT OF HER SIGHT IS SAID (album-order, `album-window-news.tsx`): the hub's arrivals tell the rows
+  // what is news, so a guest's photograph landing above her while she curates deep in the album wears the rows' one
+  // pill under the hub's stuck bar rather than moving anything she is looking at.
+  const arrivals = useHubArrivals(album);
+  const news = useMemo<AlbumNews>(() => ({ arrivals }), [arrivals]);
 
   return (
     <section aria-label="Album" className="space-y-2.5">
@@ -277,6 +281,7 @@ export function EventGallery({
           {covered && looking && view === "album" && develop?.develops_at ? (
             <LookingEarly
               developsAt={develop.develops_at}
+              zone={develop.time_zone}
               onCover={() => setLooking(false)}
             />
           ) : null}
@@ -294,7 +299,9 @@ export function EventGallery({
           >
             {/* Her first open after the develop develops the cover in place, over these rows (`hub-develop.tsx`). */}
             <HubDevelop eventId={eventId} develop={develop}>
-              <HubViewProvider value={hubView}>{children}</HubViewProvider>
+              <HubViewProvider value={hubView}>
+                <AlbumNewsContext value={news}>{children}</AlbumNewsContext>
+              </HubViewProvider>
             </HubDevelop>
           </div>
         </>

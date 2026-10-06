@@ -16,11 +16,12 @@
  * the drop Will said yes to. The drop landed, so the list went with it: the table is again exactly the
  * mapped columns, and the scar stays in the replay above (a drop takes a column off the table).
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   NOTIFICATION_PREF_COLUMNS,
   NOTIFICATION_PREF_DEFAULTS,
@@ -30,10 +31,9 @@ import {
 const DIR = join(__dirname, "..", "..", "..", "supabase/migrations");
 
 /** Every migration's SQL, comments stripped, in apply order. */
-const MIGRATIONS = readdirSync(DIR)
-  .filter((f) => f.endsWith(".sql"))
-  .sort()
-  .map((f) => readFileSync(join(DIR, f), "utf8").replace(/--[^\n]*/g, ""));
+const MIGRATIONS = readMigrations().map(({ sql }) =>
+  sql.replace(/--[^\n]*/g, ""),
+);
 
 const CREATE = readFileSync(
   join(DIR, "20260708120000_profiles_social_foundation.sql"),

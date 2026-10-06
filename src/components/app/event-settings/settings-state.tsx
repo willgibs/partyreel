@@ -23,9 +23,11 @@ import {
 import { videosAllowedForTier, type Tier } from "@/lib/constants/tiers";
 import { developFactsOf, type Capture } from "@/lib/disposable/facts";
 import { developState } from "@/lib/disposable/reveal";
+import { rollSizeOf } from "@/lib/disposable/roll";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import type { Door } from "@/lib/event/door/door";
+import { deviceZone } from "@/lib/event/zone";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { REEL_MOOD_IDS, resolveHoldSec } from "@/lib/reel/defaults";
@@ -74,13 +76,27 @@ export type SettingsValues = {
   displayInProfile: boolean | null;
   /**
    * How guests add, the camera's roll, and the develop time (20261002200000; ISO, null for none). With `review`, the
-   * develop time answers "when everyone sees what's added" (`lib/disposable/reveal.ts`). The roll's size is the
-   * database's to fill in (24), so it is read and never written here.
+   * develop time answers "when everyone sees what's added" (`lib/disposable/reveal.ts`).
    */
   capture: Capture;
+  /**
+   * The roll she named, 1 to 99 (customize r1's `roll=both`), or null where none was ever named (the database fills in
+   * 24 when a camera starts). ★ READ WHATEVER THE CAPTURE: free uploads keep her roll for the camera's return
+   * (20261005190000), so the Disposable card and Customize say her size before she switches back, and the switch lands
+   * on it with nothing to correct.
+   */
   rollSize: number | null;
   developsAt: string | null;
+  /**
+   * The party's own zone as stored (`events.time_zone`, event-zone), or null for an event from before the column (it
+   * takes her own zone with its next save of a time). Its album's turn and its develop's 9 am read it; a host who never
+   * travels never sees it, and only the far-from-home choice writes it here.
+   */
+  timeZone: string | null;
 };
+
+/** A control a live word sends her to: its page opens at it ("Another number" opens the roll's stepper, in focus). */
+export type SettingsOpening = "roll";
 
 /** A stored style that is not a mood (a legacy treatment, a retired id) starts guests on the default. */
 export function resolveMood(styleId: string | null): string {
@@ -115,13 +131,13 @@ function valuesOf(
     reelStyleId: resolveMood(event.reel_style_id),
     reelHoldSec: resolveHoldSec(event.reel_hold_sec),
     displayInProfile: social ? social.displayInProfile : null,
-    // ★ Read through the seam until the types regenerate (the row carries the columns; `Tables<"events">` learns
-    // them then). The develop time in one spelling (ISO), so a save the row agrees with lets its overlay go.
+    // The develop time in one spelling (ISO), so a save the row agrees with lets its overlay go.
     ...developValuesOf(event),
+    timeZone: event.time_zone,
   };
 }
 
-/** How guests add and the develop time off the host's row, the time normalized to `toISOString`'s spelling. */
+/** How guests add, her roll and the develop time off the host's row, the time normalized to `toISOString`'s spelling. */
 function developValuesOf(
   event: HostEvent,
 ): Pick<SettingsValues, "capture" | "rollSize" | "developsAt"> {
@@ -129,13 +145,17 @@ function developValuesOf(
   const at = facts.developsAt ? new Date(facts.developsAt) : null;
   return {
     capture: facts.capture,
-    rollSize: facts.rollSize,
+    // Her kept roll, never the guests' reading of it (`developFactsOf` answers a roll only beside the camera).
+    rollSize: rollSizeOf(event.roll_size),
     developsAt:
       at && Number.isFinite(at.getTime()) ? at.toISOString() : facts.developsAt,
   };
 }
 
 type Key = keyof SettingsValues;
+
+/** What a save that threw says under its title: it is a refusal that carries no message of the server's. */
+const NEVER_ANSWERED = "Check your connection and try again.";
 
 /** What the rows, the pages and the door's lines read, and the one way each setting is written. */
 type SettingsState = {
@@ -173,6 +193,15 @@ type SettingsState = {
   afterSaves: (fn: () => void) => boolean;
   /** A setting is being written. */
   saving: (key: Key) => boolean;
+  /** Where a live word sent her, for its page to open at (and to say it has: `openAt(null)`). */
+  opening: SettingsOpening | null;
+  openAt: (to: SettingsOpening | null) => void;
+  /**
+   * Lays a value over the row with no write yet: a draft every reader says at once (the sentence, a card's line) while
+   * its control waits for her to rest before it saves (the roll's stepper). The save that follows answers for it as any
+   * save does, put back if refused.
+   */
+  lay: (patch: Partial<SettingsValues>) => void;
 };
 
 const Context = createContext<SettingsState | null>(null);
@@ -203,8 +232,31 @@ function eventPatch(patch: Partial<SettingsValues>) {
     out.max_upload_bytes = patch.maxUploadBytes;
   if (patch.allowVideos !== undefined) out.allow_videos = patch.allowVideos;
   if (patch.capture !== undefined) out.capture = patch.capture;
+  // Her roll, written only as a count: nothing in Settings clears it (the database keeps it for the camera's return).
+  if (patch.rollSize != null) out.roll_size = patch.rollSize;
   if (patch.developsAt !== undefined) out.develops_at = patch.developsAt;
+  // The party's city, chosen: the one save that moves its zone (event-zone).
+  if (patch.timeZone != null) out.time_zone = patch.timeZone;
   return out;
+}
+
+/** The settings that say when the party happens: a save of one carries her own zone to an event that has none. */
+const TIME_KEYS: readonly Key[] = ["eventDate", "eventEndDate", "developsAt"];
+
+/**
+ * ★ HER OWN ZONE, CAPTURED WITH A SAVE OF A TIME (event-zone): an event from before the column (no zone stored) takes
+ * the zone she saves its dates or its develop time from, so its turn and its develop's 9 am become the morning she
+ * meant. The server writes it only where the row still has none (`updateEvent`), so a date saved from another zone
+ * never moves a party's zone: only the chosen city does. Read in the handler, never a render (`deviceZone`).
+ */
+function capturedZoneFor(
+  patch: Partial<SettingsValues>,
+  stored: string | null,
+): { captured_zone?: string } {
+  if (stored !== null || patch.timeZone != null) return {};
+  if (!TIME_KEYS.some((k) => patch[k] !== undefined)) return {};
+  const zone = deviceZone();
+  return zone ? { captured_zone: zone } : {};
 }
 
 /**
@@ -308,10 +360,24 @@ export function SettingsProvider({
 
   const values: SettingsValues = { ...base, ...overlay };
 
+  // A live word's way to its page's own control: set as the word moves her, spent as the control takes her in.
+  const [opening, setOpening] = useState<SettingsOpening | null>(null);
+
+  const lay = useCallback(
+    (patch: Partial<SettingsValues>) => setOverlay((o) => ({ ...o, ...patch })),
+    [],
+  );
+
   /**
    * One save: lay the change over the row, write it, and settle. `write` answers whether the database
    * took it (with the values it kept, where the write says). A refused save puts every key it laid
    * back (unless a newer save of that key is already on its way) and says why.
+   *
+   * ★ A WRITE THAT THROWS IS A REFUSAL (crumbs-81). A dropped connection rejects the call rather than
+   * answering it, and a rejection that left here kept the key busy for good and the value she never saved
+   * on the page, with a rejected promise for a caller that has no catch. So a throw settles as any refusal
+   * does: put back (the newest save of a key only), freed, and said. It never rejects out of here, so no
+   * caller needs a catch of its own.
    */
   const run = useCallback(
     async (
@@ -341,6 +407,10 @@ export function SettingsProvider({
       let answer: Awaited<ReturnType<typeof write>>;
       try {
         answer = await call;
+      } catch {
+        // The call never answered (the network, or a server that fell over): the neighbours' own words for a round
+        // trip that did not come back (the bin's Restore, her uploads' Remove).
+        answer = { ok: false, message: NEVER_ANSWERED };
       } finally {
         flying.current -= 1;
         flushLanded();
@@ -384,14 +454,17 @@ export function SettingsProvider({
       run(
         patch,
         async () => {
-          const result = await writes.updateEvent(event.id, eventPatch(patch));
+          const result = await writes.updateEvent(event.id, {
+            ...eventPatch(patch),
+            ...capturedZoneFor(patch, event.time_zone),
+          });
           return !result || result.ok
             ? { ok: true as const }
             : { ok: false as const, message: result.message };
         },
         "Couldn't save that setting.",
       ),
-    [event.id, run, writes],
+    [event, run, writes],
   );
 
   const saveDoor = useCallback(
@@ -532,6 +605,9 @@ export function SettingsProvider({
     saveProfile,
     saving: (key) => inFlight.has(key),
     afterSaves,
+    opening,
+    openAt: setOpening,
+    lay,
   };
 
   return <Context.Provider value={state}>{children}</Context.Provider>;

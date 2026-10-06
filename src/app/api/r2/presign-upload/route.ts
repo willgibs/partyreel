@@ -5,21 +5,17 @@ import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { guestUploadsOpen } from "@/lib/jobs/spend-watch-switches";
 import { captureWarning } from "@/lib/observability/sentry";
+// ★ The album's cap sentences, one home with the complete's backstop: a guest's words name the album, never the plan.
+import {
+  ALBUM_STORAGE_FULL,
+  ALBUM_UPLOADS_SPENT,
+} from "@/lib/upload/cap-words";
 import {
   runPresignPipeline,
   type PresignStrategy,
 } from "@/lib/upload/server-pipeline";
 import { formatBytes } from "@/lib/utils";
 import { presignUploadSchema } from "@/lib/validation/upload";
-
-/**
- * THE ALBUM'S CAP SENTENCES, one home for the context's early answer and the meter's exact one. A guest's words name
- * the album, never the plan: she must not learn the host's plan.
- */
-const ALBUM_FULL =
-  "This album is full right now. The host needs to free up space.";
-// "For now", never "for the month": a pass counts its uploads over its own year (Ladder A, 20261004100000).
-const ALBUM_MONTH_SPENT = "This album has hit its upload limit for now.";
 
 /**
  * ★ HER ROLL AS A BURST'S SHOT MEETS IT (compute-uploads): the context counts the shots that have landed, and the shots
@@ -200,7 +196,9 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         refusal: {
           status: 409,
           code: "cap_reached",
-          message: ctx.data.at_storage_cap ? ALBUM_FULL : ALBUM_MONTH_SPENT,
+          message: ctx.data.at_storage_cap
+            ? ALBUM_STORAGE_FULL
+            : ALBUM_UPLOADS_SPENT,
           scope: "burst",
         },
       };
@@ -240,9 +238,17 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
   meterRefusal(refusal) {
     switch (refusal.reason) {
       case "storage":
-        return { status: 409, code: "cap_reached", message: ALBUM_FULL };
+        return {
+          status: 409,
+          code: "cap_reached",
+          message: ALBUM_STORAGE_FULL,
+        };
       case "monthly":
-        return { status: 409, code: "cap_reached", message: ALBUM_MONTH_SPENT };
+        return {
+          status: 409,
+          code: "cap_reached",
+          message: ALBUM_UPLOADS_SPENT,
+        };
       case "hourly":
         return {
           status: 429,

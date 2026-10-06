@@ -124,9 +124,9 @@ export function UnverifiedMark({
             tone === "lit"
               ? cn(
                   GLASS_MARK,
-                  "focus-visible:ring-2 focus-visible:ring-white/70",
+                  "focus-halo",
                 )
-              : "border border-border bg-muted focus-visible:ring-2 focus-visible:ring-ring/50",
+              : "border border-border bg-muted focus-halo",
             className,
           )}
         >

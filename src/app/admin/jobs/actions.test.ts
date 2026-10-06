@@ -1,6 +1,7 @@
 /**
  * THE JOBS CONSOLE'S WRITES (the spend watch's two): its switches are its own two alone, behind admin + AAL2, so a
- * forged key flips nothing; and Run now calls the route vercel.json schedules for the job asked, never another.
+ * forged key flips nothing; and Run now calls the route vercel.json schedules for the job asked, never another. The
+ * backup restore's Restore now asks its Worker's door with the shared bearer, and says every answer in words.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +9,9 @@ const setJobEnabled = vi.fn();
 const stampPruneHoldRelease = vi.fn();
 const fetchMock = vi.fn();
 let authorized = true;
+const envState = vi.hoisted(() => ({
+  serverEnv: {} as Record<string, string | undefined>,
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -28,18 +32,27 @@ vi.mock("@/app/admin/jobs/prune-hold", () => ({
 }));
 vi.mock("@/lib/env", () => ({
   assertCronEnv: () => ({ CRON_SECRET: "cron-secret" }),
+  serverEnv: envState.serverEnv,
 }));
-vi.mock("@/lib/observability/sentry", () => ({ captureError: vi.fn() }));
+const sentry = vi.hoisted(() => ({ captureError: vi.fn() }));
+vi.mock("@/lib/observability/sentry", () => sentry);
 vi.mock("@/lib/site-url", () => ({
   getSiteUrl: async () => "https://partyreel.com",
 }));
 
-const { releasePruneHoldAction, runJobNowAction, toggleWatchSwitchAction } =
-  await import("@/app/admin/jobs/actions");
+const {
+  releasePruneHoldAction,
+  restoreNowAction,
+  runJobNowAction,
+  toggleWatchSwitchAction,
+} = await import("@/app/admin/jobs/actions");
 
 beforeEach(() => {
   vi.clearAllMocks();
   authorized = true;
+  envState.serverEnv.BACKUP_WORKER_URL =
+    "https://partyreel-backup.example.workers.dev";
+  envState.serverEnv.PRUNE_API_SECRET = "prune-secret";
   setJobEnabled.mockResolvedValue({ error: null });
   stampPruneHoldRelease.mockResolvedValue({ error: null });
   fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
@@ -119,5 +132,85 @@ describe("Release the hold (the backup prune's)", () => {
       ok: false,
       message: expect.stringMatching(/still held/i),
     });
+  });
+});
+
+describe("Restore now (the backup restore)", () => {
+  const answer = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), { status });
+
+  it("★ asks the backup Worker's door with the shared bearer, behind admin + AAL2", async () => {
+    fetchMock.mockResolvedValue(
+      answer(202, { started: true, state: "started" }),
+    );
+    expect(await restoreNowAction()).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toBe(
+      "https://partyreel-backup.example.workers.dev/restore",
+    );
+    expect(init).toMatchObject({
+      method: "POST",
+      headers: { authorization: "Bearer prune-secret" },
+    });
+  });
+
+  it("counts a press that joins a pass in flight as begun: another follows it", async () => {
+    fetchMock.mockResolvedValue(
+      answer(202, { started: true, state: "running" }),
+    );
+    expect(await restoreNowAction()).toEqual({ ok: true });
+  });
+
+  it("asks nothing without admin + AAL2", async () => {
+    authorized = false;
+    expect(await restoreNowAction()).toMatchObject({
+      ok: false,
+      code: "unauthorized",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("says the restore is off in words, and raises nothing: a state, not a fault", async () => {
+    fetchMock.mockResolvedValue(answer(409, { started: false, reason: "off" }));
+    expect(await restoreNowAction()).toEqual({
+      ok: false,
+      code: "unknown",
+      message:
+        "The restore is off on its Worker (RESTORE_MODE), so there is nothing to run.",
+    });
+    expect(sentry.captureError).not.toHaveBeenCalled();
+  });
+
+  it("names a refused bearer and an unreachable Worker, each a Sentry event", async () => {
+    fetchMock.mockResolvedValue(new Response("Unauthorized", { status: 401 }));
+    expect(await restoreNowAction()).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(
+        /PRUNE_API_SECRET differs between the two/,
+      ),
+    });
+    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    expect(await restoreNowAction()).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/^Couldn't reach the backup Worker/),
+    });
+    fetchMock.mockResolvedValue(
+      answer(503, { started: false, reason: "unbound" }),
+    );
+    expect(await restoreNowAction()).toMatchObject({
+      ok: false,
+      message: "The backup Worker did not start a pass (HTTP 503).",
+    });
+    expect(sentry.captureError).toHaveBeenCalledTimes(3);
+  });
+
+  it("says it is not wired, asking nothing, while BACKUP_WORKER_URL is unset", async () => {
+    envState.serverEnv.BACKUP_WORKER_URL = undefined;
+    expect(await restoreNowAction()).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/^Restore now is not wired here/),
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

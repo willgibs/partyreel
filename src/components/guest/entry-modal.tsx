@@ -40,6 +40,8 @@ import { WaitingDoor, WaitingStep } from "@/components/guest/door/waiting-step";
 import { RoleWords, WelcomeWords } from "@/components/guest/door/welcome";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
+import type { UploadsWord } from "@/components/guest/event-experience-open";
+import { usePartyZone } from "@/components/guest/party-zone";
 import {
   GuestNameStep,
   guestNameCopy,
@@ -276,6 +278,13 @@ export const EntryModal = forwardRef<
      */
     onCameraOpenChange?: (open: boolean) => void;
     /**
+     * The album's word on uploads as the page last heard it (`useLiveUploadsWord`), and the page's ask for it afresh,
+     * handed to the door's camera as the slot's camera has them: a closed album is asked again on its word that it opened,
+     * never on a clock. Absent where no word comes (the demo, a lock), and the camera asks again on its calm cadence.
+     */
+    uploadsWord?: UploadsWord;
+    onAskUploadsWord?: () => void;
+    /**
      * What this visit's removals took back out of the album (the page keeps them), and the page's handler for one taken
      * back inside the door's camera (its Your shots): so the keep stops counting it and a require-an-upload door asks the
      * server whether it stands, as her tracker's Remove does.
@@ -366,6 +375,8 @@ export const EntryModal = forwardRef<
     onDismissFailures,
     onUploadStepActive,
     onCameraOpenChange,
+    uploadsWord,
+    onAskUploadsWord,
     removedIds,
     onOwnRemoved,
     keepDue = false,
@@ -386,6 +397,8 @@ export const EntryModal = forwardRef<
   ref,
 ) {
   const router = useRouter();
+  // The party's zone, for a far party's develop time in both clocks (`party-zone.tsx`).
+  const partyZone = usePartyZone();
   // The demo never persists "seen": every visit is fresh, even a returning one, so the hook
   // itself is told which visitor this is; and the page's word stands for the server and the hydration.
   const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo, welcomeSeen);
@@ -1058,6 +1071,7 @@ export const EntryModal = forwardRef<
   const uploadWait = waitWords(
     { waits: keepHeld, developsAt: keepDevelopsAt },
     null,
+    partyZone,
   );
   /* THE DOOR'S CAMERA: whether this album has one for the first photograph (never the demo's, which is free uploads),
      what it reads of the album (the door's own readings of how it waits, in the camera's own shape), and the press that
@@ -1101,7 +1115,9 @@ export const EntryModal = forwardRef<
     .join(",");
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `cameraQueueKey` stands for everything of `queue` it reads
   const cameraQueue = useMemo(() => queue, [cameraQueueKey]);
-  const cameraStepShowing = doorHasCamera && current === "upload" && !holding;
+  // The held door's wait takes its shots with this camera too (crumbs-83), so its code is fetched as that face shows.
+  const cameraStepShowing =
+    doorHasCamera && ((current === "upload" && !holding) || face === "waiting");
   useEffect(() => {
     if (cameraStepShowing) void loadCamera();
   }, [cameraStepShowing]);
@@ -1133,6 +1149,8 @@ export const EntryModal = forwardRef<
 
   // What she chose while she waited: the page's queue, held (and going in once she is let in).
   const heldPicks: WaitPick[] = queue.filter((it) => it.status !== "error");
+  // ★ A camera album's wait takes its shots with the door's own camera, never the library (crumbs-83, `wait-picks.tsx`).
+  const heldCamera = doorHasCamera ? { onOpen: openCamera } : null;
 
   /** The words on the stage, per face (a closed stage keeps its last ones, inert, while it leaves). */
   function stageWords(shown: StageFace): React.ReactNode {
@@ -1207,12 +1225,14 @@ export const EntryModal = forwardRef<
             picks={heldPicks}
             onPick={onHold}
             acceptsVideo={acceptsVideo}
+            camera={heldCamera}
           />
         ) : (
           <WaitingDoor
             hostName={hostName}
             picks={heldPicks}
             acceptsVideo={acceptsVideo}
+            camera={heldCamera}
           />
         );
       case "beat":
@@ -1313,6 +1333,10 @@ export const EntryModal = forwardRef<
             onOwnRemoved={onOwnRemoved}
             isOwner={false}
             isDemo={isDemo}
+            uploadsWord={uploadsWord}
+            onAskUploadsWord={onAskUploadsWord}
+            // At the held door her shots wait in the page's queue for the let-in: the camera says so.
+            heldAtDoor={face === "waiting"}
           />
         </Suspense>
       )}

@@ -12,11 +12,12 @@
  *   4. Who may run what: two trigger functions, the client roles' EXECUTE revoked, and nothing that waits on a media
  *      row while the event row is held.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { APPROVAL_NEVER_WITH_A_DEVELOP_CHECK } from "@/lib/disposable/album-style";
 
 const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
@@ -25,20 +26,10 @@ const FILE = "20261003100000_approval_never_with_a_develop.sql";
 const collapse = (sql: string) => sql.replace(/\s+/g, " ");
 const strip = (sql: string) => sql.replace(/--[^\n]*/g, "");
 
-function files(): { file: string; sql: string }[] {
-  return readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((file) => ({
-      file,
-      sql: readFileSync(join(MIGRATIONS_DIR, file), "utf8"),
-    }));
-}
-
 /** The winning definition of `public.<name>(`: the last create across the set. */
 function code(name: string): string {
   let found: string | null = null;
-  for (const { sql } of files()) {
+  for (const { sql } of readMigrations()) {
     const text = strip(sql);
     const re = new RegExp(
       `create (?:or replace )?function public\\.${name}\\(`,

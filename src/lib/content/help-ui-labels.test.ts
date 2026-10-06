@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { beforeAll, describe, expect, it } from "vitest";
+
+import { filesUnder, read } from "@/testing/source-tree";
 
 import { getAllPosts } from "./blog";
 import { getAllArticles } from "./help";
@@ -23,7 +22,7 @@ import { getAllArticles } from "./help";
  * template pieces and JSX text of its source, never a comment, an identifier
  * or a class name. The scan used to match the label as a substring of the raw
  * source, so a control the product had dropped still passed on the comment
- * that remembered it (`export-dialog.tsx` kept "Download album" "for what
+ * that remembered it (the retired export dialog kept "Download album" "for what
  * quotes it" after the menu left, and two articles walk a menu that is
  * gone) or on the marketing mock that draws it. What a control says to a
  * reader is read the way a reader gets it (`copyOf`): an element's own text
@@ -51,13 +50,9 @@ import { getAllArticles } from "./help";
 const SKIP =
   /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$|\/app\/\(dev\)\/|\/components\/lab\/|\/components\/marketing\/|\/app\/\(marketing\)\/|\/app\/admin\/|\/components\/admin\/|\/lib\/admin\/|\/lib\/jobs\//;
 
-function walk(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return walk(full);
-    return /\.tsx?$/.test(entry.name) && !SKIP.test(full) ? [full] : [];
-  });
-}
+/** The product's source: every .ts and .tsx under src/ that SKIP leaves in. */
+const productSource = () =>
+  filesUnder("src").filter((path) => /\.tsx?$/.test(path) && !SKIP.test(path));
 
 function normalize(text: string): string {
   return (
@@ -273,7 +268,7 @@ describe("the scan reads what a control says, and nothing a comment or a name do
 describe("every <UiLabel> quotes a shipped app string", () => {
   let corpus = "";
   beforeAll(() => {
-    const files = walk(join(process.cwd(), "src"));
+    const files = productSource();
     // Pinned for non-emptiness (the policy-test lesson): an empty walk would
     // make every label "missing" or, worse, every label pass.
     expect(files.length).toBeGreaterThan(300);
@@ -285,7 +280,7 @@ describe("every <UiLabel> quotes a shipped app string", () => {
       ),
     ).toEqual([]);
     corpus = corpusOf(
-      files.map((file) => ({ source: readFileSync(file, "utf8"), name: file })),
+      files.map((file) => ({ source: read(file), name: file })),
     );
     // And the walk read copy: a control's own words are in it, one a conditional hides in a branch too.
     expect(corpus.length).toBeGreaterThan(100_000);

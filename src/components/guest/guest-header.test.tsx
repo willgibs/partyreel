@@ -534,6 +534,22 @@ describe("GuestHeader: it follows the viewer the device holds", () => {
     })) as unknown as typeof fetch;
   }
   const menuAsks = () => vi.mocked(global.fetch).mock.calls.length;
+  /** `/api/me/menu`, answered with the handle (or none) the viewer's profile has, as the server now says it. */
+  function serveMenuWithHandle(slug: string | null) {
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        email: device.session?.user.email ?? null,
+        displayName: "Priya",
+        avatarUrl: null,
+        seed: null,
+        ownsThisEvent: false,
+        slug,
+      }),
+    })) as unknown as typeof fetch;
+  }
   const account = () => screen.queryByRole("button", { name: "Account menu" });
   const cta = () => screen.queryByRole("link", { name: /start for free/i });
 
@@ -556,6 +572,38 @@ describe("GuestHeader: it follows the viewer the device holds", () => {
   });
   afterEach(() => {
     Reflect.deleteProperty(window, "cookieStore");
+  });
+
+  // ★ HER HANDLE REACHES THE MENU (crumbs-81): the island asks `/api/me/menu` once and hands the menu what it answers,
+  // so Your profile goes straight to `/u/<handle>` where she has one, and to `/me` before the answer lands and where
+  // she has none (a door that is never a dead link).
+  it("★ hands the menu the handle the server answered: Your profile is her page, and /me until then or with none", async () => {
+    device.session = ME;
+    serveMenuWithHandle("priya");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    fireEvent.pointerDown(
+      await screen.findByRole("button", { name: "Account menu" }),
+      { ctrlKey: false, button: 0 },
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("menuitem", { name: /your profile/i }),
+      ).toHaveAttribute("href", "/u/priya"),
+    );
+  });
+
+  it("points Your profile at /me for an account the server says has no handle", async () => {
+    device.session = ME;
+    serveMenuWithHandle(null);
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    fireEvent.pointerDown(
+      await screen.findByRole("button", { name: "Account menu" }),
+      { ctrlKey: false, button: 0 },
+    );
+    await waitFor(() => expect(menuAsks()).toBe(1));
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/me");
   });
 
   it("★ drops the account when its session ended in another tab, as soon as this tab is looked at again", async () => {

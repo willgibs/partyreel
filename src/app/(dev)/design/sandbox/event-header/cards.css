@@ -1,411 +1,280 @@
-/* CARDS' OWN SHEET (`cards.tsx`): the seam, the cards over it, how they fold
-   into their band's pills and the band itself.
+/* ROUND SIX'S CARDS (`cards.tsx`): the card's face, the badge on its glyph,
+   the numeral in its place, and the one status token a count that needs her
+   wears, on the cards and the code's corner alike. The shapes are
+   `card-kit.css`'s.
 
-   ★ EVERY CLASS AND KEYFRAME CARRIES THIS DOOR'S PREFIX (`eh-cards-`): all
-   three doors' sheets load into every frame, and keyframe names are
-   document-global (`keyframe-uniqueness.test.ts` reads every sheet).
-   ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind
-   `no-preference`, so reduced motion shows each piece whole, at once.
-   ★ NO CSS TRANSITION ON ANYTHING THE FOLD CARRIES (the skin's box, a disc's
-   opacity, a glyph's transform): a running transition outranks an animation
-   in the cascade and would steal the fold's frames. */
+   ★ EVERY CLASS CARRIES THE BOARD'S PREFIX (`eh-`), every look's rule its
+   `[data-look]`: every sheet loads into every frame.
+   ★ A STATUS COLOUR IS NOT A LIGHT: the token is a solid, hard-edged fill,
+   never a glow or a gradient, never sampled from a photograph, so the
+   screen's one light stays the Seam (`seam.tsx`). */
 
-/* ══ THE SEAM ══════════════════════════════════════════════════════════════ */
+/* ══ THE TOKEN: A COUNT THAT NEEDS HER (the second ask) ═══════════════════
+   Declared on what wears it (the band, the code's door), so a `var()` in it
+   resolves on that element's own ground: the cover is the room on both
+   grounds, the band is the page's. `--eh-needs` fills, `--eh-needs-on` is
+   the numeral on it (4.5:1 or more, measured). */
 
-/* The photograph dissolves into the page on an eased ramp (half a cosine), so
-   neither the fade's start nor the cover's own foot reads as a line. It runs
-   under the cards and just above them, never behind the strip, whose white
-   marks need the photograph's dark foot on paper. */
-[data-eh-seam="cards"].eh-seam-fade {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    color-mix(in oklab, var(--eh-page) 2.4%, transparent) 10%,
-    color-mix(in oklab, var(--eh-page) 9.5%, transparent) 20%,
-    color-mix(in oklab, var(--eh-page) 20.6%, transparent) 30%,
-    color-mix(in oklab, var(--eh-page) 34.5%, transparent) 40%,
-    color-mix(in oklab, var(--eh-page) 50%, transparent) 50%,
-    color-mix(in oklab, var(--eh-page) 65.5%, transparent) 60%,
-    color-mix(in oklab, var(--eh-page) 79.4%, transparent) 70%,
-    color-mix(in oklab, var(--eh-page) 90.5%, transparent) 80%,
-    color-mix(in oklab, var(--eh-page) 97.6%, transparent) 90%,
-    var(--eh-page) 100%
-  );
+[data-eh-needs] :is(.eh-ck-band, [data-code-door]) {
+  --eh-needs: var(--foreground);
+  --eh-needs-on: var(--background);
 }
-/* In the room the photograph's foot is already dark (the cover's own scrim),
-   so it holds to the cards' tops and dissolves only behind them: the cards
-   overlap the photograph itself, and the gaps between them show it go. */
-[data-eh-ground="room"] [data-eh-seam="cards"].eh-seam-fade {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 44%,
-    color-mix(in oklab, var(--eh-page) 9.5%, transparent) 55%,
-    color-mix(in oklab, var(--eh-page) 34.5%, transparent) 66%,
-    color-mix(in oklab, var(--eh-page) 65.5%, transparent) 77%,
-    color-mix(in oklab, var(--eh-page) 90.5%, transparent) 88%,
-    var(--eh-page) 100%
-  );
+/* Tally: the recording red the palette already holds (`--signal`, delete's
+   own), a step deeper in the room so a white numeral holds 4.5:1. */
+[data-eh-needs="tally"] :is(.eh-ck-band, [data-code-door]) {
+  --eh-needs: oklch(0.56 0.21 27);
+  --eh-needs-on: oklch(1 0 0);
+}
+:is([data-eh-needs="tally"].dark, [data-eh-needs="tally"] .dark)
+  :is(.eh-ck-band, [data-code-door]) {
+  --eh-needs: oklch(0.585 0.2 26);
+}
+/* Cue: a cool blue no photograph's light and no status shares, a new hue. */
+[data-eh-needs="cue"] :is(.eh-ck-band, [data-code-door]) {
+  --eh-needs: oklch(0.53 0.21 262);
+  --eh-needs-on: oklch(1 0 0);
+}
+:is([data-eh-needs="cue"].dark, [data-eh-needs="cue"] .dark)
+  :is(.eh-ck-band, [data-code-door]) {
+  --eh-needs: oklch(0.57 0.19 259);
 }
 
-/* ══ THE BAND ══════════════════════════════════════════════════════════════ */
-
-.eh-cards-band {
-  position: relative;
-  isolation: isolate;
-  padding: 0 20px 8px;
-}
-.eh-cards-band[data-screen="375"] {
-  padding: 0 12px 6px;
-}
-.eh-cards-band[data-stuck] {
-  padding-top: 8px;
-  padding-bottom: 20px;
-}
-/* Stuck, the band's ground fades into the album rather than ending on a line:
-   a layer of its own, so the fold can bring it up under the pills. */
-.eh-cards-veil {
-  display: none;
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    var(--background) 0%,
-    color-mix(in oklab, var(--background) 92%, transparent) 62%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-[data-stuck] > .eh-cards-veil {
-  display: block;
+/* ★ THE CODE'S CORNER WEARS THE SAME TOKEN (production's `CornerMark`, its
+   count drawn only while people wait: `bg-warning` today). One token, so the
+   two can never disagree again. */
+[data-eh-needs] [data-code-mark]:has(> span) {
+  background-color: var(--eh-needs);
+  color: var(--eh-needs-on);
 }
 
-/* ══ THE ROW ═══════════════════════════════════════════════════════════════ */
+/* ══ THE CARD ═════════════════════════════════════════════════════════════ */
 
-/* At rest: five across a desk, a hand's two by two with the guest's view the
-   width under it; stuck, one line of pills between the cover's face and the
-   code. The face and the code exist only stuck. */
-.eh-cards-doors {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+.eh-ck-band:is(
+  [data-look="shoulder"],
+  [data-look="ring"],
+  [data-look="numeral"]
+) {
+  --eh-face: var(--card);
+  --eh-pill-face: var(--card);
 }
-[data-screen="375"] > .eh-cards-doors {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+.eh-r6-door > .eh-ck-skin {
+  border-radius: 12px;
+  background-color: var(--eh-face);
+  --eh-skin-shadow: var(--shadow-lift);
 }
-.eh-cards-band[data-stuck] > .eh-cards-doors {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* In the room, on the photograph's dark foot: lit from above and edged where
+   its tone alone cannot part it from the picture. */
+[data-eh-ground="room"] .eh-r6-door > .eh-ck-skin {
+  background-image: linear-gradient(oklch(1 0 0 / 4%), transparent 70%);
+  --eh-skin-shadow:
+    var(--shadow-lift), inset 0 1px 0 oklch(1 0 0 / 8%),
+    0 0 0 1px oklch(1 0 0 / 6%);
 }
-.eh-cards-band[data-screen="375"][data-stuck] > .eh-cards-doors {
-  gap: 5px;
-}
-.eh-cards-lead,
-.eh-cards-code {
-  display: none;
-}
-[data-stuck] .eh-cards-lead {
-  display: flex;
-  padding-right: 4px;
-}
-[data-stuck] .eh-cards-code {
-  display: flex;
-  margin-left: 2px;
-}
-
-/* ══ A CARD ════════════════════════════════════════════════════════════════ */
-
-/* The glyph in its disc, the title over its line, a waiting count at the end. */
-.eh-cards-door {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 14px;
-  min-width: 0;
-  height: 72px;
-  padding: 0 16px;
-  text-align: left;
-  color: var(--card-foreground);
-  outline: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-[data-screen="375"] .eh-cards-door {
-  height: 58px;
-  padding: 0 11px;
-  column-gap: 9px;
-}
-/* In a hand the guest's view closes the grid at its full width, one line. */
-[data-screen="375"] .eh-cards-door[data-eh-door="guest"] {
-  grid-column: 1 / -1;
-  height: 46px;
-}
-/* ★ A HAND'S GRID FOLDS UP UNDER ITSELF: each row stands on the one below,
-   so as the grid gathers into one line of pills the lower cards tuck under
-   the upper ones (and come out from under them as it unfolds) rather than
-   crossing over their faces mid-flight. */
-[data-screen="375"] .eh-cards-door[data-eh-door="reel"],
-[data-screen="375"] .eh-cards-door[data-eh-door="guests"] {
-  z-index: 3;
-}
-[data-screen="375"] .eh-cards-door[data-eh-door="review"],
-[data-screen="375"] .eh-cards-door[data-eh-door="settings"] {
-  z-index: 2;
-}
-[data-screen="375"] .eh-cards-door[data-eh-door="guest"] {
-  z-index: 1;
-}
-
-/* The surface: a card is its tone on the lift, since it overlaps the cover. */
-.eh-cards-skin {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  border-radius: calc(var(--radius) * 1.5);
-  background-color: var(--card);
-  box-shadow: var(--shadow-lift);
-  pointer-events: none;
-}
-/* In the room a card over the seam is lit from above, the room's depth being
-   light first (bible 6), and edged where its tone alone cannot part it from
-   the photograph's dark foot. */
-[data-eh-ground="room"] .eh-cards-skin {
-  background-image: linear-gradient(rgb(255 255 255 / 0.045), transparent 70%);
-  box-shadow:
-    var(--shadow-lift),
-    inset 0 1px 0 rgb(255 255 255 / 0.09),
-    0 0 0 1px rgb(255 255 255 / 0.05);
-}
-/* And under the pointer the room's card takes a step of light, with a soft
-   light following the pointer across it (`follow` in `cards.tsx`): Apple
-   TV's focus, the one delight here, costing nothing in clarity. A shadow
-   alone cannot say hover on near-black. */
-[data-eh-ground="room"] .eh-cards-skin::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    180px circle at var(--eh-cards-x, 50%) var(--eh-cards-y, 0%),
-    rgb(255 255 255 / 0.08),
-    transparent 70%
-  );
-  opacity: 0;
-}
-
-.eh-cards-glyph {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  color: var(--muted-foreground);
-}
-[data-screen="375"] .eh-cards-glyph {
-  width: 28px;
-  height: 28px;
-}
-.eh-cards-disc {
-  position: absolute;
-  inset: 0;
+[data-stuck] .eh-r6-door > .eh-ck-skin {
   border-radius: 999px;
-  background: var(--secondary);
 }
-/* A step lighter in the room, where the secondary step sits too near the card's own. */
-[data-eh-ground="room"] .eh-cards-disc {
-  background: var(--accent);
+.eh-r6-door .eh-ck-glyph {
+  color: var(--foreground);
 }
-.eh-cards-mark {
-  position: relative;
-  display: flex;
+.eh-r6-door .eh-ck-disc {
+  background-color: var(--secondary);
 }
-.eh-cards-mark > svg {
-  width: 18px;
-  height: 18px;
-}
-[data-screen="375"] .eh-cards-mark > svg {
-  width: 15px;
-  height: 15px;
-}
-/* The reel's own violet, on its glyph alone (one colour per action, never a state). */
-.eh-cards-reel {
-  color: var(--reel);
-}
-.eh-cards-reel > .eh-cards-disc {
-  background: color-mix(in oklab, var(--reel) 16%, var(--card));
+[data-eh-ground="room"] .eh-r6-door .eh-ck-disc {
+  background-color: var(--accent);
 }
 
-.eh-cards-text {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-[data-screen="375"] .eh-cards-door[data-eh-door="guest"] .eh-cards-text {
-  flex-direction: row;
-  align-items: baseline;
-  gap: 8px;
-}
-.eh-cards-word {
-  display: none;
-}
+/* ══ THE BADGE, ON THE GLYPH'S SHOULDER ═══════════════════════════════════ */
 
-/* The waiting count: its light, then the numeral, the loudest thing on a card. */
-.eh-cards-count {
+/* Where an app's icon carries its number: Inter's tabular figures, cut out of
+   the card by a ring of its face, so it reads as standing on the glyph. */
+.eh-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  z-index: 1;
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-[data-screen="375"] .eh-cards-count {
-  gap: 6px;
-}
-.eh-cards-num {
-  font-size: 28px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-[data-screen="375"] .eh-cards-num {
-  font-size: 24px;
-}
-.eh-cards-left {
-  display: none;
-}
-
-/* ══ STUCK: A PILL ═════════════════════════════════════════════════════════ */
-
-/* ★ EVERY PILL ONE WIDTH, WHATEVER IT COUNTS: a pill that grew to hold "8"
-   moved every door after it by its count's width the moment Review cleared,
-   under the thumb that knew where Settings was. So a pill is a slot, its
-   glyph, word and count centred in it. */
-[data-stuck] .eh-cards-door {
-  display: flex;
-  flex: none;
+  min-width: 20px;
+  height: 20px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 124px;
-  height: 36px;
-  padding: 0 10px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 0 0 2px var(--eh-face, var(--card));
 }
-/* In a hand a pill is its glyph and its count, one 48px slot each, so the
-   face, five pills and the code fit the screen's width with room to spare. */
-[data-screen="375"][data-stuck] .eh-cards-door {
-  gap: 4px;
-  width: 48px;
+.eh-badge[data-badge="needs"] {
+  background-color: var(--eh-needs);
+  color: var(--eh-needs-on);
+}
+/* A count hers that waits on nobody: a quiet ring in the muted ink. */
+.eh-badge[data-badge="quiet"] {
+  background-color: var(--eh-face, var(--card));
+  color: var(--muted-foreground);
+  box-shadow:
+    inset 0 0 0 1.5px
+      color-mix(in oklab, var(--muted-foreground) 55%, transparent),
+    0 0 0 2px var(--eh-face, var(--card));
+}
+.eh-badge > svg {
+  width: 9px;
+  height: 9px;
+}
+/* A count hers to act on stays in the card's own line at rest (desk and
+   tablet); a hand's tile and a pill have no line, so their glyph carries it. */
+@container eh-row (width >= 640px) {
+  .eh-ck-band:not([data-stuck]) .eh-badge[data-hers] {
+    display: none;
+  }
+}
+/* A hand's tile and a tablet's: a step smaller, on a smaller glyph. */
+@container eh-row (width < 1088px) {
+  .eh-badge {
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+  }
+}
+/* Stuck, the glyph is a pill's 16px: the badge rides it smaller, the word
+   standing clear of it. */
+.eh-ck-band[data-stuck] .eh-r6-door {
+  gap: 13px;
+}
+[data-stuck] .eh-badge {
+  top: -6px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
   padding: 0 4px;
+  font-size: 10px;
 }
-/* The guest's view stands the width at rest, and a pill like the rest stuck. */
-[data-screen="375"][data-stuck] .eh-cards-door[data-eh-door="guest"] {
-  grid-column: auto;
-  height: 36px;
+[data-stuck] .eh-badge > svg {
+  width: 7px;
+  height: 7px;
 }
-[data-stuck] .eh-cards-skin {
+
+/* ══ THE RING, ROUND A GLYPH SOMETHING WAITS IN ══════════════════════════ */
+
+/* A ring of the token standing 2px off the disc, the count a tab at its foot
+   over the ring, the way a story ring says something new waits inside. */
+.eh-ring {
+  display: contents;
+}
+[data-ring] .eh-ck-disc {
+  box-shadow:
+    0 0 0 2px var(--eh-face, var(--card)),
+    0 0 0 4px var(--eh-needs);
+}
+.eh-badge[data-at="foot"] {
+  top: auto;
+  right: auto;
+  bottom: -9px;
+  left: 50%;
+  translate: -50% 0;
+}
+/* Stuck, a pill has no disc to ring: the count rides the shoulder, as every take's does. */
+[data-stuck] .eh-badge[data-at="foot"] {
+  top: -6px;
+  right: -10px;
+  bottom: auto;
+  left: auto;
+  translate: none;
+}
+
+/* ══ THE NUMERAL, IN THE GLYPH'S PLACE ════════════════════════════════════ */
+
+/* The disc lit in the token, the count large on it, the glyph on its shoulder
+   in a small disc of the card's own face. */
+.eh-r6-door [data-numeral] > .eh-ck-disc,
+[data-eh-ground="room"] .eh-r6-door [data-numeral] > .eh-ck-disc {
+  background-color: var(--eh-needs);
+}
+.eh-num {
+  position: relative;
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--eh-needs-on);
+}
+[data-numeral][data-wide] .eh-num {
+  font-size: 14px;
+}
+.eh-num-mark {
+  position: absolute;
+  right: -6px;
+  bottom: -5px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background-color: var(--eh-face, var(--card));
+  color: var(--foreground);
+}
+.eh-num-mark > svg {
+  width: 12px;
+  height: 12px;
+}
+/* Stuck: the numeral on a 20px disc where the pill's glyph stood; the word
+   names the door, so the shoulder's glyph steps away. */
+[data-stuck] [data-numeral] {
+  width: 22px;
+  height: 22px;
+}
+[data-stuck] [data-numeral] > .eh-ck-disc {
+  opacity: 1;
+}
+[data-stuck] .eh-num {
+  font-size: 11px;
+}
+/* A two- or three-figure count stretches its disc into a capsule, never smaller figures. */
+[data-stuck] [data-numeral][data-wide] {
+  width: auto;
+  min-width: 22px;
+  padding: 0 5px;
+}
+[data-stuck] [data-numeral][data-wide] > .eh-ck-disc {
   border-radius: 999px;
 }
-[data-stuck] .eh-cards-glyph {
-  width: 16px;
-  height: 16px;
-}
-[data-stuck] .eh-cards-disc {
-  opacity: 0;
-}
-[data-stuck] .eh-cards-mark > svg {
-  width: 16px;
-  height: 16px;
-}
-[data-stuck] .eh-cards-text {
+[data-stuck] .eh-num-mark {
   display: none;
 }
-[data-stuck] .eh-cards-word {
-  display: inline;
-}
-[data-stuck] .eh-cards-count {
-  gap: 5px;
-}
-[data-screen="375"][data-stuck] .eh-cards-count {
-  gap: 4px;
-  padding-left: 2px;
-}
-[data-stuck] .eh-cards-num {
-  font-size: 13px;
-}
-[data-stuck] .eh-cards-left {
-  display: flex;
-}
-/* Paused uploads, once the cover's code (which wears the pause) has gone: a
-   plain pause on Settings' pill, in its ink, never amber (the call G4). */
-.eh-cards-pause > svg {
-  width: 11px;
-  height: 11px;
-  color: var(--muted-foreground);
+.eh-ck-band[data-stuck] .eh-r6-door:has([data-numeral]) {
+  gap: 7px;
 }
 
-/* ══ UNDER THE POINTER, PRESSED, FOCUSED ═══════════════════════════════════ */
-
-@media (prefers-reduced-motion: no-preference) {
-  /* A press answers at once (frequent: instant), a hover quickly. */
-  .eh-cards-door {
-    transition:
-      translate 160ms var(--ease-emphasis),
-      scale 120ms var(--ease-emphasis);
-  }
-  .eh-cards-door:active {
-    scale: 0.97;
-  }
-}
+/* ══ UNDER THE POINTER, PRESSED ═══════════════════════════════════════════ */
 
 @media (hover: hover) {
-  /* Under the pointer: on paper the layer's shadow, in the room a step of light. */
-  .eh-cards-door:hover > .eh-cards-skin {
-    box-shadow: var(--shadow-layer);
+  .eh-r6-door:hover > .eh-ck-skin {
+    --eh-skin-shadow: var(--shadow-layer);
   }
-  [data-eh-ground="room"] .eh-cards-door:hover > .eh-cards-skin {
+  /* The badge's cut-out follows the face it stands on. */
+  [data-eh-ground="room"] .eh-r6-door:hover {
+    --eh-face: var(--secondary);
+    --eh-pill-face: var(--secondary);
+  }
+  [data-eh-ground="room"] .eh-r6-door:hover > .eh-ck-skin {
     background-color: var(--secondary);
-    box-shadow:
-      var(--shadow-layer),
-      inset 0 1px 0 rgb(255 255 255 / 0.11),
-      0 0 0 1px rgb(255 255 255 / 0.07);
-  }
-  [data-eh-ground="room"]
-    .eh-cards-band:not([data-stuck])
-    .eh-cards-door:hover
-    > .eh-cards-skin::after {
-    opacity: 1;
+    --eh-skin-shadow:
+      var(--shadow-layer), inset 0 1px 0 oklch(1 0 0 / 11%),
+      0 0 0 1px oklch(1 0 0 / 8%);
   }
 }
-
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  /* A card over the seam rises a little under the pointer (a hover: quick). */
-  .eh-cards-band:not([data-stuck]) .eh-cards-door:hover {
-    translate: 0 -2px;
-  }
-  .eh-cards-skin {
-    transition:
-      background-color 160ms var(--ease-emphasis),
-      box-shadow 160ms var(--ease-emphasis);
-  }
-  [data-eh-ground="room"] .eh-cards-skin::after {
-    transition: opacity 200ms var(--ease-emphasis);
+  .eh-r6-door > .eh-ck-skin {
+    transition: background-color 160ms var(--ease-emphasis);
   }
 }
 
-/* While her room stands open its door is ringed in the ink; a keyboard's focus
-   takes production's ring (`ring-3 ring-ring/50`). Both drawn on the surface,
-   so they travel with the fold, and last, so a hover never takes them off. */
-.eh-cards-band .eh-cards-door[aria-pressed="true"] > .eh-cards-skin {
-  box-shadow:
-    0 0 0 2px var(--foreground),
-    var(--shadow-lift);
-}
-.eh-cards-band .eh-cards-door:focus-visible > .eh-cards-skin {
-  box-shadow:
-    0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent),
-    var(--shadow-lift);
+.eh-r6-door[aria-pressed="true"] > .eh-ck-skin {
+  --eh-skin-shadow: 0 0 0 2px var(--foreground), var(--shadow-lift);
 }

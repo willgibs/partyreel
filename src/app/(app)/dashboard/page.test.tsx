@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HomeView } from "@/lib/dashboard/home-view";
+import type { Leading } from "@/lib/dashboard/leading";
 
 /**
  * THE HOME'S READS AND WHAT THEY HAND THE PAGE (host-dashboard r1's wiring). Every read is answered by
@@ -12,7 +13,11 @@ import type { HomeView } from "@/lib/dashboard/home-view";
  *     and its guests, before its day readiness's own; the week's parties before their day get
  *     readiness's reads, and no party further off pays for one;
  *   - ★ a hosted row says Paused for paused uploads, never Closed, the door's word for Only people
- *     already in (crumbs-42, from `event-ready`): the rows view's word, from `uploadsLabel`.
+ *     already in (crumbs-42, from `event-ready`): the rows view's word, from `uploadsLabel`;
+ *   - ★ the stage leads with the rule her account keeps (host-dashboard r4, `chooser=words`), Newest, which is the
+ *     moment, until she chose; the events her other rules would lead with are asked readiness's reads too (so a press
+ *     draws them whole) and only where she has a choice; and the client is handed what a press takes (`leading`) only
+ *     there as well.
  */
 
 vi.mock("server-only", () => ({}));
@@ -55,6 +60,10 @@ const db = vi.hoisted(() => ({
   stagePhotos: [] as string[],
   guests: [] as string[],
   dayCounts: [] as string[],
+  /** What her profile keeps in `events_display`: her Display's choices and, beside them, her stage's rule. */
+  display: undefined as unknown,
+  /** An event's last upload, by id: the instant `getLastArrivals` answers. */
+  arrivals: new Map<string, string>(),
 }));
 
 vi.mock("@/lib/db/queries/events", () => ({
@@ -67,7 +76,7 @@ vi.mock("@/lib/db/queries/events", () => ({
   getReelProgress: async () => new Map(),
 }));
 vi.mock("@/lib/db/queries/dashboard", () => ({
-  getLastArrivals: async () => new Map(),
+  getLastArrivals: async () => db.arrivals,
   countArrivalsSince: async (id: string) => {
     db.dayCounts.push(id);
     return 0;
@@ -83,6 +92,7 @@ vi.mock("@/lib/db/queries/dashboard", () => ({
 }));
 vi.mock("@/lib/db/queries/profile", () => ({
   getProfile: async () => ({
+    events_display: db.display,
     id: "host-1",
     display_name: "Maya",
     welcomed_at: "2026-09-01T00:00:00Z",
@@ -135,17 +145,21 @@ vi.mock("@/app/(app)/dashboard/claims-actions", () => ({
 const shown = vi.hoisted(() => ({
   view: null as HomeView | null,
   head: null as { day: string; line: string } | null,
+  leading: null as Leading | null,
 }));
 vi.mock("@/components/app/dashboard/home", () => ({
   DashboardHome: ({
     view,
     head,
+    leading,
   }: {
     view: HomeView;
     head: { day: string; line: string };
+    leading: Leading | null;
   }) => {
     shown.view = view;
     shown.head = head;
+    shown.leading = leading;
     return null;
   },
 }));
@@ -182,6 +196,9 @@ beforeEach(() => {
   db.stagePhotos = [];
   db.guests = [];
   db.dayCounts = [];
+  db.display = undefined;
+  db.arrivals = new Map();
+  shown.leading = null;
 });
 
 describe("the head", () => {
@@ -248,5 +265,95 @@ describe("a hosted row's word for whether guests can add", () => {
     expect(words.get("paused")).toBe("Paused");
     expect(words.get("open")).toBe("Open");
     expect([...words.values()]).not.toContain("Closed");
+  });
+});
+
+/**
+ * WHAT LEADS THE STAGE, BY THE RULE HER ACCOUNT KEEPS (host-dashboard r4, `chooser=words`). Friday 2 October 2026,
+ * nothing on its day: a wedding made the day before (empty, nothing dated), a party in 44 days (past the month, so it
+ * does not lead under Newest, but it is the soonest ahead under Upcoming), an old party, and an album whose photographs
+ * landed last.
+ */
+describe("the rule that leads the stage", () => {
+  const quiet = () => [
+    event("wedding", { created_at: "2026-10-01T12:00:00Z" }),
+    event("soon", {
+      created_at: "2026-09-01T12:00:00Z",
+      event_date: "2026-11-15",
+    }),
+    event("old", {
+      created_at: "2026-06-01T12:00:00Z",
+      event_date: "2026-06-10",
+      host_opened_at: "2026-09-30T08:00:00Z",
+    }),
+    event("album", { created_at: "2026-07-01T12:00:00Z" }),
+  ];
+
+  it("★ is Newest until she chooses: the page a host who never chose has always met", async () => {
+    db.events = quiet();
+    const view = await open();
+    expect(view.stage?.event.id).toBe("wedding");
+    expect(shown.leading?.rule).toBe("newest");
+  });
+
+  it.each([
+    ["upcoming", "soon"],
+    ["opened", "old"],
+    ["photos", "album"],
+  ])("leads with %s's event when her account keeps it", async (rule, id) => {
+    db.events = quiet();
+    db.arrivals = new Map([["album", "2026-09-20T10:00:00Z"]]);
+    db.display = { layout: "table", lead: rule };
+    const view = await open();
+    expect(view.stage?.event.id).toBe(id);
+    expect(shown.leading?.rule).toBe(rule);
+    // The page around it is the rule's page: its event is on the stage and nowhere below it.
+    expect(view.events.rows.some((r) => r.id === id)).toBe(false);
+  });
+
+  it("★ takes a forged rule for the default, whatever the column holds", async () => {
+    db.events = quiet();
+    db.display = { lead: "everything" };
+    const view = await open();
+    expect(view.stage?.event.id).toBe("wedding");
+    expect(shown.leading?.rule).toBe("newest");
+  });
+
+  it("★ asks readiness of the events her other rules would lead with, before their day, so a press draws them whole", async () => {
+    db.events = quiet();
+    await open();
+    // The wedding leads (nobody has opened it, no date: before its day) and the party in 44 days is Upcoming's.
+    expect(db.opened).toEqual([["wedding", "soon"]]);
+    expect(Object.keys(shown.leading!.alts).sort()).toEqual(["old", "soon"]);
+    expect(shown.leading!.alts.soon!.event.ready).toEqual({
+      opened: 1,
+      guestsIn: 0,
+    });
+  });
+
+  it("asks nothing more for a stage that is after its day: its guests are read for the stage alone", async () => {
+    db.events = quiet();
+    db.display = { lead: "opened" };
+    const view = await open();
+    expect(view.stage?.event.id).toBe("old");
+    expect(view.stage?.guests).toBe(2);
+    expect(db.guests).toEqual(["old"]);
+  });
+
+  it("sends nothing to press for one event, and asks no alternate anything", async () => {
+    db.events = [event("only", { event_date: "2026-10-09" })];
+    await open();
+    expect(shown.leading).toBeNull();
+    expect(db.opened).toEqual([["only"]]);
+  });
+
+  it("sends nothing to press while a party is on its day: it leads under every rule", async () => {
+    db.events = [...quiet(), event("tonight", { event_date: "2026-10-02" })];
+    db.display = { lead: "photos" };
+    const view = await open();
+    expect(view.stage?.event.id).toBe("tonight");
+    expect(shown.leading).toBeNull();
+    // Readiness for the week's parties only, never an alternate: nothing is left to choose.
+    expect(db.opened).toEqual([[]]);
   });
 });

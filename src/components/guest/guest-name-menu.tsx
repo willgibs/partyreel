@@ -127,7 +127,7 @@ export function GuestNameMenu({
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Your name on this album"
-          className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="flex focus-halo items-center gap-2 rounded-full outline-none"
         >
           {/* Her own row's colour, the one every other surface gives her (small-fixes): never a photograph,
               and the mark beside her name in the menu still says what is not proven (unverified-mark.tsx). */}

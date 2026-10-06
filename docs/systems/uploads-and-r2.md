@@ -41,14 +41,18 @@ shapes.
   when the last has gone up, 10 s after the first landed (`BURST_RECORD_WAIT_MS`), or at once when the page is hidden
   (that complete `keepalive`). Meanwhile a landed file stands full: the guest's queue keeps it `queued` at 100 (only
   the file in the air is `uploading`, which the album's stack follows) and the host's panel `uploading` at 100.
-  Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h).
+  Callers take a burst with `takeBurst` (20 files, 1 GiB declared: presigns live 2 h). A caller with a burst after it
+  begins that one on this one's bytes (`onSendDone`) and holds its complete for this one's answer (`recordAfter`): the
+  line never idles for a complete, and one sender's completes never overlap.
 - **The guest/host asymmetries are deliberate, so the shared engine keeps them.** The host's `getUser()` gates in the
   route before the engine (401 before the body is parsed); a guest's token is validated inside the RPCs, and a token
   whose row carries an account uploads only for that signed-in account, and a signed-in account only through a row of
   its own (`checkSessionOwner`, at presign AND complete: [guest-flow.md](guest-flow.md)). Refusals are framed per
   identity: a guest's video refusal names the EVENT so a guest never learns the host's plan, a host's names the tier,
-  and a host's `not_owner` is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim,
-  which makes its wording user-facing copy. The one request limiter on the four routes is a guest's clip into the
+  a cap refusal names the line it met (her uploads line or storage) in the album's words or her plan's, the same at
+  the complete as at the presign (`upload/cap-words.ts`: [billing-caps.md](billing-caps.md)), and a host's `not_owner`
+  is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim, which makes its wording
+  user-facing copy. The one request limiter on the four routes is a guest's clip into the
   album (a `reelEligible: false` completion), which spends `reel_clip_add`, a daily budget per guest session
   ([reel.md](reel.md)), asked before a byte of the clip lands; otherwise the capability, the caps and the meter
   ([billing-caps.md](billing-caps.md)), the per-part Content-Length binding and the multipart abort are the abuse
@@ -110,7 +114,7 @@ shapes.
   never stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
-  boundary.
+  boundary, and so does `captured_at`, held to its bounds (the EXIF strip, below).
 - ★ **No upload can exceed its declared size.** Presigned PUT and UploadPart URLs bind Content-Length (each part's
   exact size), so R2 rejects an over-stuffed body, AND complete sums the real parts (`ListParts`) and aborts rather than
   assembles over the ceiling. Without both, a small declaration and a few hundred over-stuffed parts complete into a
@@ -140,7 +144,10 @@ shapes.
   the HEAD size. A host may set a stricter per-event cap (`events.max_upload_bytes`, 25 MiB to 10 GB, or none) that
   binds guests only, read inside the RPC, never from a parameter. The guest page never learns that number
   (`get_event_by_qr_token` does not return it), so the add sheet's terms line states the universal ceiling. Upload
-  presigns live 2 hours, because a multipart upload presigns every part up front.
+  presigns live 2 hours, because a multipart upload presigns every part up front. ★ The browser refuses a file over the
+  ceiling, and a type nobody takes, itself, before any request, and tags each with the code the server says for it
+  (`too_large`, `unsupported_type`: `uploader.ts`'s `prepare`), so every reader of the outcome (the guest queue, the
+  host's rows, the camera) meets the refusal ladder's "choose another", never a Retry that refuses the same file again.
 - **A host upload is `guest_id is null`:** `create_media_as_host` authorizes by the route's `getUser()` id and event
   ownership, counts against the plan like any upload, lands `approved` (the host is the moderator) and ignores
   `accepting_uploads` (the guests' switch).
@@ -160,6 +167,24 @@ it.
 - **Every accepted format is stripped; only JPEG, PNG and WebP shrink.** The rest are blanked in place at their exact
   length, because offsets elsewhere in the file point at their bytes. Rendering data stays: orientation, the color
   profile, an HDR gain map and the XMP that describes it.
+- ★ **The capture time stays, never the place or the device** (Will, 2026-10-05: "Yes, keep the capture time, never the
+  place or device"). Each walk reads when the original says it was taken before it rewrites a byte (`captured`: a
+  JPEG's or a HEIC's `DateTimeOriginal` with its `OffsetTimeOriginal`, a movie's QuickTime creation date else its
+  header's, a WebM's `DateUTC`; a PNG's and a WebP's are never read), and the stored file keeps it, so a download and a
+  Save into Photos land on the right day: the minimal Exif is the orientation, `ExifVersion` and `DateTimeOriginal`, its
+  wall clock alone and only in the standard's shape (a free-text field never survives as a date; the zone is read for
+  the instant and never kept, since some zones are one country's alone), and an MPF secondary keeps its orientation
+  alone; every header clock of a movie (mvhd, tkhd, mdhd: creation and modification) is rewritten in place to the
+  capture instant, or zero where it names none (`stampMovieClocks`; an iPhone's export stamps them with the moment it
+  exported, measured on AVFoundation). The complete carries it
+  as a claim (`captured_at`, never at presign), held on the server to 1990 and now plus a day (`media/capture-time.ts`,
+  the bounds' one home: outside them, or malformed, it is none and the arrival stands, and it never refuses the file),
+  into `media.captured_at` in `create_media*`'s own write. A wall clock with no zone rides the complete as
+  `captured_wall` beside the browser's reading, and the GUEST complete reads it in the party's zone (`wallInPartyZone`:
+  one primary-key read of `events.time_zone` a burst, only when such a clock is carried; the host's route keeps the
+  browser's reading). The album's camera claims its shutter's time (`BurstFile.takenAt`, `FileExtra.takenAt`) where the
+  file states none. The album's wire carries it (`entryCaptureTime`, a manifest entry's seventh element) and a Drive copy is named
+  by it ([drive-export.md](drive-export.md)).
 - **It fails open:** input it cannot walk end to end, or cannot rewrite without touching a byte something else points
   at, uploads untouched with `stripped: false` (the header lists the cases), because a corrupted upload is worse than
   the leak. `/privacy`'s metadata section and the help article on it describe this, so they change with it.

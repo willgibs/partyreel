@@ -216,7 +216,6 @@ const NO_PROXY = [
   "/terms",
   "/help/how-partyreel-works",
   "/blog",
-  "/manifest.webmanifest",
   "/robots.txt",
   "/sitemap.xml",
   "/llms.txt",
@@ -241,7 +240,12 @@ const NO_PROXY = [
   "/designs",
 ];
 
-/** Next's build output, the platform's beacons and static images: no proxy on any host. */
+/**
+ * Next's build output, the platform's beacons, static images and the manifest: no proxy on any host. ★ The manifest is
+ * the shared layout's own link, on every page of both deployments (crumbs-81): a static route that renders no session,
+ * so it is left alone on the admin host as the icons beside it are, rather than refused there by the allow-list (a 404
+ * answering every portal page view) or run through a session refresh nothing reads.
+ */
 const STATIC = [
   "/_next/static/chunks/app.js",
   "/_next/image?url=%2Fhero.jpg&w=640&q=75",
@@ -249,6 +253,7 @@ const STATIC = [
   "/favicon.ico",
   "/icon.svg",
   "/icons/icon-192.png",
+  "/manifest.webmanifest",
 ];
 
 describe("★ where the proxy runs: only where a session matters (compute-levers)", () => {
@@ -286,6 +291,17 @@ describe("★ where the proxy runs: only where a session matters (compute-levers
         expect(takes(path, host), `${path} on ${host}`).toBe(true);
   });
 
+  it("★ leaves only the manifest itself alone there: a path that merely starts like it is still the allow-list's to refuse", () => {
+    for (const host of ADMIN_HOSTS)
+      for (const path of [
+        "/manifest.webmanifest/x",
+        "/manifest.webmanifest.json",
+        "/manifest.webmanifestx",
+        "/manifest",
+      ])
+        expect(takes(path, host), `${path} on ${host}`).toBe(true);
+  });
+
   it("names none of the app's hosts as the admin's, nor a host that only ends like one", () => {
     expect(ALIASES.app, "the app alias, read from alias-ensure.mjs").toMatch(
       /^partyreel-git-/,
@@ -294,7 +310,7 @@ describe("★ where the proxy runs: only where a session matters (compute-levers
       expect(takes("/pricing", host), host).toBe(false);
   });
 
-  it("leaves Next's build output, the beacons and static images alone on every host", () => {
+  it("leaves Next's build output, the beacons, static images and the manifest alone on every host", () => {
     for (const host of [...APP_HOSTS, ...ADMIN_HOSTS])
       for (const path of STATIC)
         expect(takes(path, host), `${path} on ${host}`).toBe(false);

@@ -15,6 +15,8 @@ import type { DoorDraw, DoorOption } from "./door-kit";
 import { FactsStrip } from "./facts";
 import { EVENT, whenOf } from "./fixtures";
 import type { Case } from "./fixtures";
+import { isPhone } from "./scene";
+import { CoverScrim } from "./seam";
 
 /**
  * HER COVER: production's own frame and ground (`EventHead side="hub"`, the
@@ -22,9 +24,9 @@ import type { Case } from "./fixtures";
  * bled to the window's edges and reaching up to the app's bar as the hub
  * draws it (`event-hub-head.tsx`'s `HubCover`). Its foot is the settled strip
  * (`facts.tsx`) and whatever the door option draws on the photograph
- * (`DoorOption.CoverFoot`); where a door rises over the seam, the cover's
- * words clear it and the photograph fades into the page under it
- * (`DoorOption.seam`).
+ * (`DoorOption.CoverFoot`); where the cards stand on its foot, the cover's
+ * words clear them (`DoorOption.seam`), and its own scrim lifts under them so
+ * the photograph's edge shows where the Seam is born (`seam.tsx`).
  *
  * ★ THE WHEN IS ONE QUIET LINE OVER THE NAME, in every option: a day
  * ("September 12, 2026"), a range ("October 2–4, 2026", which day of it
@@ -110,13 +112,10 @@ function CodeWithAddress({ c, desk }: { c: Case; desk: boolean }) {
 }
 
 export function HubHead({
-  id,
   door,
   d,
   mark,
 }: {
-  /** The door option's id: its seam's fade is styled by `[data-eh-seam="<id>"]` in the door's own sheet. */
-  id: string;
   /** The door option the hub is drawn in. */
   door: DoorOption;
   d: DoorDraw;
@@ -124,8 +123,10 @@ export function HubHead({
   mark: RefObject<HTMLDivElement | null>;
 }) {
   const { c, screen } = d;
-  const desk = screen === "1440";
+  // The cover's own steps change at `sm` (production's `h-[20.5rem] sm:h-[25rem]`): a tablet takes a desk's.
+  const desk = !isPhone(screen);
   const seam = door.seam[screen];
+
   const fact = <FactsStrip c={c} narrow={!desk} />;
   // Where the doors rise into the cover, its words clear them and stand on the photograph above.
   const pad = seam.rise > 0 ? seam.rise + (desk ? 22 : 16) : desk ? 28 : 16;
@@ -139,14 +140,7 @@ export function HubHead({
       ground={
         <>
           {c.photos > 0 ? <HeadStills stills={c.stills} /> : null}
-          {seam.fade > 0 ? (
-            <div
-              aria-hidden
-              data-eh-seam={id}
-              className="eh-seam-fade absolute inset-x-0 bottom-0"
-              style={{ height: seam.fade }}
-            />
-          ) : null}
+          {c.photos > 0 ? <CoverScrim screen={screen} /> : null}
         </>
       }
     >

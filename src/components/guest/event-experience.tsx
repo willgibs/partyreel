@@ -9,7 +9,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowUp,
@@ -41,6 +40,7 @@ import {
   createHeadBridge,
   useHeadBridge,
 } from "@/components/guest/event-experience-head";
+import { useLiveUploadsWord } from "@/components/guest/event-experience-open";
 import {
   addsWaitFor,
   useLiveUploadsWait,
@@ -58,6 +58,7 @@ import {
 } from "@/components/guest/gallery-empty-state-wait";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
+import { useGuestAlbumOrder } from "@/components/guest/gallery-order";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -77,6 +78,7 @@ import {
   UploadTracker,
   UploadTrackerButton,
 } from "@/components/guest/upload-tracker";
+import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
@@ -96,6 +98,8 @@ import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import type { GuestAlbumOrder } from "@/lib/shared/album-order";
+import { PartyZoneContext } from "@/components/guest/party-zone";
 import { addWords } from "@/lib/guest/camera/words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
@@ -177,7 +181,21 @@ const deliveringPicks = new Set<string>();
 // upload slot render immediately; the presign-heavy gallery streams in behind
 // <Suspense> as LiveGallery (which owns all gallery state + the doorbell/poll
 // machine). Only rendered when the event is public (the server gates that).
-export function EventExperience({
+/**
+ * THE PAGE, with the party's zone handed to everything below that says a develop time (`party-zone.tsx`, crumbs-85): a far
+ * party's guest reads it in both clocks.
+ */
+export function EventExperience(
+  props: Parameters<typeof EventExperienceBody>[0],
+) {
+  return (
+    <PartyZoneContext value={props.partyZone ?? null}>
+      <EventExperienceBody {...props} />
+    </PartyZoneContext>
+  );
+}
+
+function EventExperienceBody({
   event,
   qrToken,
   joinUrl,
@@ -206,6 +224,8 @@ export function EventExperience({
   arrival = NO_ARRIVAL,
   doorPhase,
   uploadsWait,
+  albumOrder,
+  partyZone = null,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -315,6 +335,19 @@ export function EventExperience({
    * The page's first word only: the page holds it live from here (`useLiveUploadsWait`, red-team 44).
    */
   uploadsWait: UploadsWait;
+  /**
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render, her
+   * remembered choice, and the instant the party's morning after begins (event-zone: read in the party's zone on the
+   * server, one moment for every reader), decided by the page's server so the seed links what the first paint draws
+   * and the hydration lays the same rows. The page keeps it live from here (`useGuestAlbumOrder`). Absent (a stand-in
+   * page), the album stays newest first.
+   */
+  albumOrder?: GuestAlbumOrder;
+  /**
+   * The party's zone (`events.time_zone`) for words only: a develop time is said in both clocks where the guest's zone is
+   * not the party's (`developsWhen`). Null where the page names none (a lock, the demo): her own clock.
+   */
+  partyZone?: string | null;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -702,17 +735,33 @@ export function EventExperience({
     reading: liveWait,
     onSynced: onDevelopsAtChange,
     developsAt: liveDevelopsAt,
+    turnDevelopsAt,
   } = useLiveUploadsWait({
     initial: uploadsWait,
     moderationMode: event.moderation_mode,
+    pageDevelopsAt: event.develops_at ?? null,
   });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
+  /* ★ WHETHER THE ALBUM TAKES UPLOADS, AS THE PAGE HEARS IT (`useLiveUploadsWord`, guest-requests): the server's reading
+     at render, then each word the album's sync carries. The album's camera asks a closed album again once it says open,
+     and never by itself. */
+  const { word: uploadsWord, onWord: onUploadsWord } = useLiveUploadsWord(
+    event.accepting_uploads,
+  );
+  /* ★ THE ALBUM'S ORDER, LIVE (album-order): the page's word at the first paint, then the turn on this device's clock
+     (a Develop now moves it: the develop time as the page holds it, ahead or reached) and her choice in View's Sort. */
+  const albumOrderNow = useGuestAlbumOrder({
+    eventId: event.id,
+    initial: albumOrder,
+    developsAt: turnDevelopsAt,
+    isDemo,
+  });
   /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's
      approval or a develop time ahead, so the album's contact sheet, her tracker and the slot all say one wait,
      "Developing", told apart by its clock alone ("As Maya lets them in", "All at once at 9 am"). */
   const waitClock = useMemo(
-    () => waitWords(liveWait, event.host_display_name ?? null),
-    [liveWait, event.host_display_name],
+    () => waitWords(liveWait, event.host_display_name ?? null, partyZone),
+    [liveWait, event.host_display_name, partyZone],
   );
   /* ★ THE PRESET NAMED ON THE COVER (Will's `name=disposable`): "Disposable · develops at 9 am" over the event's name on
      an album with its camera and a develop time, "developed" the morning after; the time in her own clock, so only once
@@ -1105,6 +1154,11 @@ export function EventExperience({
       pendingUploads.current.push(u);
     }
   }, []);
+  // The camera's ask for the album's word on uploads afresh (`askUploadsWord`): nothing to ask before the album mounts.
+  const askUploadsWord = useCallback(
+    () => galleryRef.current?.askUploadsWord(),
+    [],
+  );
 
   /* ────────────────────────────────────────────────────────────────────────
      THE PHONE PAIR: what the phone adds appears on the laptop's album a second
@@ -1329,6 +1383,11 @@ export function EventExperience({
         // through the page's own removal, as the slot's camera does.
         camera={cameraAlbum ? { rollSize: event.roll_size ?? null } : null}
         onCameraOpenChange={setCameraOpen}
+        // ★ AND THE ALBUM'S WORD ON UPLOADS, as the slot's camera has it (guest-requests' Deferred line): a closed album is
+        // asked again on its word that it opened, never on a clock. Only where the album's sync polls (never the demo,
+        // never behind a lock: no word would come), else the camera keeps its calm cadence.
+        uploadsWord={!isDemo && access !== "none" ? uploadsWord : undefined}
+        onAskUploadsWord={askUploadsWord}
         removedIds={removedIds}
         onOwnRemoved={handleOwnRemoved}
         capBytes={hostCap}
@@ -1507,7 +1566,9 @@ export function EventExperience({
                 />
                 {/* ★ THE DEMO'S CONVERSION OBJECT rides the same row (its visitor is a prospective
                     host, not a guest choosing whether to keep an album), on a line of its own at a
-                    phone, where the row has no room for its words. */}
+                    phone, where the row has no room for its words. ★ It fetches the home on intent,
+                    never on sight (guest-requests): in view from the first paint, a plain link
+                    prefetched the home and three sheets the album never draws on every demo load. */}
                 {isDemo && (
                   <Button
                     variant="glass"
@@ -1515,7 +1576,9 @@ export function EventExperience({
                     className="w-full md:w-auto"
                     asChild
                   >
-                    <Link href="/">Start your own</Link>
+                    <ChromeLink href="/" prefetchOnIntent>
+                      Start your own
+                    </ChromeLink>
                   </Button>
                 )}
               </>
@@ -1564,6 +1627,9 @@ export function EventExperience({
                       onCameraOpenChange={setCameraOpen}
                       // The album's live reading: its line, the camera's develop and the failure sheet's words.
                       uploadsWait={liveWait}
+                      // The album's word on uploads: the camera hears a reopen from it, never by asking.
+                      uploadsWord={uploadsWord}
+                      onAskUploadsWord={askUploadsWord}
                     />
                   </div>
                 ) : (
@@ -1641,6 +1707,8 @@ export function EventExperience({
                   onGuestCountChange={setGuestCount}
                   // The album's sync's word on its develop: the page's live reading follows it.
                   onDevelopsAtChange={onDevelopsAtChange}
+                  // And its word on uploads: the camera's closed refusal waits for it.
+                  onUploadsWord={onUploadsWord}
                 >
                   {/* ★ THE ALBUM'S WAIT READS HERE (the-wait r1, `wait=sheet`): what waits off the album's sync,
                   hers off her tracker, one reading for the sheet over the rows and the empty album under it. */}
@@ -1734,10 +1802,11 @@ export function EventExperience({
                             closesOnLastRemoval={closesOnLastRemoval}
                             // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
                             addsWait={addsWait.waits}
+                            // The album's order (the turn, or hers), and View's Sort to choose one (album-order).
+                            order={albumOrderNow}
                             develop={{
                               eventId: event.id,
-                              developsAt:
-                                liveDevelopsAt ?? event.develops_at ?? null,
+                              developsAt: turnDevelopsAt,
                               seed: galleryPromise,
                               arrivedThroughDoor:
                                 arrival.face !== null || arrival.scrim,
@@ -1874,7 +1943,8 @@ function LampWhileShown() {
 
 /** The closing card at the demo's foot: "Yours would look like this" — the
  *  demo's second, patient conversion object, real numbers standing in for the
- *  fixture's. */
+ *  fixture's. Its link fetches the home on intent, like the demo's other doors to
+ *  it (guest-requests): reached by a scroll, it would fetch it on sight. */
 function ClosingCard({ guestCount }: { guestCount: number }) {
   return (
     <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-6 py-8 text-center">
@@ -1889,7 +1959,9 @@ function ClosingCard({ guestCount }: { guestCount: number }) {
         and every photo in one place. Free to start, nothing to install.
       </p>
       <Button size="lg" className="mt-1" asChild>
-        <Link href="/">Start your own</Link>
+        <ChromeLink href="/" prefetchOnIntent>
+          Start your own
+        </ChromeLink>
       </Button>
     </div>
   );

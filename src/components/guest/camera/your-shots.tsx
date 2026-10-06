@@ -31,7 +31,7 @@ export type ShotTile = {
   mediaId?: string;
   queueId?: string;
   kind: "photo" | "video";
-  status: "taking" | "sending" | "in" | "sealed" | "held" | "failed";
+  status: "taking" | "sending" | "door" | "in" | "sealed" | "held" | "failed";
   /** Her picture of it: this visit's frozen frame, or the server's picture for her alone. */
   src?: string;
   /** The server's picture is the video itself (no preview was made): drawn as its first frame. */
@@ -168,7 +168,7 @@ export function YourShots({
                   {tile.removable && tile.mediaId && (
                     <button
                       type="button"
-                      className="cam-shot-remove"
+                      className="cam-shot-remove press-shrink focus-halo"
                       disabled={state === "working"}
                       onClick={() => onRemove(tile.mediaId as string)}
                       aria-label={
@@ -189,7 +189,7 @@ export function YourShots({
                     tile.queueId && (
                       <button
                         type="button"
-                        className="cam-shot-remove"
+                        className="cam-shot-remove press-shrink focus-halo"
                         onClick={() => onRetry(tile.queueId as string)}
                         aria-label="Send this shot again"
                       >

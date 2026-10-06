@@ -193,6 +193,7 @@ export type Database = {
           full_since: string | null
           id: string
           kicked_at: string | null
+          lane_failed_messages: string[]
           lane_failures: number
           lane_failures_on: string | null
           lane_rekicked_at: string | null
@@ -231,6 +232,7 @@ export type Database = {
           full_since?: string | null
           id?: string
           kicked_at?: string | null
+          lane_failed_messages?: string[]
           lane_failures?: number
           lane_failures_on?: string | null
           lane_rekicked_at?: string | null
@@ -269,6 +271,7 @@ export type Database = {
           full_since?: string | null
           id?: string
           kicked_at?: string | null
+          lane_failed_messages?: string[]
           lane_failures?: number
           lane_failures_on?: string | null
           lane_rekicked_at?: string | null
@@ -344,6 +347,7 @@ export type Database = {
           confirmed_at: string | null
           drive_file_id: string | null
           drive_md5: string | null
+          forgotten_at: string | null
           job_id: string
           kept: boolean
           last_error: string | null
@@ -367,6 +371,7 @@ export type Database = {
           confirmed_at?: string | null
           drive_file_id?: string | null
           drive_md5?: string | null
+          forgotten_at?: string | null
           job_id: string
           kept?: boolean
           last_error?: string | null
@@ -390,6 +395,7 @@ export type Database = {
           confirmed_at?: string | null
           drive_file_id?: string | null
           drive_md5?: string | null
+          forgotten_at?: string | null
           job_id?: string
           kept?: boolean
           last_error?: string | null
@@ -504,6 +510,7 @@ export type Database = {
           created_at: string
           done_mailed_at: string | null
           event_id: string | null
+          folder_found: boolean
           folder_id: string | null
           folder_url: string | null
           id: string
@@ -539,6 +546,7 @@ export type Database = {
           created_at?: string
           done_mailed_at?: string | null
           event_id?: string | null
+          folder_found?: boolean
           folder_id?: string | null
           folder_url?: string | null
           id?: string
@@ -574,6 +582,7 @@ export type Database = {
           created_at?: string
           done_mailed_at?: string | null
           event_id?: string | null
+          folder_found?: boolean
           folder_id?: string | null
           folder_url?: string | null
           id?: string
@@ -831,6 +840,7 @@ export type Database = {
           roll_size: number | null
           sealed_from: string | null
           show_reel: boolean
+          time_zone: string | null
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -864,6 +874,7 @@ export type Database = {
           roll_size?: number | null
           sealed_from?: string | null
           show_reel?: boolean
+          time_zone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -897,6 +908,7 @@ export type Database = {
           roll_size?: number | null
           sealed_from?: string | null
           show_reel?: boolean
+          time_zone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -1189,6 +1201,7 @@ export type Database = {
       }
       media: {
         Row: {
+          captured_at: string | null
           created_at: string
           duration_seconds: number | null
           event_id: string
@@ -1220,6 +1233,7 @@ export type Database = {
           width: number | null
         }
         Insert: {
+          captured_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           event_id: string
@@ -1251,6 +1265,7 @@ export type Database = {
           width?: number | null
         }
         Update: {
+          captured_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           event_id?: string
@@ -1453,6 +1468,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pass_credits: {
+        Row: {
+          balance_transaction_id: string | null
+          claimed_until: string | null
+          converted_at: string | null
+          converted_count: number | null
+          created_at: string
+          credit_cents: number
+          granted_at: string | null
+          pass_ids: string[]
+          profile_id: string
+          released_at: string | null
+          stripe_session_id: string
+        }
+        Insert: {
+          balance_transaction_id?: string | null
+          claimed_until?: string | null
+          converted_at?: string | null
+          converted_count?: number | null
+          created_at?: string
+          credit_cents: number
+          granted_at?: string | null
+          pass_ids: string[]
+          profile_id: string
+          released_at?: string | null
+          stripe_session_id: string
+        }
+        Update: {
+          balance_transaction_id?: string | null
+          claimed_until?: string | null
+          converted_at?: string | null
+          converted_count?: number | null
+          created_at?: string
+          credit_cents?: number
+          granted_at?: string | null
+          pass_ids?: string[]
+          profile_id?: string
+          released_at?: string | null
+          stripe_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pass_credits_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_shown_events: {
         Row: {
@@ -1931,6 +1996,15 @@ export type Database = {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
       }
+      adopt_pass_credit_orphans: {
+        Args: {
+          p_balance_transaction_ids: string[]
+          p_host_id: string
+          p_orphan_sessions: string[]
+          p_session_id: string
+        }
+        Returns: Json
+      }
       album_bits: {
         Args: {
           p_is: Database["public"]["Enums"]["media_status"]
@@ -2008,13 +2082,26 @@ export type Database = {
         Args: { p_event_ids?: string[] }
         Returns: number
       }
+      claim_pass_credit: {
+        Args: {
+          p_credit_cents: number
+          p_host_id: string
+          p_pass_ids: string[]
+          p_session_id: string
+        }
+        Returns: Json
+      }
       claim_ticket_asks: { Args: { p_session_tokens: string[] }; Returns: Json }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       cloud_connection_disconnect: { Args: { p_user: string }; Returns: Json }
+      cloud_connection_forget: {
+        Args: { p_connection: string }
+        Returns: number
+      }
       cloud_connection_kick: { Args: { p_connection: string }; Returns: Json }
       cloud_connection_lane_failed: {
-        Args: { p_connection: string; p_error: string }
+        Args: { p_connection: string; p_error: string; p_message: string }
         Returns: Json
       }
       cloud_connection_operator: {
@@ -2110,7 +2197,7 @@ export type Database = {
         Returns: Json
       }
       cloud_export_ready: {
-        Args: { p_folder_id: string; p_job: string }
+        Args: { p_folder_id: string; p_found?: boolean; p_job: string }
         Returns: Json
       }
       cloud_export_refolder: {
@@ -2132,6 +2219,10 @@ export type Database = {
         Args: { p_host_id: string }
         Returns: number
       }
+      convert_pass_credit: {
+        Args: { p_host_id: string; p_session_id: string }
+        Returns: number
+      }
       create_guest: {
         Args: {
           p_display_name?: string
@@ -2144,6 +2235,7 @@ export type Database = {
       }
       create_media: {
         Args: {
+          p_captured_at?: string
           p_duration_seconds?: number
           p_file_size_bytes: number
           p_height?: number
@@ -2161,6 +2253,7 @@ export type Database = {
       }
       create_media_as_host: {
         Args: {
+          p_captured_at?: string
           p_duration_seconds?: number
           p_event_id: string
           p_file_size_bytes: number
@@ -2515,6 +2608,13 @@ export type Database = {
           tier: Database["public"]["Enums"]["tier_type"]
         }[]
       }
+      pass_lapsed: {
+        Args: {
+          p_host_id: string
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: boolean
+      }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
@@ -2523,12 +2623,32 @@ export type Database = {
           host_id: string
         }[]
       }
+      recompute_pass_entitlement: {
+        Args: { p_host_id: string; p_now?: string }
+        Returns: string
+      }
       record_link_hit: {
         Args: {
           p_event_id: string
           p_kind: Database["public"]["Enums"]["link_hit_kind"]
         }
         Returns: undefined
+      }
+      record_pass_credit_grant: {
+        Args: {
+          p_balance_transaction_id: string
+          p_host_id: string
+          p_session_id: string
+        }
+        Returns: string
+      }
+      release_pass_credit: {
+        Args: {
+          p_balance_transaction_id?: string
+          p_host_id: string
+          p_session_id: string
+        }
+        Returns: string
       }
       remove_event_invite: {
         Args: { p_email: string; p_event_id: string }
@@ -2600,6 +2720,15 @@ export type Database = {
           p_tier: Database["public"]["Enums"]["tier_type"]
         }
         Returns: number
+      }
+      uploads_refused: {
+        Args: {
+          p_bytes: number
+          p_host_id: string
+          p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: boolean
       }
       uploads_used: {
         Args: {

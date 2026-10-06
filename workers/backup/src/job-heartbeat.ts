@@ -90,12 +90,16 @@ async function post(
   }
 }
 
-/** Ask whether this job may run, and open its heartbeat row if so. */
+/**
+ * Ask whether this job may run, and open its heartbeat row if so. `manual` is an operator's press (the restore's
+ * Restore now, through the Worker's door); every cron is `schedule`.
+ */
 export async function jobStart(
   env: HeartbeatEnv,
   job: string,
+  triggeredBy: "schedule" | "manual" = "schedule",
 ): Promise<JobStartResult> {
-  const res = await post(env, { phase: "start", job, triggeredBy: "schedule" });
+  const res = await post(env, { phase: "start", job, triggeredBy });
   if (!res.ok) return { ok: false, error: res.error };
 
   const payload = res.json as {
@@ -132,7 +136,8 @@ export async function jobFinish(
   job: string,
   run: JobRunHandle | null,
   outcome: {
-    status: "ok" | "error";
+    /** `skipped`: it ran and chose to do nothing (the restore with its mode off), which never reads as missed. */
+    status: "ok" | "error" | "skipped";
     counts?: Record<string, number | string | boolean>;
     note?: string;
   },

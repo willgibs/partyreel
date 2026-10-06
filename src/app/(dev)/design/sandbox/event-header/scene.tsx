@@ -16,8 +16,9 @@ import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
  * ★ A REAL VIEWPORT, NEVER A STYLED DIV (the kit's `vw-in-a-narrow-div`
  * trap): the hub is the app's wide page, a cover on the ladder's `vw` clamps
  * and a row that changes shape at `sm`, all of which read the frame's width
- * only inside a same-origin frame at its true size. 1440 is her laptop; 375
- * the phone in her hand at the party.
+ * only inside a same-origin frame at its true size. 1440 is her laptop; 820
+ * a tablet held upright (the hub's middle widths, 640 to 1088, every card
+ * drawn there as a tile); 375 the phone in her hand at the party.
  *
  * ★ A FACTS FRAME IS THE FIRST SCREEN'S TOP ONLY (the bar, the cover and the
  * doors' row), since everything under it is the album as built in every
@@ -41,6 +42,7 @@ import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
 
 export const SCREENS = {
   "375": { w: 375, h: 812, name: "a phone" },
+  "820": { w: 820, h: 1180, name: "a tablet" },
   "1440": { w: 1440, h: 900, name: "a laptop" },
 } as const;
 
@@ -51,7 +53,10 @@ export type Ground = "paper" | "room";
 
 /** The Screen knob: her laptop first. */
 export const screenOf = (s: BoardState): ScreenId =>
-  s.screen === "375" ? "375" : "1440";
+  s.screen === "375" ? "375" : s.screen === "820" ? "820" : "1440";
+
+/** A phone's screen (under `sm`), where the hub draws its narrow head and rows. */
+export const isPhone = (screen: ScreenId) => screen === "375";
 
 /** The gap between two frames of a row, in the lab's own pixels. */
 const GAP = 24;
@@ -156,9 +161,10 @@ function useOnPhone(): boolean {
 
 /**
  * AN OPTION'S FRAMES: laptops wrapping (the step's stage lays them out as the
- * rows that draw them largest), phones side by side in one fitted canvas (one
- * scale, one baseline), and phones stacked when the lab itself is read on a
- * phone. `lede` is the one line above the frames saying what they hold.
+ * rows that draw them largest), phones and tablets side by side in one fitted
+ * canvas (one scale, one baseline: both stand upright), and stacked when the
+ * lab itself is read on a phone. `lede` is the one line above the frames
+ * saying what they hold.
  */
 export function Strip({
   screen,
@@ -200,7 +206,7 @@ export function Strip({
       </div>
     );
   }
-  const w = frames.length * SCREENS["375"].w + (frames.length - 1) * GAP;
+  const w = frames.length * SCREENS[screen].w + (frames.length - 1) * GAP;
   return (
     <div data-eh-row className="flex flex-col gap-3">
       {head}
@@ -210,7 +216,7 @@ export function Strip({
             <Scene
               key={f.id}
               id={f.id}
-              screen="375"
+              screen={screen}
               h={h}
               title={f.title}
               measure={f.measure}
@@ -250,9 +256,9 @@ function albumStart(root: HTMLElement, screenH: number): string | null {
 }
 
 /**
- * THE DOORS' CAPTION: how many, how big, whether they stand on the cover,
- * over its seam, under it, in the stuck band or docked, where the album
- * starts, and the band's height once it has stuck.
+ * THE DOORS' CAPTION: how many, how big, whether they stand on the cover's
+ * foot, over its seam, under it or in the stuck band, the Seam's form and
+ * reach, where the album starts, and the band's height once it has stuck.
  */
 export const measureDoors =
   (screenH: number): Probe =>
@@ -267,20 +273,25 @@ export const measureDoors =
     const first = doors[0].getBoundingClientRect();
     const head = root.querySelector("[data-eh-head]");
     const coverFoot = head?.getBoundingClientRect().bottom ?? 0;
-    const where = doors[0].closest("[data-eh-head]")
-      ? "on the cover"
-      : doors[0].closest("[data-eh-foot]")
-        ? "at the screen's foot"
-        : doors[0].closest("[data-eh-band][data-stuck]")
-          ? doors[0].closest("[data-eh-dock]")
-            ? "docked under the bar"
-            : "in the stuck band"
-          : first.top < coverFoot
-            ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
-            : "under the cover";
+    const where = doors[0].closest("[data-eh-band][data-stuck]")
+      ? "in the stuck band"
+      : first.bottom <= coverFoot
+        ? `on the cover's foot, ${px(coverFoot - first.bottom)} of photograph under them`
+        : first.top < coverFoot
+          ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
+          : "under the cover";
     parts.push(
       `${doors.length} doors ${where}, the first ${px(first.width)} by ${px(first.height)}`,
     );
+    // The Seam as drawn: its form and its reach, read off its own box.
+    const light = root.querySelector<HTMLElement>("[data-eh-light]");
+    const lit = light?.getBoundingClientRect();
+    if (light && lit && lit.height > 0 && lit.bottom > 56)
+      parts.push(
+        light.dataset.ehLight === "room"
+          ? `the Seam reaching ${px(lit.height)} under the cover's edge`
+          : `the Seam on paper as ${light.dataset.ehLight}, ${px(lit.height)}`,
+      );
     const band = root.querySelector("[data-eh-band][data-stuck]");
     if (band)
       parts.push(`the band ${px(band.getBoundingClientRect().height)} tall`);

@@ -106,6 +106,9 @@ function Page({
   isOwner = false,
   onRetry,
   answerRetries = false,
+  word,
+  onAskWord,
+  heldAtDoor,
 }: {
   onAdd?: (files: File[], extra?: FileExtra) => void;
   initialQueue?: QueueItem[];
@@ -114,12 +117,37 @@ function Page({
   onRetry?: (queueId: string) => void;
   /** The page's queue takes a Retry as the real one does: the item goes back to waiting, its refusal forgotten. */
   answerRetries?: boolean;
+  /**
+   * The album's own word on whether it takes uploads, as the page hears it from the album's sync (`uploadsWord`), from
+   * this first value (the page's render); absent, the camera has no word to hear (the door's camera).
+   */
+  word?: boolean;
+  /** The camera asked the album for its word afresh. */
+  onAskWord?: () => void;
+  /** Opened from the held door's wait: her shots wait in the page's queue for the let-in. */
+  heldAtDoor?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue);
+  // Each word the album's sync carries is a word heard, the same one again included (`useLiveUploadsWord`).
+  const [uploadsWord, setUploadsWord] = useState(
+    word === undefined ? undefined : { open: word, heard: 0 },
+  );
+  const hear = (accepting: boolean) =>
+    setUploadsWord((prev) =>
+      prev ? { open: accepting, heard: prev.heard + 1 } : prev,
+    );
   return (
     <>
+      <button type="button" onClick={() => hear(false)}>
+        The album says closed
+      </button>
+      <button type="button" onClick={() => hear(true)}>
+        The album says open
+      </button>
       <AlbumCamera
+        uploadsWord={uploadsWord}
+        onAskUploadsWord={onAskWord}
         open={open}
         openedAt={OPENED_AT}
         onOpenChange={(next) => {
@@ -161,6 +189,7 @@ function Page({
         }}
         isDemo={false}
         isOwner={isOwner}
+        heldAtDoor={heldAtDoor}
       />
       <button type="button" onClick={() => setQueue([])}>
         Dismiss them
@@ -357,6 +386,24 @@ describe("the album's camera", () => {
     expect(screen.getByText("Frame 8 of 24 · sending 1")).toBeInTheDocument();
   });
 
+  /* ★ THE HELD DOOR HOLDS HER SHOTS (crumbs-85): opened from the held door's wait, the camera said "Every shot goes
+     straight in" and drew its shots sending while they waited in the page's queue for the let-in. */
+  it("★ at the held door says her shots go in once she is let in, and draws none of them sending", async () => {
+    render(<Page heldAtDoor />);
+    await opened();
+    expect(
+      screen.getByText("They go in once you’re let in"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Every shot goes straight in")).toBeNull();
+    expect(screen.queryByText(/^Develops/)).toBeNull();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    // Taken, and waiting: no "sending" in the caption, no sending dot on the reel.
+    expect(await screen.findByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.queryByText(/sending/)).toBeNull();
+    expect(document.querySelector("[data-sending]")).toBeNull();
+  });
+
   it("★ ends the roll in its own words, with her shots one tap away and the shutter gone", async () => {
     rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
     render(<Page />);
@@ -412,6 +459,69 @@ describe("the album's camera", () => {
     fireEvent.click(screen.getByRole("button", { name: "Back to the camera" }));
     await screen.findByText("Frame 24 of 24");
     expect(screen.queryByText("That’s your roll")).toBeNull();
+  });
+
+  /* ★ BACK PEELS ONE LAYER A PRESS, AS ESCAPE DOES (back-layers; from `disposable-camera`): only the camera held a
+     history entry, so the phone's Back from her shots closed the whole camera. Her shots hold one of their own. */
+  it("★ the phone's Back from her shots goes back to the camera, and the next Back closes the camera", async () => {
+    // A Back the test before left on its way lands first (`ui/popup-back.ts`: a push waits for it).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    const onOpenChange = vi.fn();
+    render(<Page onOpenChange={onOpenChange} />);
+    await screen.findByText("That’s your roll");
+    const atCamera = window.history.length;
+    fireEvent.click(screen.getByRole("button", { name: "See your shots" }));
+    await screen.findByRole("heading", { name: "Your shots" });
+    expect(window.history.length).toBe(atCamera + 1);
+
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    // The old code closed the camera here, her shots with it.
+    expect(screen.queryByRole("heading", { name: "Your shots" })).toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(document.querySelector("[data-album-camera]")).not.toBeNull();
+
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(document.querySelector("[data-album-camera]")).toBeNull();
+  });
+
+  it("her shots' own Back arrow takes their entry back: the camera stands on its own, and one Back closes it", async () => {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    const onOpenChange = vi.fn();
+    render(<Page onOpenChange={onOpenChange} />);
+    await screen.findByText("That’s your roll");
+    const marker = () =>
+      (window.history.state as Record<string, unknown> | null)?.prPopup;
+    const camera = marker();
+    expect(camera).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "See your shots" }));
+    await screen.findByRole("heading", { name: "Your shots" });
+    expect(marker()).not.toBe(camera);
+    fireEvent.click(screen.getByRole("button", { name: "Back to the camera" }));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(screen.queryByRole("heading", { name: "Your shots" })).toBeNull();
+    expect(marker()).toBe(camera);
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it("★ stops the shutter when the album itself refuses, in the server's own words", async () => {
@@ -761,6 +871,184 @@ describe("the album's camera, over an album that refuses for a reason its host c
   it("asks nothing once she has closed the camera (the failure sheet is hers then)", async () => {
     const onRetry = await refused();
     fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await wait(300_000);
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE CAMERA HEARS THE ALBUM'S OWN WORD (guest-requests). Where the page hears the album's switch from its sync
+ * (`uploadsWord`: the sync carries `accepting`, its validator hashing it while closed, and the page counts each word it
+ * hears), a closed album is never asked again by the camera itself: no presign at ten seconds, twenty, forty or each
+ * minute, none at the page's return and none when the connection comes back. It asks once, on the first word heard after
+ * the refusal that says open, and its banner and stopped shutter go with the refusal as the album says yes. A refusal
+ * over a word that said open asks the album for its word afresh, since that word's validator says open too and a host
+ * who reopened before the next poll would be answered 304. A full album is not the switch's to lift, so it keeps the
+ * calm cadence, and a camera with no word to hear (the door's) keeps it for both.
+ */
+describe("the album's camera, hearing the album's word on uploads", () => {
+  const CLOSED = "This event isn't accepting uploads right now.";
+  const shutter = () =>
+    document.querySelector("[data-cam-shutter]") as HTMLButtonElement;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+  });
+
+  /** The camera open over her first shot with the album's word beside it (the page's render: open), the album refusing it. */
+  async function refused(button = "Refuse them") {
+    const onRetry = vi.fn();
+    const onAskWord = vi.fn();
+    render(<Page answerRetries onRetry={onRetry} word onAskWord={onAskWord} />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    vi.useFakeTimers({
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "setInterval",
+        "clearInterval",
+        "Date",
+      ],
+    });
+    fireEvent.click(screen.getByRole("button", { name: button, hidden: true }));
+    await wait(0);
+    return { onRetry, onAskWord };
+  }
+  const wait = (ms: number) =>
+    act(async () => {
+      await vi.advanceTimersByTimeAsync(ms);
+    });
+  const says = async (open: boolean) => {
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: open ? "The album says open" : "The album says closed",
+        hidden: true,
+      }),
+    );
+    await wait(0);
+  };
+  const toggle = async (visible: boolean) =>
+    act(async () => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => (visible ? "visible" : "hidden"),
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+  it("★ never asks a closed album again by itself: not on the cadence, not at the page's return, not when the line comes back", async () => {
+    const { onRetry } = await refused();
+    await says(false);
+    await wait(10_000);
+    await wait(300_000);
+    await toggle(false);
+    await toggle(true);
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(onRetry).not.toHaveBeenCalled();
+    // The banner and the stopped shutter stand the whole time: the album has said nothing new.
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+    expect(shutter().disabled).toBe(true);
+  });
+
+  it("★ asks once, on the album's word that it is open, and the banner goes as the album says yes", async () => {
+    const { onRetry } = await refused();
+    await says(false);
+    await wait(120_000);
+    expect(onRetry).not.toHaveBeenCalled();
+
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    // Asked, not answered: the camera has not moved (no banner gone, no shutter back) until the album says yes.
+    expect(screen.getByText(CLOSED)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Put them in the air", hidden: true }),
+    );
+    await wait(0);
+    expect(screen.queryByText(CLOSED)).toBeNull();
+    expect(shutter().disabled).toBe(false);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Land them", hidden: true }),
+    );
+    await wait(300_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a refusal over a word that said open asks the album afresh, once; the word it heard before the refusal lifts nothing", async () => {
+    const { onRetry, onAskWord } = await refused();
+    expect(onAskWord).toHaveBeenCalledTimes(1);
+    await wait(300_000);
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(onAskWord).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a host who reopened before the next poll is heard: the fresh word says open, the same word as before, and the shot goes", async () => {
+    const { onRetry } = await refused();
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("a refusal over a word that already said closed asks nothing afresh: that word's validator moves when the album reopens", async () => {
+    const onAskWord = vi.fn();
+    const onRetry = vi.fn();
+    render(<Page answerRetries onRetry={onRetry} word onAskWord={onAskWord} />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "The album says closed",
+        hidden: true,
+      }),
+    );
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Refuse them", hidden: true }),
+    );
+    await act(async () => {});
+    expect(onAskWord).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "The album says open", hidden: true }),
+    );
+    await act(async () => {});
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again on the next word: refused once more after a reopen, it waits for the album's word after that refusal", async () => {
+    const { onRetry, onAskWord } = await refused();
+    await says(false);
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    // The host closed it again before the shot went: refused over a word that said open, so the album is asked afresh.
+    fireEvent.click(
+      screen.getByRole("button", { name: "Refuse them", hidden: true }),
+    );
+    await wait(0);
+    expect(onAskWord).toHaveBeenCalledTimes(2);
+    await says(false);
+    await wait(300_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    await says(true);
+    expect(onRetry).toHaveBeenCalledTimes(2);
+  });
+
+  it("★ a full album is not the switch's to lift: it keeps the calm cadence", async () => {
+    const { onRetry } = await refused("Refuse them as full");
+    await wait(10_000);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks nothing once she has closed the camera, whatever the album says (the failure sheet is hers then)", async () => {
+    const { onRetry } = await refused();
+    await says(false);
+    fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await says(true);
     await wait(300_000);
     expect(onRetry).not.toHaveBeenCalled();
   });

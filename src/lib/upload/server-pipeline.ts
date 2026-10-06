@@ -57,12 +57,13 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import type { z } from "zod";
+import { z } from "zod";
 
 import {
   captureUploadForensics,
   type ForensicIdentity,
 } from "@/lib/forensics/capture";
+import { acceptCaptureTime, readCaptureWall } from "@/lib/media/capture-time";
 import { MAX_UPLOAD_BYTES, extForMime } from "@/lib/media/limits";
 import type { MediaKind } from "@/lib/media/limits";
 import {
@@ -532,11 +533,41 @@ type CompleteCommon = {
    * worst a forged `false` does is keep the sender's own upload out of the reel.
    */
   reel_eligible?: boolean;
+  /**
+   * `media.captured_at` for the row this completion creates (Will's X7): the uploader's claim of when the original
+   * says it was taken, as `completeCaptureTime` left it (an instant inside the bounds, or null: the arrival stands).
+   * The engine carries it to either strategy, and each writes it once through its create_media* call.
+   */
+  captured_at?: string | null;
+  /**
+   * The original's zoneless wall clock as it is (`captureWall`, `YYYY-MM-DDTHH:mm:ss`), or null: a guest's strategy reads
+   * it in the party's zone (`wallInPartyZone`), and the claim above is the fallback. The host's route takes none.
+   */
+  captured_wall?: string | null;
   upload_id: string | null;
   parts: { partNumber: number; eTag: string }[];
   /** Capture-only device UUID (trust-safety-forensics.md) — forwarded to the forensic record, nothing else. */
   device_uuid?: string;
 };
+
+/**
+ * A COMPLETE'S CAPTURE TIME, as each route's schema takes it (beside `reel_eligible`): the claim held to the bounds on
+ * the server's clock as the body is parsed (`acceptCaptureTime`, their one home), so an absurd or malformed one reads as
+ * none (the arrival stands) and never refuses the file, and a body without one (an older tab, a file that said nothing)
+ * reads as none too. ★ `.optional()` BEFORE THE TRANSFORM: zod 4 holds a transformed key as required, so without it a
+ * body that leaves the key out would be refused whole (every upload from a tab before this field, and every file
+ * without a capture time).
+ */
+export const completeCaptureTime = z
+  .unknown()
+  .optional()
+  .transform((claim) => acceptCaptureTime(claim, Date.now()));
+
+/** A complete's bare wall clock, as the guest's schema takes it: its one shape, or none, never a refusal. */
+export const completeCaptureWall = z
+  .unknown()
+  .optional()
+  .transform((wall) => readCaptureWall(wall));
 
 /** The shape both create-record mutations resolve to (guest + host results both fit). */
 type CreateRecordOutcome =

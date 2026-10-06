@@ -1,9 +1,8 @@
-/* THE BOARD'S OWN SHEET: the cover's settled strip (`facts.tsx`), what every
-   door shares (its lights, the seam's fade, a phone's shelf) and how a room
-   arrives over the hub (`hub.tsx`). Each door's own rules live in its own
-   sheet (`glass.css`, `cards.css`, `windows.css`); every other rule is
-   production's: the cover and its light (`event-experience-head.css`), the
-   glass (`globals.css`), the atoms, the ladder.
+/* THE BOARD'S OWN SHEET: the cover's settled strip (`facts.tsx`) and how a
+   room arrives over the hub (`hub.tsx`). The cards' shared shapes live in
+   `card-kit.css`, the takes' faces and the status token in `cards.css`, the
+   Seam in `seam.css`; every other rule is production's: the cover and its
+   house light (`event-experience-head.css`), the atoms, the ladder.
 
    ★ EVERY KEYFRAME CARRIES THE BOARD'S PREFIX (`eh-`): keyframe names are
    document-global, and `keyframe-uniqueness.test.ts` reads every sheet.
@@ -46,50 +45,6 @@
 .eh-end[data-lit] {
   background: #fff;
   box-shadow: 0 0 0 4px rgb(255 255 255 / 0.2);
-}
-
-/* ══ THE DOORS ═════════════════════════════════════════════════════════════ */
-
-/* A state as a light (status=lights): the amber LED a waiting count wears. */
-.eh-amber {
-  display: block;
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--warning);
-  box-shadow: 0 0 6px color-mix(in oklab, var(--warning) 70%, transparent);
-}
-
-/* An unlit light (a ring), for a count that is hers to act on but waits on nobody. */
-.eh-unlit {
-  display: block;
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1.5px currentColor;
-  opacity: 0.6;
-}
-
-/* Cards over the seam: the cover's photograph fades into the page it meets,
-   so the doors stand on one continuous ground. */
-.eh-seam-fade {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    color-mix(in oklab, var(--eh-page) 55%, transparent) 55%,
-    var(--eh-page) 100%
-  );
-}
-
-/* A phone's shelf runs off the screen's right edge, faded there. */
-.eh-shelf {
-  scrollbar-width: none;
-  mask-image: linear-gradient(to left, transparent, black 2.5rem);
-}
-.eh-shelf::-webkit-scrollbar {
-  display: none;
 }
 
 /* ══ HOW A ROOM ARRIVES (as wired: every room over the hub) ═══════════════

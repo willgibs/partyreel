@@ -12,7 +12,7 @@
  *  - `cap=split`: a big album comes home in parts, walked through in plain words ("Part 1 of 2"),
  *    and the last one says plainly that that is everything. Never "in 2 zips".
  *  - `phone` (built as the board's zip): Download all goes to Files on a phone, and says so.
- *  - `means=mine`: the Yours row (`export-dialog.tsx`), filtered on the server.
+ *  - `means=mine`: the Yours row at the top of a guest's Download menu (`yours.server.ts`), filtered on the server.
  *
  * And Will's E6 (2026-10-04): a cancel and a dropped connection are told apart.
  *  - A CANCEL IS INTENTIONAL: the x asks first ("Cancel this download?", nothing is handed over while it stands),

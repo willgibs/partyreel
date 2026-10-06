@@ -22,6 +22,8 @@ import {
 import {
   createFolder,
   driveFileState,
+  findAlbumFolder,
+  findRootFolder,
   refreshAccess,
   undoFolder,
   type CreatedFolder,
@@ -209,15 +211,18 @@ export async function accessFromLease(
 
 /**
  * THE FOLDERS A SEND LANDS IN, MADE AT THE PRESS: the Partyreel folder (asked again each press: she may have moved it
- * to her bin), then the album's (kept for its next send; a new one if hers went to the bin or is gone), and the send
- * starts (`markReady`). Two presses at once leave one Partyreel folder: the root is compare-and-set, and the loser
- * undoes its own empty folder by the id Google just returned.
+ * to her bin; found by our mark after a reconnect: `ensureRoot`), then the album's (kept for its next send; ★ found by
+ * its own mark when the connection knows none live, `findAlbumFolder`; a new one, marked, only when none is out of the
+ * bin), and the send starts (`markReady`, saying whether the folder was found, so each file is looked up by its own
+ * mark before it goes: a re-send after a reconnect adds only what is missing). Two presses at once leave one Partyreel
+ * folder: the root is compare-and-set, and the loser undoes its own empty folder by the id Google just returned.
  */
 export async function makeSendFolders(input: {
   jobId: string;
+  eventId: string;
   facts: FolderFacts;
   accessToken: string;
-}): Promise<{ folderId: string }> {
+}): Promise<{ folderId: string; found: boolean }> {
   const { facts, accessToken } = input;
   const root = await ensureRoot(
     accessToken,
@@ -226,9 +231,22 @@ export async function makeSendFolders(input: {
   );
 
   let folderId = root.changed ? null : facts.folderId;
+  let dead: string | null = null;
   if (folderId) {
     const state = await driveFileState(accessToken, folderId);
-    if (!state || state.trashed) folderId = null;
+    if (!state || state.trashed) {
+      dead = folderId;
+      folderId = null;
+    }
+  }
+  let found = false;
+  if (!folderId) {
+    // Google's listing can trail its files.get by moments: the very folder just found binned or gone is no answer.
+    const listed = await findAlbumFolder(accessToken, input.eventId);
+    if (listed && listed !== dead) {
+      folderId = listed;
+      found = true;
+    }
   }
   let made: CreatedFolder | null = null;
   if (!folderId) {
@@ -239,21 +257,25 @@ export async function makeSendFolders(input: {
         endDate: facts.eventEndDate,
       }),
       parentId: root.id,
+      eventId: input.eventId,
     });
     folderId = made.id;
   }
-  const ok = await markReady(input.jobId, folderId);
+  const ok = await markReady(input.jobId, folderId, found);
   if (!ok) {
     // Canceled while the folder was being made: the empty folder made for it goes, by the id Google just returned.
     if (made) await undoFolder(accessToken, made).catch(() => undefined);
     throw new Error("drive: the send was no longer waiting for its folder");
   }
-  return { folderId };
+  return { folderId, found };
 }
 
 /**
- * THE PARTYREEL FOLDER, THERE AND OUT OF THE BIN: asked again (she may have binned or deleted it), made again when it
- * is not, compare-and-set, the loser undoing its own empty folder.
+ * THE PARTYREEL FOLDER, THERE AND OUT OF THE BIN: the connection's own, asked again (she may have binned or deleted
+ * it); else ★ ONE A GOOGLE ACCOUNT, however often she reconnects: the folder the app made before, found by our mark
+ * (`findRootFolder`: a Disconnect forgets every id, so a same-account reconnect knows none, and a second "Partyreel"
+ * folder would leave her albums split between two); else a new one, marked. Compare-and-set either way: the loser
+ * takes the winner's, undoing only a folder it made itself (one it found is never touched: `CreatedFolder` only).
  */
 async function ensureRoot(
   accessToken: string,
@@ -262,18 +284,56 @@ async function ensureRoot(
 ): Promise<{ id: string; changed: boolean }> {
   const state = known ? await driveFileState(accessToken, known) : null;
   if (known && state && !state.trashed) return { id: known, changed: false };
-  const made: CreatedFolder = await createFolder(accessToken, {
-    name: DRIVE_ROOT_FOLDER_NAME,
-    colored: true,
-  });
-  const claim = await claimRoot({
-    connectionId,
-    candidate: made.id,
-    expected: known,
-  });
-  if (!claim.won) await undoFolder(accessToken, made);
-  const id = claim.root ?? made.id;
+  // Google's listing can trail its files.get by moments: the very folder just found binned or gone is no answer.
+  const listed = await findRootFolder(accessToken);
+  const found = listed !== known ? listed : null;
+  const made: CreatedFolder | null = found
+    ? null
+    : await createFolder(accessToken, {
+        name: DRIVE_ROOT_FOLDER_NAME,
+        root: true,
+      });
+  const candidate = found ?? made!.id;
+  const claim = await claimRoot({ connectionId, candidate, expected: known });
+  if (!claim.won && claim.root === null) {
+    // The connection went while its folder was settled (a Disconnect mid-press): ours undone, the press ends here.
+    if (made) await undoFolder(accessToken, made);
+    throw new Error("drive: the connection went while its folder was made");
+  }
+  // ★ A loser undoes the folder it made unless that is the very one the winner took: another press may have found
+  // ours by its mark and claimed it first, and deleting it would take the winner's album folders with it.
+  if (!claim.won && made && claim.root !== made.id)
+    await undoFolder(accessToken, made);
+  const id = claim.root ?? candidate;
   return { id, changed: id !== known };
+}
+
+/**
+ * ★ HER PARTYREEL FOLDER, NAMED THE MOMENT SHE RECONNECTS (drive-crumbs): a connection that knows no folder (a new row:
+ * a Disconnect forgot every id) takes the one an earlier connection to this Google account made, found by its mark,
+ * so Account's card names it at once rather than "Made at your first send" until her next press. Compare-and-set
+ * against none (a press may have settled one first: it stands); nothing is made here, so nothing is ever undone.
+ * Best-effort: Google not answering leaves the press to find it, as it always did.
+ */
+export async function adoptRootFolder(
+  connectionId: string,
+  accessToken: string,
+): Promise<string | null> {
+  try {
+    const found = await findRootFolder(accessToken);
+    if (!found) return null;
+    const claim = await claimRoot({
+      connectionId,
+      candidate: found,
+      expected: null,
+    });
+    return claim.root;
+  } catch (e) {
+    captureWarning("export", "drive_root_adopt_failed", {
+      error: String(e).slice(0, 200),
+    });
+    return null;
+  }
 }
 
 /**
@@ -303,6 +363,7 @@ export async function makeNewAlbumFolder(input: {
       endDate: album?.eventEndDate ?? null,
     }),
     parentId: root.id,
+    eventId: input.eventId,
   });
   const ok = await refolderSend({
     userId: input.userId,
@@ -316,15 +377,18 @@ export async function makeNewAlbumFolder(input: {
 // ── A lease's items ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * WHAT A LANE GETS FOR EACH ORIGINAL: its name (made now for one not yet named: when it arrived, then who, by the one
- * naming function; the " (2)" kept by the SQL), its description, Drive's `modifiedTime`, its type, and any session or
- * earlier file to resume from.
+ * WHAT A LANE GETS FOR EACH ORIGINAL: its name (made now for one not yet named: when it was taken where the upload
+ * kept that, else when it arrived, then who, by the one naming function; the " (2)" kept by the SQL), its
+ * description, Drive's `modifiedTime`, its type, and any session or earlier file to resume from. The capture time
+ * rides the lease (`cloud_export_lease`, 20261005200000), so naming asks nothing more.
  */
 export async function leaseItemsFor(input: {
   lease: string;
   eventId: string;
   albumName: string;
   tz: string;
+  /** The press found the album's folder by its mark (a reconnect): its files may be there already. */
+  folderFound: boolean;
   items: RawLeaseItem[];
 }): Promise<LeaseItem[]> {
   const senders = await readSenders(
@@ -340,7 +404,7 @@ export async function leaseItemsFor(input: {
             mediaId: i.mediaId,
             stem: driveFileStem({
               arrivedAt: i.createdAt,
-              capturedAt: null,
+              capturedAt: i.capturedAt,
               tz: input.tz,
               who: senders.get(i.mediaId),
             }),
@@ -363,15 +427,16 @@ export async function leaseItemsFor(input: {
           who: senders.get(i.mediaId),
           albumName: input.albumName,
           arrivedAt: i.createdAt,
-          capturedAt: null,
+          capturedAt: i.capturedAt,
           tz: input.tz,
         }),
         modifiedTime: driveModifiedTime({
           arrivedAt: i.createdAt,
-          capturedAt: null,
+          capturedAt: i.capturedAt,
         }),
         attempts: i.attempts,
         priorFileId: i.priorFileId,
+        lookUp: input.folderFound,
         session: i.sessionUri
           ? { uri: i.sessionUri, offset: i.sessionOffset ?? 0 }
           : null,
@@ -384,7 +449,7 @@ export async function leaseItemsFor(input: {
 
 /**
  * WAKE THE WORKER FOR A CONNECTION: as many lanes as are missing (at most once a minute), as a signed POST to its
- * `/kick`. Best-effort by design: a kick that does not land is the sweep's to make within five minutes, so a failure
+ * `/kick`. Best-effort by design: a kick that does not land is the sweep's to make within fifteen minutes, so a failure
  * is a warning, never a refusal of her press.
  */
 export async function kickConnection(connectionId: string): Promise<number> {

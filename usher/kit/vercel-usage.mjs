@@ -33,5 +33,5 @@ const shares = (json.data.at(-1)?.breakdown?.function_invocations ?? []).map((p)
 const share = CPU_SECONDS_PER_CALL ? (total * CPU_SECONDS_PER_CALL) / 3600 / HOBBY_CPU_HOURS : total / CALLS_AT_ALMOST_MAXED * 0.9;
 const est = CPU_SECONDS_PER_CALL ? `about ${((total * CPU_SECONDS_PER_CALL) / 3600).toFixed(2)} of ${HOBBY_CPU_HOURS} CPU-hours` : `about ${Math.round(share * 100)}% of the limit by count (uncalibrated)`;
 const verdict = share >= REFUSE ? "REFUSE: no Vercel work but what Will asks for by name" : share >= WARN ? "WARN: say so before any Vercel work, and keep it small" : "under the line";
-console.log(`vercel usage ${now.toISOString().slice(0, 16)}Z | 30-day function calls ${total.toLocaleString("en-US")} (${shares || "no split"}); today ${today.toLocaleString("en-US")}; busiest ${busiest?.date?.slice(0, 10)} ${calls(busiest).toLocaleString("en-US")} | ${est} | ${verdict}`);
+console.log(`vercel usage ${now.toISOString().slice(0, 16)}Z | 30-day function calls ${total.toLocaleString("en-US")}; today ${today.toLocaleString("en-US")} (${shares || "no split"}: the API splits one day by project, never the window); busiest ${busiest?.date?.slice(0, 10)} ${calls(busiest).toLocaleString("en-US")} | ${est} | ${verdict}`);
 process.exit(share >= REFUSE ? 3 : share >= WARN ? 2 : 0);

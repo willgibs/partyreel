@@ -360,3 +360,58 @@ describe("★ it writes nothing and mints nothing", () => {
     expect(src).not.toMatch(/\.set\(|cookies\(\)/);
   });
 });
+
+/* ★ THE GUESTS' ORDER (event-zone; the ROADMAP's "See it as a guest lays the album newest first after the turn"): the
+   view is handed the guest page's own answer, its turn read in the party's zone off her own row (RLS-proved), so after
+   the party's morning she sees the night in order as every guest does, and the seed links the first paint of it. */
+describe("★ it lays the album in the order every guest meets", () => {
+  // The door's event is dated Saturday 3 October 2026: 9 am in Auckland on the 4th is 20:00 UTC on the 3rd.
+  const AUCKLAND_MORNING = Date.parse("2026-10-03T20:00:00Z");
+
+  it("after the party's morning, in its own zone: the night in order, and the seed links that first paint", async () => {
+    getEvent.mockResolvedValue({
+      id: EVENT,
+      qr_token: TOKEN,
+      time_zone: "Pacific/Auckland",
+    });
+    pageDoor.mockResolvedValue({
+      decision: { kind: "through", admitted: true },
+      standing: { host: true },
+      event: { ...doorEvent("approve"), develops_at: null },
+    });
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.albumOrder).toEqual({
+      morningAfter: AUCKLAND_MORNING,
+      own: "oldest",
+      chosen: null,
+    });
+    expect(seeds.calls[0]![2]).toEqual({ ...FIRST_PAINT, sort: "oldest" });
+  });
+
+  it("a develop ahead holds it newest first, the party's morning kept beside it for when the develop goes", async () => {
+    getEvent.mockResolvedValue({
+      id: EVENT,
+      qr_token: TOKEN,
+      time_zone: "Pacific/Auckland",
+    });
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.albumOrder).toEqual({
+      morningAfter: AUCKLAND_MORNING,
+      own: "newest",
+      chosen: null,
+    });
+    expect(seeds.calls[0]![2]).toEqual({ ...FIRST_PAINT, sort: "newest" });
+  });
+
+  it("a party with no zone turns in the one fallback (UTC), as every guest's does", async () => {
+    pageDoor.mockResolvedValue({
+      decision: { kind: "through", admitted: true },
+      standing: { host: true },
+      event: { ...doorEvent("approve"), develops_at: null },
+    });
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.albumOrder.morningAfter).toBe(
+      Date.parse("2026-10-04T09:00:00Z"),
+    );
+  });
+});

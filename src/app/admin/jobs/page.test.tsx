@@ -2,7 +2,9 @@
  * THE JOBS CONSOLE, RENDERED WHOLE ON STUBBED READS (crumbs-75). The portal's sign-in and MFA complete only on a real
  * host, so no lane can open `/admin/jobs` locally; this renders the page itself, its reads stubbed, to hold what the
  * lane added to it: a signal's owed line (the notices waiting to send, the downloads with no end) and the backup's
- * lone copies as a card of their own beside the dead letters, failing at any count with the restore path said.
+ * lone copies as a card of their own beside the dead letters, failing at any count with the restore path said; and
+ * (durability-restore) the backup restore's own card: its mode, what its last pass copied back and what it could not,
+ * and Restore now, drawn wired only where the app knows the Worker's door.
  */
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,6 +16,7 @@ const NOW = Date.parse("2026-10-05T12:00:00.000Z");
 const state = vi.hoisted(() => ({
   signals: {} as JobSignals,
   states: [] as JobState[],
+  wired: true,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -44,35 +47,53 @@ vi.mock("@/app/admin/jobs/actions", () => ({
   toggleWatchSwitchAction: vi.fn(),
   releasePruneHoldAction: vi.fn(),
   runJobNowAction: vi.fn(),
+  restoreNowAction: vi.fn(),
+}));
+vi.mock("@/app/admin/jobs/restore-now", () => ({
+  restoreNowWired: () => state.wired,
 }));
 
 const { default: JobsPage } = await import("@/app/admin/jobs/page");
 
-/** A prune run an hour ago, closed ok, carrying these counts. */
-function pruneRun(counts: Record<string, unknown>): JobState {
-  const at = new Date(NOW - 60 * 60 * 1000).toISOString();
+/** A run of `job`, closed `status` `agoMs` ago, carrying these counts. */
+function runOf(
+  job: JobState["job"],
+  counts: Record<string, unknown>,
+  opts: {
+    status?: "ok" | "error" | "skipped";
+    agoMs?: number;
+    note?: string;
+  } = {},
+): JobState {
+  const at = new Date(NOW - (opts.agoMs ?? 60 * 60 * 1000)).toISOString();
+  const status = opts.status ?? "ok";
   return {
-    job: "backup_prune",
+    job,
     lastRun: {
-      status: "ok",
+      status,
       startedAtMs: Date.parse(at),
       finishedAtMs: Date.parse(at),
       stoppedEarly: false,
       breakerTripped: false,
     },
     lastRunRow: {
-      id: "r1",
-      job: "backup_prune",
-      status: "ok",
+      id: `r-${job}`,
+      job,
+      status,
       triggered_by: "schedule",
       started_at: at,
       finished_at: at,
       duration_ms: 1_000,
       counts: counts as never,
-      note: null,
+      note: opts.note ?? null,
     },
     lastFinishedAtMs: Date.parse(at),
   };
+}
+
+/** A prune run an hour ago, closed ok, carrying these counts. */
+function pruneRun(counts: Record<string, unknown>): JobState {
+  return runOf("backup_prune", counts);
 }
 
 function card(id: string): HTMLElement {
@@ -86,6 +107,7 @@ beforeEach(() => {
   vi.setSystemTime(NOW);
   state.signals = {};
   state.states = [];
+  state.wired = true;
 });
 
 describe("the jobs console (crumbs-75)", () => {
@@ -140,9 +162,15 @@ describe("the jobs console (crumbs-75)", () => {
     expect(
       within(lone).getByText("3 held by the backup alone"),
     ).toBeInTheDocument();
+    // The remedy is the restore now, said where the alert is; a key it cannot copy back is still a copy by hand.
     expect(
       within(lone).getByText(
-        /^Restore each from the backup: copy it from partyreel-backup into partyreel at the same key/,
+        /^The backup restore below copies each back on its own while its RESTORE_MODE is on/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(lone).getByText(
+        /copied by hand from partyreel-backup into partyreel at the same key/,
       ),
     ).toBeInTheDocument();
   });
@@ -160,7 +188,180 @@ describe("the jobs console (crumbs-75)", () => {
     render(await JobsPage());
     const lone = card("backup_primary_missing");
     expect(within(lone).getAllByText("No reading").length).toBeGreaterThan(0);
-    expect(within(lone).queryByText(/^Restore each/)).toBeNull();
+    expect(within(lone).queryByText(/^The backup restore below/)).toBeNull();
+  });
+});
+
+describe("the backup restore's card (durability-restore)", () => {
+  it("★ says its mode, what its last pass copied back and what it could not, each why, in place of the raw counts", async () => {
+    state.states = [
+      runOf(
+        "backup_restore",
+        {
+          restore_mode: "on",
+          restored: 2,
+          restored_bytes: 6 * 1024 * 1024,
+          checked: 3,
+          too_large: 1,
+          primary_missing: 1,
+        },
+        { status: "error", note: "Restored 2 keys (6 MB) from the backup." },
+      ),
+    ];
+    render(await JobsPage());
+    const restore = card("backup_restore");
+    // Right after the lone copies it restores.
+    expect(card("backup_primary_missing").nextElementSibling).toBe(restore);
+    expect(within(restore).getByText("Last run failed")).toBeInTheDocument();
+    expect(within(restore).getByText("Mode")).toBeInTheDocument();
+    expect(
+      within(restore).getByText("On: it copies the backup's lone copies back"),
+    ).toBeInTheDocument();
+    expect(
+      within(restore).getByText("Restored 2 keys (6 MB)"),
+    ).toBeInTheDocument();
+    expect(
+      within(restore).getByText(
+        "1 key over the 4.99 GB one conditional write takes: copy by hand",
+      ),
+    ).toBeInTheDocument();
+    expect(within(restore).queryByText("Reported")).toBeNull();
+    expect(
+      within(restore).getByText("Restored 2 keys (6 MB) from the backup."),
+    ).toBeInTheDocument();
+    const press = within(restore).getByRole("button", { name: "Restore now" });
+    expect((press as HTMLButtonElement).disabled).toBe(false);
+    expect(
+      within(restore).getByText(
+        /^Restore now asks its Worker for a pass at once/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("★ lets the restore's pass outrank the prune that found them: copied back, the lone copies read healthy", async () => {
+    state.states = [
+      runOf(
+        "backup_prune",
+        { primary_missing: 2, scanned: 4_000 },
+        { agoMs: 2 * 3_600_000 },
+      ),
+      runOf(
+        "backup_restore",
+        { restore_mode: "on", restored: 2, checked: 2, primary_missing: 0 },
+        { agoMs: 3_600_000 },
+      ),
+    ];
+    render(await JobsPage());
+    expect(
+      within(card("backup_primary_missing")).getByText("Healthy"),
+    ).toBeInTheDocument();
+    expect(
+      within(card("backup_restore")).getByText("Healthy"),
+    ).toBeInTheDocument();
+  });
+
+  it("draws Restore now disabled, and says why, while the app does not know the Worker's door", async () => {
+    state.wired = false;
+    render(await JobsPage());
+    const restore = card("backup_restore");
+    const press = within(restore).getByRole("button", { name: "Restore now" });
+    expect((press as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      within(restore).getByText(
+        /^Restore now is not wired here: set BACKUP_WORKER_URL/,
+      ),
+    ).toBeInTheDocument();
+    expect(within(restore).getByText("No runs yet")).toBeInTheDocument();
+  });
+});
+
+describe("the backup reconcile's card (backup-reconcile)", () => {
+  it("★ says its pass in words: this run ended it, when the last whole pass ended, and what it found, in place of the raw counts", async () => {
+    state.states = [
+      runOf(
+        "backup_reconcile",
+        {
+          checked: 5_862,
+          copied: 0,
+          mismatched: 2,
+          breaker_tripped: true,
+          absent_from_primary: 654,
+          young_absent: 611,
+          lone_found: 0,
+          primary_missing: 0,
+          pass_complete: true,
+          pass_walked: 5_862,
+          pass_started_at: "2026-10-05T05:00:00.000Z",
+          last_pass_at: "2026-10-05T05:00:12.000Z",
+          last_pass_walked: 5_862,
+        },
+        {
+          note: "The pass reached the end: 5,862 keys compared with the backup's, every one backed up.",
+        },
+      ),
+    ];
+    state.states[0].lastRun!.breakerTripped = true;
+    render(await JobsPage());
+    const reconcile = card("backup_reconcile");
+    expect(within(reconcile).getByText("Needs a look")).toBeInTheDocument();
+    expect(within(reconcile).getByText("Pass")).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText(
+        "Complete: 5,862 keys compared with the backup, every one backed up",
+      ),
+    ).toBeInTheDocument();
+    expect(within(reconcile).getByText("Last full pass")).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText("Oct 5, 2026, 05:00 UTC, 5,862 keys"),
+    ).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText(
+        /^2 keys differ between the buckets \(size or checksum\): left as they are, never overwritten/,
+      ),
+    ).toBeInTheDocument();
+    expect(within(reconcile).queryByText("Reported")).toBeNull();
+  });
+
+  it("★ reads a pass carried across runs as one in progress, from when it began, with no whole pass yet", async () => {
+    state.states = [
+      runOf("backup_reconcile", {
+        checked: 40_000,
+        copied: 0,
+        pass_complete: false,
+        pass_walked: 80_000,
+        pass_started_at: "2026-10-04T05:00:00.000Z",
+        stopped_early: true,
+        lone_found: 0,
+      }),
+    ];
+    state.states[0].lastRun!.stoppedEarly = true;
+    render(await JobsPage());
+    const reconcile = card("backup_reconcile");
+    expect(within(reconcile).getByText("Needs a look")).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText(
+        "In progress: 80,000 keys compared since Oct 4, 2026, 05:00 UTC; the next run carries on",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(reconcile).getByText("None has reached the end yet"),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the raw counts of a run from before the pass", async () => {
+    state.states = [
+      runOf("backup_reconcile", {
+        capped: false,
+        copied: 0,
+        failed: 0,
+        checked: 3_419,
+      }),
+    ];
+    render(await JobsPage());
+    const reconcile = card("backup_reconcile");
+    expect(within(reconcile).getByText("Reported")).toBeInTheDocument();
+    expect(within(reconcile).getByText("checked 3,419")).toBeInTheDocument();
+    expect(within(reconcile).queryByText("Pass")).toBeNull();
   });
 });
 

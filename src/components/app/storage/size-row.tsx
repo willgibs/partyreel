@@ -76,7 +76,7 @@ export function SizeRow({
           aria-label={label}
           disabled={disabled}
           onClick={() => onToggle(item)}
-          className="absolute inset-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-default"
+          className="absolute inset-0 rounded-lg outline-none focus-halo disabled:cursor-default"
         />
         <span
           aria-hidden

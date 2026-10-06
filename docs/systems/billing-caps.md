@@ -36,11 +36,15 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `event_passes.uploaded_bytes`, which the two completes alone increment, on the live pass that ends soonest, under
   the profiles lock: so the year is the one she paid for, a renewal's year opens on its own row at zero, and a pass
   that ends takes its count with it (generous at a stack's edge, never a false refusal). Every upload still lands on
-  the month's row too (spend-watch and the hour's breaker read it). ★ A pass the nightly recompute has not caught up
-  with (her profile still a pass's, no window live) is refused in the allowance's words at the completes (the
-  Advisor's Q26 F1) and, by the same predicate over the same rows, at the presign's meter, so nothing is sent to be
-  refused and nothing lands counted nowhere; the three upload advisories still read her as not full, so the door is
-  open until the presign refuses. A Pro profile with no cap on record is unmetered.
+  the month's row too (spend-watch and the hour's breaker read it). A Pro profile with no cap on record is unmetered.
+- ★ **"May this account still add" has one home, `uploads_refused(host, tier, cap, bytes)`** (20261005181000): her
+  plan's own number over its window, a strict line, or a pass the nightly recompute has not caught up with
+  (`pass_lapsed`: her profile still a pass's, no window of hers live, so a count would land on no row; the Advisor's
+  Q26 F1). Every body that judges an upload asks it: both completes with the HEAD's size, the presign's meter with the
+  declared size, the three upload advisories with one byte (at the allowance is full), and the operator's
+  `uploads_windows` asks `pass_lapsed`; so the door, the presign, the complete and `/admin/accounts` agree by
+  construction (the advisories read a lapsed pass as room while the presign refused it).
+  `uploads-line-migration.test.ts` refuses a copy of either predicate outside its home.
 - **The allowance is published; only the breakers are not.** The pricing table's Uploads row prints each plan's
   number with its window (`uploadsLabel`); `content-policy.test.ts` fences the backstop's old name ("ingress") and the
   unpublished breakers' numbers, read from the SQL that sets them. The meter's wire keeps its names
@@ -67,21 +71,28 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   grief needs real bytes: declaring a size spends nothing.
 - **The presign's meter refuses early, and counts no month** (`meter_upload`, 20261003210500, through
   `upload/server-pipeline-meter.ts`): after every gate of its route and before any URL exists, it refuses past the
-  hour's breaker, past the allowance (the complete's own line over the same window, read early, a lapsed pass's whole
-  allowance included) or past the room (`host_room_used`; the
+  hour's breaker, past the uploads line (`uploads_refused`, the completes' own question) or past the room
+  (`host_room_used`; the
   refusal carries `needed_bytes`, `deleted_bytes` and `makes_room`), each in the route's own words (a guest's name the
   album, never the plan: `meterRefusal`), and tallies the hour for an upload it admits. The host's route lets a full
   account go on to that refusal, never saying "full" at the context: its `at_storage_cap` is a bare flag with none of
   those numbers (the month's early refusal there stays, one sentence both say alike). No profiles
   lock: its reads are advisory and the tally is one atomic upsert. It fails OPEN, as the limiters do, since the
   complete's count and caps stand behind it.
+- ★ **Each refusal names the line it met, in its identity's voice** (`upload/cap-words.ts`, the one home for the
+  context's early answer, the meter's exact one and the complete's backstop): a guest's name the album ("This album has
+  hit its upload limit for now.", "This album is full right now..."), the owner's her plan ("You've hit this plan's
+  upload limit for now."; storage "Storage is full for your plan..." at the complete, which the help center quotes, and
+  `roomRefusalWords` at the presign, which knows the room the file needs). The completes' wrappers read the line off
+  the SQL's two sentences (`capLineOf`), and a cap sentence they do not know reads `unknown`, never a guessed line: a
+  host's complete said "Storage is full" for her uploads line, and a guest's the SQL's own "...for this plan".
 - **Two breakers far past any party, unpublished, refused in words,** so "no guest limit" and "unlimited events" stay
   true. An account's uploads a clock hour, 20,000 (`c_uploads_an_hour`), every guest's and her own into all her events,
   tallied on the month's row (`hour_started_at`, `hour_uploads`) by `meter_upload` and refused at presign (429 with
   `Retry-After` to the hour's end). An account's events created in any 24 hours, 100 (`c_events_a_day`), a deleted one
   included, in `enforce_event_limit` on a creation alone (its undelete trigger is a restore) and after the plan's own
   limit; the create action prints its sentence, never the plan limit's, since a Pro host has no event limit to upgrade
-  past (`mutations/events.ts`). Each constant's WHY sits beside it in 20261003210500.
+  past (`mutations/events.ts`). Each constant's WHY sits beside it in its function's newest migration.
 - **Four counters, deliberately different; never reconcile them.** The cap reads what she stores, Deleted included,
   so a delete frees nothing until the item leaves Deleted for good; the monthly ledger never decrements (it is also
   the delete-and-re-upload churn defense), and nor does a pass's `uploaded_bytes`, its year's twin; `storage_used_bytes`
@@ -117,8 +128,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   second subscription double-bills one cap, a size or cadence change is change-plan's, and cancelling is the
   portal's. `resolveEntitlement()` decides from `profiles`, never the request body. Another pass is another ledger row
   (one more event slot and another pass's storage and uploads, for its own year), and a pass holder may start Pro, the prorated
-  credit consuming their passes. A pass write never flattens a Pro cap (the recompute's WHERE carries
-  `.neq("tier","pro")`). Pro caps never stack, as a max or a sum: every webhook would resolve two live entitlements,
+  credit consuming their passes. A pass write never flattens a Pro cap (the recompute reads the tier under her profiles
+  lock and writes in the same transaction). Pro caps never stack, as a max or a sum: every webhook would resolve two live entitlements,
   and "whose media survives when one plan ends?" has no honest answer.
 - ★ **No plan change leaves a host storing more than the new cap,** so we never remove a host's media or carry their
   excess ourselves. One check, `checkPlanChange`, guards every purchase that REPLACES the cap: any Pro checkout (a
@@ -156,16 +167,62 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   value: listed once per warm instance and cached; with none tagged the route fails CLOSED (503 and a Sentry
   capture), never falling back to the default configuration; a stale id is forgotten and looked up once more. The
   general portal keeps the card, the invoices and cancelling, with its plan switching OFF: its quantity stepper has no
-  maximum and could bill two or three times for one cap.
-- **The prorated pass-to-Pro credit is honoured in the webhook, idempotently:** a customer-balance grant keyed
-  `pass-credit-<sessionId>` (a Stripe idempotency key, which holds for at least 24 hours, so a retry inside that window
-  never double-grants; a delivery retries for three days, so a conversion still failing a day on grants again), then
-  ONE call, `consume_passes_for_pro_credit`, that consumes every unconsumed pass (zero rows on replay) and clears
-  `tier_expires_at` and `event_slots` in one transaction. ★ It takes her profiles row first, the capacity bodies' order
-  (an upload's complete holds that row while it counts on her live pass, so the reverse order, in one transaction,
-  deadlocks with it), and nobody reads her passes consumed with her chain still set. A balance carries from invoice to
-  invoice (Checkout's own first invoice never takes it), where an `amount_off` coupon would silently eat any credit
-  above one invoice's total.
+  maximum and could bill two or three times for one cap. ★ Stripe refuses a switch to a price the configuration does
+  not list (every Switch to it a 500 the host meets first), so `/admin/accounts` checks on each view that it lists
+  every Pro price `tiers.ts` sells (`admin/accounts/portal-check.ts`: the route's own pick, its products read by a
+  retrieve with the expand, against the env's ids), naming each one missing; a retired price listed beside them breaks
+  nothing, and a check that could not run (Stripe, a price's unset env) says No reading. The spend watch's daily run
+  reads the same check (`jobs/change-plan-watch-run.ts`): a price missing or no configuration tagged holds the run at
+  attention (the bell, the band), mails the ops inbox once a day while it holds and names each price in the run's note
+  and the card's line; a check that could not run fails the run. The TEST configuration is
+  `bpc_1UIhooPtjqmVkBwkcLe9YgYN`.
+- ★ **The prorated pass-to-Pro credit is granted once ever and converts only what it credited**
+  (`webhook/pass-credit.ts`, 20261005181000). The checkout stamps the credit with every pass it counted
+  (`passCreditMetadata`: `credited_pass_ids`, `_2`... with `credited_pass_count`; the credit covers exactly the passes
+  named), and the webhook: (1) takes a claim of our own keyed by the session (`claim_pass_credit`, `pass_credits`,
+  deny-all) before any grant and reads it on every retry, since Stripe's idempotency key holds a day while a failing
+  delivery retries for three: a claim granted answers granted, one another delivery holds (a 10-minute lease, longer
+  than the webhook's `maxDuration`) answers busy, a 409 that Stripe retries (the two TEST endpoints both receive every
+  event); (2) grants the customer balance under the key `pass-credit-<session>` with the session in its metadata, so a
+  lapsed claim with no grant on record finds a grant lost mid-call on Stripe's side before granting, and puts it on
+  record (`record_pass_credit_grant`); (3) converts exactly the passes the claim names (`convert_pass_credit`), never
+  one bought after the checkout, and clears `tier_expires_at` and `event_slots` only when it converted any. ★ A pass is
+  credited once ever: a claim whose passes were converted, or are named by another checkout's claim that GRANTED and
+  was not released (two Checkout tabs), answers overlap, grants nothing and raises `stripe_pass_credit_overlap`.
+  ★ Another checkout's claim that only holds its lease answers busy (20261005201000, `held_by`), never overlap: its
+  holder can die, and the tab told overlap for good while the first tab's retries ran out left neither checkout
+  granted; the retry meets that claim's grant (overlap) or its lapse. ★ A claim taken past such a lapse names it an
+  orphan (`orphans`: another checkout's lapsed, ungranted, unreleased claim on its passes), and the route looks on
+  Stripe's side for every orphan's grant BEFORE it grants (each orphan's checkout read from Stripe for the customer it
+  charged and its time on Stripe's clock), since that holder may have died between Stripe's grant and its record: every
+  grant found is adopted in ONE transaction, `adopt_pass_credit_orphans` (20261006120000): her profiles row first, each
+  orphan's grant on record and converted, oldest first, a younger orphan whose passes are credited by then released
+  beside its grant (granted twice), then this claim released, all or nothing across the orphans whose grants were found;
+  an orphan whose own delivery holds its lease again answers busy, nothing written; none found, this checkout grants and
+  then releases the orphans. ★ The claim answers its lease's end, and the route never calls Stripe to grant with under
+  three minutes of it left (a caller with no `maxDuration`, a local build's Retry, could otherwise grant past a lease
+  another delivery took over). ★ A claim of this checkout's own still open beside an overlap is settled at that
+  delivery, never left stuck: looked for on Stripe's side, then released for good (`release_pass_credit`, `released_at`;
+  refused for a claim whose passes no other checkout credited, and a pass it named that the other did not stays hers,
+  uncredited, as an overlap always left it), a grant found put on record beside it (two grants for one set of passes:
+  `stripe_pass_credit_overlap_granted`; a released claim's grant is the duplicate, which credits nothing and the
+  operator reverses in Stripe). ★ `record_pass_credit_grant` refuses a released claim; a holder that outlived its lease
+  and granted after its release has that grant put on record beside the release (`release_pass_credit`'s replay takes a
+  late grant on a claim released with none: granted twice). ★ Each call takes her profiles row first, the capacity
+  bodies' order (an upload's complete holds that row while it counts on her live pass). A credited session naming no
+  pass is a 500, never a guess; a failure while honouring a credit is the `pass_credit` signal's as well as Sentry's. A
+  balance carries from invoice to invoice (Checkout's own first invoice never takes it), where an `amount_off` coupon
+  would silently eat any credit above one invoice's total.
+- ★ **A stuck credit shows where the operator looks, with its fix beside it.** Stuck is an hour at one step
+  (`billing/passes-stuck.ts`, pure, its PostgREST form in `queries/pass-credits.ts` held to it by their test): a claim
+  with no grant and no live lease an hour after it was taken, or a grant whose passes never converted an hour after it
+  landed; a released claim never is. `/admin/accounts` lists every stuck one with its account (oldest owing first,
+  counted past what it lists) and, for a month, every one only Stripe can settle (granted twice, or a conversion of
+  none: `settleKind`, since nothing records the reversal it never counts as owed), the account's page says what became
+  of each of her credits with Retry beside a stuck one (`retryPassCreditAsOperatorAction`, AAL2, audited in Sentry: the
+  session retrieved from Stripe and run through the webhook's own path, so the claim makes it the same once-ever path
+  whichever runs first), and `/admin/jobs` carries the `pass_credit` signal: credits converted in the day (a conversion
+  of none is no credit honoured), failures honouring one, stuck ones owed (Needs a look).
 - **A subscription write nulls `event_slots` and `tier_expires_at` every time:** nothing banks behind Pro, and a stale
   stacked-pass slot count would cap a Pro host inside `enforce_event_limit`'s coalesce. The downgrade path then runs
   `recomputePassEntitlement`, so a live uncredited pass resurfaces instead of evaporating.
@@ -182,11 +239,20 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 
 ## The webhook
 
-- **The Stripe webhook, with the pass recompute (`recomputePassEntitlement`, which the webhook and the cron's
-  `sweepExpiredPasses` call), is the SOLE writer** of `tier`, `storage_cap_bytes`, `stripe_subscription_id`,
-  `event_slots` and `tier_expires_at`, always through the admin client (the credit's clear of the last two through
-  `consume_passes_for_pro_credit`, the service role's alone). Checkout only persists `stripe_customer_id`
-  and stamps credit metadata. None of these columns is client-writable ([database-security.md](database-security.md)).
+- **The Stripe webhook, with the pass recompute (`recompute_pass_entitlement` through `recomputePassEntitlement`,
+  which the webhook and the cron's `sweepExpiredPasses` call), is the SOLE writer** of `tier`, `storage_cap_bytes`,
+  `stripe_subscription_id`, `event_slots` and `tier_expires_at`, always through the admin client (the credit's clear of
+  the last two through `convert_pass_credit`, the service role's alone, which the operator's Retry of a stuck credit
+  reaches only through the webhook's own path). ★ The recompute is ONE statement under her
+  profiles lock, deriving the four from her unconsumed windows: read in one request and written in another, a
+  conversion landing between them had its cleared chain put back until the subscription event came. ★ It writes
+  nothing for a profile with no live window whose pass became Pro credit within the hour while it still had time
+  (`skipped_pro_pending`, real time, never the sweep's instant): her credited checkout's subscription event is seconds
+  behind its conversion, and writing then moved her to Free for them; past the hour the ledger decides again. The
+  nightly `expired_passes` reads the `event_pass` labels and the owners of a pass live or ahead, never the owner of
+  expired passes alone (they stay unconsumed for good, so every past holder was recomputed every night); the label
+  carries the one recompute an expiry needs. Checkout only persists `stripe_customer_id` and stamps credit metadata.
+  None of these columns is client-writable ([database-security.md](database-security.md)).
 - **Every entitlement write asserts exactly one matched row** (`applyEntitlement`) and throws otherwise, so a paid but
   unprovisioned host becomes a 5xx and a Stripe retry, never a silent 200. Nothing reconciles Stripe against
   `profiles` after the retry window: the assertion and its Sentry capture are the reconciliation.
@@ -230,17 +296,29 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   never a permission. The receipt's `applied` is `tier !== "free"` read at render, never the URL marker: Stripe redirects the instant
   payment succeeds, routinely a second or two before the webhook, so the modal re-reads a bounded number of times.
   Every price on the surface comes from `tiers.ts`.
-- **The surface's presses and its read are `PricingDoors`** (`components/app/pricing/pricing-doors.tsx`): the Checkout and
-  billing-portal buttons the sheet draws, change-plan, the plan-facts read and the router the receipt and the switch use,
-  as one context value whose default is production's own. Only the Library hands in others (`PricingDoorsProvider`;
+- **The surface's presses and its read are `PricingDoors`** (`components/app/pricing/pricing-doors.tsx`): Checkout, the
+  billing portal and change-plan (each route's one client, answering outcomes), the way out (`leave`), the plan-facts
+  read and the router the receipt and the switch use, as one context value whose default is production's own. The buttons
+  (`CheckoutButton`, `ManageBillingButton`, `ChangePlanButton`) are the app's one set and press whatever the doors name,
+  so a specimen swaps a verb, never a button. Only the Library hands in others (`PricingDoorsProvider`;
   `pricing-doors.test.tsx` pins both halves and fails on any other importer), so the sheet, the lock chip and the receipt
   are drawn there with Stripe out of reach. The type is named in full (a door added to it fails every stand-in at compile
-  time), and the two buttons that live outside `pricing/` (`CheckoutButton`, `ManageBillingButton`) still fetch inline,
-  which is why they are swapped as components while change-plan and the read are swapped as verbs.
+  time).
+- ★ **Leaving for Stripe takes a phone sheet's own history entry with it** (`pricing/leave.ts`, the doors' `leave`). On a
+  phone the sheet holds one same-URL entry so Back closes it, and a plain `href` pushed Stripe on top of that entry: Back
+  from Stripe landed on the page and the next press on the same address again. The way out REPLACES the entry while the
+  sheet is open as a place (read off its content's `data-pricing-sheet` and `data-shape`, never the popup's history
+  marker, which a router commit strips, as a list stacked over the sheet does with each deletion), so one Back returns to
+  the page. A button on a page and the sheet at a desk still push: replacing an entry that is not the sheet's would land
+  Back on the page before it. A replace asks for one reload if the browser restores the page from its back/forward cache,
+  where the sheet would believe in the entry the replace took and its close would go Back too far.
 - ★ **The account page's Plan card (`#plan`) is billing's one home in the app,** and every fact on it is
   server-derived: the columns only the webhook and the pass recompute write, read through the RLS-scoped profile row.
-  Its only search params are `?reset` and `?welcome` (Stripe's return marker, which opens the receipt and decides no
-  plan); `plan-card.test.ts` pins the read path.
+  Its only search params are `?reset`, `?welcome` (Stripe's return marker, which opens the receipt and decides no
+  plan) and `?email_change` (an email-change link's landing, which picks a line of copy); `plan-card.test.ts` pins the
+  read path. While her credited Pro lands (her passes converted to credit, no subscription event since, within Stripe's
+  three days of retries: `billing/pro-pending.ts`), the card says her Pro is on its way and to email help@ if it is not
+  there in an hour (`pricing/pro-on-its-way.tsx`).
 - ★ **Checkout's `success_url` comes from an exact-shape allow-list,** never a sanitized input (`return-path.ts`):
   `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and `/account`; anything else returns to
   `/dashboard`, so no client value leaves the origin, and Stripe validates none of it. The list is also the set of

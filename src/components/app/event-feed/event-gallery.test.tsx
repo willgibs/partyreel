@@ -8,9 +8,13 @@
  * is what the album's place draws, never its look.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { use } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AlbumNewsContext } from "@/components/shared/album-window-news";
 import {
+  ENTRY_HIDDEN,
+  ENTRY_PENDING,
   ENTRY_REEL,
   type ManifestEntry,
   WHO_HOST,
@@ -266,5 +270,55 @@ describe("an album with no develop time ahead is her album", () => {
   it("off the page's facts (no develop handed down): the rows", () => {
     mount(null);
     expect(screen.getByTestId("album-rows")).toBeInTheDocument();
+  });
+});
+
+/**
+ * ★ THE ROWS IT FRAMES ARE TOLD WHAT ARRIVED (album-order): the hub's arrivals reach the album's rows as their news
+ * (`AlbumNews`), so a guest's photograph landing out of the host's sight wears the rows' pill. Never the seed; a new id
+ * once; a held one (in Review) is no news until it joins the album; a hide is never news.
+ */
+describe("the album's news", () => {
+  function News() {
+    const news = use(AlbumNewsContext);
+    return <p data-testid="news">{news ? news.arrivals.join(",") : "none"}</p>;
+  }
+  const mountNews = () =>
+    render(
+      <EventGallery eventId="event-1" videosAllowed initialStep={1}>
+        <News />
+      </EventGallery>,
+    );
+
+  it("names what joined her album since it opened, once, and nothing it opened with", () => {
+    const view = mountNews();
+    expect(screen.getByTestId("news").textContent).toBe("");
+    // A guest's upload lands, and one waits in Review (held: not her album's yet).
+    fx.entries = [
+      entry("new1", T0 + 40 * MIN_US),
+      ["held", 4, 3, ENTRY_REEL | ENTRY_PENDING, T0 + 35 * MIN_US],
+      ...fx.entries,
+    ];
+    view.rerender(
+      <EventGallery eventId="event-1" videosAllowed initialStep={1}>
+        <News />
+      </EventGallery>,
+    );
+    expect(screen.getByTestId("news").textContent).toBe("new1");
+    // Review lets it in, and she hides another: the approval is news, the hide is not.
+    fx.entries = fx.entries.map(
+      (e): ManifestEntry =>
+        e[0] === "held"
+          ? entry("held", T0 + 35 * MIN_US)
+          : e[0] === "w1"
+            ? [e[0], e[1], e[2], ENTRY_REEL | ENTRY_HIDDEN, e[4]]
+            : e,
+    );
+    view.rerender(
+      <EventGallery eventId="event-1" videosAllowed initialStep={1}>
+        <News />
+      </EventGallery>,
+    );
+    expect(screen.getByTestId("news").textContent).toBe("new1,held");
   });
 });

@@ -206,8 +206,8 @@ export function ProfileActionsMenu({
             >
               Cancel
             </Button>
-            <Button type="button" onClick={runReport} disabled={reporting}>
-              {reporting ? "Sending…" : "Send report"}
+            <Button type="button" onClick={runReport} working={reporting} workingLabel="Sending">
+              Send report
             </Button>
           </PopupFooter>
         </PopupContent>

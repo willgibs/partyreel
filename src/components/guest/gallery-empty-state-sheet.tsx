@@ -282,7 +282,7 @@ export function ContactSheet({
           type="button"
           onClick={onOpenHers}
           data-wait-yours=""
-          className="wait-muted -mx-1 flex shrink-0 items-center gap-1.5 rounded-md px-1 py-0.5 whitespace-nowrap transition-colors hover:text-[var(--gallery-foreground)] focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none"
+          className="wait-muted -mx-1 flex shrink-0 focus-halo items-center gap-1.5 rounded-md px-1 py-0.5 whitespace-nowrap transition-colors outline-none hover:text-[var(--gallery-foreground)]"
         >
           <span className="wait-key" aria-hidden />
           {`${yoursLabel} · ${formatCount(sheet.hers)}`}

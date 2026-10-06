@@ -4,12 +4,10 @@
  * (`readCoveredItems`), and an item in it leaves the builder with no url of any kind: nothing of its
  * picture can reach the operator's browser, whatever the grid draws. Every other item is signed as before.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ModerationMediaItem } from "@/lib/moderation/operator-actions";
+import { filesUnder, read } from "@/testing/source-tree";
 
 vi.mock("server-only", () => ({}));
 const signed: string[] = [];
@@ -134,25 +132,21 @@ describe("the operator's tiles draw previews", () => {
 
 /** Every source file under a directory, recursively. */
 function sources(dir: string): string[] {
-  return readdirSync(dir).flatMap((name) => {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) return sources(path);
-    return /\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)
-      ? [path]
-      : [];
-  });
+  return filesUnder(dir).filter(
+    (path) => /\.(ts|tsx)$/.test(path) && !/\.test\.tsx?$/.test(path),
+  );
 }
 
 describe("every grid the operator meets asks the rule first", () => {
   it("★ each caller of toModerationFeedItems reads the covered set and hands it over", () => {
-    const callers = sources(join(process.cwd(), "src")).filter(
+    const callers = sources("src").filter(
       (path) =>
-        !path.endsWith(join("lib", "r2", "grid-items.ts")) &&
-        readFileSync(path, "utf8").includes("toModerationFeedItems("),
+        !path.endsWith("lib/r2/grid-items.ts") &&
+        read(path).includes("toModerationFeedItems("),
     );
     expect(callers.length).toBeGreaterThanOrEqual(2);
     for (const path of callers) {
-      const src = readFileSync(path, "utf8");
+      const src = read(path);
       expect(src, path).toContain("readCoveredItems(");
       expect(src, path).toMatch(/toModerationFeedItems\([^)]*,\s*covered\)/);
     }

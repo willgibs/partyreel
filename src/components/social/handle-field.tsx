@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { checkProfileSlugAction } from "@/app/(app)/account/social-actions";
 import { Input } from "@/components/ui/input";
@@ -144,7 +144,7 @@ export function HandleField({
       />
       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
         {status.kind === "checking" && (
-          <Loader2 className="size-4 animate-spin text-muted-foreground" />
+          <span aria-hidden className="working-arc text-muted-foreground" />
         )}
         {status.kind === "available" && (
           <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />

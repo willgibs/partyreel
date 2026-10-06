@@ -1,0 +1,91 @@
+/* THE DECK'S OWN SHEET (`deck.tsx`): the slide's box, the agency's running
+   head, and the pause a hidden option wears. Every selector is `bd-` or
+   `[data-bd-…]`, so nothing here reaches another board or a vision's own
+   drawing. A vision's look lives in its own sheet, under its own prefix. */
+
+.bd-slide {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* A slide is a picture: the lab's own theme never reaches its ground. */
+  background: #0a0a0b;
+  color: #f4f4f5;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.bd-slide[data-bd-tone="light"] {
+  background: #f6f6f4;
+  color: #141416;
+}
+
+/* The running head: the agency's, over every slide's top edge. */
+.bd-head {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 32px;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  pointer-events: none;
+  color: rgb(255 255 255 / 0.62);
+}
+.bd-slide[data-bd-tone="light"] .bd-head {
+  color: rgb(20 20 22 / 0.58);
+}
+.bd-head-name {
+  white-space: nowrap;
+}
+/* A split slide (the room on the left, paper on the right, at a desk): each
+   half of the head in the ink that reads on the ground under it. On a phone
+   the cut runs across below the head, which stands on the room. */
+.bd-slide[data-bd-tone="split"][data-bd-screen="1440"] .bd-head-where {
+  color: rgb(20 20 22 / 0.58);
+}
+.bd-head-where {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+}
+.bd-head-of {
+  opacity: 0.6;
+}
+.bd-head-sketch {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+.bd-slide[data-bd-screen="375"] .bd-head {
+  padding: 0 16px;
+  font-size: 10px;
+  align-items: flex-start;
+  padding-top: 12px;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+}
+.bd-slide[data-bd-screen="375"] .bd-head-where {
+  gap: 6px;
+}
+.bd-slide[data-bd-screen="375"] .bd-head-sketch {
+  margin-left: 2px;
+  padding: 0 6px;
+  font-size: 9px;
+}
+
+/* A hidden option's loops stop (the lab's own pause cannot reach in here). */
+.bd-slide[data-bd-paused] *,
+.bd-slide[data-bd-paused] *::before,
+.bd-slide[data-bd-paused] *::after {
+  animation-play-state: paused !important;
+}

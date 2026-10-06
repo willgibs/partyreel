@@ -170,6 +170,18 @@ function WindowProbe({ size }: { size: number }) {
   return null;
 }
 
+/**
+ * ★ AN ASK MADE AS THE ALBUM MOUNTS (the reel's cover stills, `live-reel.tsx`, ask in their mount effect): a child's
+ * effect runs before the provider's, so this ask goes out before the store's first sync has adopted the seed.
+ */
+function MountAsk({ ids }: { ids: readonly string[] }) {
+  const ensure = useGalleryLive()?.ensureLinks;
+  useEffect(() => {
+    ensure?.(ids);
+  }, [ensure, ids]);
+  return null;
+}
+
 /** Whatever the provider throws, kept here rather than taking the test down (a failed seed used to throw). */
 const thrown: { error: unknown } = { error: null };
 class Catch extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -210,11 +222,16 @@ async function mount(
     onWaitingChange,
     handle,
     window: windowSize,
+    mountAsk,
+    onUploadsWord,
   }: {
     first?: GallerySeed | PromiseLike<GallerySeed>;
     access?: "full" | "teaser";
+    onUploadsWord?: (accepting: boolean) => void;
     /** Mount a window of this many tiles over the album, asking for its links as the grid does. */
     window?: number;
+    /** Ask for these ids' links as the album mounts (`MountAsk`), before the seed is adopted. */
+    mountAsk?: readonly string[];
     onCountChange?: (count: number) => void;
     onCountWordsChange?: (words: string) => void;
     onDevelopsAtChange?: (developsAt: string | null) => void;
@@ -241,9 +258,11 @@ async function mount(
             onCountWordsChange={onCountWordsChange}
             onDevelopsAtChange={onDevelopsAtChange}
             onWaitingChange={onWaitingChange}
+            onUploadsWord={onUploadsWord}
           >
             <Probe />
             {windowSize ? <WindowProbe size={windowSize} /> : null}
+            {mountAsk ? <MountAsk ids={mountAsk} /> : null}
           </GalleryLiveProvider>
         </Suspense>
       </Catch>,
@@ -382,6 +401,33 @@ describe("the seed", () => {
     const before = seen.live!.items;
     await ring();
     expect(seen.live!.items).toBe(before);
+  });
+
+  /* ★ ITS LINKS ARE HELD AT ITS ATTRIBUTION (guest-requests). The page mints the first window's links after it reads the
+     album's attribution version, so each names its uploader as of the seed's `attr` (1 here: a guest renamed once). The
+     link store dates every link with the attribution it was asked under, and asks that go out as the album mounts (the
+     reel's cover stills) went out before the seed was adopted, at 0: on any album whose attribution had ever moved, the
+     first poll re-minted every link the page had embedded, a links call of up to a window's ids for names it held. */
+  it("★ an ask made as the album mounts is answered by the seed, and no poll after it asks again", async () => {
+    await mount(false, { mountAsk: [uuid(1)] });
+    expect(calls).toHaveLength(0);
+    await ring();
+    await ring();
+    expect(calls.filter((c) => c.url === "/api/album/guest/media")).toEqual([]);
+    expect(seen.live?.items.find((m) => m.id === uuid(1))?.url).toBe(
+      "https://r2.test/t/1",
+    );
+  });
+
+  it("a rename after the page rendered still reaches the names: the next answer's attribution re-mints what is held", async () => {
+    await mount(false, { mountAsk: [uuid(1)] });
+    answer(delta({ attr: 2 }));
+    await ring();
+    expect(
+      calls
+        .filter((c) => c.url === "/api/album/guest/media")
+        .map((c) => c.body.ids),
+    ).toEqual([[uuid(1)]]);
   });
 });
 
@@ -673,6 +719,95 @@ describe("when the album develops, told to the page", () => {
       onDevelopsAtChange: told,
     });
     expect(told).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ WHETHER THE ALBUM TAKES UPLOADS, TOLD TO THE PAGE (guest-requests): every full answer carries the host's switch
+ * (`accepting`), and each one is told, the same word again included, since a word heard after a closed refusal is what
+ * lifts it (the album's camera). An ask for the word afresh sends the next sync with no validator, at once, and stands
+ * until an answer is in, so a host who reopened before the next poll is heard rather than answered 304.
+ */
+describe("★ whether the album takes uploads, told to the page (guest-requests)", () => {
+  const syncs = () => calls.filter((c) => c.url === "/api/album/guest/sync");
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it("tells each full answer's word, the same word again included; a 304 and an older server's answer tell nothing", async () => {
+    const words: boolean[] = [];
+    await mount(false, { onUploadsWord: (w) => words.push(w) });
+    // The seed carries no word of its own: the page's render is the first.
+    expect(words).toEqual([]);
+    answer(delta({ accepting: false }));
+    await ring();
+    answer(delta({ accepting: false }));
+    await ring();
+    answer(304);
+    await ring();
+    answer(delta());
+    await ring();
+    answer(delta({ accepting: true }));
+    await ring();
+    expect(words).toEqual([false, false, true]);
+  });
+
+  it("a teaser tells nothing: a viewer at the door has no camera of the album's", async () => {
+    const told = vi.fn();
+    await mount(false, {
+      first: teaserSeed(),
+      access: "teaser",
+      onUploadsWord: told,
+    });
+    const teaser = teaserSeed() as Extract<GallerySeed, { kind: "teaser" }>;
+    answer({ ...teaser.sync, accepting: true });
+    await ring();
+    expect(told).not.toHaveBeenCalled();
+  });
+
+  it("★ an ask afresh sends a sync at once with no validator, and the polls after it carry one again", async () => {
+    const handle = createRef<LiveGalleryHandle>();
+    const words: boolean[] = [];
+    await mount(false, { handle, onUploadsWord: (w) => words.push(w) });
+    await ring();
+    expect(syncs().at(-1)?.headers["If-None-Match"]).toBe('"a1-seed"');
+    answer(delta({ accepting: true }));
+    await act(async () => {
+      handle.current!.askUploadsWord();
+      await tick();
+      await tick();
+    });
+    expect(syncs()).toHaveLength(1);
+    expect(syncs()[0].headers["If-None-Match"]).toBeUndefined();
+    expect(words).toEqual([true]);
+    answer(304);
+    await ring();
+    expect(syncs().at(-1)?.headers["If-None-Match"]).toBe('"a1-next"');
+  });
+
+  it("the ask stands through a request that failed: the next sync goes without a validator too", async () => {
+    const handle = createRef<LiveGalleryHandle>();
+    await mount(false, { handle });
+    answer(500);
+    await act(async () => {
+      handle.current!.askUploadsWord();
+      await tick();
+      await tick();
+    });
+    answer(delta({ accepting: false }));
+    await ring();
+    expect(syncs().map((s) => s.headers["If-None-Match"])).toEqual([undefined]);
+    answer(304);
+    await ring();
+    expect(syncs().at(-1)?.headers["If-None-Match"]).toBe('"a1-next"');
+  });
+
+  it("the demo asks nothing: its album never polls", async () => {
+    const handle = createRef<LiveGalleryHandle>();
+    await mount(true, { handle });
+    await act(async () => {
+      handle.current!.askUploadsWord();
+      await tick();
+    });
+    expect(calls).toHaveLength(0);
   });
 });
 

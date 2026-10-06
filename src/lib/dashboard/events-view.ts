@@ -10,7 +10,6 @@
  */
 
 import type { Marks } from "./attention";
-import type { Season } from "./seasons";
 
 /* ── The lens ────────────────────────────────────────────────────────────── */
 
@@ -103,13 +102,6 @@ export type EventListRow = {
    */
   openedAt: string | null;
 };
-
-/**
- * A group of the events by when: its rows' ids in its own order. Still composed on the home view (`seasonsOf`)
- * because the host-dashboard board's drawings read it; the events section groups by year itself (`display.ts`)
- * and no longer does. Deleted with the board.
- */
-export type EventSeason = Season;
 
 export function filterEventRows(
   rows: EventListRow[],

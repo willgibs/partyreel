@@ -11,11 +11,13 @@
  * So this loads each module a script imports, in a child Node, and holds the names the script takes from it.
  */
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { describe, expect, it } from "vitest";
+
+import { entries } from "@/testing/source-tree";
 
 const ROOT = join(__dirname, "..", "..", "..", "..");
 const SCRIPTS = join(ROOT, "scripts");
@@ -29,7 +31,8 @@ const IMPORT =
 
 type Taken = { script: string; target: string; names: string[] };
 
-const taken: Taken[] = readdirSync(SCRIPTS)
+const taken: Taken[] = entries(SCRIPTS)
+  .map((entry) => entry.name)
   .filter((file) => file.endsWith(".mjs"))
   .flatMap((script) =>
     [...readFileSync(join(SCRIPTS, script), "utf8").matchAll(IMPORT)].map(

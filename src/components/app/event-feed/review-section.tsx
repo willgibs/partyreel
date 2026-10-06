@@ -246,11 +246,12 @@ export function ReviewSection({
             <button
               type="button"
               data-review-arrivals
+              data-surface="photo"
               disabled={folding}
               onClick={() => void fold()}
               className={cn(
                 "pointer-events-auto flex h-9 items-center rounded-full px-3.5 text-sm font-medium text-white outline-none",
-                "transition-[background-color,transform,opacity] duration-150 ease-emphasis hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 disabled:opacity-60 motion-reduce:active:scale-100",
+                "focus-halo transition-[background-color,transform,opacity] duration-150 ease-emphasis hover:bg-white/10 active:scale-95 disabled:opacity-60 motion-reduce:active:scale-100",
                 // Occasional, so quick: it drops in a hair as it arrives, on the same clock, and
                 // simply is under reduced motion.
                 "animate-in fade-in-0 slide-in-from-top-1 motion-reduce:animate-none",

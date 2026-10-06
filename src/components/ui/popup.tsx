@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button"
 import {
   floatingPopupShapes,
   floatingScrim,
+  floatingWorkSurface,
 } from "@/components/ui/floating-layer"
-import { EPHEMERAL_ROLES } from "@/components/ui/layer-is-up"
+import { EPHEMERAL_ROLES, layerIsUp } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
   DESK_QUERY,
@@ -231,12 +232,16 @@ const OVERLAY = cn(
 
 /**
  * The element every shape stands on: a flex column that clips its own corner,
- * on the popover's ink and the layer's light. A screen and a cover trade both
- * for the page's own ground, since they ARE the page while they are open
- * (`floatingPopupShapes` says so, scoped to their shapes).
+ * on a work layer's material (the popover's ink, the layer's shadow, its free
+ * edge lit in the room: `floatingWorkSurface`). A screen and a cover trade the
+ * ink and the shadow for the page's own ground, since they ARE the page while
+ * they are open (`floatingPopupShapes` says so, scoped to their shapes), and
+ * take no light.
  */
-const CONTENT =
-  "fixed z-50 flex flex-col overflow-hidden bg-popover text-sm text-popover-foreground shadow-layer outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
+const CONTENT = cn(
+  "fixed z-50 flex flex-col overflow-hidden text-sm outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+  floatingWorkSurface
+)
 
 function PopupContent({
   kind,
@@ -284,9 +289,22 @@ function PopupContent({
       : "sheet"
 
   const state = React.useContext(PopupStateContext)
+  // ★ IN A HAND, A PLACE HOLDS A HISTORY ENTRY, AND A QUESTION HOLDS ONE ONLY
+  // OVER ANOTHER LAYER (back-layers; `ui/popup-back.ts` says why): asked as it
+  // opens, never during a render, and never counting its own element.
+  const ownLayer = React.useId()
   useBackCloses(
-    Boolean(state?.open) && !routed && !desk && isPlaceShape(shape),
-    () => state?.setOpen(false)
+    Boolean(state?.open) && !routed && !desk,
+    () => state?.setOpen(false),
+    {
+      holdsIf: isPlaceShape(shape)
+        ? undefined
+        : () =>
+            layerIsUp({
+              dialogsOnly: true,
+              except: `[data-popup-layer="${ownLayer}"]`,
+            }),
+    }
   )
 
   // The element itself, as state: Radix mounts the content a render after its
@@ -331,6 +349,7 @@ function PopupContent({
           data-kind={kind}
           data-shape={shape}
           data-size={size}
+          data-popup-layer={ownLayer}
           onOpenAutoFocus={(event) => {
             returnTo.current = lastOpener
             onOpenAutoFocus?.(event)

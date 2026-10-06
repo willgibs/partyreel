@@ -276,7 +276,7 @@ export function BeatSteps({
           <button
             type="button"
             onClick={onPlans}
-            className="rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/60"
+            className="rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-halo"
           >
             {room.actions[0]?.label ?? "See plans"}
           </button>

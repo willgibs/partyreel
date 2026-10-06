@@ -16,11 +16,14 @@ import {
   APPROVAL_NEVER_WITH_A_DEVELOP_CHECK,
   approvalWithADevelop,
 } from "@/lib/disposable/album-style";
+import { readableZone } from "@/lib/event/zone";
 import { endToStore } from "@/lib/events/dates";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
 import {
   type CreateEventValues,
   LAST_DAY_BEFORE_FIRST,
+  ROLL_SIZE_MESSAGE,
   type UpdateEventValues,
 } from "@/lib/validation/event";
 
@@ -78,6 +81,26 @@ function rangeRefusal(error: { code?: string; message?: string }): boolean {
 }
 
 /**
+ * ★ THE ROLL'S BOUNDS (20261005190000, `events_roll_size_range`): read by its name and said in the schema's words, since
+ * on an insert any other CHECK reads as the plan's event limit. The schema and the stepper keep a roll inside them, so
+ * this meets a build ahead of its migration (a roll past the old 24) or a crafted call.
+ */
+const ROLL_CHECK = "events_roll_size_range";
+const ROLL_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: ROLL_SIZE_MESSAGE,
+};
+
+function rollRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(ROLL_CHECK)
+  );
+}
+
+/**
  * ★ AN ACCOUNT'S EVENTS A DAY (upload-meter, 20261003210500): `enforce_event_limit` refuses the 101st creation in any
  * 24 hours in its own sentence ("You've created a lot of events today. Try again tomorrow."), which the wizard prints
  * as it is. Read by its words, as the CHECKs above are read by their names, and ahead of the plan limit's branch, whose
@@ -91,6 +114,30 @@ function breakerRefusal(error: { code?: string; message?: string }): boolean {
     typeof error.message === "string" &&
     error.message.includes(EVENTS_TODAY)
   );
+}
+
+/**
+ * ★ THE HOST'S OWN ZONE, AS IT IS STORED (event-zone): what her browser named, where this runtime can read it, as given;
+ * else none, and said, since a browser naming a zone this server's database of zones lacks is a signal, never a
+ * silence. The party then turns in the one fallback (`partyZoneOf`) until she picks its city in Settings.
+ */
+function storedZone(
+  captured: string | undefined,
+  seam: "create" | "update",
+): string | null {
+  if (captured === undefined) return null;
+  const zone = readableZone(captured);
+  if (zone === null) {
+    captureWarning(
+      "other",
+      "event-zone: a host's zone the server cannot read",
+      {
+        seam,
+        zone: captured,
+      },
+    );
+  }
+  return zone;
 }
 
 export async function createEvent(
@@ -130,12 +177,19 @@ export async function createEvent(
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
     // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS, at birth (create-wizard r3's add=styles): bare INSERT-granted columns
-    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state. The
-    // database does the rest in it: `events_reveal_stamp` fills in the camera's roll, stamps its period, and stores a
-    // develop time under a minute ahead as its own now.
+    // (20261002200000), written in this one insert beside `moderation_mode` so a style is never a half-state, with the
+    // roll she named under the Disposable pick (customize r1's `roll=both`; none named is null). The database does the
+    // rest in it: `events_reveal_stamp` fills in a camera's unnamed roll (24), stamps its period, and stores a develop
+    // time under a minute ahead as its own now.
     capture: values.capture,
+    roll_size: values.roll_size,
     develops_at: values.develops_at,
   };
+  // ★ THE PARTY'S OWN ZONE FROM BIRTH (event-zone): her browser's, captured and never asked, so the album's turn and
+  // the develop's 9 am are the party's morning for every guest. None where it named none this runtime reads, and an
+  // insert with no zone names no column.
+  const zone = storedZone(values.captured_zone, "create");
+  if (zone !== null) insert.time_zone = zone;
 
   const { data, error } = await supabase
     .from("events")
@@ -147,6 +201,7 @@ export async function createEvent(
     if (rangeRefusal(error)) return RANGE_REFUSED;
     // Read by its name, ahead of the branch below: any other CHECK on an insert is taken for the plan's limit.
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
+    if (rollRefusal(error)) return ROLL_REFUSED;
     if (breakerRefusal(error)) {
       return { ok: false, code: "unknown", message: error.message };
     }
@@ -274,13 +329,17 @@ export async function updateEvent(
   // narrows (the upload's gate reads the plan).
   if (values.allow_videos !== undefined)
     patch.allow_videos = values.allow_videos;
-  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): bare granted-column writes. The database does the
-  // rest in this same save: `events_reveal_stamp` fills in the camera's roll and stamps its period, and a new develop
-  // time rewrites the album's rows (`events_develops_rewrite`: Develop now, right away and a moved time land with the
-  // save, ringing the album once).
+  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000), AND THE ROLL SHE NAMES (20261005190000): bare
+  // granted-column writes, the roll's bounds held by `events_roll_size_range` behind the schema's words. The database
+  // does the rest in this same save: `events_reveal_stamp` fills in a camera's unnamed roll and stamps its period (free
+  // uploads keep her roll for the camera's return), and a new develop time rewrites the album's rows
+  // (`events_develops_rewrite`: Develop now, right away and a moved time land with the save, ringing the album once).
   if (values.capture !== undefined) patch.capture = values.capture;
+  if (values.roll_size !== undefined) patch.roll_size = values.roll_size;
   if (values.develops_at !== undefined) patch.develops_at = values.develops_at;
-
+  // ★ THE PARTY'S CITY, CHOSEN (event-zone, Settings' far-from-home choice): the one write that moves the party's zone, a
+  // zone the schema read. The zone captured beside a save of a time never rides the patch (below).
+  if (values.time_zone !== undefined) patch.time_zone = values.time_zone;
   const { data, error } = await supabase
     .from("events")
     .update(patch)
@@ -292,11 +351,37 @@ export async function updateEvent(
   if (error) {
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
     if (rangeRefusal(error)) return RANGE_REFUSED;
+    if (rollRefusal(error)) return ROLL_REFUSED;
     return {
       ok: false,
       code: "unknown",
       message: "Couldn't save your changes. Please try again.",
     };
+  }
+  // ★ THE ZONE CAPTURED WITH A SAVE OF A TIME IS WRITTEN ONLY WHERE THE ROW HAS NONE (event-zone): an event from before
+  // the column takes her zone with its next dates; one that has a zone keeps it, whatever zone she saves from, so a date
+  // edit never moves the party's zone (only the chosen city does). Asked of the row the save just answered, so a row
+  // with a zone costs nothing more, and written under `time_zone is null`, so a choice landing meanwhile is never
+  // overwritten. Her save already landed, so a fill that fails is reported, never her refusal.
+  if (
+    values.time_zone === undefined &&
+    values.captured_zone !== undefined &&
+    data.time_zone === null
+  ) {
+    const zone = storedZone(values.captured_zone, "update");
+    if (zone !== null) {
+      const { error: fillError } = await supabase
+        .from("events")
+        .update({ time_zone: zone })
+        .eq("id", id)
+        .is("deleted_at", null)
+        .is("time_zone", null);
+      if (fillError) {
+        captureError("db", fillError, { seam: "event_zone_fill", eventId: id });
+      } else {
+        return { ok: true, data: { ...data, time_zone: zone } };
+      }
+    }
   }
   return { ok: true, data };
 }

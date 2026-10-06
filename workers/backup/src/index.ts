@@ -6,9 +6,16 @@
  *
  *   queue()     — R2 `object-create` event notifications for the `events/` prefix arrive via a Queue;
  *                 each new object is copied PRIMARY -> BACKUP within seconds (RPO ~ seconds).
- *   scheduled() — a daily reconciliation sweep: copy any `events/` object missing from BACKUP. This
- *                 is the backstop for missed/failed events AND the one-time initial seed of objects
- *                 that predate the Worker.
+ *   scheduled() — a daily reconciliation: the two buckets' listings merged a thousand keys at a time
+ *                 (reconcile-run.ts), copying any `events/` object missing from BACKUP and counting the
+ *                 young lone copies. The backstop for missed/failed events AND the one-time initial
+ *                 seed of objects that predate the Worker. The weekly cron runs the deletion-aware prune.
+ *   fetch()     — one door: Restore now (restore-door.ts), the operator's press from /admin/jobs, which
+ *                 asks the prune's Durable Object for a restore pass. Every other request is a 404.
+ *
+ * THE RESTORE (durability-backups.md, "The restore") copies the backup's lone copies back into PRIMARY: a
+ * pass is the Durable Object's alarm (prune-state.ts), asked for by the daily cron, by the prune's end
+ * and by the door, so it has its own invocation and budget whoever asked.
  *
  * The BACKUP bucket is in a different region (WNAM) with a Bucket Lock (>= the 30-day recovery
  * window) so nothing — not the purge cron, not a compromised token, not a bug — can delete a backup
@@ -32,6 +39,16 @@ import { parseLedger } from "./prune-ledger";
 import { readConfirmAnswer, runPrune, type ConfirmAnswer } from "./prune-run";
 import { PRUNE_STATE_NAME, PruneState } from "./prune-state";
 import { depthNote, readQueueDepths, type DepthCounts } from "./queue-metrics";
+import { parseReconcileLedger } from "./reconcile-ledger";
+import {
+  runReconcile,
+  type CopyOutcome,
+  type ReconcileBucket,
+} from "./reconcile-run";
+import { handleRestoreDoor } from "./restore-door";
+import { confirmNamed } from "./restore-pass";
+import { restoreModeOf } from "./restore-run";
+import type { RestoreTrigger } from "./restore-schedule";
 
 // The prune's ledger lives in this Durable Object class; a Worker exports the classes its bindings name.
 export { PruneState };
@@ -43,6 +60,11 @@ export type Env = {
   BACKUP: R2Bucket;
   /** Prune mode: the literal "live" enables deletes; anything else (incl. unset) is a dry run. */
   PRUNE_MODE?: string;
+  /**
+   * Restore mode (restore-run.ts): the literal "on" copies lone copies back, "off" does nothing at all, anything else
+   * (incl. unset) is a dry run that reports what it would copy.
+   */
+  RESTORE_MODE?: string;
   /** App endpoint that row-confirms gone mediaIds + runs the prune breaker (the Worker can't reach the DB). */
   PRUNE_API_URL?: string;
   /** Shared bearer secret for PRUNE_API_URL (`wrangler secret put PRUNE_API_SECRET`). */
@@ -78,27 +100,21 @@ type R2EventMessage = {
 // lower storage price applies and its retrieval fee effectively never does.
 const STORAGE_CLASS = "InfrequentAccess" as const;
 
-// Only ever touch the event-media prefix: the reconcile lists under it, and the queue skips any key outside it
-// (isBackedUpKey), so the subscription's own `--prefix events/` is never the only fence.
-const MEDIA_PREFIX = "events/";
-
-// Reconciliation: cap objects examined per run so a daily sweep stays bounded. If we hit this, the
-// next run continues (objects already copied are skipped cheaply). Revisit a KV/D1 copy-state index
-// instead of HEAD-per-object once counts grow large (durability-backups.md scale note).
-const RECONCILE_MAX_PER_RUN = 5000;
-
 // The prune runs on a SEPARATE weekly cron (Mondays 06:00 UTC, after the app's 04:00 purge + the
 // 05:00 reconcile). scheduled() branches on controller.cron to pick reconcile vs prune.
 const PRUNE_CRON = "0 6 * * 1";
 
-type CopyResult = "copied" | "exists" | "missing";
-
 /**
  * Copy one object PRIMARY -> BACKUP, idempotently. `exists` = already backed up (skip), `missing` =
- * the source is gone (raced a delete; nothing to do). Throws only on a real transfer error so the
- * caller can retry.
+ * the source is gone (raced a delete; nothing to do), `deferred` = a multipart copy `keepGoing` stopped
+ * between parts (its upload aborted, nothing written: the reconcile's next run starts with it). Throws
+ * only on a real transfer error so the caller can retry.
  */
-async function backupOne(env: Env, key: string): Promise<CopyResult> {
+async function backupOne(
+  env: Env,
+  key: string,
+  keepGoing?: () => boolean,
+): Promise<CopyOutcome> {
   // Idempotency + lock-safety: a locked backup object can't be overwritten, and our media keys are
   // write-once, so presence == done. Makes Queue redelivery and the reconciliation sweep safe.
   const already = await env.BACKUP.head(key);
@@ -121,6 +137,9 @@ async function backupOne(env: Env, key: string): Promise<CopyResult> {
 
   // Large object: multipart copy. Re-fetch the source in ranges (we only used the first get for its
   // size) and upload one buffered part at a time — bounded memory, each part an independent subrequest.
+  // The first GET's body is let go of first: left unread, it would hold one of the Worker's six
+  // connections for the whole copy.
+  await src.body.cancel().catch(() => {});
   const mp = await env.BACKUP.createMultipartUpload(key, {
     httpMetadata,
     storageClass: STORAGE_CLASS,
@@ -128,6 +147,11 @@ async function backupOne(env: Env, key: string): Promise<CopyResult> {
   try {
     const uploaded: R2UploadedPart[] = [];
     for (const range of partRanges(size, COPY_PART_BYTES)) {
+      if (keepGoing && !keepGoing()) {
+        // Out of the run's time: abort rather than be cut off mid-copy (a run the platform cuts reports nothing).
+        await mp.abort().catch(() => {});
+        return "deferred";
+      }
       const part = await env.PRIMARY.get(key, {
         range: { offset: range.offset, length: range.length },
       });
@@ -148,49 +172,103 @@ async function backupOne(env: Env, key: string): Promise<CopyResult> {
   }
 }
 
-type ReconcileTally = {
-  checked: number;
-  copied: number;
-  failed: number;
-  capped: boolean;
+/** A bucket binding as the reconcile's merge reads it: a page's keys with their sizes, checksums and upload times. */
+function listingOf(bucket: R2Bucket): ReconcileBucket {
+  return {
+    async list({ prefix, startAfter, limit }) {
+      const page = await bucket.list({ prefix, startAfter, limit });
+      return {
+        objects: page.objects.map((o) => ({
+          key: o.key,
+          size: o.size,
+          etag: o.etag,
+          uploaded: o.uploaded,
+        })),
+        truncated: page.truncated,
+      };
+    },
+  };
+}
+
+/** What one reconcile run reports: its status, its counts and its note (the depths are added by its caller). */
+type ReconcileOutcome = {
+  status: "ok" | "error";
+  note?: string;
+  counts: Record<string, number | string | boolean>;
 };
 
-async function reconcileSweep(env: Env): Promise<ReconcileTally> {
-  let cursor: string | undefined;
-  let checked = 0;
-  let copied = 0;
-  let failed = 0;
-  for (;;) {
-    const listed: R2Objects = await env.PRIMARY.list({
-      prefix: MEDIA_PREFIX,
-      cursor,
-      limit: 1000,
-    });
-    for (const obj of listed.objects) {
-      if (checked >= RECONCILE_MAX_PER_RUN) {
-        console.warn(
-          `reconcile: hit per-run cap (${RECONCILE_MAX_PER_RUN}); next run continues`,
-          { checked, copied },
-        );
-        return { checked, copied, failed, capped: true };
-      }
-      checked++;
-      try {
-        if ((await backupOne(env, obj.key)) === "copied") copied++;
-      } catch (err) {
-        // Best-effort: log and move on; the next sweep retries this key. Counted, though: a run
-        // that copied nothing because every key threw must not close as a green `ok`.
-        failed++;
-        console.error("reconcile: copy failed", {
-          key: obj.key,
-          err: String(err),
-        });
-      }
+/**
+ * The reconcile's wiring (durability-backups.md, "The reconcile"): the run itself is reconcile-run.ts (a listing merge,
+ * its caps its budget, the young lone copies judged); this is its bindings, its ledger in the prune's Durable Object
+ * and the restore pass it asks for when it found lone copies new to the table.
+ *
+ * FAILS OPEN, as the reconcile does: a ledger that cannot be read starts a new pass at the head and saves nothing over
+ * it, and a missing binding runs the same with no table; the run copies either way, and the report says what it could
+ * not keep.
+ */
+async function reconcileRun(env: Env): Promise<ReconcileOutcome> {
+  const notes: string[] = [];
+  let raw: unknown = null;
+  let readable = true;
+  const store = env.PRUNE_STATE
+    ? env.PRUNE_STATE.get(env.PRUNE_STATE.idFromName(PRUNE_STATE_NAME))
+    : null;
+  if (!store) {
+    readable = false;
+    notes.push(
+      "No ledger binding: started from the head and kept no lone copies.",
+    );
+  } else {
+    try {
+      raw = await store.loadReconcile();
+    } catch (err) {
+      readable = false;
+      console.error("reconcile: ledger unreadable", { err: String(err) });
+      notes.push(
+        "Ledger unreadable: started a new pass at the head, saved nothing over it.",
+      );
     }
-    if (!listed.truncated) break;
-    cursor = listed.cursor;
   }
-  return { checked, copied, failed, capped: false };
+  const parsed = parseReconcileLedger(raw);
+  if (parsed.note) notes.push(parsed.note);
+
+  const result = await runReconcile(
+    {
+      primary: listingOf(env.PRIMARY),
+      backup: listingOf(env.BACKUP),
+      copy: (key, _size, keepGoing) => backupOne(env, key, keepGoing),
+      named: (keys) => confirmNamed(env, keys),
+      ...(store && readable
+        ? { lone: { settle: (walk) => store.settleLone(walk) } }
+        : {}),
+      now: () => Date.now(),
+    },
+    {
+      ledger: parsed.ledger,
+      startedAtMs: Date.now(),
+      restoreMode: restoreModeOf(env.RESTORE_MODE),
+    },
+  );
+  console.log("reconcile: done", result.counts);
+
+  let status = result.status;
+  if (!readable || parsed.note) status = "error";
+  if (result.ledger && store && readable) {
+    try {
+      await store.saveReconcile(result.ledger);
+    } catch (err) {
+      status = "error";
+      console.error("reconcile: ledger not saved", { err: String(err) });
+      notes.push("Ledger not saved: the next run walks this ground again.");
+    }
+  }
+  // Lone copies new to the table: the day's restore pass (asked before this run) never saw them.
+  if (result.askRestore) await askForRestore(env, "schedule");
+  return {
+    status,
+    note: joinNotes(result.note, ...notes),
+    counts: result.counts,
+  };
 }
 
 /**
@@ -218,15 +296,13 @@ async function reconcile(env: Env): Promise<void> {
   const depths = await readQueueDepths(env);
 
   try {
-    const tally = await reconcileSweep(env);
-    console.log("reconcile: done", tally, depths);
+    const outcome = await reconcileRun(env);
+    const dead = depthNote(depths);
     await jobFinish(env, "backup_reconcile", run, {
-      status: tally.failed > 0 ? "error" : "ok",
-      counts: { ...tally, ...depths },
-      note: joinNotes(
-        tally.failed > 0 ? `${tally.failed} object(s) failed to copy` : null,
-        depthNote(depths),
-      ),
+      status: outcome.status,
+      counts: { ...outcome.counts, ...depths },
+      // The run's own findings lead; the dead letters keep room at the end of the 500 the endpoint takes.
+      note: joinNotes(dead ? outcome.note?.slice(0, 440) : outcome.note, dead),
     });
   } catch (err) {
     // A throw here is the sweep itself failing (a list call, not a single key). Close the row as an
@@ -340,9 +416,20 @@ async function pruneRun(
       backup: env.BACKUP,
       primary: env.PRIMARY,
       confirm: (ids, scanned) => confirmGone(env, ids, scanned, mode),
+      named: (keys) => confirmNamed(env, keys),
+      // The lone copies' table lives in the same object as the ledger; one that cannot be read is no table to settle.
+      ...(store && readable
+        ? { lone: { record: (walk) => store.recordLone(walk) } }
+        : {}),
       now: () => Date.now(),
     },
-    { mode, ledger: parsed.ledger, startedAtMs: Date.now(), releasedAtMs },
+    {
+      mode,
+      ledger: parsed.ledger,
+      startedAtMs: Date.now(),
+      releasedAtMs,
+      restoreMode: restoreModeOf(env.RESTORE_MODE),
+    },
   );
   console.log("prune: done", result.counts);
 
@@ -403,6 +490,28 @@ async function prune(env: Env): Promise<void> {
       note: String(err).slice(0, 300),
     });
   }
+  // The run may have just found lone copies: a restore pass follows it, in an invocation of its own.
+  await askForRestore(env, "schedule");
+}
+
+/**
+ * Ask the prune's Durable Object for a restore pass (prune-state.ts). Never throws: a request that fails is logged,
+ * and the next day's cron asks again (the restore's card reads Overdue if none gets through).
+ */
+async function askForRestore(env: Env, trigger: RestoreTrigger): Promise<void> {
+  if (!env.PRUNE_STATE) {
+    console.warn("restore: no ledger binding; no pass asked for");
+    return;
+  }
+  try {
+    const stub = env.PRUNE_STATE.get(
+      env.PRUNE_STATE.idFromName(PRUNE_STATE_NAME),
+    );
+    const { state } = await stub.requestRestore(trigger);
+    console.log("restore: pass asked for", { trigger, state });
+  } catch (err) {
+    console.error("restore: could not ask for a pass", { err: String(err) });
+  }
 }
 
 export default {
@@ -447,7 +556,23 @@ export default {
     if (controller.cron === PRUNE_CRON) {
       ctx.waitUntil(prune(env));
     } else {
+      // The daily restore pass is asked for FIRST, apart from the reconcile: a reconcile that outgrows its 15
+      // minutes is cut off by the platform, and must not take the day's restore with it.
+      ctx.waitUntil(askForRestore(env, "schedule"));
       ctx.waitUntil(reconcile(env));
     }
+  },
+
+  // The one door: Restore now from /admin/jobs (restore-door.ts). Everything else is a 404.
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const ns = env.PRUNE_STATE;
+    return handleRestoreDoor(
+      request,
+      env,
+      ns
+        ? (trigger) =>
+            ns.get(ns.idFromName(PRUNE_STATE_NAME)).requestRestore(trigger)
+        : null,
+    );
   },
 } satisfies ExportedHandler<Env, R2EventMessage>;

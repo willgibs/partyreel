@@ -17,6 +17,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -50,6 +51,7 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
 }));
 
 const { EventSettingsSheet } = await import("./event-settings-sheet");
+const { ROLL_REST_MS } = await import("./camera-settings");
 const { hostEvent, NO_COUNTS, readyFacts } =
   await import("./testing/host-event");
 
@@ -243,6 +245,44 @@ describe("a live word changes its setting in place", () => {
       expect.objectContaining({ description: "That didn't save." }),
     );
   });
+
+  // ★ A WRITE THAT THROWS IS A REFUSAL TOO (crumbs-81). A dropped connection rejects the call instead of answering it,
+  // and `run` had no catch: the row stayed busy for good and the value she never saved stayed on the page. Every write
+  // here settles one way, so a throw is put back, freed and said exactly as a refusal is.
+  it("★ a save that throws (a dropped connection) is put back, its row freed, and says it did not save", async () => {
+    updateEventAction.mockRejectedValue(new TypeError("Failed to fetch"));
+    sheet();
+    fireEvent.click(screen.getByRole("button", { name: "Photos and videos" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    expect(
+      document.querySelector(
+        "[data-settings-row='adds'] [data-settings-sentence]",
+      )?.textContent,
+    ).toBe("Photos and videos, straight into the album.");
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Couldn't save that setting.",
+      expect.objectContaining({
+        description: "Check your connection and try again.",
+      }),
+    );
+    // Free again: the word is not busy, and the next try goes out as any first one does.
+    const word = screen.getByRole("button", { name: "Photos and videos" });
+    expect(word).not.toHaveAttribute("aria-busy");
+    updateEventAction.mockResolvedValue({ ok: true });
+    fireEvent.click(word);
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    expect(updateEventAction).toHaveBeenCalledTimes(2);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("a page, one level in", () => {
@@ -255,6 +295,56 @@ describe("a page, one level in", () => {
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(onClosePage).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  // ★ A PAGE'S HEAD IS DESCRIBED (crumbs-81, carrying crumbs-59's NIT on): the rows' head says the event's name under
+  // "Settings", and a page's head said nothing of whose event it is, so a screen reader opened "What guests can add"
+  // with no description at all (`aria-describedby` was set to undefined to quiet Radix's warning). The name rides as the
+  // dialog's own description, out of sight, so a page reads as the rows do, and Radix's warning stays quiet because an
+  // element it names exists.
+  it("★ describes the dialog by the event's name on a page, out of sight, and warns of nothing", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    sheet({ page: "adds" });
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
+    const describer = document.getElementById(
+      dialog.getAttribute("aria-describedby") ?? "",
+    );
+    expect(describer, "the element the dialog names").not.toBeNull();
+    expect(describer).toHaveClass("sr-only");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("describes the rows by the same name, drawn under Settings", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    sheet();
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("★ is still described when a page is drawn at once, ahead of its address (a move held for a save)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    updateEventAction.mockImplementation(() => new Promise(() => {}));
+    sheet({ tier: "pro" });
+    fireEvent.click(screen.getByRole("button", { name: "Photos and videos" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Who can get in" }));
+    expect(
+      document
+        .querySelector("[data-settings-page]")
+        ?.getAttribute("data-settings-page"),
+    ).toBe("door");
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleDescription("Maya's 30th");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("★ closes from any page at once: nothing waits on a save, so nothing asks", () => {
@@ -521,5 +611,178 @@ describe("every page ends in Next", () => {
   it("is never drawn at rest: the steps are the way in", () => {
     const { body } = sheet();
     expect(body.querySelector("[data-settings-next]")).toBeNull();
+  });
+});
+
+/**
+ * ★ THE ROLL, A WORD ON THE FIRST SCREEN AND A WHOLE CONTROL ON ITS PAGE (customize r1: Will's `roll=both` and
+ * `home=words`). The sentence's "24 shots" swaps film's three in place and sends the one field; Another number opens What
+ * guests can add at the stepper, in focus; the page's boxes save at once and a run of steps once she rests; and her roll is
+ * kept while the album takes free uploads, so the Disposable card still says it.
+ */
+describe("the roll: a live word, and its page's whole control", () => {
+  const ID = "11111111-2222-4333-8444-555555555555";
+  const ahead = () => new Date(Date.now() + 2 * 86_400_000).toISOString();
+  const disposable = (roll: number | null = 24) =>
+    ({
+      capture: "camera",
+      roll_size: roll,
+      develops_at: ahead(),
+    }) as Parameters<typeof hostEvent>[0];
+  const sentence = () =>
+    document.querySelector(
+      "[data-settings-row='adds'] [data-settings-sentence]",
+    )?.textContent;
+
+  it("★ the camera's sentence says its roll as a word, and a film size picked there sends the roll alone", async () => {
+    sheet({ event: disposable() });
+    expect(sentence()).toBe(
+      "Photos and videos on the album's camera, 24 shots each, hidden until the album develops.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "24 shots" }));
+    const menu = screen.getByRole("menu");
+    expect(
+      within(menu)
+        .getAllByRole("menuitem")
+        .map((m) => m.textContent),
+    ).toEqual([
+      "12 shotsFilm's short roll.",
+      "24 shotsPartyreel's usual.",
+      "36 shotsFilm's long roll.",
+      "Another numberAny count from 1 to 99.",
+    ]);
+    await act(async () => {
+      fireEvent.click(
+        within(menu).getByRole("menuitem", { name: /^36 shots/ }),
+      );
+    });
+    expect(updateEventAction).toHaveBeenCalledTimes(1);
+    expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 36 });
+    expect(sentence()).toContain("36 shots each");
+  });
+
+  it("a count that is none of film's three is offered as itself, chosen, beside them", () => {
+    sheet({ event: disposable(50) });
+    fireEvent.click(screen.getByRole("button", { name: "50 shots" }));
+    const chosen = within(screen.getByRole("menu"))
+      .getAllByRole("menuitem")
+      .filter((m) => m.getAttribute("aria-current") === "true")
+      .map((m) => m.textContent);
+    expect(chosen).toEqual(["50 shots"]);
+  });
+
+  it("★ Another number opens What guests can add at the stepper, its count in focus, and writes nothing", async () => {
+    const view = sheet({ event: disposable() });
+    fireEvent.click(screen.getByRole("button", { name: "24 shots" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /^Another number/ }),
+      );
+    });
+    expect(view.onOpenPage).toHaveBeenCalledWith("adds");
+    expect(updateEventAction).not.toHaveBeenCalled();
+    // The address answers with the page: it opens at the stepper.
+    view.rerender(
+      <EventSettingsSheet
+        open
+        onOpenChange={view.onOpenChange}
+        page="adds"
+        onOpenPage={view.onOpenPage}
+        onClosePage={view.onClosePage}
+        event={hostEvent(disposable())}
+        tier="pro"
+        counts={NO_COUNTS}
+        pendingCount={0}
+        social={{ displayInProfile: false, hostHasSlug: true }}
+        reelSample={null}
+        ready={readyFacts()}
+        onOpenCode={view.onOpenCode}
+      />,
+    );
+    expect(
+      screen.getByRole("radio", { name: /another number of shots/i }),
+    ).toHaveAttribute("aria-checked", "true");
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole("spinbutton")),
+    );
+  });
+
+  it("★ on its page a box saves at once; a run of steps is one save, sent once she rests", async () => {
+    sheet({ page: "adds", event: disposable() });
+    const group = screen.getByRole("radiogroup", { name: "Shots each" });
+    await act(async () => {
+      fireEvent.click(within(group).getByRole("radio", { name: "12 shots" }));
+    });
+    expect(updateEventAction).toHaveBeenLastCalledWith(ID, { roll_size: 12 });
+    updateEventAction.mockClear();
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(
+        within(group).getByRole("radio", { name: /another number/i }),
+      );
+      const more = screen.getByRole("button", { name: "More shots" });
+      fireEvent.click(more);
+      fireEvent.click(more);
+      fireEvent.click(more);
+      expect(screen.getByRole("spinbutton")).toHaveAttribute(
+        "aria-valuenow",
+        "15",
+      );
+      expect(updateEventAction).not.toHaveBeenCalled();
+      await act(async () => {
+        vi.advanceTimersByTime(ROLL_REST_MS);
+      });
+      expect(updateEventAction).toHaveBeenCalledTimes(1);
+      expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 15 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("★ a count still resting when the page goes is saved as it goes (the state outlives the panel)", async () => {
+    const view = sheet({ page: "adds", event: disposable() });
+    fireEvent.click(
+      screen.getByRole("radio", { name: /another number of shots/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Fewer shots" }));
+    expect(updateEventAction).not.toHaveBeenCalled();
+    await act(async () => {
+      view.unmount();
+    });
+    expect(updateEventAction).toHaveBeenCalledWith(ID, { roll_size: 23 });
+  });
+
+  it("a refused roll is put back to the row's own count, with a sentence", async () => {
+    updateEventAction.mockResolvedValue({
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save your changes. Please try again.",
+    });
+    sheet({ page: "adds", event: disposable(24) });
+    const group = screen.getByRole("radiogroup", { name: "Shots each" });
+    await act(async () => {
+      fireEvent.click(within(group).getByRole("radio", { name: "36 shots" }));
+    });
+    expect(toast.error).toHaveBeenCalled();
+    expect(
+      within(group).getByRole("radio", { name: "24 shots" }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      document.querySelector("[data-album-style='disposable']")?.textContent,
+    ).toContain("24 shots each");
+  });
+
+  it("★ her roll is kept while the album takes free uploads: no roll row, and the Disposable card says her count", () => {
+    sheet({
+      page: "adds",
+      event: { capture: "upload", roll_size: 36 } as Parameters<
+        typeof hostEvent
+      >[0],
+    });
+    expect(screen.queryByRole("radiogroup", { name: "Shots each" })).toBeNull();
+    expect(
+      document.querySelector("[data-album-style='disposable']")?.textContent,
+    ).toContain("The album's camera, 36 shots each.");
   });
 });

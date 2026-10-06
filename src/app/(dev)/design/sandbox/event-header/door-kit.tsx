@@ -15,32 +15,37 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import {
+  guestsCardFace,
+  reelCardFace,
+  reviewCardFace,
+  type RoomFace,
+  settingsCardFace,
+} from "@/components/app/event-feed/room-card";
 import { CodeChip } from "@/components/ui/code-chip";
+import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { stepsLeft } from "@/lib/events/readiness";
-import { doorLabel, uploadsLabel } from "@/lib/events/visibility-labels";
-import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 import type { Case } from "./fixtures";
 import type { Ground, ScreenId } from "./scene";
+import type { PaperId } from "./seam";
 
 /**
  * WHAT EVERY DOOR OPTION SHARES: the rooms, their faces, and the one contract
- * a door draws itself through, so each of the three lives whole in its own
- * file (`glass.tsx`, `cards.tsx`, `windows.tsx`) and the hub composes whichever
- * the board asks for (`doors.tsx`).
+ * a door draws itself through, so each take on the cards (`cards.tsx`, on
+ * `card-kit.tsx`'s row and fold) stands on one Seam (`seam.tsx`) and the hub
+ * composes whichever the board asks for.
  *
  * The row is production's order (`EVENT_ROOMS`: the reel, Guests, Review,
  * Settings) with See it as a guest last, the payoff at the row's end
  * (`AS_GUEST_DOOR`). Every press opens its room over the hub, as wired.
  *
- * ★ THE NEEDS-ACTION TONE IS TODAY'S ONE WAITING LIGHT (production's amber
- * `warning`): a count of people at the door or uploads in Review, and nothing
- * else. Its hue is the brand's question (brand-marks' status set), so a door
- * redraws its FORM and never adds a hue; the reel's violet marks the reel
- * itself (one colour per action), never a state.
+ * ★ A COUNT THAT NEEDS HER IS ONE STATUS TOKEN (`needs.css`, round six's
+ * second ask): people at the door or uploads in Review, and nothing else,
+ * worn by the cards and the code's corner alike, so the two never disagree.
  *
- * ★ SETTINGS' COUNT IS PLAIN, NEVER AMBER (the call G4): "2 left" is hers to
+ * ★ SETTINGS' COUNT IS PLAIN, NEVER A STATUS (the call G4): "2 left" is hers to
  * act on, nothing waits on her, so it reads in the foreground ink (`strong`);
  * and while uploads are paused its door says so in the uploads' own word,
  * Paused (`uploadsLabel`), never Closed, which is a door's word.
@@ -84,61 +89,33 @@ export const ROOM_ICON: Record<RoomId, LucideIcon> = {
   guest: Smartphone,
 };
 
-/** A door's face: its one line, and the count that needs her or one to act on. */
-export type DoorFace = {
-  /** The line under a roomy door's title: "8 waiting", "31 guests", "2 left", "Paused". */
-  value: string;
-  /** Something waits on her (people at the door, uploads in Review): today's waiting light. */
-  amber?: boolean;
-  /** That waiting count. */
-  count?: number;
-  /** A count hers to act on that waits on nobody (Settings' steps left): the foreground ink, never amber. */
-  strong?: boolean;
-  /** That count, for a door too small for its line: an unlit mark, never amber. */
-  left?: number;
-  /** Uploads are paused (Settings, once its steps are done): the line reads the uploads' word. */
-  paused?: boolean;
-};
+/** A door's face: production's own (`room-card.ts`'s `RoomFace`): its line, and the count that needs her or one hers to act on. */
+export type DoorFace = RoomFace;
 
-/** Every door's face, from the album's facts: production's words (`page.tsx`, `room-card.ts`). */
+/**
+ * Every door's face, from the album's facts, IN PRODUCTION'S OWN WORDS: the
+ * Guests, Review and Settings faces are `room-card.ts`'s (`guestsCardFace`,
+ * `reviewCardFace`, `settingsCardFace`), as the reel's line already is
+ * (`reelCardFace`), so the board can never word a door two ways.
+ */
 export function facesOf(c: Case): Record<RoomId, DoorFace> {
   // The day after the event's date the checklist steps aside, and Settings stops counting (`checklistOver`).
   const left = c.over ? 0 : stepsLeft(c.ready);
-  const toGo = 2 - c.reelHave;
+  const reelState = c.reel === "live" ? "live" : "counting";
+  const review = reviewCardFace(true, c.review);
   return {
-    reel:
-      c.reel === "live"
-        ? { value: "Live for guests" }
-        : {
-            value:
-              c.reelHave === 0
-                ? "Starts at 2 photos"
-                : `${toGo} more ${toGo === 1 ? "photo" : "photos"}`,
-          },
-    guests:
-      c.waiting > 0
-        ? {
-            value: `${formatCount(c.waiting)} waiting`,
-            amber: true,
-            count: c.waiting,
-          }
-        : {
-            value: `${formatCount(c.guests)} ${c.guests === 1 ? "guest" : "guests"}`,
-          },
-    review:
-      c.review > 0
-        ? {
-            value: `${formatCount(c.review)} waiting`,
-            amber: true,
-            count: c.review,
-          }
-        : { value: "All caught up" },
-    settings:
-      left > 0
-        ? { value: `${formatCount(left)} left`, strong: true, left }
-        : !c.ready.acceptingUploads
-          ? { value: uploadsLabel(false), paused: true }
-          : { value: doorLabel(c.door) },
+    reel: { value: reelCardFace(reelState, c.reelHave, REEL_MINIMUM, false) },
+    guests: guestsCardFace({ waiting: c.waiting, guests: c.guests, shots: 0 }),
+    review: {
+      value: review.value,
+      amber: review.amber || undefined,
+      count: review.count,
+    },
+    settings: settingsCardFace({
+      left,
+      accepting: c.ready.acceptingUploads,
+      door: c.door,
+    }),
     guest: { value: "What they see" },
   };
 }
@@ -168,6 +145,8 @@ export type DoorDraw = {
   selected: RoomId | null;
   /** A press opens its room over the hub (Try it); absent on a still frame. */
   onOpen?: DoorPress;
+  /** How the Seam lives on paper (brand r2's take, a knob). */
+  paper: PaperId;
 };
 
 /**

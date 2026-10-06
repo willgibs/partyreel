@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { entries, filesUnder, read } from "@/testing/source-tree";
 
 /**
  * EVERY COMPONENT THE KIT EXPORTS IS DRAWN SOMEWHERE (lab-sitting, from
@@ -20,39 +19,36 @@ import { describe, expect, it } from "vitest";
  * costs nobody a wrong turn.
  */
 
-const KIT = join(process.cwd(), "src", "components", "lab");
+const KIT = "src/components/lab";
 
 /** Every source file under `dir`, tests excluded. */
 function sources(dir: string): string[] {
-  const out: string[] = [];
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) {
-      if (name === "node_modules" || name.startsWith(".")) continue;
-      out.push(...sources(path));
-    } else if (/\.(ts|tsx|mjs)$/.test(name) && !/\.test\./.test(name)) {
-      out.push(path);
-    }
-  }
-  return out;
+  return filesUnder(dir).filter((path) => {
+    const folders = path.slice(dir.length + 1).split("/");
+    const name = folders.pop() ?? "";
+    if (folders.some((f) => f === "node_modules" || f.startsWith(".")))
+      return false;
+    return /\.(ts|tsx|mjs)$/.test(name) && !/\.test\./.test(name);
+  });
 }
 
 /** A file's text with its comments blanked, so a name in prose is not a use. */
 function code(path: string): string {
-  return readFileSync(path, "utf8")
+  return read(path)
     .replace(/\/\*[\s\S]*?\*\//g, " ")
     .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
 }
 
-const ALL = sources(join(process.cwd(), "src")).map((path) => ({
+const ALL = sources("src").map((path) => ({
   path,
   text: code(path),
 }));
 
-const exported = readdirSync(KIT)
+const exported = entries(KIT)
+  .map((entry) => entry.name)
   .filter((f) => f.endsWith(".tsx") && !f.includes(".test."))
   .flatMap((file) => {
-    const text = code(join(KIT, file));
+    const text = code(`${KIT}/${file}`);
     return [...text.matchAll(/^export function ([A-Z]\w*)/gm)].map((m) => ({
       file,
       name: m[1],

@@ -5,15 +5,16 @@ import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { chromePath, devToolsPort } from "./kit-env.mjs";
 
 const OUT = process.argv[2];
 const SITE = process.env.SITE || "https://partyreel.com";
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const port = 9400 + Math.floor(Math.random() * 100);
+const CHROME = chromePath("kit-capture.mjs");
 const profile = mkdtempSync(join(tmpdir(), "kit-capture-"));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
+const chrome = spawn(CHROME, ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profile}`,
   "--no-first-run", "--no-default-browser-check", "--hide-scrollbars", "--window-size=1440,900", "about:blank"], { stdio: "ignore" });
+const port = await devToolsPort(profile, chrome).catch((e) => { chrome.kill("SIGKILL"); throw e; });
 let list;
 for (let i = 0; i < 40 && !list; i++) { try { list = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json(); } catch { await sleep(250); } }
 if (!list) { chrome.kill("SIGKILL"); throw new Error("Chrome never opened its port"); }

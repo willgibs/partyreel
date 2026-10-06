@@ -1,8 +1,10 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { entries as folder } from "@/testing/source-tree";
 
 import { readLibraryEntries } from "../../../../../scripts/lab-review.mjs";
 
@@ -109,8 +111,8 @@ const prop = (o: ts.ObjectLiteralExpression, name: string) =>
 
 /** Every entry declared in the five family modules. */
 function readEntries(): Entry[] {
-  const files = readdirSync(join(ROOT, FAMILIES), { withFileTypes: true })
-    .filter((d) => d.isDirectory())
+  const files = folder(FAMILIES)
+    .filter((d) => d.isDirectory)
     .map((d) => `${FAMILIES}/${d.name}/gallery-demos.tsx`)
     .filter((f) => existsSync(join(ROOT, f)));
   expect(files.length, "the five family entry modules").toBe(5);
@@ -300,9 +302,10 @@ describe("every gallery entry", () => {
   it("names a file that exists, and a test that exists when it names one", () => {
     for (const e of ENTRIES) {
       expect(e.file, `${e.id} declares no file`).toBeTruthy();
-      expect(existsSync(join(ROOT, e.file!)), `${e.id}: ${e.file} is gone`).toBe(
-        true,
-      );
+      expect(
+        existsSync(join(ROOT, e.file!)),
+        `${e.id}: ${e.file} is gone`,
+      ).toBe(true);
       if (e.test === undefined) continue;
       expect(e.test, `${e.id}: its test is not a test file`).toMatch(
         /\.test\.tsx?$/,

@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { announceChangePlanError } from "@/components/app/pricing/change-plan-request";
+import { useLeaveHold } from "@/components/app/pricing/leave";
 import {
   usePricingDoors,
   usePricingRouter,
@@ -23,8 +24,10 @@ import type { ProPlanId } from "@/lib/validation/checkout";
  * A storage refusal goes to `onRefused` so the surface can print the numbers where
  * the host is looking; without one it falls back to a toast that carries them.
  *
- * Its route and its router are the surface's doors (`pricing-doors.tsx`): the real ones by default, a specimen's own
- * where pressing Switch must not reach Stripe. Every caller, `RefusalFace`'s included, is door-aware without a prop.
+ * Its route, its way out and its router are the surface's doors (`pricing-doors.tsx`): the real ones by default, a
+ * specimen's own where pressing Switch must not reach Stripe. Every caller, `RefusalFace`'s included, is door-aware
+ * without a prop. ★ Pressed until the page has gone (`leave.ts`'s hold): Stripe's address assigned is a page still
+ * standing while Stripe answers, and a second tap there opened a second session.
  */
 export function ChangePlanButton({
   planId,
@@ -42,15 +45,17 @@ export function ChangePlanButton({
   onRefused?: (refusal: StorageRefusal) => void;
 }) {
   const router = usePricingRouter();
-  const { changePlan } = usePricingDoors();
+  const { changePlan, leave } = usePricingDoors();
   const [isPending, startTransition] = useTransition();
+  const { away, held, took } = useLeaveHold();
 
   function change() {
     startTransition(async () => {
       const outcome = await changePlan(planId, next);
       switch (outcome.kind) {
         case "redirect":
-          window.location.href = outcome.url;
+          leave(outcome.url);
+          took();
           return;
         case "signin":
           router.push(loginPath(window.location.pathname));
@@ -70,8 +75,8 @@ export function ChangePlanButton({
   }
 
   return (
-    <Button onClick={change} disabled={isPending} {...buttonProps}>
-      {isPending ? "Opening…" : children}
+    <Button onClick={change} disabled={isPending || away} {...buttonProps}>
+      {isPending || held ? "Opening…" : children}
     </Button>
   );
 }

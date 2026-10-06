@@ -384,6 +384,41 @@ describe("★ a file refused never stops its siblings", () => {
     });
     expect(completes()[0]!.body.files).toHaveLength(2);
   });
+
+  /* ★ A REFUSAL THE UPLOADER MAKES ITSELF CARRIES ITS CODE (crumbs-83; red-team 54's LOW). A wrong type and a file over the
+     ceiling never reach a request, and refused with no code they read to every surface as a failure worth another go:
+     the failure sheet offered a Retry whose press refused the same file at once. They are tagged where they are decided,
+     with the codes the server says for the same refusals. The old uploader answered both with no `code`. */
+  it("★ refused on the phone: a wrong type and a file over the ceiling answer the server's codes, and their siblings land", async () => {
+    const notes = new File([new Uint8Array(4)], "notes.txt", {
+      type: "text/plain",
+    });
+    // A photograph, so its measure is the stood-in image's (this harness draws no <video>).
+    const huge = new File([new Uint8Array(4)], "huge.jpg", {
+      type: "image/jpeg",
+    });
+    Object.defineProperty(huge, "size", { value: 11 * 1024 ** 3 });
+    const { out } = await send([photo(1000), notes, huge, photo(1001)]);
+    expect(out[1]).toEqual({
+      ok: false,
+      code: "unsupported_type",
+      message: "That file type isn't supported.",
+    });
+    expect(out[2]).toEqual({
+      ok: false,
+      code: "too_large",
+      message: "This file is larger than the 10 GB maximum.",
+    });
+    expect(out[1]).not.toHaveProperty("cause");
+    expect(out[2]).not.toHaveProperty("cause");
+    // Neither reached a request: the siblings alone were presigned, sent and recorded.
+    expect(out.filter((o) => o.ok)).toHaveLength(2);
+    expect(presigns().flatMap((c) => c.body.files)).toHaveLength(2);
+    expect(log.filter((l) => l.startsWith("put"))).toEqual([
+      "put f1000",
+      "put f1001",
+    ]);
+  });
 });
 
 describe("★ a refusal of who is sending is every unasked file's, never asked again", () => {
@@ -726,5 +761,95 @@ describe("one file's own cancel: a burst of three, the middle one", () => {
     const out = await going;
     expect(out.every((o) => !o.ok && o.cause === "cancelled")).toBe(true);
     expect(completes()).toHaveLength(0);
+  });
+});
+
+/**
+ * ★ BURSTS BACK TO BACK (uploads-bursts): the guest's queue begins its next burst on the last one's bytes
+ * (`onSendDone`) and holds its complete for the last one's answer (`recordAfter`), so the line never idles for a
+ * complete's round trip and the server still meets one sender's completes one after another.
+ */
+describe("★ bursts back to back (uploads-bursts)", () => {
+  const endpoints = { presign: "/p/presign", complete: "/p/complete" };
+
+  it("says its bytes are up once, when the last file has gone up, before its complete answers", async () => {
+    let release!: () => void;
+    completeGate = new Promise<void>((resolve) => (release = resolve));
+    let sendDone = 0;
+    const going = uploadBurst({
+      files: burstOf(3).map((file) => ({ file })),
+      endpoints,
+      identity: { session_token: "t" },
+      onSendDone: () => {
+        sendDone += 1;
+        log.push("bytes up");
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(sendDone).toBe(1);
+    expect(log.indexOf("bytes up")).toBeGreaterThan(
+      log.indexOf("landed f1002"),
+    );
+    // The complete is asked, and has not answered.
+    expect(completes()).toHaveLength(1);
+    release();
+    await vi.advanceTimersByTimeAsync(10);
+    expect((await going).every((o) => o.ok)).toBe(true);
+    expect(sendDone).toBe(1);
+  });
+
+  it("★ its presign and bytes go while the last burst is recorded; its complete waits for that answer, even off the screen", async () => {
+    let recorded!: () => void;
+    const last = new Promise<void>((resolve) => (recorded = resolve));
+    const going = uploadBurst({
+      files: burstOf(2).map((file) => ({ file })),
+      endpoints,
+      identity: { session_token: "t" },
+      recordAfter: last,
+    });
+    await vi.advanceTimersByTimeAsync(BURST_RECORD_WAIT_MS + 1_000);
+    expect(log).toContain("landed f1001");
+    expect(completes()).toHaveLength(0);
+    page.turn("hidden");
+    await vi.advanceTimersByTimeAsync(10);
+    expect(completes()).toHaveLength(0);
+    recorded();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(completes().map((c) => c.body.files.length)).toEqual([2]);
+    expect((await going).every((o) => o.ok)).toBe(true);
+  });
+
+  it("★ the next burst's first presign goes before the last complete answers, and the completes stay in order", async () => {
+    let release!: () => void;
+    completeGate = new Promise<void>((resolve) => (release = resolve));
+    let next: Promise<unknown> | null = null;
+    const first = uploadBurst({
+      files: burstOf(2).map((file) => ({ file })),
+      endpoints,
+      identity: { session_token: "t" },
+      onSendDone: () => {
+        next = uploadBurst({
+          files: burstOf(1, 2000).map((file) => ({ file })),
+          endpoints,
+          identity: { session_token: "t" },
+          recordAfter: first,
+        });
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1_000);
+    // The last burst's complete is out, unanswered; the next burst presigned and sent its bytes meanwhile.
+    expect(completes().map((c) => c.body.files.length)).toEqual([2]);
+    expect(presigns().at(-1)!.body.files).toHaveLength(1);
+    expect(log.indexOf("put f2000")).toBeGreaterThan(log.indexOf("complete"));
+    expect(log).toContain("landed f2000");
+    // Its complete waits for the last one's answer: the server never meets the two at once.
+    release();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(completes().map((c) => c.body.files[0]!.media_id)).toEqual([
+      idOf("f1000"),
+      idOf("f2000"),
+    ]);
+    expect((await first).every((o) => o.ok)).toBe(true);
+    expect(await next).toEqual([expect.objectContaining({ ok: true })]);
   });
 });

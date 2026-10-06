@@ -5,8 +5,11 @@
  *    (billing-caps.md, ledger edition): natural expiry (tier to free, cap to null), a stacked pass
  *    lapsing (two passes' room to one's, absorbed by the over-capacity grace), a renewal window opening, and
  *    drift healing after a missed webhook. Candidates: the profiles labelled `event_pass` PLUS the
- *    owners of any unconsumed ledger row (a future-window renewal brings a lapsed label back once it
- *    opens). `storage_used_bytes` is left alone.
+ *    owners of an unconsumed pass still live or ahead at the run's instant (a future-window renewal brings
+ *    a lapsed label back once it opens). ★ Never the owner of expired passes alone (credit-watch): an
+ *    expired pass stays unconsumed for good, so reading every unconsumed row recomputed everyone who ever
+ *    held a pass, every night, for good; the label carries the one recompute an expiry needs (to Free),
+ *    after which she is no candidate. `storage_used_bytes` is left alone.
  *  - `renewal_nudges` emails the holders whose pass expires within `RENEWAL_NUDGE_DAYS`, so they can
  *    renew (cheaper) before it lapses into the over-capacity grace; `sendOnce` dedupes per
  *    (profile, expiry). An already-expired pass is `expired_passes`' business. ★ It is the one mail
@@ -59,6 +62,11 @@ export type ExpiredPassesTally = RotatingTally & {
   candidates: number;
   recomputed: number;
   updated: number;
+  /**
+   * Accounts the recompute left alone because their Pro plan is seconds behind a credited checkout that converted
+   * their passes (`skipped_pro_pending`); the next run decides them, past the hour.
+   */
+  pro_pending: number;
 };
 
 export type RenewalNudgesTally = RotatingTally & {
@@ -72,11 +80,14 @@ type SweepOptions = { deadline?: Deadline; resumeAfter?: string | null };
 
 /**
  * THE READ HALF of `expired_passes`: every profile id the recompute must look at, sorted and deduped,
- * from both candidate lists read whole.
+ * from both candidate lists read whole: the `event_pass` labels, and the owners of a pass live or ahead
+ * at `now` (its window ends after it: an opened year, or a renewal's still to open).
  */
 export async function readPassCandidates(
   admin: AdminClient,
+  now: Date,
 ): Promise<string[]> {
+  const nowIso = now.toISOString();
   const [labelled, owners] = await Promise.all([
     readAllPages(
       "cron/purge: event pass holders",
@@ -93,12 +104,13 @@ export async function readPassCandidates(
       (row) => row.id,
     ),
     readAllPages(
-      "cron/purge: unconsumed passes",
+      "cron/purge: passes live or ahead",
       (after: string | null, limit) => {
         let query = admin
           .from("event_passes")
           .select("id, profile_id")
           .is("consumed_at", null)
+          .gt("expires_at", nowIso)
           .order("id", { ascending: true })
           .limit(limit);
         if (after) query = query.gt("id", after);
@@ -118,15 +130,18 @@ export async function sweepExpiredPasses(
   now: Date,
   opts: SweepOptions = {},
 ): Promise<ExpiredPassesTally> {
-  const ids = await readPassCandidates(admin);
+  const ids = await readPassCandidates(admin, now);
   let updated = 0;
+  let proPending = 0;
   const { tally, resumeAfter } = await forEachInRotation(
     ids,
     (id) => id,
     opts.resumeAfter ?? null,
     opts.deadline ?? NO_DEADLINE,
     async (id) => {
-      if ((await recomputePassEntitlement(id, now)) === "updated") updated += 1;
+      const result = await recomputePassEntitlement(id, now);
+      if (result === "updated") updated += 1;
+      if (result === "skipped_pro_pending") proPending += 1;
     },
     (id, e) =>
       captureError("cron", e, { sweep: "expired_passes", profile_id: id }),
@@ -135,6 +150,7 @@ export async function sweepExpiredPasses(
     candidates: ids.length,
     recomputed: tally.processed,
     updated,
+    pro_pending: proPending,
     rows_failed: tally.failed,
     rows_not_attempted: tally.skipped,
     rows_note: tallyNote("accounts", tally) ?? undefined,

@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * THE HYDRATED FLAG HAS ONE HOME (`use-hydrated.ts`). It is three lines, so eight files wrote them: a store
@@ -18,16 +17,7 @@ import { describe, expect, it } from "vitest";
  * is the flag.
  */
 
-const ROOT = process.cwd();
 const HOME = "src/lib/shared/use-hydrated.ts";
-const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$/;
-
-function filesUnder(dir: string): string[] {
-  return readdirSync(join(ROOT, dir), { recursive: true })
-    .map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`)
-    .filter((rel) => /\.tsx?$/.test(rel) && !SKIP.test(rel))
-    .sort();
-}
 
 /** The literal a snapshot function answers when it answers nothing else: `() => true`, `{ return false; }`. */
 function constantAnswer(node: ts.Expression): boolean | null {
@@ -81,22 +71,24 @@ function flagsIn(text: string, fileName = "file.tsx"): number[] {
 }
 
 describe("the hydrated flag lives in one file", () => {
-  const sources = filesUnder("src");
+  // The flag is a `useSyncExternalStore` call, so only a file that names it is parsed; the home is one.
+  const naming = sources().filter((rel) =>
+    read(rel).includes("useSyncExternalStore"),
+  );
 
   it("scans the tree, and finds the flag where it lives", () => {
-    expect(sources.length, "the scan found no files").toBeGreaterThan(500);
-    expect(sources).toContain(HOME);
+    expect(naming).toContain(HOME);
     expect(
-      flagsIn(readFileSync(join(ROOT, HOME), "utf8"), HOME),
+      flagsIn(read(HOME), HOME),
       "the home no longer holds the flag",
     ).toHaveLength(1);
   });
 
   it("finds no second copy of it", () => {
     const copies: string[] = [];
-    for (const rel of sources) {
+    for (const rel of naming) {
       if (rel === HOME) continue;
-      for (const line of flagsIn(readFileSync(join(ROOT, rel), "utf8"), rel)) {
+      for (const line of flagsIn(read(rel), rel)) {
         copies.push(`${rel}:${line}`);
       }
     }

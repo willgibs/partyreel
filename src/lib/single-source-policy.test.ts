@@ -1,7 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
+
+import { read, sources } from "@/testing/source-tree";
 
 /**
  * ONE NAME, ONE MODULE. On 2026-09-02 two parallel tracks each single-sourced
@@ -13,25 +12,12 @@ import { describe, expect, it } from "vitest";
  * docs/tracks/README.md is for that.
  */
 
-const LIB = join(process.cwd(), "src", "lib");
-const SKIP = /\.test\.tsx?$|(?:^|\/)types\.ts$/;
 const DECL = /^export const ([A-Z][A-Z0-9_]{2,})\b/gm;
 
-function walk(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) out.push(...walk(full));
-    else if (/\.tsx?$/.test(entry) && !SKIP.test(relative(LIB, full)))
-      out.push(full);
-  }
-  return out;
-}
-
 const homes = new Map<string, string[]>();
-for (const f of walk(LIB)) {
-  for (const m of readFileSync(f, "utf8").matchAll(DECL)) {
-    homes.set(m[1], [...(homes.get(m[1]) ?? []), relative(LIB, f)]);
+for (const f of sources("src/lib")) {
+  for (const m of read(f).matchAll(DECL)) {
+    homes.set(m[1], [...(homes.get(m[1]) ?? []), f.slice("src/lib/".length)]);
   }
 }
 

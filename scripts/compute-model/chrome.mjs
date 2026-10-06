@@ -12,6 +12,8 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { devToolsPort } from "../../usher/kit/kit-env.mjs";
+
 const CHROME =
   process.env.CHROME_PATH ??
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -33,13 +35,14 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function launchChrome({ headed = false } = {}) {
   if (!existsSync(CHROME))
     throw new Error(`no Chrome at ${CHROME} (set CHROME_PATH)`);
-  const port = 9700 + (process.pid % 200);
   const profile = mkdtempSync(join(tmpdir(), "compute-model-"));
   const proc = spawn(
     CHROME,
     [
       ...(headed ? [] : ["--headless=new"]),
-      `--remote-debugging-port=${port}`,
+      // Port 0: Chrome binds a free one and writes it in this profile alone, so the model can never attach to
+      // another lane's Chrome (a port from the pid could land on one).
+      "--remote-debugging-port=0",
       `--user-data-dir=${profile}`,
       "--no-first-run",
       "--no-default-browser-check",
@@ -52,6 +55,10 @@ export async function launchChrome({ headed = false } = {}) {
     ],
     { stdio: "ignore" },
   );
+  const port = await devToolsPort(profile, proc).catch((e) => {
+    proc.kill();
+    throw e;
+  });
   let wsUrl = null;
   for (let i = 0; i < 100 && !wsUrl; i++) {
     try {

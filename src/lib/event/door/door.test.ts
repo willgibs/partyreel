@@ -1,8 +1,6 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import {
   behindDoor,
   DOOR_GATES,
@@ -24,9 +22,18 @@ describe("the door and what the database stores", () => {
   });
 
   it("stores a gated album as private with its gate, and Only me as private with none", () => {
-    expect(storedDoor("closed")).toEqual({ visibility: "private", gate: "closed" });
-    expect(storedDoor("private")).toEqual({ visibility: "private", gate: null });
-    expect(storedDoor("password")).toEqual({ visibility: "password", gate: null });
+    expect(storedDoor("closed")).toEqual({
+      visibility: "private",
+      gate: "closed",
+    });
+    expect(storedDoor("private")).toEqual({
+      visibility: "private",
+      gate: null,
+    });
+    expect(storedDoor("password")).toEqual({
+      visibility: "password",
+      gate: null,
+    });
   });
 
   it("★ fails closed: an unknown visibility or gate reads as Only me", () => {
@@ -53,7 +60,12 @@ describe("the door and what the database stores", () => {
   });
 
   it("keeps the contents of the password and the three gates behind the door", () => {
-    expect(DOORS.filter(behindDoor)).toEqual(["password", "approve", "invite", "closed"]);
+    expect(DOORS.filter(behindDoor)).toEqual([
+      "password",
+      "approve",
+      "invite",
+      "closed",
+    ]);
   });
 
   it("lands step one's Private on the gate kept, a dormant password, else only people already in", () => {
@@ -67,17 +79,16 @@ describe("the door and what the database stores", () => {
 
 describe("the gates are the database's own", () => {
   it("DOOR_GATES is public.event_gate, value for value", () => {
-    const migrations = join(process.cwd(), "supabase", "migrations");
-    const sql = readdirSync(migrations)
-      .filter((f) => f.endsWith(".sql"))
-      .sort()
-      .map((f) => readFileSync(join(migrations, f), "utf8").replace(/--[^\n]*/g, ""))
+    const sql = readMigrations()
+      .map((f) => f.sql.replace(/--[^\n]*/g, ""))
       .join("\n");
     const created = sql.match(
       /create type public\.event_gate as enum \(([^)]*)\);/,
     );
     expect(created, "no migration creates public.event_gate").not.toBeNull();
-    const values = created![1].split(",").map((v) => v.trim().replace(/^'|'$/g, ""));
+    const values = created![1]
+      .split(",")
+      .map((v) => v.trim().replace(/^'|'$/g, ""));
     expect(values).toEqual([...DOOR_GATES]);
     // No later file adds a value this build would not know (doorOf would read it as Only me).
     expect(sql).not.toMatch(/alter type public\.event_gate add value/);

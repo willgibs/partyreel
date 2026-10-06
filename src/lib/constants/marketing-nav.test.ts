@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { ABOUT_PRESS_HREF } from "@/lib/constants/about";
@@ -18,6 +15,7 @@ import {
   type FooterColumn,
   type NavItem,
 } from "@/lib/constants/marketing-nav";
+import { filesUnder, read } from "@/testing/source-tree";
 
 // Every href a nav surface exposes (flat links + group parents + children).
 function hrefsOf(items: NavItem[]): string[] {
@@ -329,7 +327,6 @@ describe("the footer's FAQ link follows the reader's page", () => {
     expect(faqHrefFrom(null)).toBe(FAQ_HREF);
   });
 
-  const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
   const CINEMA = "src/app/(marketing)/(cinema)";
   /** A page draws an FAQ band of its own when it mounts the shared accordion or the feature band. */
   const drawsFaq = (source: string) =>
@@ -367,14 +364,7 @@ describe("the footer's FAQ link follows the reader's page", () => {
 
   it("every page that draws an FAQ band of its own is a route it stays on", () => {
     const pages = (dir: string): string[] =>
-      readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap(
-        (entry) =>
-          entry.isDirectory()
-            ? pages(`${dir}/${entry.name}`)
-            : entry.name === "page.tsx"
-              ? [`${dir}/${entry.name}`]
-              : [],
-      );
+      filesUnder(dir).filter((file) => file.endsWith("/page.tsx"));
     const drawing = pages(CINEMA).filter((file) => drawsFaq(read(file)));
     // Pinned for non-emptiness: a sweep that finds no band is a broken sweep.
     expect(drawing.length).toBeGreaterThan(5);

@@ -1,8 +1,10 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+
+import { filesUnder } from "@/testing/source-tree";
 
 /**
  * AN UNKNOWN SLUG IS ROUTING'S 404, NEVER A RENDER (stale-link). A marketing page under a dynamic segment
@@ -17,19 +19,9 @@ import { describe, expect, it } from "vitest";
  */
 
 const ROOT = process.cwd();
-const MARKETING = join(ROOT, "src/app/(marketing)");
-
-function pages(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) return pages(full);
-    return entry.name === "page.tsx" ? [full] : [];
-  });
-}
-
 /** A page whose own route has a dynamic segment: `[slug]`, `[...rest]` or `[[...rest]]` in its path. */
-const DYNAMIC = pages(MARKETING)
-  .map((file) => relative(ROOT, file))
+const DYNAMIC = filesUnder("src/app/(marketing)")
+  .filter((file) => file.endsWith("/page.tsx"))
   .filter((file) => /\/\[[^/]+\]\//.test(file));
 
 /** The value a module exports under `name` as a `const` literal, if it does. */

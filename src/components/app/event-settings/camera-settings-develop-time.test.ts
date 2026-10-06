@@ -3,11 +3,12 @@
  * the two things it mirrors, held to their homes: the database's own minute (`events_reveal_stamp`) and the hub's
  * Develop now question.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { readMigrations } from "@/lib/db/testing/migrations";
 import { DEVELOP_MAX_AHEAD_DAYS } from "@/lib/disposable/reveal";
 import { DATE_OUT_OF_RANGE } from "@/lib/validation/event";
 
@@ -192,18 +193,11 @@ describe("a time past what a develop may reach", () => {
 
 /* ── what it mirrors ────────────────────────────────────────────────────────────────────────────────────────────── */
 
-const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
-
 /** The winning body of `public.events_reveal_stamp`, comments stripped, whitespace collapsed (the roll's own reader). */
 function stampBody(): string {
   let found: string | null = null;
-  for (const file of readdirSync(MIGRATIONS)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    const sql = readFileSync(join(MIGRATIONS, file), "utf8").replace(
-      /--[^\n]*/g,
-      "",
-    );
+  for (const migration of readMigrations()) {
+    const sql = migration.sql.replace(/--[^\n]*/g, "");
     const re = /create (?:or replace )?function public\.events_reveal_stamp\(/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(sql))) {
@@ -238,5 +232,48 @@ describe("what the judgement mirrors, held to its homes", () => {
       "utf8",
     ).replace(/\s+/g, " ");
     expect(hub).toContain(DEVELOP_NOW_QUESTION);
+  });
+});
+
+/* ★ A PARTY FAR FROM HOME (event-zone): the field holds the party's wall clock, so what she finished is read on it, and the
+   same judgement stands (a half-typed year, reach, the past). Every case names its zone: none reads the machine's. */
+describe("judgeDevelopTime on the party's clock (a party far from home)", () => {
+  const MX = "America/Mexico_City";
+  const NOW_UTC = Date.parse("2026-10-02T20:00:00Z");
+
+  it("★ reads what she finished as the party's wall time: 9:00 typed is 9 am in Mexico City", () => {
+    expect(
+      judgeDevelopTime({
+        typed: "2026-10-04T09:00",
+        shown: "",
+        developsAt: null,
+        nowMs: NOW_UTC,
+        zone: MX,
+      }),
+    ).toEqual({ kind: "save", iso: "2026-10-04T15:00:00.000Z" });
+  });
+
+  it("keeps every refusal it had: a half-typed year, a time out of reach, a time passed", () => {
+    const at = (typed: string) =>
+      judgeDevelopTime({
+        typed,
+        shown: "",
+        developsAt: null,
+        nowMs: NOW_UTC,
+        zone: MX,
+      });
+    expect(at("0202-10-04T09:00")).toEqual({
+      kind: "refuse",
+      words: DATE_OUT_OF_RANGE,
+    });
+    expect(at("2028-10-04T09:00")).toEqual({
+      kind: "refuse",
+      words: TIME_OUT_OF_REACH,
+    });
+    // 13:59 in Mexico City is 19:59 UTC: before now, on an album with nothing waiting.
+    expect(at("2026-10-02T13:59")).toEqual({
+      kind: "refuse",
+      words: TIME_HAS_PASSED,
+    });
   });
 });

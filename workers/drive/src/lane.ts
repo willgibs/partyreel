@@ -41,6 +41,12 @@ export const APP_DOWN_DELAY_S = 60;
 /** Google's "slow down" with no time from the app: two minutes. */
 export const THROTTLE_DELAY_S = 120;
 
+/**
+ * A check page held at a file Google did not answer for: the app keeps that page's lease a minute (other lanes skip
+ * it), so a lane with nothing else to do comes back this much later to ask again, rather than ending until the sweep.
+ */
+export const CHECK_HELD_DELAY_S = 90;
+
 export type LaneMessage = { v: 1; connectionId: string };
 
 export type LaneDeps = {
@@ -57,6 +63,8 @@ export type LaneDeps = {
   random(): number;
   /** Counted on every subrequest the lane's own code makes (the adapter's and the bucket's are counted by the wiring). */
   spent(): number;
+  /** A test's own chunk size (the runtime's is `CHUNK_BYTES`), as `TransferContext.chunkBytes`. */
+  chunkBytes?: number;
 };
 
 export type LaneEnd =
@@ -68,6 +76,7 @@ export type LaneEnd =
   | "throttled"
   | "app_down"
   | "sliced"
+  | "held"
   | "finding";
 
 const isUnreachable = (v: unknown): v is Unreachable =>
@@ -85,6 +94,8 @@ export async function runSlice(
   const { connectionId } = message;
   let authRetries = 0;
   let sent = 0;
+  // A check page this slice left held (an `unknown`): an idle lease then means "come back", not "nothing left".
+  let held = false;
 
   for (;;) {
     if (deps.now() >= deadline || deps.spent() >= SUBREQUEST_BUDGET) {
@@ -118,6 +129,11 @@ export async function runSlice(
       log("drive-lane", { connectionId, end: "throttled", sent });
       return "throttled";
     }
+    if (answer.state === "idle" && held) {
+      await deps.requeue(message, CHECK_HELD_DELAY_S);
+      log("drive-lane", { connectionId, end: "held", sent });
+      return "held";
+    }
     if (answer.state !== "work" && answer.state !== "check") {
       log("drive-lane", { connectionId, end: answer.state, sent });
       return answer.state;
@@ -143,6 +159,8 @@ export async function runSlice(
         folderId: answer.folderId,
         first: answer.first,
         items: answer.items,
+        sleep: deps.sleep,
+        random: deps.random,
       });
       const said = await deps.app.check({
         lease: answer.lease,
@@ -156,6 +174,11 @@ export async function runSlice(
         await deps.requeue(message, APP_DOWN_DELAY_S);
         return "app_down";
       }
+      if (outcome.finding === "throttled") {
+        await deps.requeue(message, THROTTLE_DELAY_S);
+        log("drive-lane", { connectionId, end: "throttled", sent });
+        return "throttled";
+      }
       if (outcome.finding) {
         log("drive-lane", {
           connectionId,
@@ -165,6 +188,7 @@ export async function runSlice(
         });
         return "finding";
       }
+      if (outcome.results.some((r) => r.state === "unknown")) held = true;
       continue;
     }
 
@@ -248,6 +272,7 @@ async function runBatch(
     now: deps.now,
     sleep: deps.sleep,
     random: deps.random,
+    ...(deps.chunkBytes ? { chunkBytes: deps.chunkBytes } : {}),
     progress: async (item: LeaseItem, sessionUri: string, offset: number) => {
       buffer.push({
         mediaId: item.mediaId,
@@ -257,9 +282,12 @@ async function runBatch(
       });
       await flush(false);
     },
+    // Her Cancel (or a pause, the switch, an operator) heard on a big file's chunk report: it stops at the next chunk
+    // boundary with its session kept, rather than sending the gigabytes left of a file she asked to stop.
+    stopping: () => stopped,
   };
 
-  for (const item of lease.items) {
+  for (const [index, item] of lease.items.entries()) {
     if (
       stopped ||
       unreachable ||
@@ -277,7 +305,14 @@ async function runBatch(
         return { kind: "auth", sent, finding: "auth" };
       return { kind: "finding", sent, finding: result.finding };
     }
-    if (deps.now() - lastReport >= REPORT_EVERY_MS) await flush(false);
+    // ★ The batch's last file rides its closing word below, never a timed word just before it: the two were two
+    // settles, and the second closed a send the first had just moved to its check (the walk's "every one checked" of a
+    // check that never ran; the database refuses that now too, and one word less a batch is one call less).
+    if (
+      index < lease.items.length - 1 &&
+      deps.now() - lastReport >= REPORT_EVERY_MS
+    )
+      await flush(false);
   }
   // The batch's end: what is left goes back to pending (the lease ends, the attempts not counted).
   await flush(true);

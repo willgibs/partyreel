@@ -30,14 +30,37 @@
  * ★ AN ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, `use-arrival-gate.ts`): a live arrival is
  * held out of the rows until its link has landed and its photograph is decoded, then pushed in as a
  * photograph the browser already holds; the glow is written here, when it lands.
+ *
+ * ★ AND ONE SHE CANNOT SEE IS SAID (album-order): the same arrivals tell the rows what is news
+ * (`AlbumNews`), so one landing out of sight (the head of a newest-first album while she reads deep, the
+ * end of one in order) wears the rows' one pill rather than moving anything she is looking at. Her own
+ * landing is not among them: it sweeps.
+ *
+ * ★ THE ALBUM'S ORDER IS THE PAGE'S (`anchor`): newest first lays from the end, the growing head on top;
+ * the night in order lays from the start, so an arrival lands at the end, and the head's stack follows the
+ * growing end there. ★ SO HER STACK CAN BE OUT OF HER SIGHT WHILE SHE SENDS (red-team 56's MEDIUM: from the head of
+ * an album in order, or deep in a newest-first one), and then its stand-in stands in view with the same bar and x
+ * (`sending-stand-in.tsx`); the x's question is the pick's, never a tile's (`StackQuestion`).
  */
-import { useEffect, type Ref } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Ref,
+} from "react";
 import { Download } from "lucide-react";
 
 import { exportToasts } from "@/components/app/export/export-toast";
 import type { GridMedia } from "@/components/app/media-grid";
+import { SendingStandIn } from "@/components/guest/upload/sending-stand-in";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
+import {
+  AlbumNewsContext,
+  type AlbumNews,
+} from "@/components/shared/album-window-news";
 import {
   MasonryColumns,
   type AlbumHandle,
@@ -45,11 +68,12 @@ import {
   type TileSelection,
 } from "@/components/shared/masonry";
 import { useArrivalGate } from "@/components/shared/use-arrival-gate";
+import { layerIsUp } from "@/components/ui/layer-is-up";
 import {
   useQueueProgress,
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
-import type { RowStep } from "@/lib/shared/album-rows";
+import type { RowAnchor, RowStep } from "@/lib/shared/album-rows";
 import { askToStop, withdrawStopQuestion } from "@/lib/upload/stop-upload";
 
 /**
@@ -67,16 +91,11 @@ export type PendingTile = {
   progress: number;
 };
 
-/** The stack at the album's head, reading its own file's progress as it goes. */
-function LiveStackTile({
-  lead,
-  remaining,
-  progress,
-}: {
-  lead: PendingTile;
-  remaining: number;
-  progress: QueueProgress | null;
-}) {
+/**
+ * THE LEAD FILE AS THE STACK READS IT: its live progress, and the x's ask while it can still be stopped. One reading
+ * for the stack in the rows and its stand-in in view (`SendingStandIn`), so the two never say different things.
+ */
+function useStackLead(lead: PendingTile, progress: QueueProgress | null) {
   const live = useQueueProgress(progress, lead.queueId);
   const now = progress ? live : lead.progress;
   // ★ THE x IS FOR A FILE THAT CAN STILL BE STOPPED: going up (even at 100, while R2 answers), or not begun. Once its
@@ -84,6 +103,30 @@ function LiveStackTile({
   const stoppable = lead.status === "uploading" || now < 100;
   const stop = progress?.stop;
   const askId = `stop-upload-${lead.queueId}`;
+  const onStop =
+    stop && stoppable
+      ? () =>
+          askToStop({
+            port: exportToasts,
+            id: askId,
+            stop: () => stop(lead.queueId),
+          })
+      : undefined;
+  return { now, stoppable, askId, onStop };
+}
+
+/**
+ * THE x'S ONE QUESTION, KEPT BY THE PICK, NEVER BY A TILE: the stack's slot unmounts when the window scrolls it away,
+ * and the stand-in comes and goes with her sight, so neither may withdraw a question still meant. Keyed on the lead.
+ */
+function StackQuestion({
+  lead,
+  progress,
+}: {
+  lead: PendingTile;
+  progress: QueueProgress | null;
+}) {
+  const { stoppable, askId } = useStackLead(lead, progress);
   // The file leaves the stack (landed, failed, stopped): a question still standing about it goes with it.
   useEffect(() => () => withdrawStopQuestion(exportToasts, askId), [askId]);
   // ★ AND SO DOES THE x'S GOING (red-team 54b's NIT): once the bytes are up its complete is coming, the x is gone, and an
@@ -92,24 +135,142 @@ function LiveStackTile({
   useEffect(() => {
     if (!stoppable) withdrawStopQuestion(exportToasts, askId);
   }, [stoppable, askId]);
+  return null;
+}
+
+/** The stack at the album's head, reading its own file's progress as it goes, and telling whether she can see it. */
+function LiveStackTile({
+  lead,
+  remaining,
+  progress,
+  onSight,
+}: {
+  lead: PendingTile;
+  remaining: number;
+  progress: QueueProgress | null;
+  onSight: (inView: boolean) => void;
+}) {
+  const { now, onStop } = useStackLead(lead, progress);
+  const ref = useStackSight(onSight);
   return (
     <UploadStackTile
+      ref={ref}
       file={lead.file}
       url={lead.url}
       progress={now}
       remaining={remaining}
-      onStop={
-        stop && stoppable
-          ? () =>
-              askToStop({
-                port: exportToasts,
-                id: askId,
-                stop: () => stop(lead.queueId),
-              })
-          : undefined
-      }
+      onStop={onStop}
     />
   );
+}
+
+/** The stand-in in view, reading the same lead as the stack. */
+function LiveStandIn({
+  doc,
+  lead,
+  remaining,
+  progress,
+}: {
+  doc: Document;
+  lead: PendingTile;
+  remaining: number;
+  progress: QueueProgress | null;
+}) {
+  const { now, onStop } = useStackLead(lead, progress);
+  return (
+    <SendingStandIn
+      doc={doc}
+      file={lead.file}
+      url={lead.url}
+      progress={now}
+      remaining={remaining}
+      onStop={onStop}
+    />
+  );
+}
+
+/** At least this share of the stack in view is her seeing it (a sliver under the bar or the foot is not). */
+const STACK_SEEN_RATIO = 0.5;
+
+/**
+ * WHETHER SHE CAN SEE THE STACK, as a callback ref: an observer on its box, reporting in view or not, and out of view
+ * when the box goes (the window unmounted its row, or the pick moved on). An engine with no observer (jsdom) reports
+ * nothing, and the stack is taken as seen: no stand-in is drawn where none can be judged.
+ */
+function useStackSight(onSight: (inView: boolean) => void) {
+  const report = useRef(onSight);
+  useEffect(() => {
+    report.current = onSight;
+  });
+  return useCallback((el: HTMLDivElement | null) => {
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry)
+          report.current(
+            entry.isIntersecting && entry.intersectionRatio >= STACK_SEEN_RATIO,
+          );
+      },
+      { threshold: [0, STACK_SEEN_RATIO] },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      report.current(false);
+    };
+  }, []);
+}
+
+/**
+ * HOW LONG THE STACK MAY BE OUT OF SIGHT BEFORE ITS STAND-IN COMES: a beat, so a lead handing over to the next file (its
+ * slot remounting) or a row the window is about to mount never flashes the pill.
+ */
+const STAND_IN_DELAY_MS = 250;
+
+/**
+ * WHETHER THE STAND-IN IS DRAWN: a pick in flight whose stack she has not seen for a beat. A stack never mounted (the
+ * window lays only the rows around her, so the end of a long album in order is not in the DOM at all) is not seen;
+ * an engine with no observer judges nothing and draws no stand-in.
+ */
+function useStandIn(active: boolean) {
+  // ★ ONE LOSS OF SIGHT IS ONE COUNT, however often it is reported: the stack remounts as each file of a pick lands, and
+  // each remount reports out of sight again, so a count bumped on every report would restart the beat with every
+  // landing, and a pick of small files landing faster than the beat would never draw the stand-in. Only a change from
+  // seen to unseen counts, and the beat's timer answers for the loss it began on, so a stack seen again never lets an
+  // older timer draw it.
+  const [sight, setSight] = useState(() => ({
+    seen: typeof IntersectionObserver === "undefined",
+    lost: 0,
+  }));
+  const [fired, setFired] = useState(-1);
+  const onSight = useCallback((inView: boolean) => {
+    setSight((prev) =>
+      prev.seen === inView
+        ? prev
+        : { seen: inView, lost: inView ? prev.lost : prev.lost + 1 },
+    );
+  }, []);
+  const { seen, lost } = sight;
+  useEffect(() => {
+    if (!active || seen) return;
+    const t = setTimeout(() => setFired(lost), STAND_IN_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [active, seen, lost]);
+  return { away: active && !seen && fired === lost, onSight };
+}
+
+/** Whether a layer is over the album (the viewer, a dialog): the stand-in waits behind it, as the news pill does. */
+function useLayerUp(on: boolean): boolean {
+  const [up, setUp] = useState(false);
+  useEffect(() => {
+    if (!on || typeof document === "undefined") return;
+    const read = () => setUp(layerIsUp({ dialogsOnly: true }));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(document.body, { childList: true });
+    return () => mo.disconnect();
+  }, [on]);
+  return on && up;
 }
 
 export function GalleryRows({
@@ -131,6 +292,8 @@ export function GalleryRows({
   onNeedLinks,
   landedIds,
   selection,
+  anchor = "end",
+  lens,
 }: {
   items: GridMedia[];
   /** This device's files in flight, drawn FIRST, at the head. */
@@ -168,11 +331,20 @@ export function GalleryRows({
   landedIds?: ReadonlySet<string>;
   /** Select mode (take-home r1, `guest=select`): every tile a toggle wearing the selection's marks. */
   selection?: TileSelection;
+  /** The fixed end (`RowAnchor`): "end" for newest first, "start" for the night in order. */
+  anchor?: RowAnchor;
+  /** Her lens on the album (its filter): what a new lens reveals is no arrival. */
+  lens?: string;
 }) {
   const likeAction = useLikeAction();
   // ★ AN ARRIVAL LANDS COMPLETE OR NOT UNTIL IT CAN (crumbs-23): the rows lay what is in the album, less
   // the arrivals still waiting for their photograph, and the glow is lit as each one lands.
   const gate = useArrivalGate(items, arrivals, onNeedLinks);
+  // What the rows judge as news: the same arrivals, through the same lens (one object while neither moves).
+  const news = useMemo<AlbumNews>(
+    () => ({ arrivals: arrivals ?? NO_ARRIVALS, lens }),
+    [arrivals, lens],
+  );
 
   // A guest's desk row: like, and save the original once its link has landed. No moderation, ever:
   // this is somebody else's party. A phone sees neither (the grid never renders the pane below
@@ -196,40 +368,62 @@ export function GalleryRows({
   // actually in the air (the queue runs one at a time). The fallback to the first of the batch covers
   // the beat between one file completing and the next one's first byte, so the stack never blinks.
   const lead = pending.find((p) => p.status === "uploading") ?? pending[0];
+  // ★ AND WHERE SHE CANNOT SEE IT, IT STANDS IN VIEW (red-team 56's MEDIUM): the stack keeps the slot her photograph
+  // lands in, the end of an album in order, and while that slot is out of her sight its stand-in carries the bar and
+  // the x where she is (`sending-stand-in.tsx`).
+  const standIn = useStandIn(lead !== undefined);
+  const layerUp = useLayerUp(standIn.away);
 
   return (
-    <MasonryColumns
-      layout="rows"
-      items={gate.items}
-      stagger
-      rowStep={step}
-      onRowStepChange={onStepChange}
-      rowRhythm="double"
-      rhythmSeed={seed}
-      firstPaintWidth={firstPaintWidth}
-      onBoxWidth={onBoxWidth}
-      onWindowChange={onWindowChange}
-      onViewerNeedLinks={onViewerNeedLinks}
-      albumRef={albumRef}
-      shareUrl={shareUrl}
-      onDeleteItem={onDeleteItem}
-      canDelete={canDelete}
-      arrivedIds={gate.glow}
-      landedIds={landedIds}
-      selection={selection}
-      tileActions={tileActions}
-      prefix={
-        <>
-          {lead && (
-            <LiveStackTile
-              key={lead.queueId}
-              lead={lead}
-              remaining={pending.length}
-              progress={progress}
-            />
-          )}
-        </>
-      }
-    />
+    <AlbumNewsContext value={news}>
+      <MasonryColumns
+        layout="rows"
+        items={gate.items}
+        stagger
+        rowStep={step}
+        onRowStepChange={onStepChange}
+        rowAnchor={anchor}
+        rowRhythm="double"
+        rhythmSeed={seed}
+        firstPaintWidth={firstPaintWidth}
+        onBoxWidth={onBoxWidth}
+        onWindowChange={onWindowChange}
+        onViewerNeedLinks={onViewerNeedLinks}
+        albumRef={albumRef}
+        shareUrl={shareUrl}
+        onDeleteItem={onDeleteItem}
+        canDelete={canDelete}
+        arrivedIds={gate.glow}
+        landedIds={landedIds}
+        selection={selection}
+        tileActions={tileActions}
+        prefix={
+          <>
+            {lead && (
+              <LiveStackTile
+                key={lead.queueId}
+                lead={lead}
+                remaining={pending.length}
+                progress={progress}
+                onSight={standIn.onSight}
+              />
+            )}
+          </>
+        }
+      />
+      {lead && (
+        <StackQuestion key={lead.queueId} lead={lead} progress={progress} />
+      )}
+      {lead && standIn.away && !layerUp && typeof document !== "undefined" && (
+        <LiveStandIn
+          doc={document}
+          lead={lead}
+          remaining={pending.length}
+          progress={progress}
+        />
+      )}
+    </AlbumNewsContext>
   );
 }
+
+const NO_ARRIVALS: readonly string[] = [];

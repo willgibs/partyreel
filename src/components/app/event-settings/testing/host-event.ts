@@ -1,10 +1,12 @@
 /**
  * A HOST'S EVENT, FOR SETTINGS' OWN TESTS: production's defaults for an event made in the wizard
  * (Public, an email first on, a photo first off, uploads open and live, the reel on in the default
- * mood and hold, videos on), with whatever a test needs over it.
+ * mood and hold, videos on, and the zone of the browser it was made in: event-zone's capture), with
+ * whatever a test needs over it. `time_zone: null` is an event from before the column.
  */
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
+import { deviceZone } from "@/lib/event/zone";
 import type { ReadyFacts } from "@/lib/events/readiness";
 
 export function hostEvent(over: Partial<HostEvent> = {}): HostEvent {
@@ -34,6 +36,7 @@ export function hostEvent(over: Partial<HostEvent> = {}): HostEvent {
     updated_at: "2026-09-01T00:00:00Z",
     deleted_at: null,
     purge_at: null,
+    time_zone: deviceZone(),
     ...over,
   } as HostEvent;
 }

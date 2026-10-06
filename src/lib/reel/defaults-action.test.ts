@@ -14,6 +14,11 @@ import { DEFAULT_HOLD_SEC } from "@/lib/reel/defaults";
 import { DEFAULT_STYLE_ID } from "@/lib/reel/engine/style-registry";
 
 vi.mock("server-only", () => ({}));
+// The event write it rides reports a refused zone (event-zone): no reporter in a unit run.
+vi.mock("@/lib/observability/sentry", () => ({
+  captureError: vi.fn(),
+  captureWarning: vi.fn(),
+}));
 const revalidatePath = vi.fn();
 vi.mock("next/cache", () => ({
   revalidatePath: (...a: unknown[]) => revalidatePath(...a),
