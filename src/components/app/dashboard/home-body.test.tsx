@@ -120,31 +120,40 @@ const inputOf = (rule: RuleId, hosted = LENA): HomeInput => ({
  */
 let accounts = 0;
 
-function page(
-  over: {
-    rule?: RuleId;
-    hosted?: HostedEvent[];
-    guests?: GuestEventCardData[];
-    owner?: string;
-  } = {},
-) {
+type Page = {
+  rule?: RuleId;
+  hosted?: HostedEvent[];
+  guests?: GuestEventCardData[];
+  owner?: string;
+};
+
+/** The page as the server draws it for the rule her account keeps, as the props `DashboardHome` hands its body. */
+function body(over: Page & { owner: string }) {
   const input = {
     ...inputOf(over.rule ?? "newest", over.hosted),
     guests: over.guests ?? [],
   };
   const view = buildHomeView(input);
-  const leading = leadingOf(input, view);
-  return render(
+  return (
     <HomeBody
       drawn={drawnOf(view)}
       hasAny={view.hasAny}
       ctx={ctx}
-      owner={over.owner ?? `host-${++accounts}`}
+      owner={over.owner}
       display={DISPLAY_DEFAULT}
-      leading={leading}
+      leading={leadingOf(input, view)}
       notes={<p data-testid="notes">notes</p>}
-    />,
+    />
   );
+}
+
+function page(over: Page = {}) {
+  const owner = over.owner ?? `host-${++accounts}`;
+  const view = render(body({ ...over, owner }));
+  /** A new server render of the same page (a refresh, another event made) for the rule her account now keeps. */
+  const redraw = (next: Page = {}) =>
+    view.rerender(body({ ...over, ...next, owner }));
+  return { ...view, redraw };
 }
 
 const stage = () =>
@@ -264,6 +273,39 @@ describe("where she has a choice", () => {
     expect(stage()).toBe("Team lunch");
     expect(actions.setLeadRuleAction).toHaveBeenCalledWith("upcoming");
     expect(phrase()).toHaveTextContent("Your next party: choose what leads");
+  });
+});
+
+describe("the rule the page follows", () => {
+  it("★ follows the server's rule until she presses one: a new render of the page is never held to the rule it first met", () => {
+    const view = page({ rule: "newest" });
+    expect(stage()).toBe("Team lunch");
+    // Her account kept another rule (another device, another tab), and the page drew again.
+    view.redraw({ rule: "photos" });
+    expect(stage()).toBe("Lena's 40th");
+    expect(phrase()).toHaveTextContent("Latest photos");
+  });
+
+  it("★ holds what she pressed in this tab over a later render, as her events' layout is held", async () => {
+    const user = userEvent.setup();
+    const view = page({ rule: "newest" });
+    await chooseRule(user, "opened");
+    expect(stage()).toBe("The Okafor wedding");
+    // A render drawn before her write landed (or from another device) still says Newest: this tab keeps her press.
+    view.redraw({ rule: "newest" });
+    expect(stage()).toBe("The Okafor wedding");
+    view.redraw({ rule: "photos" });
+    expect(stage()).toBe("The Okafor wedding");
+  });
+
+  it("starts following the server the moment she has a choice, where she had none", () => {
+    const view = page({ rule: "photos", hosted: [LENA[1]!] });
+    expect(document.querySelector("[data-stage-lead]")).toBeNull();
+    expect(stage()).toBe("Team lunch");
+    // Another event was made: the page draws again with a choice, and her kept rule leads.
+    view.redraw({ rule: "photos", hosted: LENA });
+    expect(stage()).toBe("Lena's 40th");
+    expect(phrase()).toHaveTextContent("Latest photos");
   });
 });
 

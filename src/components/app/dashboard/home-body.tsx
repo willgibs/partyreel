@@ -25,7 +25,7 @@ import {
 } from "@/lib/dashboard/display";
 import type { HomeContext } from "@/lib/dashboard/home-event";
 import type { StageView } from "@/lib/dashboard/home-view";
-import { DEFAULT_RULE, resolveRule, type RuleId } from "@/lib/dashboard/lead";
+import { DEFAULT_RULE, type RuleId } from "@/lib/dashboard/lead";
 import { type Around, type Leading, pageAround } from "@/lib/dashboard/leading";
 import { phaseOfEvent } from "@/lib/dashboard/when";
 
@@ -83,9 +83,11 @@ export function HomeBody({
   /** The claims review's line and the page invite, above the events. */
   notes?: ReactNode;
 }) {
-  const [rule, setRule] = useState<RuleId>(() =>
-    leading ? resolveRule(recall(owner) ?? leading.rule) : DEFAULT_RULE,
-  );
+  // The rule she pressed in this tab (or the tab remembers of her last press), and until she presses one, the rule the
+  // server drew for: a render that brings a new `leading` (another event made, a refresh behind the claims review) is
+  // followed, never held to the rule this component first met.
+  const [chosen, setChosen] = useState<RuleId | null>(() => recall(owner));
+  const rule = chosen ?? leading?.rule ?? DEFAULT_RULE;
   const [guestsOf, setGuestsOf] = useState<Record<string, number>>({});
 
   const around = useMemo(
@@ -128,7 +130,7 @@ export function HomeBody({
 
   /** Moves the stage at once, and keeps the rule for her account beside it. */
   function keep(next: RuleId) {
-    setRule(next);
+    setChosen(next);
     remembered = { owner, rule: next };
     startTransition(async () => {
       try {
