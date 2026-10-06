@@ -1,7 +1,7 @@
 /**
- * THE PARTY'S OWN ZONE (`zone.ts`): which zones are read, the one fallback, the host's own, the typed seam, and the
- * place a zone names. Each case is a promise a caller leans on: the server stores only a zone it can read, every reader
- * falls back the same way, and a host reads the city she knows.
+ * THE PARTY'S OWN ZONE (`zone.ts`): which zones are read, the one fallback, the host's own, and the place a zone names.
+ * Each case is a promise a caller leans on: the server stores only a zone it can read, every reader falls back the same
+ * way, and a host reads the city she knows.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -14,9 +14,7 @@ import {
   partyZoneOf,
   readableZone,
   sameZone,
-  withZone,
   ZONE_MAX_LENGTH,
-  zoneOfRow,
   zonePlace,
 } from "@/lib/event/zone";
 
@@ -120,27 +118,6 @@ describe("farZone: a party far from home, and only then", () => {
   it("a browser that names no zone reads every party's zone as far, so the place is always said", () => {
     deviceSays("Etc/Unknown");
     expect(farZone("Europe/London")).toBe("Europe/London");
-  });
-});
-
-describe("the typed seam (until the generated types carry the column)", () => {
-  it("zoneOfRow reads the stored text, or null", () => {
-    expect(zoneOfRow({ id: "e", time_zone: "Pacific/Auckland" })).toBe(
-      "Pacific/Auckland",
-    );
-    expect(zoneOfRow({ id: "e", time_zone: null })).toBeNull();
-    expect(zoneOfRow({ id: "e" })).toBeNull();
-    expect(zoneOfRow({ time_zone: 7 })).toBeNull();
-    expect(zoneOfRow(null)).toBeNull();
-  });
-
-  it("withZone carries the column where there is a zone, and names no column where there is none", () => {
-    expect(withZone({ name: "x" }, "Europe/London")).toEqual({
-      name: "x",
-      time_zone: "Europe/London",
-    });
-    expect(withZone({ name: "x" }, null)).toEqual({ name: "x" });
-    expect("time_zone" in withZone({ name: "x" }, undefined)).toBe(false);
   });
 });
 

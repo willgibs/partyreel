@@ -11,7 +11,6 @@ import "server-only";
 
 import { cache } from "react";
 
-import { zoneOfRow } from "@/lib/event/zone";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -28,7 +27,7 @@ export const readPartyZone = cache(async function readPartyZone(
       captureError("db", error, { seam: "party_zone", eventId });
       return null;
     }
-    return zoneOfRow(data);
+    return data?.time_zone ?? null;
   } catch (error) {
     captureError("db", error, { seam: "party_zone", eventId });
     return null;

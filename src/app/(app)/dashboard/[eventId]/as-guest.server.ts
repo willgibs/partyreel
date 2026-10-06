@@ -4,7 +4,6 @@ import type { GuestListItem } from "@/components/social/guest-list";
 import type { RowRhythm } from "@/components/shared/album-window-plan";
 import { getEvent } from "@/lib/db/queries/events";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import { zoneOfRow } from "@/lib/event/zone";
 import { albumOpening, type AlbumOpening } from "@/lib/event/zone-morning";
 import {
   getGalleryStats,
@@ -123,7 +122,7 @@ export async function readAsGuest(
       eventEndDate: event.event_end_date ?? null,
       developsAt: event.develops_at ?? null,
     },
-    zone: zoneOfRow(hosted),
+    zone: hosted.time_zone,
     chosen: null,
   });
   const galleryPromise = shut

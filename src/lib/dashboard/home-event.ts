@@ -5,7 +5,7 @@ import type { Dated } from "./when";
 
 /**
  * ONE HOSTED EVENT AS THE DASHBOARD KNOWS IT: every fact the page's rules read (`when.ts`,
- * `attention.ts`, `moment.ts`, `seasons.ts`), already read on the server and plain, so the rules are
+ * `attention.ts`, `moment.ts`), already read on the server and plain, so the rules are
  * pure and the same facts drive the page and its tests.
  *
  * ★ SOME FACTS ARE READ ONLY WHERE A RULE ASKS FOR THEM. Readiness's two extra facts (the code's

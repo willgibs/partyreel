@@ -124,31 +124,6 @@ export function farZone(stored: string | null | undefined): string | null {
   return sameZone(party, deviceZone()) ? null : party;
 }
 
-/**
- * `events.time_zone` off a row read whole (`select("*")`): the stored text, or null for none.
- *
- * ★ THE TYPED SEAM until the generated types carry the column (20261005220000; the Orchestrator regenerates
- * `src/lib/db/types.ts` after the apply): every reader of the column goes through here, and every writer through
- * `withZone`, so the seam is two names to retire. Never validated here: a reader asks `readableZone`.
- */
-export function zoneOfRow(row: unknown): string | null {
-  if (!row || typeof row !== "object") return null;
-  const value = (row as { time_zone?: unknown }).time_zone;
-  return typeof value === "string" ? value : null;
-}
-
-/**
- * A write (or a row) carrying the column, typed as the generated shape until that names it (the seam's other half): the
- * zone rides the object at run time, where supabase-js's excess-property check on a write never sees it. None adds
- * nothing, so a write with no zone names no column.
- */
-export function withZone<T extends object>(
-  row: T,
-  zone: string | null | undefined,
-): T {
-  return zone ? ({ ...row, time_zone: zone } as T) : row;
-}
-
 /* ───────────────────────────── its place ─────────────────────────────── */
 
 /**

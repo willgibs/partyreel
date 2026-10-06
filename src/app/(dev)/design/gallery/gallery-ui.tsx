@@ -151,6 +151,7 @@ export function SpecimenList({
           bleed={s.bleed}
           skin={s.skin}
           contentClassName={s.contentClassName}
+          sticks={s.sticks}
           code={specimenCode(entry.id, i)}
         >
           {s.node}

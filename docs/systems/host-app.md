@@ -185,9 +185,9 @@ hub and closes back to it.
   is in sight at every width, so the row never scrolls sideways: a hand's two by two with See it as a guest the width
   under it, a tablet's five tiles from 640px, a desk's five cards from 1100px, and stuck, pills of a glyph and its count
   under 800px (sized for a 320px phone) and a glyph, its word and its count from it, all CSS (`room-card.css`) so the
-  server's paint is right at every width. Each door's words are `room-card.ts`'s (`reviewCardFace`, `guestsCardFace`,
-  `settingsCardFace`), the page's first paint and the row's live counts alike, and a count from 1,000 reads `1.2K` on
-  the door and whole in its name. ★ The row condenses in place (a remount would drop the code chip's
+  server's paint is right at every width. Each door's words are `room-card.ts`'s (`reelCardFace`, `guestsCardFace`,
+  `reviewCardFace`, `settingsCardFace`), the page's first paint and the row's live counts alike, and a count from 1,000
+  reads `1.2K` on the door and whole in its name. ★ The row condenses in place (a remount would drop the code chip's
   `view-transition-name` mid-morph), written as one `data-stuck` by the fold (`event-cards-row-fold.ts`: FLIP between
   two reads, so a fold reversed mid-flight starts from where each piece is; reduced motion and a first report below the
   bar flip at once), and inside the resting row's footprint (`useStuckBand`), because a band that moved the album let

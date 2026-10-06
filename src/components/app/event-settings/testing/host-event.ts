@@ -9,10 +9,7 @@ import type { HostEvent } from "@/lib/db/queries/events";
 import { deviceZone } from "@/lib/event/zone";
 import type { ReadyFacts } from "@/lib/events/readiness";
 
-export function hostEvent(
-  // `time_zone` beside the generated row until the types carry the column (event-zone's seam, `zoneOfRow`).
-  over: Partial<HostEvent> & { time_zone?: string | null } = {},
-): HostEvent {
+export function hostEvent(over: Partial<HostEvent> = {}): HostEvent {
   return {
     id: "11111111-2222-4333-8444-555555555555",
     host_id: "host-1",

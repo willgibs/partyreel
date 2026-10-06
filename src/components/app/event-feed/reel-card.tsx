@@ -36,6 +36,7 @@ import { formatCount } from "@/lib/format/count";
 import { useReelParam } from "@/lib/guest/reel-url";
 
 import { warmHubReelView } from "./hub-reel-view";
+import { reelCardFace } from "./room-card";
 import { DoorParts, doorAttrs } from "./room-card-door";
 
 /** What the page hands the Reel card: the reel's state and what it has to show. */
@@ -104,26 +105,6 @@ export function useLiveReel(reel: ReelCardData): ReelCardData {
     have: playable === null ? reel.have : Math.min(playable, REEL_MINIMUM),
     pending: counts?.pending ?? reel.pending,
   };
-}
-
-/**
- * THE CARD'S LINE, from the reel's state: what the door says under its name. One pure function of (state, have, of,
- * developing), as `doorLabel` and `reviewCardFace` are for their doors.
- */
-export function reelCardFace(
-  state: ReelState,
-  have: number,
-  of: number,
-  developing: boolean,
-): string {
-  if (state === "off") return "Off";
-  if (state === "live")
-    // ★ SHORT ON PURPOSE: the card's line is a phone's half width, where "Guests get it at the develop" was cut at every
-    // width; the whole sentence is the card's `title`.
-    return developing ? "Guests get it later" : "Live for guests";
-  if (have === 0) return `Starts at ${of} photos`;
-  const toGo = photosToGo(have);
-  return `${toGo} more ${toGo === 1 ? "photo" : "photos"}`;
 }
 
 /**

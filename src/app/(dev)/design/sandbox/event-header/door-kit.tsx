@@ -15,7 +15,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { reelCardFace } from "@/components/app/event-feed/room-card";
 import { CodeChip } from "@/components/ui/code-chip";
+import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { stepsLeft } from "@/lib/events/readiness";
 import { doorLabel, uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
@@ -101,21 +103,19 @@ export type DoorFace = {
   paused?: boolean;
 };
 
-/** Every door's face, from the album's facts: production's words (`page.tsx`, `room-card.ts`). */
+/** Every door's face, from the album's facts: production's words (`page.tsx`, `room-card.ts`; the reel's line is `reelCardFace` itself). */
 export function facesOf(c: Case): Record<RoomId, DoorFace> {
   // The day after the event's date the checklist steps aside, and Settings stops counting (`checklistOver`).
   const left = c.over ? 0 : stepsLeft(c.ready);
-  const toGo = 2 - c.reelHave;
   return {
-    reel:
-      c.reel === "live"
-        ? { value: "Live for guests" }
-        : {
-            value:
-              c.reelHave === 0
-                ? "Starts at 2 photos"
-                : `${toGo} more ${toGo === 1 ? "photo" : "photos"}`,
-          },
+    reel: {
+      value: reelCardFace(
+        c.reel === "live" ? "live" : "counting",
+        c.reelHave,
+        REEL_MINIMUM,
+        false,
+      ),
+    },
     guests:
       c.waiting > 0
         ? {

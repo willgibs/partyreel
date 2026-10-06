@@ -8,16 +8,15 @@ import {
   quietLine,
   weekEvents,
 } from "./attention";
-import type { EventListRow, EventSeason } from "./events-view";
+import type { EventListRow } from "./events-view";
 import type { GuestEventCardData } from "./guest-events";
 import type { HomeContext, HomeEvent } from "./home-event";
 import { DEFAULT_RULE, leadOf, type RuleId } from "./lead";
-import { seasonsOf } from "./seasons";
 import { dateFace, dayOf, phaseOfEvent, whenOf } from "./when";
 
 /**
  * THE DASHBOARD, COMPOSED (host-dashboard r1's four picks and its four carried calls, wired): what
- * leads, what the week holds, and how everything else groups by when, from the facts the page read.
+ * leads, what the week holds, and the rows of everything else, from the facts the page read.
  * Pure, so the page and its tests compose the same page from the same facts, and nothing about what
  * shows is decided twice.
  *
@@ -26,8 +25,7 @@ import { dateFace, dayOf, phaseOfEvent, whenOf } from "./when";
  *   - THIS WEEK holds every other party within a week of its date, each with its one step or its quiet
  *     state (`attention.ts`).
  *   - EVERYTHING ELSE is the host's collection (`display.ts`, her Display menu), the stage's own event left
- *     out, the events you added to and the bin through the lens. Its groups by when (`seasons.ts`) are still
- *     composed because the host-dashboard board's drawings read them; the events section does not.
+ *     out, the events you added to and the bin through the lens: rows only, which the section lays out by her Display.
  */
 
 /** What the code card needs to open where the host stands: the permanent link and the code's look. */
@@ -97,13 +95,9 @@ export type WeekCard = {
 export type HomeView = {
   stage: StageView | null;
   week: WeekCard[];
-  /**
-   * Everything else: hosted (the stage's left out), guest and deleted, and the groups by when (read by the board's
-   * drawings only: the events section lays the rows out by her Display).
-   */
+  /** Everything else: hosted (the stage's left out), guest and deleted; the events section lays the rows out by her Display. */
   events: {
     rows: EventListRow[];
-    seasons: EventSeason[];
   };
   /** The account has any event at all, hosted, added to or binned: the create teaser's opposite. */
   hasAny: boolean;
@@ -231,7 +225,6 @@ export function buildHomeView(input: HomeInput): HomeView {
   const hostedRows: EventListRow[] = listed.map((e) =>
     hostedRowOf(e, ctx, inWeek.has(e.id)),
   );
-  const seasons = seasonsOf(listed, ctx.today);
 
   const guestRows: EventListRow[] = [...input.guests]
     .sort((a, b) =>
@@ -263,13 +256,6 @@ export function buildHomeView(input: HomeInput): HomeView {
       dated: true,
       openedAt: null,
     }));
-  if (guestRows.length > 0)
-    seasons.push({
-      id: "guest",
-      label: "As a guest",
-      size: "medium",
-      ids: guestRows.map((r) => r.id),
-    });
 
   const deletedRows: EventListRow[] = input.deleted.map((d) => ({
     id: d.id,
@@ -298,7 +284,6 @@ export function buildHomeView(input: HomeInput): HomeView {
     week: weekCards,
     events: {
       rows: [...hostedRows, ...guestRows, ...deletedRows],
-      seasons,
     },
     hasAny:
       hosted.length > 0 || input.guests.length > 0 || input.deleted.length > 0,

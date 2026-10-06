@@ -16,7 +16,7 @@ import {
   APPROVAL_NEVER_WITH_A_DEVELOP_CHECK,
   approvalWithADevelop,
 } from "@/lib/disposable/album-style";
-import { readableZone, withZone, zoneOfRow } from "@/lib/event/zone";
+import { readableZone } from "@/lib/event/zone";
 import { endToStore } from "@/lib/events/dates";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
@@ -185,12 +185,15 @@ export async function createEvent(
     roll_size: values.roll_size,
     develops_at: values.develops_at,
   };
+  // ★ THE PARTY'S OWN ZONE FROM BIRTH (event-zone): her browser's, captured and never asked, so the album's turn and
+  // the develop's 9 am are the party's morning for every guest. None where it named none this runtime reads, and an
+  // insert with no zone names no column.
+  const zone = storedZone(values.captured_zone, "create");
+  if (zone !== null) insert.time_zone = zone;
 
   const { data, error } = await supabase
     .from("events")
-    // ★ THE PARTY'S OWN ZONE FROM BIRTH (event-zone): her browser's, captured and never asked, so the album's turn and
-    // the develop's 9 am are the party's morning for every guest. None where it named none this runtime reads.
-    .insert(withZone(insert, storedZone(values.captured_zone, "create")))
+    .insert(insert)
     .select("*")
     .single();
 
@@ -334,11 +337,12 @@ export async function updateEvent(
   if (values.capture !== undefined) patch.capture = values.capture;
   if (values.roll_size !== undefined) patch.roll_size = values.roll_size;
   if (values.develops_at !== undefined) patch.develops_at = values.develops_at;
+  // ★ THE PARTY'S CITY, CHOSEN (event-zone, Settings' far-from-home choice): the one write that moves the party's zone, a
+  // zone the schema read. The zone captured beside a save of a time never rides the patch (below).
+  if (values.time_zone !== undefined) patch.time_zone = values.time_zone;
   const { data, error } = await supabase
     .from("events")
-    // ★ THE PARTY'S CITY, CHOSEN (event-zone, Settings' far-from-home choice): the one write that moves the party's
-    // zone, a zone the schema read. The zone captured beside a save of a time never rides the patch (below).
-    .update(withZone(patch, values.time_zone))
+    .update(patch)
     .eq("id", id)
     .is("deleted_at", null)
     .select("*")
@@ -362,20 +366,20 @@ export async function updateEvent(
   if (
     values.time_zone === undefined &&
     values.captured_zone !== undefined &&
-    zoneOfRow(data) === null
+    data.time_zone === null
   ) {
     const zone = storedZone(values.captured_zone, "update");
     if (zone !== null) {
       const { error: fillError } = await supabase
         .from("events")
-        .update(withZone<TablesUpdate<"events">>({}, zone))
+        .update({ time_zone: zone })
         .eq("id", id)
         .is("deleted_at", null)
         .is("time_zone", null);
       if (fillError) {
         captureError("db", fillError, { seam: "event_zone_fill", eventId: id });
       } else {
-        return { ok: true, data: withZone(data, zone) };
+        return { ok: true, data: { ...data, time_zone: zone } };
       }
     }
   }

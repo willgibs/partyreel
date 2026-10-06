@@ -65,8 +65,7 @@ export type Around = {
 };
 
 /**
- * THE PAGE AS THE SERVER DREW IT, in the parts that depend on who leads. These alone cross to the client (never the
- * view's groups by when, which only the board's drawings read).
+ * THE PAGE AS THE SERVER DREW IT, in the parts that depend on who leads. These alone cross to the client.
  */
 export function drawnOf(view: HomeView): Around {
   return { stage: view.stage, week: view.week, rows: view.events.rows };

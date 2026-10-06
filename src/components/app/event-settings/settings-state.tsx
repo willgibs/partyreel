@@ -27,7 +27,7 @@ import { rollSizeOf } from "@/lib/disposable/roll";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import type { Door } from "@/lib/event/door/door";
-import { deviceZone, zoneOfRow } from "@/lib/event/zone";
+import { deviceZone } from "@/lib/event/zone";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { REEL_MOOD_IDS, resolveHoldSec } from "@/lib/reel/defaults";
@@ -133,7 +133,7 @@ function valuesOf(
     displayInProfile: social ? social.displayInProfile : null,
     // The develop time in one spelling (ISO), so a save the row agrees with lets its overlay go.
     ...developValuesOf(event),
-    timeZone: zoneOfRow(event),
+    timeZone: event.time_zone,
   };
 }
 
@@ -456,7 +456,7 @@ export function SettingsProvider({
         async () => {
           const result = await writes.updateEvent(event.id, {
             ...eventPatch(patch),
-            ...capturedZoneFor(patch, zoneOfRow(event)),
+            ...capturedZoneFor(patch, event.time_zone),
           });
           return !result || result.ok
             ? { ok: true as const }
