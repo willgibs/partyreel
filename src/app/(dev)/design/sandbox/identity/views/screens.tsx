@@ -4,40 +4,28 @@ import type { ComponentType } from "react";
 
 import type { SheetView, ViewId } from "../model";
 
-import { AccountMenuScreen, AccountScreen } from "./account";
-import { AddScreen } from "./add";
+import { AccountScreen } from "./account";
+import { AlbumScreen } from "./album";
 import { CreateScreen } from "./create";
-import { ConfirmScreen } from "./edge/confirm";
-import { DashboardScreen } from "./edge/dashboard";
-import { StartScreen } from "./edge/start";
-import { StyleScreen } from "./edge/style";
-import { ToastsScreen } from "./edge/toasts";
-import { TooltipScreen } from "./edge/tooltip";
 import { GuestGateScreen } from "./gate";
 import type { ScreenProps } from "./screen-props";
-import { SettingsScreen } from "./settings";
+import { DatesScreen, RowsScreen, SettingsScreen } from "./settings";
 
 /**
- * EVERY REAL SCREEN THE BOARD DRAWS, BY VIEW: the five a trait is judged on
- * (Settings over the hub, Create, the guest's Add, the guest's door, Account)
- * and the edge's own (the dashboard's Display, a delete confirm, toasts while
- * uploading, the reel's Style menu, the account menu, a tooltip, and a new
- * host's dashboard). Each takes the moment it is caught in.
+ * EVERY REAL SCREEN THE BOARD DRAWS, BY VIEW: Settings' door (each set's
+ * composite first frame) and its dates, Account's billing row, Create's foot,
+ * the guest's door, the album's toolbar and Settings' first page. Each takes
+ * the moment it is caught in: in use as a person meets it, or working.
  */
 export const SCREENS: Record<
   Exclude<ViewId, SheetView>,
   ComponentType<ScreenProps>
 > = {
-  settings: SettingsScreen,
-  create: CreateScreen,
-  add: AddScreen,
-  door: GuestGateScreen,
+  door: SettingsScreen,
+  dates: DatesScreen,
   account: AccountScreen,
-  menu: AccountMenuScreen,
-  dashboard: DashboardScreen,
-  confirm: ConfirmScreen,
-  toasts: ToastsScreen,
-  style: StyleScreen,
-  tooltip: TooltipScreen,
-  start: StartScreen,
+  create: CreateScreen,
+  gate: GuestGateScreen,
+  album: AlbumScreen,
+  rows: RowsScreen,
 };

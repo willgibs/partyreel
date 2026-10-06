@@ -1,105 +1,74 @@
 import {
   ATOMS,
+  BTN,
+  btn,
+  CHECK,
+  CHIP,
   CHIPS,
+  each,
+  FIELDS,
+  OFF,
   RADIO,
   RADIO_CARD,
+  SEGMENT,
   SEGMENTS,
   SLIDER,
   SLIDER_THUMB,
+  SWITCH,
+  SWITCH_ON,
   TAB,
   TABS,
+  THUMB,
+  PRESS,
+  LIVE,
 } from "./states";
 
 /**
- * WHAT EVERY MIX STANDS ON: the tokens the traits read, the one rule that
- * composes their layers, and the stand-ins' own layout. Nothing here is a
- * trait's look; a frame with every trait sheet removed still lays out.
+ * WHAT EVERY SET STANDS ON: the ink and tone steps, the shared geometry, the
+ * one rule that composes the layers, and the stand-ins' own layout. Nothing
+ * here is a set's look: a frame with its set sheet removed still lays out.
  *
- * ★ PRODUCTION'S MATERIAL IS THE GROUND NOW. Viewfinder's body, the camera
- * voice, the display and the lights are wired (`identity-wiring`), so this
- * declares only what the traits add to them: a key's bevel, a well's shade, a
- * ring's line, a wash, a thumb's grey, each on both grounds and on the display
- * (a field inside a popover reads the screen's own greys), and ink's two tones
- * on each atom itself, where its own foreground is.
+ * ★ EVERYTHING BUT A FEW CONSTRUCTIONS IS SHARED (the r5 brief: "differing
+ * in a few load-bearing constructions and sharing everything else (the 40px
+ * field, the 8px corner scale, the ink and tone steps, spacing)"). So the
+ * field's 40px floor and 8px corner, the action ladder's own corners (0.4 of
+ * a key's height, production's), a chip's 28px, a segment's 30px in a 3px
+ * track, the switch's 40 by 24, an 18px check and radio, a slider's 20px
+ * thumb, every transition and the disabled step are laid once, here; a set
+ * draws bodies, never boxes.
  *
  * ★ A TOKEN THAT DEPENDS ON ITS GROUND IS DECLARED ON EVERY GROUND: a frame can
  * draw paper and the room in one document, and a `var()` inside a custom
  * property resolves where it is declared, so a value declared once on the root
- * would carry paper's bevel into the room.
+ * would carry paper's tone into the room. The tones are read on the atom
+ * itself (`:where(atoms)`), where its own foreground is.
+ */
+
+/**
+ * THE INK AND TONE STEPS: ink is the house's one strong value (near-black on
+ * paper, white in the room), with its one hover step; a tone is the ground's
+ * own ink at a few percent, four steps. Every set reads these and no other
+ * grey.
  */
 const TOKENS = `
-:root, .surface-paper {
-  --vf-key-hi: oklch(1 0 0 / 85%);
-  --vf-key-lo: oklch(0 0 0 / 9%);
-  --vf-ink-hi: oklch(1 0 0 / 16%);
-  --vf-ink-lo: oklch(0 0 0 / 38%);
-  --vf-well-shade: oklch(0 0 0 / 7%);
-  --vf-ring: oklch(0.14 0.004 286 / 24%);
-  --vf-ring-strong: oklch(0.14 0.004 286 / 48%);
-  --vf-wash: oklch(0.14 0.004 286 / 6%);
-  --vf-wash-strong: oklch(0.14 0.004 286 / 10%);
-  --vf-thumb: oklch(1 0 0);
-}
-.dark {
-  /* One light from above on every ground: a key's top edge catches it in the room as a lit rim
-     (it was 8%, a line nobody saw on the room's near-black). */
-  --vf-key-hi: oklch(1 0 0 / 14%);
-  --vf-key-lo: oklch(0 0 0 / 45%);
-  --vf-ink-hi: oklch(1 0 0 / 75%);
-  --vf-ink-lo: oklch(0 0 0 / 20%);
-  --vf-well-shade: oklch(0 0 0 / 40%);
-  --vf-ring: oklch(1 0 0 / 22%);
-  --vf-ring-strong: oklch(1 0 0 / 46%);
-  --vf-wash: oklch(1 0 0 / 6%);
-  --vf-wash-strong: oklch(1 0 0 / 11%);
-  --vf-thumb: oklch(0.64 0.005 286);
-}
-.surface-display {
-  --vf-key-hi: oklch(1 0 0 / 14%);
-  --vf-key-lo: oklch(0 0 0 / 45%);
-  --vf-ink-hi: oklch(1 0 0 / 75%);
-  --vf-ink-lo: oklch(0 0 0 / 20%);
-  --vf-well-shade: oklch(0 0 0 / 40%);
-  --vf-ring: oklch(1 0 0 / 24%);
-  --vf-ring-strong: oklch(1 0 0 / 50%);
-  --vf-wash: oklch(1 0 0 / 7%);
-  --vf-wash-strong: oklch(1 0 0 / 12%);
-  --vf-thumb: oklch(0.7 0.005 286);
-}
-/* A well: its fill, the shade along its top edge and its fade, its faint rim, the lip of light
-   along its foot (lit from above). On paper a step under the page; in the room deeper than the
-   page; on the display a step under the screen. Every well reads these: a field, a switch, a
-   check, a segmented control's track. */
-:root, .surface-paper {
-  --vf-well: oklch(0.948 0.003 286);
-  --vf-well-top: oklch(0 0 0 / 26%); --vf-well-fade: oklch(0 0 0 / 7%);
-  --vf-well-rim: oklch(0 0 0 / 8%); --vf-well-lip: oklch(1 0 0 / 70%);
-  --vf-well-rim-hover: oklch(0 0 0 / 16%);
-}
-.dark {
-  --vf-well: oklch(0.075 0.003 286);
-  --vf-well-top: oklch(0 0 0 / 60%); --vf-well-fade: oklch(0 0 0 / 50%);
-  --vf-well-rim: oklch(1 0 0 / 5%); --vf-well-lip: oklch(1 0 0 / 10%);
-  --vf-well-rim-hover: oklch(1 0 0 / 12%);
-}
-.surface-display {
-  --vf-well: color-mix(in oklab, var(--display), oklch(0 0 0) 35%);
-  --vf-well-top: oklch(0 0 0 / 45%); --vf-well-fade: oklch(0 0 0 / 35%);
-  --vf-well-rim: oklch(1 0 0 / 6%); --vf-well-lip: oklch(1 0 0 / 10%);
-  --vf-well-rim-hover: oklch(1 0 0 / 14%);
-}
-/* Ink and its two tones, read on the atom itself, where its own ground is. */
-:where(${ATOMS}, ${CHIPS}, ${SEGMENTS}, ${TABS}, ${SLIDER}) {
+:root, .surface-paper { --ink-lift: oklch(1 0 0); --ink-lift-by: 12%; }
+.dark, .surface-display { --ink-lift: oklch(0 0 0); --ink-lift-by: 4%; }
+:where(${ATOMS}, ${CHIPS}, ${SEGMENTS}, ${TABS}, ${SLIDER}, ${THUMB}, [data-slot="slider-track"]) {
   --ink: var(--primary); --ink-fg: var(--primary-foreground);
-  --tone: color-mix(in oklab, var(--foreground) 8%, transparent);
-  --tone-up: color-mix(in oklab, var(--foreground) 13%, transparent);
+  /* Ink under a pointer: a step toward the page's light on paper, a breath darker in the room (4%:
+     at 7% and more a white key read as grey, held off). */
+  --ink-up: color-mix(in oklab, var(--ink), var(--ink-lift) var(--ink-lift-by));
+  --tone-1: color-mix(in oklab, var(--foreground) 4%, transparent);
+  --tone-2: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --tone-3: color-mix(in oklab, var(--foreground) 11%, transparent);
+  --tone-4: color-mix(in oklab, var(--foreground) 16%, transparent);
 }
 `;
 
 /**
  * THE COMPOSITION (`states.ts`'s note): each trait writes its own layer, this
  * rule draws all of them. Registered so a layer never inherits into an atom
- * inside another, and so a press's travel and a focus's lift add up.
+ * inside another, and so a press's scale and a focus's halo add up.
  */
 const COMPOSE = `
 @property --i-focus { syntax: "*"; inherits: false; }
@@ -117,40 +86,121 @@ ${ATOMS} {
 `;
 
 /**
- * Laid out once for every mix: the stand-ins (production has no check, radio,
- * slider or radio card primitive yet: `views/atoms.tsx`) and the shared loops.
+ * Laid out once for every set: the stand-ins (production has no check, radio,
+ * slider or radio card primitive yet: `views/atoms.tsx`).
  */
 const STAND_INS = `
-[data-slot="checkbox"], ${RADIO} {
+${CHECK}, ${RADIO} {
   position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none;
-  width: 18px; height: 18px; padding: 0; border: 0; outline: none; cursor: pointer; color: var(--primary-foreground);
+  width: 18px; height: 18px; padding: 0; border: 0; outline: none; cursor: pointer; color: var(--ink-fg);
 }
 [data-slot="checkbox-indicator"] { display: none; align-items: center; justify-content: center; }
 [data-slot="checkbox-indicator"] svg { width: 12px; height: 12px; stroke-width: 3.2; }
-[data-slot="checkbox"][data-state="checked"] [data-slot="checkbox-indicator"] { display: flex; }
-[data-slot="radio-group-indicator"] { display: none; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+${CHECK}[data-state="checked"] [data-slot="checkbox-indicator"] { display: flex; }
+[data-slot="radio-group-indicator"] { display: none; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
 ${RADIO}[data-state="checked"] [data-slot="radio-group-indicator"] { display: block; }
 ${SLIDER} {
   position: relative; display: flex; align-items: center; width: 100%; height: 26px; touch-action: none; cursor: pointer;
 }
-[data-slot="slider-track"] { position: relative; flex: 1; overflow: hidden; }
-[data-slot="slider-range"] { position: absolute; inset-block: 0; left: 0; }
-/* The thumb is centred by its margins, never its translate (the press and the focus lift own that);
-   a toggles sheet sizes it through --thumb-size. */
+[data-slot="slider-track"] { position: relative; flex: 1; overflow: hidden; height: 6px; border-radius: 999px; }
+[data-slot="slider-range"] { position: absolute; inset-block: 0; left: 0; border-radius: 999px; }
+/* The thumb is centred by its margins, never its translate (the press owns that). */
 ${SLIDER_THUMB} {
-  position: absolute; top: 50%; outline: none; cursor: grab;
-  width: var(--thumb-size, 20px); height: var(--thumb-size, 20px);
-  margin-top: calc(var(--thumb-size, 20px) / -2); margin-left: calc(var(--thumb-size, 20px) / -2);
+  position: absolute; top: 50%; outline: none; cursor: grab; border-radius: 999px;
+  width: 20px; height: 20px; margin-top: -10px; margin-left: -10px;
 }
 ${RADIO_CARD} { position: relative; cursor: pointer; }
 ${TABS} { position: relative; }
 ${TAB} { position: relative; flex: none; }
-[data-slot="textarea"] { height: auto; min-height: 84px; padding-block: 10px; }
 `;
 
 /**
- * ★ REDUCED MOTION IS THE GLOBAL GUARD'S (globals.css): every loop a trait
- * runs plays once at 0.01ms and rests on its base style, which each working
- * state draws to read as working on its own, never as nothing.
+ * THE SHARED GEOMETRY. A set may never move a box: two sets differ by how a
+ * part is built, so the same screen lays out alike in all four.
+ *
+ * ★ A FIELD'S OWN SIZE IS ITS SCREEN'S: the floor is 40px and never a height,
+ * a type size or a right padding, which a field's own place sets for a reason
+ * (the guest's door is 44px with 16px type, which stops a phone zooming on
+ * focus, and keeps 40px clear on its right for its eye). A key standing
+ * beside a field (Account's Save) takes the field's height, so the pair reads
+ * as one line.
  */
-export const BASE_CSS = TOKENS + COMPOSE + STAND_INS;
+const GEOMETRY = `
+${FIELDS} {
+  border: 0; border-radius: 8px; padding-left: 12px; background-image: none; text-overflow: ellipsis;
+  transition: background-color 140ms linear, box-shadow 140ms linear, color 140ms linear;
+}
+[data-slot="input"], [data-slot="select-trigger"] { min-height: 40px; }
+[data-slot="textarea"] { height: auto; min-height: 84px; padding-block: 10px; }
+${each(FIELDS, "::placeholder")} { color: var(--faint); }
+${each(FIELDS, OFF)} { opacity: 0.45; }
+${each(FIELDS, ` + ${BTN}`)} { height: auto; align-self: stretch; }
+
+${BTN} {
+  border-color: transparent; background-clip: border-box;
+  transition: background-color 120ms linear, color 120ms linear, box-shadow 120ms linear, scale 140ms var(--ease-emphasis);
+}
+/* Positioned for what a set or a working state draws on it, unless it is placed already: an unlayered
+   position would outrank a popup's absolute close and drop it into the flow. */
+${BTN}:not(.absolute,.fixed,.sticky) { position: relative; }
+${BTN}${OFF} { opacity: 0.4; }
+${btn("link")} { height: auto; padding: 0; gap: 6px; background: none; color: var(--foreground); --i-body: 0 0 #0000; }
+${btn("link")}:is(:hover,[data-demo~="hover"]) { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+${CHIPS} { gap: 6px; }
+${CHIP} {
+  position: relative; height: 28px; min-width: 0; padding: 0 11px; border: 0; border-radius: 11px;
+  color: var(--muted-foreground);
+  transition: background-color 120ms linear, color 120ms linear, box-shadow 120ms linear, scale 140ms var(--ease-emphasis);
+}
+${CHIP}${OFF} { opacity: 0.4; }
+
+${SEGMENTS}, ${TABS} { gap: 2px; padding: 3px; border-radius: 11px; height: auto; }
+${SEGMENT}, ${TAB} {
+  position: relative; height: 30px; min-width: 32px; padding: 0 11px; border: 0; border-radius: 8px;
+  white-space: nowrap; background: transparent; color: var(--muted-foreground);
+  transition: background-color 120ms linear, color 120ms linear, box-shadow 120ms linear, scale 140ms var(--ease-emphasis);
+}
+${SEGMENT}:is(:hover,[data-demo~="hover"]), ${TAB}:is(:hover,[data-demo~="hover"]) { color: var(--foreground); }
+${SEGMENT}${OFF}, ${TAB}${OFF} { opacity: 0.4; }
+${TAB}::after { display: none; }
+
+${RADIO_CARD} {
+  --rc-r: 12px; border: 0 !important; border-radius: var(--rc-r) !important;
+  transition: background-color 140ms linear, box-shadow 140ms linear;
+}
+
+${SWITCH} {
+  width: 40px; height: 24px; border: 0; border-radius: 999px;
+  transition: background-color 160ms var(--ease-in-out-strong), box-shadow 120ms linear;
+}
+${THUMB} {
+  position: relative; width: 18px; height: 18px; border-radius: 999px; translate: 3px 0;
+  transition: translate 180ms var(--ease-in-out-strong), width 120ms var(--ease-emphasis), background-color 120ms linear, box-shadow 120ms linear;
+}
+${SWITCH}${SWITCH_ON} ${THUMB} { translate: 19px 0; }
+/* A held switch's give: its thumb widens toward where it will go, then lands. */
+${SWITCH}${PRESS}${LIVE} ${THUMB} { width: 22px; }
+${SWITCH}${SWITCH_ON}${PRESS}${LIVE} ${THUMB} { translate: 15px 0; }
+${SWITCH}${OFF}, ${CHECK}${OFF}, ${RADIO}${OFF}, ${SLIDER}${OFF} { opacity: 0.4; cursor: not-allowed; }
+${CHECK} { border-radius: 5px; }
+${RADIO} { border-radius: 999px; }
+${CHECK}, ${RADIO} { transition: background-color 120ms linear, box-shadow 120ms linear, color 120ms linear; }
+${SLIDER_THUMB} { transition: box-shadow 120ms linear, background-color 120ms linear; }
+`;
+
+/**
+ * ★ REDUCED MOTION IS THE GLOBAL GUARD'S (globals.css): every loop a working
+ * state runs plays once at 0.01ms and rests on its base style, which each
+ * working option draws to read as working on its own. `.identity-still`
+ * applies the same guard to a subtree, so a frame can show a loop beside its
+ * still (the loading ask's twin).
+ */
+const STILL = `
+.identity-still, .identity-still *, .identity-still *::before, .identity-still *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important; animation-delay: 0ms !important;
+}
+`;
+
+export const BASE_CSS = TOKENS + COMPOSE + STAND_INS + GEOMETRY + STILL;

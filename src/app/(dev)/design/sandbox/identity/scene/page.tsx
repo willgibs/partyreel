@@ -15,8 +15,7 @@ import { SceneRoot } from "./scene-root";
 
 /**
  * THE IDENTITY BOARD'S SCENE ROUTE: the document every one of its frames
- * loads, the mix's seven traits and the edge
- * (`?field=&button=&focus=&selected=&press=&loading=&toggles=&edge=`), then
+ * loads, a set and a working state (`?set=&loading=`), then
  * `&view=&moment=&w=&ground=&page=&id=` (built by `sceneSrc`, `model.ts`).
  *
  * It renders bare (the design root layout carries no chrome; the lab's lives
@@ -42,16 +41,7 @@ export default async function IdentityScenePage({
   };
   return (
     <SceneRoot
-      choice={choiceOf({
-        field: one("field"),
-        button: one("button"),
-        focus: one("focus"),
-        selected: one("selected"),
-        press: one("press"),
-        loading: one("loading"),
-        toggles: one("toggles"),
-        edge: one("edge"),
-      })}
+      choice={choiceOf({ set: one("set"), loading: one("loading") })}
       view={viewOf(one("view"))}
       moment={momentOf(one("moment"))}
       w={widthOf(one("w"))}
