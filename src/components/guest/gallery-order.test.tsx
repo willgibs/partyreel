@@ -5,20 +5,23 @@
  * turn, remembered on this device for this album.
  *
  * Reshaped by event-zone: the page's word was a zone (the reader's) with the album's days, which this hook read the turn
- * in; it is the turn's instant now (`AlbumOpening.morningAfter`), so the days and the zone are gone from these cases and
+ * in; it is the turn's instant now (`GuestAlbumOrder.morningAfter`), so the days and the zone are gone from these cases and
  * every scar they pinned (the turn at its moment, the sleeping phone, the develop, her choice) stands as it was.
  */
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useGuestAlbumOrder } from "@/components/guest/gallery-order";
-import type { AlbumOpening } from "@/lib/event/zone-morning";
-import { ALBUM_SORT_COOKIE, readChosenSort } from "@/lib/shared/album-order";
+import {
+  ALBUM_SORT_COOKIE,
+  readChosenSort,
+  type GuestAlbumOrder,
+} from "@/lib/shared/album-order";
 
 const EVENT = "11111111-2222-4333-8444-555555555555";
 // The party's morning after, as the page's server hands it: 9 am in Auckland the morning after a Saturday party.
 const TURN = Date.parse("2026-10-03T20:00:00Z");
-const OPENING: AlbumOpening = {
+const OPENING: GuestAlbumOrder = {
   morningAfter: TURN,
   own: "newest",
   chosen: null,
@@ -32,7 +35,7 @@ const cookie = () =>
 
 function hook(
   developsAt: string | null,
-  initial: AlbumOpening | undefined,
+  initial: GuestAlbumOrder | undefined,
   isDemo = false,
 ) {
   return renderHook(

@@ -76,7 +76,8 @@ export function styleOf(v: StyleColumns): AlbumStyle | null {
 
 /**
  * The one save a style's press writes: all three columns. A disposable keeps a develop time still ahead, else offers
- * 9 am the day after the party in the host's own zone (`defaultDevelopAt`), and never approval.
+ * 9 am the day after the party in the party's own zone (`defaultDevelopAt`, `zone`: the event's, or the one Create will
+ * carry), the browser's only where no zone can be named, and never approval.
  */
 export function patchForStyle(
   style: AlbumStyle,
@@ -85,6 +86,8 @@ export function patchForStyle(
     eventDate: string | null;
     eventEndDate?: string | null;
     nowMs?: number;
+    /** The party's zone (`hostPartyZone`), or null/absent where none can be named. */
+    zone?: string | null;
   },
 ): StyleColumns {
   if (style === "live")
@@ -102,6 +105,7 @@ export function patchForStyle(
           eventDate: opts.eventDate,
           eventEndDate: opts.eventEndDate,
           now: new Date(nowMs),
+          zone: opts.zone,
         }).toISOString(),
   };
 }

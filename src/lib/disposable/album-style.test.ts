@@ -18,6 +18,7 @@ import {
   styleSwitchConsequence,
 } from "@/lib/disposable/album-style";
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
+import { guestAlbumOrder } from "@/lib/shared/album-order";
 
 const NOW = Date.parse("2026-10-10T20:00:00Z");
 const AHEAD = "2026-10-11T16:00:00.000Z";
@@ -126,6 +127,46 @@ describe("patchForStyle: one save of all three columns, so no half-state is ever
         now: new Date(NOW),
       }).toISOString(),
     });
+  });
+});
+
+describe("patchForStyle takes the party's zone directly (crumbs-85: the seeding retired in its home)", () => {
+  it("★ offers 9 am the morning after in the PARTY's zone, the very instant its album turns, never the browser's", () => {
+    const fresh = patchForStyle(
+      "disposable",
+      { capture: "upload", review: false, developsAt: null },
+      {
+        eventDate: "2026-10-09",
+        eventEndDate: "2026-10-11",
+        nowMs: Date.parse("2026-10-05T22:00:00Z"),
+        zone: "Pacific/Auckland",
+      },
+    );
+    // Monday 12 October, 9:00 NZDT: the morning its album turns.
+    expect(fresh.developsAt).toBe("2026-10-11T20:00:00.000Z");
+    expect(Date.parse(fresh.developsAt!)).toBe(
+      guestAlbumOrder({
+        facts: { eventDate: "2026-10-09", eventEndDate: "2026-10-11" },
+        zone: "Pacific/Auckland",
+        chosen: null,
+      }).morningAfter,
+    );
+  });
+
+  it("an unreadable zone is the one fallback (UTC); none at all is the browser's own clock", () => {
+    const at = (zone: string | null | undefined) =>
+      patchForStyle(
+        "disposable",
+        { capture: "upload", review: false, developsAt: null },
+        { eventDate: "2026-10-10", nowMs: NOW, zone },
+      ).developsAt;
+    expect(at("Mars/Olympus")).toBe("2026-10-11T09:00:00.000Z");
+    const browser = defaultDevelopAt({
+      eventDate: "2026-10-10",
+      now: new Date(NOW),
+    }).toISOString();
+    expect(at(null)).toBe(browser);
+    expect(at(undefined)).toBe(browser);
   });
 });
 

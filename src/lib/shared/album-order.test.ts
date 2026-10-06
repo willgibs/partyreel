@@ -139,7 +139,11 @@ describe("the first paint's order (the page's)", () => {
       chosen: null,
       now: after,
     });
-    expect(morning).toEqual({ zone: "UTC", own: "oldest", chosen: null });
+    expect(morning).toEqual({
+      morningAfter: at("2026-10-04T09:00:00Z"),
+      own: "oldest",
+      chosen: null,
+    });
     expect(shownSort(morning)).toBe("oldest");
     const hers = guestAlbumOrder({
       facts,

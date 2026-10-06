@@ -94,11 +94,11 @@ import {
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
-import type { AlbumOpening } from "@/lib/event/zone-morning";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { developMs } from "@/lib/disposable/contact-sheet-develop";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import type { GuestAlbumOrder } from "@/lib/shared/album-order";
 import { addWords } from "@/lib/guest/camera/words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
@@ -320,13 +320,13 @@ export function EventExperience({
    */
   uploadsWait: UploadsWait;
   /**
-   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `albumOpening`): the album's own order at the render, her
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render, her
    * remembered choice, and the instant the party's morning after begins (event-zone: read in the party's zone on the
    * server, one moment for every reader), decided by the page's server so the seed links what the first paint draws
    * and the hydration lays the same rows. The page keeps it live from here (`useGuestAlbumOrder`). Absent (a stand-in
    * page), the album stays newest first.
    */
-  albumOrder?: AlbumOpening;
+  albumOrder?: GuestAlbumOrder;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton

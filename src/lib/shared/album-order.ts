@@ -28,6 +28,8 @@ import {
   entryTime,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
+import { wallTimeIn } from "@/lib/event/wall-time";
+import { partyZoneOf } from "@/lib/event/zone";
 import { lastDayOf, shiftDay } from "@/lib/events/dates";
 import { yoursView } from "@/lib/guest/yours-filter";
 
@@ -137,44 +139,7 @@ export type AlbumTurnFacts = {
  */
 export const TURN_HOUR = DEFAULT_DEVELOP_HOUR;
 
-/**
- * THE INSTANT A WALL-CLOCK TIME NAMES IN A ZONE: `day` (`YYYY-MM-DD`) at `hour`:00 there, DST-safe. A first candidate
- * from the zone's offset at a same-day UTC guess, then the offset read again AT that candidate and corrected once if
- * the two disagree (a day whose morning sits on the far side of a clock change), the two-read rule of
- * `calendarDayInZone` (`viewer-day.ts`). (A wall time a clock change skips, 2:30 am on a spring-forward night, lands
- * within that hour; the turn's 9 am is never one.)
- */
-export function wallTimeIn(day: string, hour: number, zone: string): number {
-  const [y, m, d] = day.split("-").map(Number);
-  const at = new Date(0);
-  at.setUTCFullYear(y ?? 1970, (m ?? 1) - 1, d ?? 1);
-  at.setUTCHours(hour, 0, 0, 0);
-  const guess = at.getTime();
-  const first = guess - zoneOffsetMs(guess, zone);
-  const offset = zoneOffsetMs(first, zone);
-  return guess - offset === first ? first : guess - offset;
-}
-
-/** `zone`'s offset from UTC at instant `ms` (local = UTC + offset), in ms, to the second. */
-function zoneOffsetMs(ms: number, zone: string): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: zone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).formatToParts(new Date(ms));
-  const get = (type: string) =>
-    Number(parts.find((p) => p.type === type)?.value ?? 0);
-  const asUtc = new Date(0);
-  asUtc.setUTCFullYear(get("year"), get("month") - 1, get("day"));
-  // h23 already answers 0 to 23; the modulo is for an engine that still prints midnight as 24.
-  asUtc.setUTCHours(get("hour") % 24, get("minute"), get("second"), 0);
-  return asUtc.getTime() - Math.floor(ms / 1000) * 1000;
-}
+export { wallTimeIn };
 
 /** Whether a zone is one `Intl` can read (anything else is no zone, and the turn falls back to UTC). */
 function readableZone(zone: string): boolean {
@@ -193,8 +158,8 @@ function readableZone(zone: string): boolean {
  *   - a dated one at 9 am in `zone` the morning after its LAST day (a weekend wedding turns on Monday morning);
  *   - an undated one never: it stays newest first, since nothing says when its party ended.
  *
- * ★ `zone` IS THE PARTY'S (`events.time_zone`, read on the page's server: `albumOpening`), so every reader meets one
- * moment; the browser is handed the instant, never the zone.
+ * ★ `zone` IS THE PARTY'S (`events.time_zone`, read on the page's server: `guestAlbumOrder`), so every reader meets
+ * one moment; the browser is handed the instant, never the zone.
  */
 export function albumTurnAt(
   facts: AlbumTurnFacts,
@@ -287,10 +252,22 @@ export function rememberChosenSort(
     : `${prefix}; Path=${ALBUM_SORT_PATH}; Max-Age=0; SameSite=Lax`;
 }
 
-/** The order a guest album opens in, as the page decides it for the first paint and hands it on. */
+/**
+ * THE ORDER A GUEST ALBUM OPENS IN, AS THE PAGE'S SERVER HANDS IT (album-order and event-zone's two types, one idea,
+ * folded): the album's own order at the render, her remembered choice, and the instant its party's morning after
+ * begins. The page keeps it live from here (`useGuestAlbumOrder`).
+ *
+ * ★ THE TURN IS AN INSTANT BY THE TIME A BROWSER HOLDS IT. The server reads the party's zone and hands the page the
+ * moment its album turns (`morningAfter`), never the zone for the turn: no reader's clock, geography or engine (an older
+ * browser's database of zones, or one that cannot read the party's) moves it.
+ */
 export type GuestAlbumOrder = {
-  /** The zone the turn's 9 am was read in (the party's): a server-side input, never handed to the browser. */
-  zone: string;
+  /**
+   * When the dated album turns (epoch ms): 9 am the morning after its LAST day in the party's zone, read once on the
+   * server; null for an undated album, the demo, and behind a gate (where the order knows no days). A develop time,
+   * live on the page, wins over it (`openingTurnAt`).
+   */
+  morningAfter: number | null;
   /** The album's own order at the render: the browser starts from it, so the hydration agrees. */
   own: AlbumSort;
   /** Her remembered choice on this album, or null: she follows the turn. */
@@ -302,23 +279,43 @@ export const shownSort = (order: Pick<GuestAlbumOrder, "own" | "chosen">) =>
   order.chosen ?? order.own;
 
 /**
- * THE FIRST PAINT'S ORDER (the page's server): the album's own at `now`, and her choice on it. The demo never turns:
- * it is the party in progress, and its turn card sits beside the album's first tile, which is the photograph a
- * visitor just added.
+ * THE FIRST PAINT'S ORDER (the page's server, and See it as a guest's): the album's own at `now` (the develop wins, an
+ * undated album and the demo never turn), her choice on it, and the party's morning after as an instant. `zone` is the
+ * party's stored zone (`events.time_zone`), null for none: the fallback is `partyZoneOf`'s, said once.
  */
 export function guestAlbumOrder(input: {
   facts: AlbumTurnFacts;
-  zone: string;
+  zone: string | null;
   chosen: AlbumSort | null;
   isDemo?: boolean;
   now?: number;
 }): GuestAlbumOrder {
-  const turnAt = input.isDemo ? null : albumTurnAt(input.facts, input.zone);
+  const zone = partyZoneOf(input.zone);
+  const turnAt = input.isDemo ? null : albumTurnAt(input.facts, zone);
   return {
-    zone: input.zone,
+    morningAfter: input.isDemo
+      ? null
+      : albumTurnAt(
+          {
+            eventDate: input.facts.eventDate,
+            eventEndDate: input.facts.eventEndDate,
+          },
+          zone,
+        ),
     own: sortAt(turnAt, input.now ?? Date.now()),
     chosen: input.chosen,
   };
+}
+
+/**
+ * WHEN THE ALBUM TURNS AS THE PAGE HOLDS IT: at its develop time where one is set (the turn's first rule, asked of the
+ * develop alone, so no day and no zone is read), else at the party's morning after, the server's instant.
+ */
+export function openingTurnAt(
+  morningAfter: number | null,
+  developsAt: string | null | undefined,
+): number | null {
+  return albumTurnAt({ eventDate: null, developsAt }, "UTC") ?? morningAfter;
 }
 
 /* ───────────────────────────── the lens ──────────────────────────────── */

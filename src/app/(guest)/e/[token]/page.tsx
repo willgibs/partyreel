@@ -63,10 +63,10 @@ import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
-import { albumOpening } from "@/lib/event/zone-morning";
 import { readPartyZone } from "@/lib/event/zone.server";
 import {
   ALBUM_SORT_COOKIE,
+  guestAlbumOrder,
   readChosenSort,
   shownSort,
 } from "@/lib/shared/album-order";
@@ -470,9 +470,9 @@ export default async function GuestEventPage({
   const rhythmSeed = randomInt(1_000_000);
   // ★ AND THE ORDER IT OPENS IN (album-order, event-zone): the turn read in the PARTY's zone, one
   // moment for every reader wherever they are, handed to the page as that instant and never as a zone
-  // (`albumOpening`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
+  // (`guestAlbumOrder`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
   // says when the party was (the shell blanks its days below), so neither does the order.
-  const albumOrder = albumOpening({
+  const albumOrder = guestAlbumOrder({
     facts:
       access === "none"
         ? { eventDate: null }

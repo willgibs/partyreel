@@ -6,7 +6,7 @@
  *
  * ★ IT STARTS FROM THE PAGE'S WORD AND TURNS ON THE CLOCK. The page's server decides the first paint's order (the turn,
  * her remembered choice) and hands the moment the album turns as an INSTANT (event-zone: 9 am the morning after in the
- * party's own zone, `AlbumOpening.morningAfter`), never a zone, so every reader's album turns at that one moment
+ * party's own zone, `GuestAlbumOrder.morningAfter`), never a zone, so every reader's album turns at that one moment
  * wherever she is and whatever her browser knows of zones. The hydration renders exactly the server's order; from then
  * on one timer turns the album at its moment, and a return to the tab reads the clock again (a phone asleep through
  * 9 am wakes to the album in order). A turn under a reader moves nothing she is looking at: the rows hold her
@@ -21,12 +21,13 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { openingTurnAt, type AlbumOpening } from "@/lib/event/zone-morning";
 import {
+  openingTurnAt,
   rememberChosenSort,
   shownSort,
   sortAt,
   type AlbumSort,
+  type GuestAlbumOrder,
 } from "@/lib/shared/album-order";
 
 /** A timer's longest delay (about 24.8 days): a turn further ahead is waited out in steps. */
@@ -46,10 +47,10 @@ export function useGuestAlbumOrder({
 }: {
   eventId: string;
   /**
-   * The page's word (`albumOpening`). Absent where no page decided it (a test's stand-in page): the album stays newest
+   * The page's word (`guestAlbumOrder`). Absent where no page decided it (a test's stand-in page): the album stays newest
    * first and runs no clock, since only the page's server knows when the party's morning comes.
    */
-  initial?: AlbumOpening;
+  initial?: GuestAlbumOrder;
   /** The develop time as the page holds it now (ISO, ahead or reached), or null: a Develop now moves the turn. */
   developsAt: string | null;
   isDemo: boolean;
