@@ -186,12 +186,15 @@ function roomLight(source: Source): Light {
 /* ── the mat: the Bloom printed ────────────────────────────────────────────── */
 
 /**
- * How far the mat reaches past its subject: a tenth of the subject, inside
- * the contract's eighth. A wide strip's mat is capped at two fifths of the
- * strip's height top and bottom (`.ik-mat`), so a thin print never sits in a
- * slot of colour three times its height.
+ * How far the mat reaches past its subject: a fourteenth of the subject,
+ * inside the contract's eighth. A tenth made the mat the boldest object in the
+ * deck (a slab of colour round the cover's photograph, a picture frame round
+ * the reel), so it is a mount's narrow margin, enough to read as the
+ * photograph's own colour and never as a frame. A wide strip's mat is capped
+ * at two fifths of the strip's height top and bottom (`.ik-mat`), so a thin
+ * print never sits in a slot of colour three times its height.
  */
-const marginOf = (size: number) => Math.max(10, Math.round(size / 10));
+const marginOf = (size: number) => Math.max(8, Math.round(size / 14));
 
 /** The fillet: the hairline of paper between a subject and its mat. */
 const filletOf = (size: number) => (size >= 240 ? 2 : 1.5);
