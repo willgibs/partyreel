@@ -372,3 +372,39 @@ export async function readPassCreditSignal(
     owedSinceMs: sinces.length > 0 ? Math.min(...sinces) : null,
   };
 }
+
+/**
+ * ★ THE NEWEST CONVERSION OF HER PASSES INTO PRO CREDIT, for the account page's Plan card (billing-orphans,
+ * `billing/pro-pending.ts` decides). Read on the admin client (the table is deny-all) for the id the page's own
+ * `getUser()` gave, never a client's. Unreleased conversions of at least one pass within Stripe's retry window, newest
+ * first, one row. THROWS: the caller says nothing rather than a guess.
+ */
+export async function readNewestCreditConversion(
+  profileId: string,
+  sinceIso: string,
+): Promise<{
+  converted_at: string;
+  converted_count: number | null;
+  released_at: string | null;
+} | null> {
+  const rows = await mustQuery(
+    createAdminClient()
+      .from("pass_credits")
+      .select("converted_at, converted_count, released_at")
+      .eq("profile_id", profileId)
+      .is("released_at", null)
+      .gt("converted_count", 0)
+      .gt("converted_at", sinceIso)
+      .order("converted_at", { ascending: false })
+      .limit(1),
+    "account: her newest credit conversion",
+  );
+  const row = rows?.[0];
+  return row?.converted_at
+    ? {
+        converted_at: row.converted_at,
+        converted_count: row.converted_count,
+        released_at: row.released_at,
+      }
+    : null;
+}
