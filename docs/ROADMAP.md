@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab: the kit's whole stage wears a width a fraction short of the row it measured (`fitStage`, `whole.ts`: 14 slides at 374.95 px and 13 gaps need 5665.29 px, it wears 5665), so the last slide wraps at the 375 knob on a desk (`lab:demo --board brand --state screen=375`: CUT and CLIPPED); round the worn width up or give it a pixel of slack (brand-r2).
+- The lab: a motion capture per option (a short loop), so a light that answers events (the reel's Bloom on each cut, a ring filling as files send) is judged moving, not still (brand-r2).
+- Design: production's footer (`.surface-ink`) already is Aperture's black footer; lighting its top edge from the page's photographs is the cheapest first wiring, whichever take wins (brand-r2).
 - Guests: at the held door the album's camera still says "Every shot goes straight in" and draws its shots sending while they wait for the let-in (`guest/camera/words.ts`'s `cameraSubLine`, `album-camera.tsx`); a held reveal ("They go in once you're let in") would say it (crumbs-83).
 - Guests: the held door keeps a choice on the device but never the camera's shots (`wait-picks-store.ts` rewrites one record whole), so a reload there loses them ("Keep this tab open." says so); a per-file record would keep them (crumbs-83).
 - Engineering: a popup's entry a router refresh stripped of its marker, whose act then navigates, still leaves one dead Back under the next page (`ui/popup-back.ts` knows a spent entry by its marker alone) (crumbs-83).
