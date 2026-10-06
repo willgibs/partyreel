@@ -157,12 +157,13 @@ export function unsentLine(n: number): string {
 export const ROLL_DONE_TITLE = "That’s your roll";
 
 export function rollDoneLine(input: {
-  cap: number;
+  /** Her shots on the spent roll: the roll's size, or more where the host made it smaller after she shot. */
+  held: number;
   reveal: CameraReveal;
   developsAt: string | null | undefined;
   nowMs?: number;
 }): string {
-  const shots = `${input.cap} ${input.cap === 1 ? "shot" : "shots"}`;
+  const shots = `${input.held} ${input.held === 1 ? "shot" : "shots"}`;
   if (input.reveal === "develop" && input.developsAt) {
     return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs)}.`;
   }
@@ -230,10 +231,20 @@ export const CAMERA_ACCESS = {
 /** The host's own camera has no roll (`roll-view.ts`'s `HOST_FRESH_FRAMES`). */
 export const HOST_NO_ROLL = "No roll for the host";
 
+/**
+ * HER ROLL AS A COUNT: "6 of 24", and what she truly holds where it is more than the roll ("2 on a roll of 1": the host
+ * made the roll smaller after she shot, red-team 56's LOW), never "1 of 1" beside two shots.
+ */
+export function rollCount(held: number, cap: number): string {
+  return held > cap ? `${held} on a roll of ${cap}` : `${held} of ${cap}`;
+}
+
 /** The reel's caption: "Frame 7 of 24", "24 of 24" once it is spent, and how many are still on their way. */
 export function reelCaption(input: {
   frame: number;
   cap: number;
+  /** Her shots, uncapped (`RollView.held`): read once the roll is spent; absent reads as the roll's size. */
+  held?: number;
   done: boolean;
   host: boolean;
   sending: number;
@@ -241,7 +252,7 @@ export function reelCaption(input: {
   const base = input.host
     ? HOST_NO_ROLL
     : input.done
-      ? `${input.cap} of ${input.cap}`
+      ? rollCount(Math.max(input.held ?? input.cap, input.cap), input.cap)
       : `Frame ${input.frame} of ${input.cap}`;
   return input.sending > 0 ? `${base} · sending ${input.sending}` : base;
 }

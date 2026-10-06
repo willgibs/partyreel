@@ -63,6 +63,7 @@ import {
   reelCaption,
   reelLabel,
   revealFor,
+  rollCount,
   rollDoneLine,
   yourShotsLine,
 } from "@/lib/guest/camera/words";
@@ -605,7 +606,12 @@ export function AlbumCamera({
   const frame = host ? counted.length + 1 : guest.frame;
   const doneLine = guest.ceilingReached
     ? ROLL_RETAKES_SPENT_MESSAGE
-    : rollDoneLine({ cap, reveal, developsAt, nowMs: now });
+    : rollDoneLine({
+        held: Math.max(guest.held, cap),
+        reveal,
+        developsAt,
+        nowMs: now,
+      });
 
   return (
     <DialogPrimitive.Root
@@ -660,6 +666,7 @@ export function AlbumCamera({
               caption={reelCaption({
                 frame,
                 cap,
+                held: guest.held,
                 done,
                 host,
                 sending,
@@ -692,7 +699,7 @@ export function AlbumCamera({
               blocked={blocked}
               done={done}
               doneLine={doneLine}
-              freeAFrame={!guest.ceilingReached}
+              freeAFrame={guest.removalFrees}
               reelLabel={reelLabel(used, host)}
               hidden={view === "shots"}
               shutterRef={shutterRef}
@@ -708,9 +715,11 @@ export function AlbumCamera({
                 headingRef={shotsBackRef}
                 tiles={tiles}
                 line={yourShotsLine({ reveal, developsAt, nowMs: now })}
-                count={host ? `${counted.length} taken` : `${used} of ${cap}`}
+                count={
+                  host ? `${counted.length} taken` : rollCount(guest.held, cap)
+                }
                 removing={removing}
-                canFreeFrames={!host && !guest.ceilingReached}
+                canFreeFrames={!host && guest.removalFrees}
                 onRemove={(id) => void remove(id)}
                 onRetry={(queueId) => {
                   const at = Date.now();

@@ -26,8 +26,14 @@ import {
 export type RollView = {
   /** Frames on her roll. */
   cap: number;
-  /** Frames spent: the server's, and this camera's shots since that it has not refused. */
+  /** Frames spent: the server's, and this camera's shots since that it has not refused (at most `cap`). */
   used: number;
+  /**
+   * HER LIVE SHOTS, UNCAPPED: `used` before the roll's bound. More than `cap` only where the host made the roll smaller
+   * after she shot (a roll of 1 under two of hers, red-team 56's LOW): then the counts say what she holds, never "1 of
+   * 1" beside two shots, and removing one frees no frame.
+   */
+  held: number;
   /** Frames left. */
   left: number;
   /** The frame the next shot takes (1-based); the last frame once none is left. */
@@ -36,6 +42,8 @@ export type RollView = {
   refusal: string | null;
   /** The sentence is the ceiling's (every retake spent): removing a shot cannot free a frame. */
   ceilingReached: boolean;
+  /** Whether removing one of her shots would free a frame: neither the ceiling reached nor more held than the roll. */
+  removalFrees: boolean;
 };
 
 /**
@@ -57,7 +65,10 @@ export function rollView(input: {
 }): RollView {
   const cap = input.server?.cap ?? capOf(input.rollSize);
   const pending = Math.max(0, Math.floor(input.pending));
-  const used = Math.min(cap, (input.server?.used ?? 0) + pending);
+  const counted = input.server?.used ?? 0;
+  const used = Math.min(cap, counted + pending);
+  // Past the roll only by the server's own count: a shot this camera took past the roll is one the server refuses.
+  const held = Math.max(counted, used);
   const taken = (input.server?.taken ?? 0) + pending;
   const ceiling = input.server?.ceiling ?? cap * ROLL_RETAKES;
   const spent = used >= cap;
@@ -65,6 +76,7 @@ export function rollView(input: {
   return {
     cap,
     used,
+    held,
     left: cap - used,
     frame: Math.min(cap, used + 1),
     refusal: spent
@@ -73,6 +85,7 @@ export function rollView(input: {
         ? ROLL_RETAKES_SPENT_MESSAGE
         : null,
     ceilingReached,
+    removalFrees: !ceilingReached && held <= cap,
   };
 }
 
