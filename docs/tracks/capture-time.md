@@ -1,6 +1,6 @@
 ---
 track: capture-time
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0ff67f0a"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -96,31 +96,109 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/uploads-and-r2.md`, "The EXIF strip": a ★ line for the capture time (what each walk reads, that the
+  file keeps the wall clock and never the zone, the movie header's rewrite, the claim, the bounds' one home, the column,
+  the wire and Drive); the size line names `captured_at` beside the other client-supplied, non-authoritative fields.
+- `docs/systems/drive-export.md`, "Names": the moment it was taken first (the lease carries it), its arrival only for
+  an upload that kept none; "(null today: the upload keeps none)" gone.
+- `docs/systems/guest-flow.md` (event-zone's file now; an exception below): the one clause that said an album in
+  order only grows at its end.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: "Uploads: read a zoneless Exif wall clock in the party's own zone (event-zone's `events.time_zone`) rather than
+  the uploader's browser's: the claim would carry the bare wall clock for the server to read in the event's zone
+  (capture-time)."
+- Now: "Camera: the album camera's shots (canvas JPEGs, no Exif) carry no capture time, so one that goes up well after
+  it was taken (a retry an hour on) sorts by its arrival in the night in order; hand `uploadBurst` its `takenAt` as the
+  claim (`camera-screen.tsx`, a `BurstFile` field) (capture-time)."
+- Launch checkpoint: "Legal: the privacy policy's metadata section (`legal-privacy.tsx`) still says HEIC, HEIF, AVIF
+  and WebM are stored as sent (the strip covers them since strip-gaps) and says nothing of the capture time now kept
+  (the file's minimal Exif, `media.captured_at`); restate it with the real `/privacy` (capture-time)."
+- Retire: "Product: keep a capture time at upload, so a Drive file's name and `modifiedTime` say when it was taken"
+  (done here).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-- Done: the work (`b7e73797f`, `0b9a2f40f`, pushed); the gate on `0b9a2f40f`: typecheck 0, lint 0, test 0 (1,020
-  files, 12,708 tests; a first run's four tree-scan timeouts under a load of 26 passed alone and on the rerun), build
-  0, `lab:smoke --base http://localhost:3131` 0 (190 checks); the migration's rolled-back proof on the live schema (RED
-  0/8, GREEN 8/8, nothing persisted); the browser walk (the real uploader in a headless Chrome of my own over seven real
-  files, a lying one and a zoneless one among them; logs in `_scratch/capture-time/walk*`).
-- Next: a fresh-eyes review of the diff (the first was cut off by the account's limit), then the Handoff.
-- Mid-flight: nothing on disk; the temporary walk page is gone and nothing listens on 3131.
+- **Commits, pushed** (`lp/capture-time`): work `b7e73797f` (all five items, the migration, the tests), `0b9a2f40f`
+  (each capture read through `quietly`, an MPF test where the Exif grows, the guest-flow clause), `296e6dee5` (the
+  fresh-eyes review: the file keeps the wall clock, never the zone; two notes made true; the help article). Sync: a
+  fast-forward to `8bb4e103b` (album-order merged, on the Orchestrator's word) before the first work commit;
+  launch-prep has moved since by records alone (`8c94d47af` to `ca6e726c1`), so no sync. The head is in the chat line.
+- **Gates on `296e6dee5`**, each its own exit code (logs `_scratch/capture-time/gate2-*.log`): typecheck 0, lint 0,
+  test 0 (1,020 files, 12,708 tests), `zsh scripts/build-lock.sh pnpm build` 0, `pnpm lab:smoke --base
+  http://localhost:3131` 0 (190 checks, `gate-lab-smoke-2.log`). No board, so no `lab:demo`. On `0b9a2f40f` the same
+  gate passed (`gate-*.log`; a first test run's four tree-scan timeouts under a load of 26 passed alone and rerun).
+  With `types.ts` patched as the regeneration will write it (`captured_at`, `p_captured_at`), typecheck 0 and the db,
+  forensics, r2 and upload guards 0 (91 files, 1,367 tests; `regen-*.log`); restored after.
+- **Old code fails the new tests**: the base's sources (no `capture-time.ts`, no migration) against the eleven new or
+  reshaped test files: 47 failed of 171 (`_scratch/capture-time/old-code.log`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, 46 files): owned paths and this file, plus these
+  exceptions, each a few lines: `src/lib/db/queries/album-guest.ts` and `album-host.ts` (each manifest read selects
+  `captured_at` and maps it; a type-only cast until the regeneration); `src/lib/db/queries/media.ts`
+  (`MEDIA_HOST_COLUMNS` gains `captured_at`, pinned to her SELECT grant; two type-only casts);
+  `src/lib/db/queries/drive.ts` (`RawLeaseItem.capturedAt` and its mapping; crumbs-82 edits other hunks of it, so
+  expect a clean merge);
+  `src/lib/events/album-sync.ts` and its test (the delta's twelfth element); `src/lib/event/hub-album.ts` (its duration
+  read goes through `entryDuration`: it read one only from a six-element entry); `src/lib/db/migration-guards.test.ts`
+  (the live reel's `create_media*` pins reshaped to the new signature, insert and grants, scars kept);
+  `content/help/photo-metadata-and-location.mdx` (the kept time said; uploads-and-r2.md names it as the strip's
+  reader-facing account, which changes with it); `docs/systems/guest-flow.md` (two lines, event-zone's file, beside
+  its paragraph, not in it). `src/lib/shared/album-order*` joined the owns on the Orchestrator's word.
+- **Items:**
+  - Read before the strip: each walk reads the original's time before rewriting a byte (`captured` on every strip
+    result): a JPEG's and a HEIC's (HEIF, AVIF) Exif `DateTimeOriginal` with `OffsetTimeOriginal`, a movie's QuickTime
+    `com.apple.quicktime.creationdate` (moov- or udta-level) else its header's creation time, a WebM's `DateUTC`; PNG
+    and WebP never; every read through `quietly`, so a read can never fail the strip open.
+  - Kept in the file: the minimal Exif is the orientation, `ExifVersion` 0232 and `DateTimeOriginal`, never the zone,
+    the device or the place (Apple's ImageIO reads back exactly those, pixels identical:
+    `_scratch/capture-time/walk/stored-exif.txt`, `walk/pixels.txt`); a movie whose QuickTime date goes with its meta
+    box has its header's creation time set to it (AVFoundation stamps the header with the moment it WROTE the file:
+    measured, `fixtures/avfoundation-capture.mov`); a WebM's Info stays whole.
+  - The claim: the uploader sends `captured_at` (an ISO instant: the zone applied, a zoneless wall clock read in her
+    browser's zone) on the complete, never the presign; a kept complete sends it again as first asked.
+  - Validated: `acceptCaptureTime` (`src/lib/media/capture-time.ts`, the bounds' one home): 1990 to the server's now
+    plus a day, the claim's one shape, a rolled-over day refused; outside them it is none and the file lands anyway
+    (`completeCaptureTime` in both routes, `.optional()` before the transform or zod 4 refuses a body without it).
+  - Stored: `supabase/migrations/20261005200000_capture_time.sql`, below.
+  - Carried: a manifest entry's seventh element (microseconds like `t`; the duration's slot null before it), on both
+    manifest reads and the delta; `entryCaptureTime` and `entryDuration` in `album-wire.ts`; album-order's `takenAtOf`
+    reads it, pinned through the wire's own mapper (`album-order.test.ts`). Measured on a 1,145-item manifest, every
+    item timed: +2.2 B an item brotli (+8.8%), +4.1 gzip (+14%), +21.5 raw (+30%) (`wire-bytes.txt`); an item with none
+    is the bytes it always was.
+  - Drive: the lease carries `captured_at`, so a copy's name, description and `modifiedTime` say when it was taken
+    (`src/lib/drive/lease-capture.test.ts`: "2026-10-03 21.14.05 · Priya.jpg" for a photo that arrived the next
+    morning).
+  - The browser half, walked: the real uploader in a headless Chrome of my own (its zone Los Angeles) over seven real
+    files (ImageIO JPEG and HEIC, a zoneless JPEG, a lying one dated 2099, an AVFoundation MOV, an ffmpeg MP4 and WebM),
+    the network stood in on a temporary page (never committed): each complete's claim and each PUT's bytes read back
+    (`walk.log`, `walk/walk.json`): five at 2026-10-04T01:14:05Z, the zoneless one at 04:14:05Z (21:14 in Los Angeles),
+    the lying one's 2099 sent for the server to drop (the route tests prove the drop), no presign carrying one.
+  - The backfill (`scripts/backfill-strip-exif.mjs`) is unchanged: it runs the one strip, so it keeps a capture time in
+    what it rewrites and writes no `captured_at` (Q7).
+- **The DB half and the gap**: the upload end to end against the live database needs the migration, which is the
+  Advisor's to read first, so it stands proved on the live schema rolled back instead (the file's foot: RED 0/8, GREEN
+  8/8, both writers storing the instant and landing the older build's call, the change log and a Drive lease carrying
+  it, `infinity` refused, the four bodies at their hashes, nothing persisted). **After the apply, the Orchestrator's
+  check**: upload `_scratch/capture-time/fixtures/` (the seven above; the videos need a paid host) to a test album from
+  :3000, then `select original_key, captured_at from media where event_id = '<album>' order by created_at desc limit
+  7;` expects 2026-10-04 01:14:05+00 for the five, 21:14:05 in the uploading browser's zone for `imageio-nozone.jpg`,
+  NULL for `imageio-lying.jpg`; the album's manifest carries the seventh element for those six.
+- Assets requested from Will: none.
+- **Board ideas**: (1) album-order: a capture time far outside the album's own days (a throwback, a camera a year off)
+  sits at the night's edge in the in-order view instead of leading it (presentation; the wire keeps the true time;
+  Q2). (2) Download all's zip names its entries "when, then who" like a Drive copy (`buildDownloadFilename` names
+  `slug-id.ext` today), so an unzipped album sorts as the night happened.
+- **Proposed migrations / Worker / Vercel / Stripe / env**: `supabase/migrations/20261005200000_capture_time.sql`, the
+  Advisor first, then APPLY BEFORE THE PUSH (this build selects `captured_at` in both manifests, a 42703 on every album
+  read without the column, and names `p_captured_at` for an upload with a time, a PGRST202 without it); the drift read
+  in its header (the four bodies at their live hashes on 2026-10-05); `get_advisors` expected unchanged (26/4/36);
+  regenerate `types.ts`, then drop the typed seams (the args built beside the call in `guest.ts` and `host-media.ts`,
+  the casts in `album-guest.ts`, `album-host.ts` and `media.ts`). No Worker change (the Drive Worker takes the lease's
+  name and `modifiedTime` as before), no Vercel, Stripe or env change.
+- **Calls his to overrule**: Q1 a zoneless time read in the uploader's zone; Q2 the bounds (1990, now plus a day);
+  Q3 the file keeps the wall clock, never the zone; Q4 the QuickTime date first, the movie header rewritten to it;
+  Q5 the seventh element, the version unmoved; Q6 the reads outside the owns; Q7 the backfill writes no column.
+- **Look at first**: `_scratch/capture-time/walk/stored-exif.txt` (what a downloaded photo now says, read by Apple's
+  own reader) beside `fixtures/avfoundation-capture.mov`'s header (the write time an iPhone export stamps, the reason
+  for Q4's rewrite).
