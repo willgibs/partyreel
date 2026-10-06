@@ -64,9 +64,8 @@ working.
 
 ## Where I am
 
-- Surveyed: every `_scratch/` folder (verdicts drafted; two helpers' triage and the docs-prune stale check read).
-- Private doc: started at `/Users/gibby/local/ai/partyreel-wt/CLOUD-ORCHESTRATOR-PRIVATE.md` (sections 1 and 2 written;
-  3 in progress).
-- Next, each committed and pushed as it lands: `docs/calls.md`; the kit (desk refresh, red-team brief and tools, the
-  cost model, the runbook's lines and pointers); the system docs (Drive's next versions, guest-requests' lines,
-  docs-prune's stale lines); PRICING and PRD; then Questions, Deferred, the Handoff and the light gate.
+- Landed and pushed: `docs/calls.md` (29d17f1aa); the kit's tools (26b653542); the system docs (269b71710); PRICING and
+  PRD (b84509c53).
+- Private doc: `/Users/gibby/local/ai/partyreel-wt/CLOUD-ORCHESTRATOR-PRIVATE.md`, sections 1 and 2 written, 3 next.
+- Left: the private doc's section 3; this manifest's Questions, System-doc edits, Deferred and Handoff (each folder's
+  verdict, the proposed lines for the pickup, STATUS, ROADMAP and CLAUDE.md); the light gate.
