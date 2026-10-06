@@ -109,6 +109,10 @@ Each is built as recommended and is Will's to overrule.
   (`gate-typecheck.log`), lint exit 0 (`gate-lint.log`), `pnpm test` exit 0, 1,029 files and 12,885 tests
   (`gate-test.log`), `build` exit 0 (`gate-build.log`), `lab:smoke --base :3139` exit 0, 176 checks 0 failing
   (`gate-lab-smoke.log`). No board lane: `lab:demo` does not apply.
+- **A trial merge of launch-prep `e10377e49`** (identity-wiring and identity-r5 landed after my sync; nothing upstream
+  touches my `owns` or `reads`), `git merge --no-commit` then aborted, so the branch is unchanged: clean, no overlapping
+  file; typecheck exit 0 (`trial-typecheck.log`), lint exit 0 (`trial-lint.log`), `pnpm test` exit 0, 1,030 files and 12,913
+  tests (`trial-test.log`). No second sync commit: the build was not re-run on it.
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD` = owned paths + this file, plus these ten):
   `src/app/(app)/account/page.test.tsx`, `src/app/(app)/dashboard/actions.test.ts` and
   `src/app/(app)/dashboard/page.test.tsx` (the tests of owned files, named beside them); `src/app/admin/portal-title.test.ts`
