@@ -2,6 +2,8 @@
 
 import "./keepsake.css";
 
+import type { ReactNode } from "react";
+
 import { Check, ChevronRight, Download, Play } from "lucide-react";
 
 import {
@@ -29,7 +31,13 @@ import {
   ReelRound,
   StartForFree,
 } from "./album";
-import { groundIn, guestScreen, type KeepsakeWay, overIn } from "./answers";
+import {
+  groundIn,
+  guestScreen,
+  type KeepsakeWay,
+  overIn,
+  type OverWay,
+} from "./answers";
 import { ALBUM, COVER, HERS, PRIYA, WEDDING, WEEK } from "./fixtures";
 import { type Screen, SCREENS } from "./knobs";
 import {
@@ -290,6 +298,28 @@ function coverFor(way: KeepsakeWay, screen: Screen, newcomer: boolean) {
   );
 }
 
+/**
+ * THE KEEPSAKE'S FIRST SCREEN AS AN ANSWER DRAWS IT, for a question drawn in
+ * this one (the bridge's album wears the keepsake answer): its cover, what
+ * stands under the cover (today's closed line, the wrapped album's quiet Add,
+ * or nothing), and whether the foot's dock stands from the first screen (a
+ * cover with no acts of its own hands them to the dock). One source for this
+ * story and any other, so the two never draw the keepsake two ways.
+ */
+export function keepsakeTop(
+  way: KeepsakeWay,
+  over: OverWay,
+  screen: Screen,
+  newcomer: boolean,
+): { cover: ReactNode; under: ReactNode; dock: "look" | null } {
+  return {
+    cover: coverFor(way, screen, newcomer),
+    under:
+      way === "closed" ? <ClosedLine /> : over === "wrap" ? <QuietAdd /> : null,
+    dock: null,
+  };
+}
+
 /* ── under the cover ───────────────────────────────────────────────────── */
 
 /* ── in the album ──────────────────────────────────────────────────────── */
@@ -539,8 +569,6 @@ export function KeepsakeStory({ way, s }: { way: KeepsakeWay; s: BoardState }) {
   const ground = groundIn(s);
   const { w, h } = SCREENS[screen];
   // Today's closed album is today's whatever the first answer; every other answer wears Add as that answer leaves it.
-  const under =
-    way === "closed" ? <ClosedLine /> : over === "wrap" ? <QuietAdd /> : null;
   const frames = [
     {
       key: "top",
@@ -581,8 +609,8 @@ export function KeepsakeStory({ way, s }: { way: KeepsakeWay; s: BoardState }) {
               screen={screen}
               moment={WEEK}
               corner={f.newcomer ? <StartForFree /> : <HerName />}
-              cover={coverFor(way, screen, f.newcomer)}
-              under={under}
+              cover={keepsakeTop(way, over, screen, f.newcomer).cover}
+              under={keepsakeTop(way, over, screen, f.newcomer).under}
               bar={selecting ? <SelectBar /> : undefined}
               lens={lens ? <YoursLens /> : undefined}
               stills={lens ? HERS : undefined}
