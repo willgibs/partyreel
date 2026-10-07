@@ -1,6 +1,12 @@
 /* THE NEWEST'S RING (`row.tsx`'s `Lit`, the `newest` decision): its band of
    light, its bloom, a landing's flare settling into the fine ring, the puck
-   that keeps its dark on paper, and a face joining the head. */
+   that keeps its dark on paper, and a face joining the head.
+
+   ★ APERTURE'S RING AT THE ROW'S SIZE (brand r2's `RoomRing`, retyped): a
+   2px band of light standing 2px off the face (the row's parting ring is the
+   gap, and stays dark), its bloom the band's own light blurred, so the light
+   is brightest where the band is, at the top-left key. Never a stroke: the
+   band's paint has a hot point and a falloff (`light.ts`). */
 
 .pr-ring,
 .pr-glow,
@@ -10,9 +16,8 @@
   pointer-events: none;
 }
 
-/* The ring stands just past the parting ring: the light's own line, painted
-   as light falls (brightest at the top-left, a little spent round the far
-   side), cut to a 2px band by a mask. */
+/* ── the band ────────────────────────────────────────────────────────────── */
+
 .pr-ring {
   inset: -4px;
   z-index: 2;
@@ -21,140 +26,304 @@
 .pr-ring[data-wears="flare"] {
   padding: 2px;
   background: var(--pr-paint);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
   mask:
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
 }
 
-/* The fine ring: the newest marked at rest, a line and no light (white on a
-   photograph, the page's ink on the page). */
-.pr-ring[data-wears="fine"] {
-  inset: -3.5px;
-  box-shadow: inset 0 0 0 1.25px rgb(255 255 255 / 0.88);
-}
-.pr-row[data-pr-row="page"] .pr-ring[data-wears="fine"] {
-  box-shadow: inset 0 0 0 1.25px var(--foreground);
+/* A landing's hot core: the light arrives white-hot at the key and cools into
+   its colour (the band's mask cuts it to the band). An instant draws the
+   flare at its peak, the core still in it. */
+.pr-ring[data-wears="flare"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    in oklab from 300deg,
+    #fff,
+    rgb(255 255 255 / 0.45) 22%,
+    transparent 50%,
+    rgb(255 255 255 / 0.45) 78%,
+    #fff
+  );
+  opacity: 0.5;
 }
 
-/* The light round it: a soft bloom behind the face, the light's own colour
-   spent within a few pixels of the ring. */
+/* The fine ring: the newest marked at rest, a line of ink and no light (white
+   on a photograph, the page's ink on the page). */
+.pr-ring[data-wears="fine"] {
+  inset: -3.5px;
+  box-shadow: inset 0 0 0 1.25px rgb(255 255 255 / 0.9);
+}
+.pr-row[data-pr-row="page"] .pr-ring[data-wears="fine"] {
+  box-shadow: inset 0 0 0 1px var(--foreground);
+}
+
+/* ── the bloom ───────────────────────────────────────────────────────────── */
+
+/* The band's own light, blurred (the Ring's glow), in a box wide enough to
+   hold the blur. ★ MASKED OUT OF THE PARTING RING: light laid over the gap
+   greys it, so the face stays parted from its band by the ground's own dark
+   and the light begins at the band. Its colour is the key's, falling off
+   round the far side, where the next face sits. */
 .pr-glow {
-  inset: calc(var(--pr-size) * -0.42);
+  /* The box the blur is held in, and how far the light's disc stands past
+     the band before it is blurred (the bloom's strength at the band). */
+  --pr-reach: calc(var(--pr-size) * 0.75);
+  --pr-spread: 3px;
+  inset: calc(-4px - var(--pr-reach));
+  padding: calc(var(--pr-reach) - var(--pr-spread));
   z-index: -1;
-  background: radial-gradient(
+  background: conic-gradient(
+      in oklab from 300deg,
+      var(--pr-light),
+      color-mix(in oklab, var(--pr-light) 62%, transparent) 25%,
+      color-mix(in oklab, var(--pr-light) 28%, transparent) 50%,
+      color-mix(in oklab, var(--pr-light) 62%, transparent) 75%,
+      var(--pr-light)
+    )
+    content-box;
+  filter: blur(calc(var(--pr-size) * 0.16));
+  opacity: 0.62;
+  mask: radial-gradient(
     closest-side,
-    var(--pr-glow) 58%,
-    transparent 100%
+    transparent calc(100% - var(--pr-reach) - 2px),
+    #000 calc(100% - var(--pr-reach) - 1.5px)
   );
 }
 .pr-glow[data-wears="fine"] {
   display: none;
 }
 
-/* A landing: the light flares as the photo lands and is spent over two
-   seconds, the ring settling from the light into the fine line. */
-.pr-row:not([data-pr-held]) .pr-glow[data-wears="flare"] {
-  animation: pr-flare 2000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+/* A landing's bloom stands brighter and wider than a held one: light
+   arriving, at its peak (as an instant draws it). */
+.pr-glow[data-wears="flare"] {
+  --pr-spread: 5px;
+  filter: blur(calc(var(--pr-size) * 0.22));
+  opacity: 0.92;
 }
+
+/* ── a landing: light arriving, then spent ───────────────────────────────── */
+
+/* ★ TWO SECONDS, LIKE A LAMP STRUCK AND LET GO: the light arrives in a fifth
+   of a second, white-hot at the key; the bloom swells from the band and is
+   spent first, drawing back into it; the band cools into its colour, then
+   dims and thins onto the fine line, which was there under it all along. */
 .pr-row:not([data-pr-held]) .pr-ring[data-wears="flare"] {
-  animation: pr-settle 2000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: pr-band 2000ms both;
 }
-@keyframes pr-flare {
+.pr-row:not([data-pr-held]) .pr-ring[data-wears="flare"]::before {
+  animation: pr-core 2000ms both;
+}
+.pr-row:not([data-pr-held]) .pr-glow[data-wears="flare"] {
+  animation: pr-bloom 2000ms both;
+}
+@keyframes pr-band {
   0% {
     opacity: 0;
-    transform: scale(0.8);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
   }
-  12% {
-    opacity: 1;
-    transform: scale(1.12);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-/* The band of light thins into the fine line as the light is spent. */
-@keyframes pr-settle {
-  0%,
-  35% {
+  9% {
     opacity: 1;
   }
+  30% {
+    inset: -4px;
+    padding: 2px;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.3, 1);
+  }
   100% {
+    inset: -3.5px;
+    padding: 1.25px;
     opacity: 0;
   }
 }
-.pr-row:not([data-pr-held]) .pr-face:has(.pr-ring[data-wears="flare"])::after {
+@keyframes pr-core {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  7% {
+    opacity: 0.85;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+  42%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pr-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  11% {
+    opacity: 0.92;
+    transform: scale(1.04);
+    animation-timing-function: cubic-bezier(0.35, 0, 0.25, 1);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+/* The fine ring under a landing: in place from its first frame, so the light
+   arrives over it and is spent back into it. */
+.pr-face:has(.pr-ring[data-wears="flare"])::after {
   content: "";
   position: absolute;
   inset: -3.5px;
   z-index: 1;
   border-radius: 9999px;
-  box-shadow: inset 0 0 0 1.25px rgb(255 255 255 / 0.88);
+  box-shadow: inset 0 0 0 1.25px rgb(255 255 255 / 0.9);
   pointer-events: none;
-  animation: pr-fine-in 2000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-.pr-row[data-pr-row="page"]:not([data-pr-held])
-  .pr-face:has(.pr-ring[data-wears="flare"])::after {
-  box-shadow: inset 0 0 0 1.25px var(--foreground);
+.pr-row[data-pr-row="page"] .pr-face:has(.pr-ring[data-wears="flare"])::after {
+  box-shadow: inset 0 0 0 1px var(--foreground);
 }
-@keyframes pr-fine-in {
-  0%,
-  45% {
+
+/* A held light comes on when their first photo lands (the playing loop):
+   struck, never popped. */
+.pr-row:not([data-pr-held]) .pr-ring[data-wears="held"],
+.pr-row:not([data-pr-held]) .pr-glow[data-wears="held"] {
+  animation: pr-strike 520ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes pr-strike {
+  from {
     opacity: 0;
-  }
-  100% {
-    opacity: 1;
   }
 }
 
-/* ON PAPER A LIGHT KEEPS ITS DARK (Aperture): the lit face stands in a small
-   puck of the room, the light inside it and never on the page. */
+/* ── on paper: the light keeps its dark ──────────────────────────────────── */
+
+/* ★ ON PAPER A LIGHT KEEPS ITS DARK (Aperture): the lit face stands in a
+   small puck of the room, flat and matte (never a glossy ball, a bevel or a
+   halo smudged round its rim), no wider than the gap, the band and a breath
+   of dark need, and parted from the next face by the page's own ground as
+   every face is. The band is its light; the puck is only its dark. */
 .pr-puck {
-  inset: -7px;
+  --pr-out: max(5.5px, calc(var(--pr-size) * 0.22));
+  inset: calc(-1 * var(--pr-out));
   z-index: -2;
   background: #0c0c0e;
   box-shadow:
     inset 0 0 0 1px rgb(255 255 255 / 0.07),
-    inset 0 0 7px 1px var(--pr-glow);
+    0 0 0 2px var(--background);
 }
 .pr-row[data-pr-row="page"] .pr-puck ~ .pr-glow {
   display: none;
 }
-.pr-row[data-pr-row="page"] .pr-face:has(.pr-puck) {
-  box-shadow: 0 0 0 2px #0c0c0e;
+
+/* ★ THE PUCK IS AN APERTURE: it opens from behind the face as the light
+   comes on and closes back behind it to end a landing, so it is never a grey
+   ghost of itself nor a dark disc standing empty. A landing's light cools
+   while the aperture holds it, and goes out as the rim closes on the band,
+   like a shutter: the light is never on the page, and the fine line is left
+   printed in the page's ink as the rim passes it. */
+.pr-row:not([data-pr-held]) .pr-puck:has(~ .pr-ring[data-wears="held"]) {
+  animation: pr-iris-open 520ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes pr-iris-open {
+  from {
+    inset: 0;
+  }
+}
+.pr-row:not([data-pr-held]) .pr-puck:has(~ .pr-ring[data-wears="flare"]) {
+  animation: pr-iris 2000ms both;
+}
+@keyframes pr-iris {
+  0% {
+    inset: 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  8%,
+  58% {
+    inset: calc(-1 * var(--pr-out));
+    animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1);
+  }
+  92%,
+  100% {
+    inset: 0;
+  }
+}
+.pr-row:not([data-pr-held]) .pr-puck ~ .pr-ring[data-wears="flare"] {
+  animation-name: pr-band-paper;
+}
+@keyframes pr-band-paper {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  9% {
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+  }
+  56% {
+    inset: -4px;
+    padding: 2px;
+    opacity: 0.72;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  70%,
+  100% {
+    inset: -3.5px;
+    padding: 1.25px;
+    opacity: 0;
+  }
 }
 
 /* ── a face joining the head (the playing loop) ──────────────────────────── */
 
+/* ★ THE ROW ADVANCES ONE PLACE: the newcomer arrives from the left as every
+   face steps right by one (her slot's negative margin gives the room back as
+   it eases to nothing), so the row moves as one, like a queue, and she fades
+   in as she takes the head. The count keeps its place while the faces close
+   up to it (it is pulled left by her margin, and pushed back the same). */
 .pr-face[data-pr-joining] {
-  animation: pr-join 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation:
+    pr-join 640ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    pr-join-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes pr-join {
   from {
     margin-inline-end: calc(var(--pr-size) * -0.75);
+    transform: translateX(calc(var(--pr-size) * -0.75));
+  }
+}
+@keyframes pr-join-in {
+  from {
     opacity: 0;
-    transform: scale(0.6);
+  }
+}
+.pr-row:has(.pr-face[data-pr-joining]) .pr-count {
+  animation: pr-join-count 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pr-join-count {
+  from {
+    transform: translateX(calc(var(--pr-size) * 0.75));
   }
 }
 
-/* Nothing moves for a reader who asked for less motion; a held beat keeps its pose. */
+/* ── less motion ─────────────────────────────────────────────────────────── */
+
+/* Nothing moves for a reader who asked for less motion; a held beat keeps its
+   pose (the flare at its peak). */
 @media (prefers-reduced-motion: reduce) {
   .pr-glow,
   .pr-ring,
+  .pr-ring::before,
+  .pr-puck,
   .pr-face[data-pr-joining] {
-    animation: none;
+    animation: none !important;
   }
-  /* A landing with no motion is its end: the fine ring, the light spent. */
+  /* A landing with no motion is its end: the light spent, the fine ring. */
   .pr-row:not([data-pr-held]) .pr-glow[data-wears="flare"],
-  .pr-row:not([data-pr-held]) .pr-ring[data-wears="flare"] {
+  .pr-row:not([data-pr-held]) .pr-ring[data-wears="flare"],
+  .pr-row:not([data-pr-held]) .pr-puck:has(~ .pr-ring[data-wears="flare"]) {
     opacity: 0;
-  }
-  .pr-row:not([data-pr-held])
-    .pr-face:has(.pr-ring[data-wears="flare"])::after {
-    animation: none;
-    opacity: 1;
   }
 }

@@ -178,7 +178,23 @@ function HubHead({
                 <span>
                   <RangeText text={formatEventDate(WEDDING.date, null)} />
                 </span>
-                {people ?? (
+                {people ? (
+                  /* ★ THE FACES ARE THE GLYPH (`line`): they stand where the people glyph stood, at the line's own
+                     height (`hub.css`), and the number after them is the glyph count's own readout, so the line
+                     keeps its one voice: a mark, then its number, then the views'. */
+                  <span
+                    data-pr-hub-line=""
+                    className="pr-hub-line flex shrink-0 items-center gap-1.5"
+                  >
+                    {people}
+                    <span
+                      data-n=""
+                      className="text-label font-semibold text-white uppercase tabular-nums"
+                    >
+                      {formatCount(WEDDING.guests)}
+                    </span>
+                  </span>
+                ) : (
                   <GlyphCount
                     icon={<Users />}
                     count={empty ? 0 : WEDDING.guests}
@@ -225,6 +241,11 @@ function HubHead({
  * THE GUESTS DOOR WEARING ITS FACES (`door`): `DoorParts`' own pieces, the
  * glyph's place holding her newest faces with the waiting count on their
  * shoulder, the title and its line as built.
+ *
+ * ★ THE PLACE KEEPS THE GLYPH'S SIZE (`hub.css`): on a card and a tile the
+ * three faces stand as a group the size of a glyph, so the door's title stays
+ * in the column every other door's title stands in; folded, the pill's two sit
+ * side by side at its glyph's height.
  */
 function GuestsDoorFaces({ faces }: { faces: ReactNode }) {
   const card = CARDS.find((c) => c.id === "guests")!;

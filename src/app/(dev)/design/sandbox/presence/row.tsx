@@ -36,6 +36,13 @@ import { alpha, keyOf, ringPaint, WHITE_RING } from "./light";
  * the one after it and the newest, at the head, is whole (the old option's
  * `zIndex`, kept).
  *
+ * ★ THE COUNT SPEAKS IN ITS LINE'S VOICE: "38 guests", plain, at the line's
+ * own size, in the byline's white on a photograph and the bar's grey on the
+ * page, so "Maya · September 12, 2026" and the faces under it read as one
+ * run of facts. The camera's readout (identity r2) prints a NUMBER beside a
+ * glyph; a word set in it ("38 GUESTS") read as a dashboard's caption under
+ * a wedding's name.
+ *
  * ★ THREE WAYS TO RING THE NEWEST (the `newest` decision), each at a beat:
  *  - `white`: a white ring and a soft white glow while their photos land
  *    (the quarter hour the hub's strip lights its newest end by), then none;
@@ -50,9 +57,10 @@ import { alpha, keyOf, ringPaint, WHITE_RING } from "./light";
  * ★ THREE WAYS TO ANSWER A POINTER (the `hover` decision): none, as today;
  * transitions.dev's avatar-group hover at its own numbers
  * (`.agents/skills/transitions-dev/11-avatar-group-hover.md`); or that lift
- * eased home with no overshoot, the face brought to the front and named. The
- * timing function is written BEFORE the variables, so a lift eases in and the
- * return wears its own curve (the recipe's trick). Under reduced motion
+ * eased home with no overshoot, the face brought to the front and named in
+ * production's tooltip (its capsule, its arrow, its entrance and its clock).
+ * The timing function is written BEFORE the variables, so a lift eases in and
+ * the return wears its own curve (the recipe's trick). Under reduced motion
  * nothing moves; an INSTANT (a held beat) is a drawing and keeps its pose.
  */
 
@@ -69,12 +77,40 @@ export type RowBeat =
   | "joined";
 
 type Size = "xxs" | "xs" | "sm" | "default" | "lg";
-const PX: Record<Size, number> = {
-  xxs: 16,
-  xs: 20,
-  sm: 24,
-  default: 32,
-  lg: 40,
+
+/** A face's look in the row: its box (the overlap and the ring read it), the `Avatar` step it is drawn at, its class where the avatar has no step that size. */
+type Look = {
+  px: number;
+  avatar: "sm" | "default";
+  box?: string;
+  initial?: string;
+};
+
+/**
+ * A FACE'S SIZE IN THE ROW.
+ *
+ * ★ A DESK'S COVER DRAWS 36, NOT THE AVATAR'S 40: under a 14px byline whose
+ * host face is 24, a row of 40s read as a second title; 36 keeps her party a
+ * step above its host's face and well below the name.
+ */
+const SIZES: Record<Size, Look> = {
+  xxs: { px: 16, avatar: "default", box: "size-4", initial: "text-[8px]" },
+  xs: { px: 20, avatar: "default", box: "size-5", initial: "text-[8px]" },
+  sm: { px: 24, avatar: "sm", initial: "text-[10px]" },
+  default: { px: 32, avatar: "default" },
+  lg: { px: 36, avatar: "default", box: "size-9", initial: "text-[15px]" },
+};
+
+/**
+ * ★ ON THE PAGE A DESK'S ROW IS THE BAR'S HEIGHT: the album's bar is a line
+ * of 28px controls (View), so a row standing in it draws 28s where a cover
+ * would draw 32, and the bar never grows for its faces.
+ */
+const IN_BAR: Look = {
+  px: 28,
+  avatar: "default",
+  box: "size-7",
+  initial: "text-[12px]",
 };
 
 /** The hover's numbers: transitions.dev's own (`comb`), and the same lift eased home (`named`). */
@@ -88,6 +124,43 @@ const HOVER = {
     named: "cubic-bezier(0.22, 1, 0.36, 1)",
   },
 } as const;
+
+/**
+ * THE POINTER'S WALK (the hover loupe's loop), as a hand reads a row: in from
+ * the left, a rest on Theo (the newest) long enough to read his name, along
+ * the row a face at a time, a second look back, a rest mid-row and at the
+ * sixth face, then down off the row onto the album while the row settles
+ * home, and a beat of stillness before the next pass. ★ EVERY MOVE IS TO A
+ * NEIGHBOUR, so no face is crossed without answering, as a real pointer
+ * would make it. `rest` is how long the pointer stays once there.
+ */
+const WALK: readonly { at: number | "in" | "out"; rest: number }[] = [
+  { at: "in", rest: 500 },
+  { at: 0, rest: 1300 },
+  { at: 1, rest: 340 },
+  { at: 2, rest: 340 },
+  { at: 3, rest: 1100 },
+  { at: 2, rest: 650 },
+  { at: 3, rest: 280 },
+  { at: 4, rest: 340 },
+  { at: 5, rest: 1100 },
+  { at: "out", rest: 1700 },
+];
+
+/** A move's time: a hand's unhurried pace over the row's own pixels, never a snap and never a crawl. */
+const travelFor = (dx: number, dy: number) =>
+  Math.round(Math.min(560, Math.max(220, Math.hypot(dx, dy) * 6)));
+
+/**
+ * When a face answers, as a share of the move: as the pointer crosses into
+ * it (the faces overlap, so a little past the middle), never as it sets off;
+ * leaving downward, it is off the face early in the move.
+ */
+const ARRIVES = 0.55;
+const LEAVES = 0.35;
+
+/** Where the walk waits between passes: off the row's left, outside a loupe's window. */
+const OFFSTAGE = -40;
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
@@ -148,6 +221,9 @@ function ringState(
   if (ring === "lands") return lit ? "flare" : "fine";
   return lit ? "held" : undefined;
 }
+
+/** The pointer as the walk has it: where, and how long its move there takes (0 is a jump, unseen). */
+type Cursor = { x: number; y: number; travel: number };
 
 export function PartyRow({
   faces,
@@ -232,7 +308,7 @@ export function PartyRow({
   /* ── the pointer, live or played ── */
   const [active, setActive] = useState<number | null>(null);
   const [phase, setPhase] = useState<"in" | "out">("in");
-  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  const [cursor, setCursor] = useState<Cursor | null>(null);
   const slots = useRef<(HTMLSpanElement | null)[]>([]);
   const n = Math.min(shown, people.length);
   const answers = hover !== "still" && !instant;
@@ -251,34 +327,70 @@ export function PartyRow({
   }, [answers]);
 
   useEffect(() => {
-    if (play !== "hover" || reduced || !el) return;
+    if (play !== "hover" || !el) return;
     const win = el.ownerDocument.defaultView ?? window;
-    // A pointer drifting in from the left, along the faces, a beat on each, then away.
-    const path: (number | null)[] = [null, 0, 1, 2, 3, 2, 4, 5, null, null];
-    let i = 0;
-    let t = 0;
-    const step = () => {
-      const target = path[i % path.length]!;
-      if (target === null) {
-        setCursor({ x: -22, y: el.offsetHeight * 0.6 });
-        if (hover !== "still") {
-          setPhase("out");
-          setActive(null);
-        }
-      } else {
-        const at = pointOn(el, slots.current[target]);
-        if (at) setCursor(at);
-        if (hover !== "still") {
+    const answering = hover !== "still";
+    const timers = new Set<number>();
+    const later = (fn: () => void, ms: number) => {
+      const t = win.setTimeout(() => {
+        timers.delete(t);
+        fn();
+      }, ms);
+      timers.add(t);
+    };
+    const clear = () => timers.forEach((t) => win.clearTimeout(t));
+    if (reduced) {
+      // Less motion: no walk. The pointer rests on a face mid-row and the row answers as it would, without moving
+      // (the name still comes; nothing lifts).
+      later(() => {
+        const at = Math.min(3, n - 1);
+        const xy = pointOn(el, slots.current[at]);
+        if (xy) setCursor({ ...xy, travel: 0 });
+        if (answering) {
           setPhase("in");
-          setActive(target);
+          setActive(at);
         }
-      }
+      }, 300);
+      return clear;
+    }
+    const home = { x: OFFSTAGE, y: el.offsetHeight * 0.62 };
+    let pos = home;
+    let i = 0;
+    const step = () => {
+      const s = WALK[i % WALK.length]!;
       i += 1;
-      t = win.setTimeout(step, target === null ? 900 : 640);
+      if (s.at === "in") {
+        // A jump, unseen: the pointer waits off the row's left for its next pass.
+        pos = home;
+        setCursor({ ...home, travel: 0 });
+        later(step, s.rest);
+        return;
+      }
+      const face = s.at === "out" ? null : Math.min(s.at, n - 1);
+      const to =
+        face === null
+          ? { x: pos.x + 26, y: el.offsetHeight + 34 }
+          : (pointOn(el, slots.current[face]) ?? pos);
+      const travel = travelFor(to.x - pos.x, to.y - pos.y);
+      pos = to;
+      setCursor({ ...to, travel });
+      if (answering) {
+        if (face === null)
+          later(() => {
+            setPhase("out");
+            setActive(null);
+          }, travel * LEAVES);
+        else
+          later(() => {
+            setPhase("in");
+            setActive(face);
+          }, travel * ARRIVES);
+      }
+      later(step, travel + s.rest);
     };
     step();
-    return () => win.clearTimeout(t);
-  }, [play, reduced, el, hover]);
+    return clear;
+  }, [play, reduced, el, hover, n]);
 
   const faceActive = instant ? pointer : active;
   const shifts = shiftsFor(n, hover === "still" ? null : faceActive);
@@ -287,11 +399,11 @@ export function PartyRow({
       ? HOVER.out[hover === "comb" ? "comb" : "named"]
       : HOVER.in;
 
-  const px = PX[size];
+  const look = on === "page" && size === "default" ? IN_BAR : SIZES[size];
   const newest = people[0];
   const light = newest ? keyOf(newest.last) : "#fff";
   const vars: Vars = {
-    "--pr-size": `${px}px`,
+    "--pr-size": `${look.px}px`,
     "--pr-light": ring === "white" ? "#fff" : light,
     "--pr-paint":
       ring === "white"
@@ -301,9 +413,6 @@ export function PartyRow({
           : WHITE_RING,
     "--pr-glow": ring === "white" ? "rgb(255 255 255 / 0.5)" : alpha(light, 70),
   };
-  // The avatar's own sizes are 24, 32 and 40; the door's smaller faces take the default box at their own size.
-  const avatarSize = size === "sm" || size === "lg" ? size : "default";
-  const boxed = size === "xs" || size === "xxs";
 
   return (
     <div
@@ -312,6 +421,7 @@ export function PartyRow({
       data-pr-ring={ring}
       data-pr-beat={nowBeat}
       data-pr-hover={hover}
+      data-pr-play={play}
       data-pr-held={instant ? "" : undefined}
       className={cn("pr-row relative", className)}
       style={vars}
@@ -360,28 +470,11 @@ export function PartyRow({
                 seed={p.seed}
                 name={p.name}
                 palette={palette}
-                size={avatarSize}
-                className={cn(
-                  "pr-avatar",
-                  boxed && (size === "xs" ? "size-5" : "size-4"),
-                )}
-                initial={cn(
-                  size === "sm" && "text-[10px]",
-                  size === "lg" && "text-base",
-                  boxed && "text-[8px]",
-                )}
+                size={look.avatar}
+                className={cn("pr-avatar", look.box)}
+                initial={look.initial}
               />
-              {raised ? (
-                <span
-                  data-pr-name=""
-                  className={cn(
-                    "pr-name px-2.5 py-1 text-xs font-medium",
-                    floatingTip,
-                  )}
-                >
-                  {p.name}
-                </span>
-              ) : null}
+              {raised ? <NameTag name={p.name} /> : null}
             </span>
           );
         })}
@@ -390,20 +483,43 @@ export function PartyRow({
         <span
           data-pr-count=""
           className={cn(
-            "pr-count text-label font-semibold tracking-[0.08em] uppercase tabular-nums",
-            on === "photo" ? "text-white" : "text-muted-foreground",
+            "pr-count text-sm tabular-nums",
+            on === "photo" ? "text-white/85" : "text-muted-foreground",
           )}
         >
           {`${formatCount(total)} ${total === 1 ? "guest" : "guests"}`}
         </span>
       ) : null}
-      {play === "hover" && cursor && !reduced ? (
-        <Pointer x={cursor.x} y={cursor.y} />
+      {play === "hover" && cursor ? (
+        <Pointer x={cursor.x} y={cursor.y} travel={cursor.travel} />
       ) : null}
       {instant && pointer !== null ? (
         <HeldPointer at={pointer} slots={slots} />
       ) : null}
     </div>
+  );
+}
+
+/**
+ * THE NAME ABOVE A RAISED FACE, IN PRODUCTION'S TOOLTIP: `TooltipContent`'s
+ * capsule (`floatingTip`, its padding and its type) and its arrow, a rounded
+ * diamond of the display's own ink pointing at the face it names, so a name
+ * over overlapping faces is never in doubt. It rides the face's lift and is
+ * drawn back to its true size against the face's grow (`row.css`).
+ */
+function NameTag({ name }: { name: string }) {
+  return (
+    <span data-pr-name="" className="pr-name">
+      <span
+        className={cn(
+          "relative inline-flex items-center px-3 py-1.5 text-xs whitespace-nowrap",
+          floatingTip,
+        )}
+      >
+        {name}
+        <span aria-hidden className="pr-name-arrow bg-popover" />
+      </span>
+    </span>
   );
 }
 
@@ -424,21 +540,37 @@ function Lit({
   );
 }
 
-/** A drawn pointer, the arrow a mouse shows, where the loop has it. */
-function Pointer({ x, y }: { x: number; y: number }) {
+/**
+ * A DRAWN POINTER, the arrow the Mac Will judges on draws (black, a white
+ * edge, a soft shadow), so it reads on a photograph and on paper alike. Its
+ * tip, the arrow's top-left corner, stands on the point; a move glides over
+ * `travel`, and a move of 0 is a jump.
+ */
+function Pointer({
+  x,
+  y,
+  travel = 0,
+}: {
+  x: number;
+  y: number;
+  travel?: number;
+}) {
   return (
     <span
       aria-hidden
       data-pr-pointer=""
       className="pr-pointer"
-      style={{ transform: `translate(${x}px, ${y}px)` }}
+      style={{
+        transform: `translate(${x - 2}px, ${y - 2}px)`,
+        transitionDuration: `${travel}ms`,
+      }}
     >
-      <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
+      <svg width="17" height="23" viewBox="0 0 17 23" fill="none">
         <path
-          d="M1.5 1.5v14.2l3.6-3.4 2.4 5.6 2.5-1.1-2.4-5.5h5.1L1.5 1.5z"
-          fill="#fff"
-          stroke="#111"
-          strokeWidth="1.2"
+          d="M2 2v15.6l3.9-3.7 2.7 6.3 2.9-1.25-2.7-6.2h5.3L2 2z"
+          fill="#0b0b0c"
+          stroke="#fff"
+          strokeWidth="1.4"
           strokeLinejoin="round"
         />
       </svg>

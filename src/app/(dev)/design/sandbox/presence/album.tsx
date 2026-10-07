@@ -301,13 +301,21 @@ export function Cover({
               </span>
             ) : null}
           </p>
+          {/* The row is the byline's next line, a step further down than the byline is from the name (its faces
+              are a size up); at a phone the actions stand a step further again, so the party's facts read as one
+              block over her acts. */}
           {row ? (
-            <div data-pr-place="cover" className="mt-4 md:mt-5">
+            <div data-pr-place="cover" className="mt-3.5 md:mt-4">
               {row}
             </div>
           ) : null}
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0 md:flex-row-reverse md:flex-nowrap">
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0 md:flex-row-reverse md:flex-nowrap",
+            row ? "mt-6" : "mt-5",
+          )}
+        >
           <CoverActions empty={empty} />
         </div>
       </div>
@@ -315,16 +323,33 @@ export function Cover({
   );
 }
 
-/** The album's bar: its count, Select and View; with a row beside the count where it stands there. */
+/**
+ * The album's bar: its count, Select and View; with the row beside the count
+ * where it stands there.
+ *
+ * ★ AT A DESK, ONE LINE: the count, the byline's dot, the faces and their
+ * count, then Select and View at the far end; the faces are the bar's own
+ * height (`row.tsx`), so the line never grows for them.
+ * ★ AT A PHONE, THE ROW TAKES THE LINE UNDER THE COUNT: the bar's own line
+ * keeps its controls whole, and the two facts stand as one block at the left
+ * (what the album holds, who made it), closer to each other than to the
+ * photographs under them.
+ */
 function AlbumBar({ row, screen }: { row?: ReactNode; screen: Screen }) {
+  const ownLine = Boolean(row) && screen === "375";
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2.5">
+    <div
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-x-3",
+        ownLine ? "mb-3.5 gap-y-2" : "mb-3 gap-y-2.5",
+      )}
+    >
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2.5">
         <p className="px-0.5 text-working text-muted-foreground tabular-nums">
           {formatMediaCount(WEDDING.photos)}
         </p>
         {row && screen === "1440" ? (
-          <div data-pr-place="bar" className="flex items-center gap-3">
+          <div data-pr-place="bar" className="flex items-center gap-2.5">
             <span aria-hidden className="text-muted-foreground/50">
               ·
             </span>
@@ -340,7 +365,7 @@ function AlbumBar({ row, screen }: { row?: ReactNode; screen: Screen }) {
           <SlidersHorizontal /> View
         </Button>
       </div>
-      {row && screen === "375" ? (
+      {ownLine ? (
         <div data-pr-place="bar" className="basis-full px-0.5">
           {row}
         </div>

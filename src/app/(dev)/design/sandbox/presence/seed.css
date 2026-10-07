@@ -11,49 +11,125 @@
   background: var(--background);
 }
 
-/* THE LAMP: the orb whole, its glow round it; up and to the right of the words,
-   where a light hangs over a room. */
+/* ══ THE LAMP ═══════════════════════════════════════════════════════════════ */
+
+/* ★ HUNG UP IN THE ROOM, CLEAR OF THE WORDS: on the album over the right third
+   of the cover's empty sky, the name and the Add below and to its left; on the
+   hub between the name and the code (the brightest thing on her cover is the
+   code's white mat, and a lamp beside it would argue with it). Its size is a
+   lamp's, a little under the name's own height, whatever the cover's size. */
+[data-pr-side="album"] {
+  --pr-lamp: 30px;
+  --pr-lamp-x: 71%;
+  --pr-lamp-y: 27%;
+  --pr-pool: 500px;
+}
+[data-pr-side="hub"] {
+  --pr-lamp: 38px;
+  --pr-lamp-x: 57%;
+  --pr-lamp-y: 28%;
+  --pr-pool: 900px;
+}
 .pr-seed-lamp {
   position: absolute;
-  aspect-ratio: 1;
+  left: var(--pr-lamp-x);
+  top: var(--pr-lamp-y);
+  width: var(--pr-lamp);
+  height: var(--pr-lamp);
+  translate: -50% -50%;
 }
-[data-pr-side="album"] .pr-seed-lamp {
-  height: 17%;
-  top: 15%;
-  right: 12%;
-}
-[data-pr-side="hub"] .pr-seed-lamp {
-  height: 26%;
-  top: 18%;
-  right: 20%;
-}
-/* The lamp's light fills the room a little: wide and low, never a fog over the words. */
-.pr-seed-glow {
+
+/* The room it lights: a wide pool round the lamp, low, each stop about half
+   the last, so it reads as light falling off in a dark room and is spent
+   before the words, never a fog over them. A hanging light lights what is
+   under it more than the ceiling over it, so the pool hangs a little low. */
+.pr-seed-pool {
   position: absolute;
-  inset: -320%;
+  left: 50%;
+  top: 50%;
+  width: var(--pr-pool);
+  height: calc(var(--pr-pool) * 1.12);
+  translate: -50% -44%;
   border-radius: 9999px;
   background: radial-gradient(
     closest-side,
-    var(--pr-lamp-near),
-    var(--pr-lamp-wide) 18%,
-    color-mix(in oklab, var(--pr-lamp-wide) 30%, transparent) 46%,
-    transparent 80%
+    var(--pr-pool-0) 0%,
+    var(--pr-pool-1) 14%,
+    var(--pr-pool-2) 34%,
+    var(--pr-pool-3) 62%,
+    transparent 100%
   );
 }
+
+/* Its bloom: from the glass outward, a step dimmer than the glass itself, and
+   spent within about an orb's width (the glass at 31% of its radius). */
+.pr-seed-bloom {
+  position: absolute;
+  inset: -110%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    var(--pr-bloom-0) 31%,
+    var(--pr-bloom-1) 44%,
+    var(--pr-bloom-2) 64%,
+    var(--pr-bloom-3) 84%,
+    transparent 100%
+  );
+}
+
+/* The orb: production's own hashvatar, whole and defined. */
 .pr-seed-orb {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.08),
-    0 0 28px 4px var(--pr-lamp-wide);
+}
+/* ★ LIT FROM WITHIN, NEVER FROM OUTSIDE: the mesh shades its orb as a ball
+   lit from above, which at a cover's size reads as a moon. A lamp's glass
+   gives light, so the mesh is lifted toward its own light (screened: its
+   shadow rises most, its depths still read) and its core glows where the
+   orb's own light sits. */
+.pr-seed-orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at var(--pr-orb-x) var(--pr-orb-y),
+      var(--pr-orb-core) 0%,
+      transparent 72%
+    ),
+    linear-gradient(var(--pr-orb-lift), var(--pr-orb-lift));
+  mix-blend-mode: screen;
 }
 
-/* THE FIELD: the mesh edge to edge, dimmed into the room. */
+/* ══ THE FIELD ══════════════════════════════════════════════════════════════ */
+
+/* ★ DIMMED BY ITS OWN LIGHTNESS, NEVER A VEIL: a veil (an opacity over the
+   room) greys a hue toward the room's own and reads as a murky wash; lowering
+   the light keeps its colour and its depths, the mesh's lit pool still the
+   brightest place and its shadow nearly the room. It is the whole ground,
+   edge to edge, strongest up in the room and falling toward the words. */
 .pr-seed-field {
   position: absolute;
-  inset: -12%;
-  opacity: 0.55;
+  inset: -6%;
+  filter: brightness(0.62) saturate(1.25);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 34%,
+    rgb(0 0 0 / 0.62) 62%,
+    rgb(0 0 0 / 0.3) 84%,
+    rgb(0 0 0 / 0.1) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 34%,
+    rgb(0 0 0 / 0.62) 62%,
+    rgb(0 0 0 / 0.3) 84%,
+    rgb(0 0 0 / 0.1) 100%
+  );
 }
 
 /* The words' own dark at the cover's foot, as a photograph's scrim. */

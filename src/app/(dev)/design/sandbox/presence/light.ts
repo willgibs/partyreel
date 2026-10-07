@@ -65,19 +65,28 @@ export function keyOf(id: StillId): string {
  * ring, brightest at the top-left where the product's one light sits (the
  * Add's Ring, brand r2's), so a ring reads as light falling on it, never as a
  * painted outline.
+ *
+ * ★ THE KEY RUNS HOT: at the top-left the light is mixed toward white, as any
+ * source reads at its brightest, and its colour lives in the falloff (body,
+ * then deep round the far side). A band one colour all round is paint; a band
+ * with a hot point and a falloff is light, even at two pixels.
  */
 export function ringPaint(id: StillId): string {
   const top = [...SAMPLED[id]].sort((a, b) => b.w - a.w)[0]!;
   const c = chromaOf(id);
   const lit = lampColor({ h: top.h, w: 1, dl: 0.09, c });
   const body = lampColor({ h: top.h, w: 1, c });
-  const deep = lampColor({ h: (top.h + 348) % 360, w: 1, dl: -0.08, c });
-  return `conic-gradient(in oklab from 300deg, ${lit}, ${body} 22%, ${deep} 50%, ${body} 78%, ${lit})`;
+  const deep = lampColor({ h: (top.h + 348) % 360, w: 1, dl: -0.1, c });
+  const hot = `color-mix(in oklab, ${lit} 52%, #fff)`;
+  return `conic-gradient(in oklab from 300deg, ${hot}, ${lit} 9%, ${body} 25%, ${deep} 50%, ${body} 75%, ${lit} 91%, ${hot})`;
 }
 
-/** White light as a ring's paint: whole at the top-left, a little spent round the far side. */
+/**
+ * White light as a ring's paint: whole at the top-left key, spent to half
+ * round the far side, so even white reads as light falling, never a stroke.
+ */
 export const WHITE_RING =
-  "conic-gradient(in oklab from 300deg, #fff, rgb(255 255 255 / 0.82) 25%, rgb(255 255 255 / 0.6) 50%, rgb(255 255 255 / 0.82) 75%, #fff)";
+  "conic-gradient(in oklab from 300deg, #fff, rgb(255 255 255 / 0.84) 22%, rgb(255 255 255 / 0.5) 50%, rgb(255 255 255 / 0.84) 78%, #fff)";
 
 /**
  * A SEED'S LIGHT, AT THREE DEPTHS (the hashvatar's way to be rich: one hue

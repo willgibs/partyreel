@@ -20,16 +20,23 @@ import { alpha, seedLight } from "./light";
  *    no ground of its own and the house shows.
  *  - `lamp`, Aperture's: the seed as a LAMP IN THE ROOM, production's own
  *    hashvatar orb (`orbFor` and the mesh, the face's very look), defined and
- *    whole, its light glowing round it in the dark from where the orb's own
- *    light sits; never fog (brand r2's creative director: a soft smudge in a
- *    well reads as an image that failed to load), so the orb is a thing and
- *    the light its glow. Quiet enough that the first photograph is plainly
- *    the brighter thing.
+ *    whole, its light glowing round it in the dark; never fog (brand r2's
+ *    creative director: a soft smudge in a well reads as an image that failed
+ *    to load), so the orb is a thing and the light its glow.
+ *    ★ LAMP-SIZED, NEVER A PLANET: brand r2's lamp filled a card's small well;
+ *    scaled to a cover, the same proportions made a moon or a giant avatar.
+ *    So the orb stays the size of a lamp (a little under the name's height),
+ *    hung up in the room clear of the words, and its light is what fills the
+ *    cover: a bloom spent within an orb's width of the glass, then the room
+ *    faintly lit round it, falling off as light does, so the first
+ *    photograph is plainly the brighter thing.
  *  - `field`: the seed's mesh spread under the whole cover, one hue at
- *    several depths edge to edge, dimmed into the room so the words read.
+ *    several depths edge to edge, dimmed into the room so the words read
+ *    (`seed.css` says how: by its own lightness, never a veil).
  *
  * ★ THE ROOM ON BOTH THEMES: a cover is the room (`EventHead` is `dark`), so
- * none of this ever touches a paper page.
+ * none of this ever touches a paper page. ★ STILL: a seed is never animated
+ * (seed-avatar r2), so the lamp hangs still until a photograph arrives.
  */
 
 export type SeedWay = "house" | "lamp" | "field";
@@ -52,16 +59,31 @@ export function SeedGround({
   return <SeedLamp seed={seed} side={side} />;
 }
 
-/** THE LAMP: the seed's orb, whole, its light round it in the room's dark. */
+/**
+ * THE LAMP: the seed's orb, whole, its light round it in the room's dark. Its
+ * light is the seed's own three depths in the room's register (`seedLight`):
+ * the bloom in its lit tone, the room in its body.
+ */
 function SeedLamp({ seed, side }: { seed: string; side: "album" | "hub" }) {
   const o = orbFor(seed);
   const l = seedLight(seed);
   const vars: Vars = {
-    "--pr-lamp-lit": l.lit,
-    "--pr-lamp-body": l.body,
-    "--pr-lamp-deep": l.deep,
-    "--pr-lamp-wide": alpha(l.body, 34),
-    "--pr-lamp-near": alpha(l.lit, 62),
+    // The glass lit from within: the orb's own mesh lifted toward its light (screened), its core where its light sits.
+    "--pr-orb-lift": alpha(l.body, 34),
+    "--pr-orb-core": alpha(l.lit, 58),
+    "--pr-orb-x": `${o.light.x.toFixed(0)}%`,
+    "--pr-orb-y": `${o.light.y.toFixed(0)}%`,
+    // ★ The bloom starts dimmer than the glass it leaves, so the orb is the brightest thing in the room (a bloom brighter
+    // than the orb's shadowed side drew an eclipse, a dark ball in a ring), then is spent within about an orb's width.
+    "--pr-bloom-0": alpha(l.body, 36),
+    "--pr-bloom-1": alpha(l.body, 16),
+    "--pr-bloom-2": alpha(l.body, 6),
+    "--pr-bloom-3": alpha(l.deep, 2),
+    // The room it lights: low, wide, falling off as light does (each stop about half the last).
+    "--pr-pool-0": alpha(l.body, 30),
+    "--pr-pool-1": alpha(l.body, 15),
+    "--pr-pool-2": alpha(l.deep, 6.5),
+    "--pr-pool-3": alpha(l.deep, 2.5),
   };
   return (
     <div
@@ -73,7 +95,8 @@ function SeedLamp({ seed, side }: { seed: string; side: "album" | "hub" }) {
     >
       <span className="pr-seed-room" />
       <span className="pr-seed-lamp">
-        <span className="pr-seed-glow" />
+        <span className="pr-seed-pool" />
+        <span className="pr-seed-bloom" />
         <span
           className="pr-seed-orb"
           style={{
