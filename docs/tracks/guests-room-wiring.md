@@ -154,6 +154,10 @@ Each is built as recommended, and is Will's to overrule.
   willg97's, Private with the invite list as the door): hi@willgibs.com's ticket there (5adf2d42-6c63-44b2-9777-
   45f5c0b416c2: inserted by SQL as a waiting ask, declined and let in through the room, set waiting again by SQL and
   let in from her card at a phone) and two invite addresses at example.com.
+- **A slip in my cleanup, put right:** a `pkill -f "node drv.mjs"` at 21:31 UTC stopped no-signal-wiring's red-team
+  driver (its own port 9971) along with mine; I restarted it at 21:33 with its own `RT_DIR` and port, its pid in its
+  `drv.pid`, and re-attached its device H1 from its `ctx.json` (its Chrome never stopped). A call its walk made in
+  those two minutes was refused. Never a process name again, only my own pid or port.
 - Assets requested from Will: none.
 - Board ideas: See all as the album itself filtered to one person (a dismissible chip over the hub's or the guest
   page's album, the viewer walking all of theirs), where this lane drew a panel; the card's strip leading with their
