@@ -1,6 +1,6 @@
 ---
 track: brand-marks-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c04da309"            # the launch-prep SHA the branch was cut from
 board: brand-marks
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -41,25 +41,34 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Which three takes?** Built: what the ring holds (a mirror ball: the party; a reel: the name) and what it is made of (one swing of a sparkler: the moment). Weighed and not drawn: a P on the puck (a P in a warm round mark sits beside Pinterest's), an iris (the retired stand-in's own glyph), rings of bokeh or confetti (a ring of dots reads as a loading spinner). Overrule: name a direction for round three.
+- **The sparkler leaves the ring empty, against "filling the ring".** The creative director called it no contender for that; kept as the one answer on the brief's "what it is made of" axis, redrawn as a swing that crosses its own start so no size is today's ring. Overrule: drop it.
+- **The recommendation:** the reel (the creative director concurs): it fills the ring with the name and alone holds as one bold group from a 16 tab to a poster. The pass's test for overruling it: if most of five outsiders, given five seconds, say video, film or Instagram before photos or a party, stay on today's Ring.
+- **Today's reference is production's own Ring** (`src/lib/brand/ring.ts`, `icon/today.tsx`), never the board's copy, so it can never drift from what ships.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: a board ships no production byte, and no system fact moved.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Upcoming, Design system and accessibility: Brand: the picked icon's tinted, dark and clear phone looks (iOS's tinted and dark, its clear glass), drawn from its own light when brand-marks r2's pick is wired (brand-marks-r2).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- **Commits, pushed on `lp/brand-marks-r2`:** `d60eaf64a` (round two's frame: one ask, four takes as drafts), `f503cd376` (the takes drawn by a helper each and refined from the creative director's pass; the frames made honest), sync `12dd4b7ef` (merge `origin/launch-prep` at `9c426f75f`: brand-marks-wiring and crumbs-91; round one's `palette/grades.test.ts` and `palette/menu.tsx`, which both lanes touched, kept deleted), `40a888e19` (today's Ring read from production; the words rewritten against the final pictures). launch-prep has since moved to `a53466652` (crumbs-92, no-signal-wiring, records): none of it touches my reads and `git merge-tree` merges clean, so no second sync (PROGRAM's sync rule).
+- **Gates on `40a888e19`, each on its own exit code** (logs in `/Users/gibby/local/ai/partyreel-wt/_scratch/brand-marks-r2/final-*.log`): `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test:rules` 0 (86 files, 1,483 tests; the board's spec held by `registry.test.ts`, its own tests retired with round one's asks); `pnpm lab:smoke --base http://localhost:3137` 0 (3 checks, 577 words of 1,200); `pnpm lab:demo --board brand-marks --base http://localhost:3137` 0 (4 options of 5 frames, the stage moves up to 35.05%; 1440 starts 0.30 down, 220px to the dock; 375 starts 0.38 down, 18px to the dock); the same with `--state screen=375` 0. The light gate (PROGRAM's "Speed over proof in exploration").
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = paths under `src/app/(dev)/design/sandbox/brand-marks/` + this file; no exceptions. Nothing outside the board imports its folder (`git grep sandbox/brand-marks origin/launch-prep -- src scripts usher kit` is empty).
+- **Items:**
+  - Round two asks one question, `icon`: today's Ring (`ember`, `today`), a mirror ball, a sparkler's swing and a reel (recommended), each read at 1024 true size, 180, 32 and 16 (16 at 1x and sharp, enlarged pixel for pixel) in the room and on paper with a dark and a light tab, on a home screen at night and by day, in a launcher cut at the maskable safe zone, beside production's wordmark as the press kit sets them, and in one colour over footage (`icon/story.tsx`).
+  - Round one's answered asks (wordmark, plate, status) leave the board with their drawings and tests, as do its losing icon options; their picks stand in the opening as settled.
+  - Each take is one file (`icon/takes/<id>.tsx`, the `Take` contract in `icon/parts.tsx`); today's draws `ringMarkup` itself (`icon/today.tsx`) on production's tile and corner; the ember's stops come from `src/lib/brand/ring.ts`.
+  - The method: a helper per take, a creative director's fresh-eyes pass, one refinement landing every note (the ball's lit facets one crescent at the key, never a dotted spinner; the sparkler's loop a crossing swing, never today's ring; the reel's windows one light, never a palette; round tiles tried as photo windows and dropped as a flower).
+  - The pass also corrected the frames: tabs at 1x beside sharp ones, the launcher at its harshest crop with no mirror ball on its wall, the day icon on its bright ground, every one-colour mark measured to one box.
+- **Assets requested from Will:** none.
+- **Board ideas:**
+  - The album's Shutter wearing the picked icon's interior (the reel's windows, the ball's crescent) on its face, so the Add and the icon stay one object, as the Ring began.
+  - Production's one-colour Ring (the ring and a solid puck, `ringMonoSvg`) reads as a record button at a watermark's 34px over footage (this board's press frame); should today's Ring stay, its mono could be the ring alone.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls for Will:** none.
+- **Look at first:** `/design/lab/brand-marks?session=brand-marks.icon` at 1440: the reel shown whole on the first screen; 1 to 4 blink between the takes, and `f` (1:1) reads each 1024 master and its 16 at 1x.
