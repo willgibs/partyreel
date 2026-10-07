@@ -1,11 +1,9 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 
 import { EmptySectionTeaser } from "@/components/app/dashboard/empty-section-teaser";
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { MyLikesGallery } from "@/components/app/my-likes-gallery";
 import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getMyLikeCards } from "@/lib/db/queries/my-likes";
 import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getMyFollowing } from "@/lib/db/queries/social";
@@ -15,6 +13,7 @@ import {
 } from "@/lib/shared/tile-size-cookie";
 import { withAvatarUrls } from "@/lib/social/cards";
 
+import { ConnectionChips } from "./connection-chips";
 import { readMyLikesPageAction, readMyUploadsPageAction } from "./feed-actions";
 
 /**
@@ -124,39 +123,7 @@ export async function OwnerSections() {
             from any album they share.
           </p>
         ) : (
-          <ul className="flex flex-wrap gap-2">
-            {followingItems.map((item) => {
-              const identity = (
-                <>
-                  <Avatar size="sm" seed={item.seed}>
-                    <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
-                    <AvatarFallback className="text-[10px]">
-                      {(item.displayName ?? "?").slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="truncate text-sm">
-                    {item.displayName ?? "Someone"}
-                  </span>
-                </>
-              );
-              return (
-                <li key={item.id}>
-                  {item.slug ? (
-                    <Link
-                      href={`/u/${item.slug}`}
-                      className="flex max-w-56 focus-halo items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 transition-[background-color,transform] duration-150 ease-emphasis outline-none hover:bg-muted/40 active:scale-[0.97] motion-reduce:active:scale-100"
-                    >
-                      {identity}
-                    </Link>
-                  ) : (
-                    <span className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1">
-                      {identity}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          <ConnectionChips items={followingItems} />
         )}
       </FeedSection>
     </div>
