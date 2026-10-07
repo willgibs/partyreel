@@ -1,6 +1,6 @@
 ---
 track: create-wizard-r5
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "6d216dd9"            # the launch-prep SHA the branch was cut from
 board: create-wizard
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -44,25 +44,74 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **A kind of event (the gap audit's #14): does it earn an ask?** Recommended: no, and it is not asked. The name
+  already says it ("Maya & Jay's Wedding"); a kind would set little she does not pick a screen later (the style), its
+  stock covers would put a stranger's wedding on her guests' cover, and a step before the payoff is the opposite of
+  this round's note. Built as the board's carried call `kind` (overrule: a kind chip on the name screen picking the
+  style and the look's photograph).
+- **How does she step from Create into her event?** Recommended: the room opens into it, the dark rising into her
+  cover's box and her code flying to its mat (`entry.ts`, the carried `entry`); production would run it as a view
+  transition across the route change (the hub's code already wears a view-transition name), a plain cut under reduced
+  motion or without the API. Overrule: a plain change of page.
+- **What does the hub's empty album say?** Recommended: the house's empty voice, Will's own pick ("The album starts
+  with you", Add the first photos its one door), under every greeting, so `arrival`'s options differ by the checklist
+  alone (the carried `album`; production says "No photos yet" today).
+- **On the beat, what becomes of the head's close once the event exists?** Recommended: where the foot goes into her
+  event (`enter`'s beat, the invite screen) it goes; where the foot does something else it stays, and on `photos` it
+  reads Your event (the carried `close-x`).
+- **If `arrival=done` is picked, what else moves?** Recommended, for the wiring: readiness drops the code from what a
+  guest needs into the head of what is worth doing (still ticking at its first open), so Settings' card says the door
+  (never "1 left"), `readyHead`'s line drops its "still", the dashboard's lit stage shows the essentials' ticks rather
+  than the five-step rail beside "Ready", and `attention.ts` keeps "Code never opened · Invite" before the event's day.
+- **If `close=photos` is picked:** the host's upload queue must outlive the room (`HostAddProvider` belongs to the hub
+  page today), and on a Disposable her first photos seal with everyone's until the develop; the board draws Live.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration ships no production byte; host-app.md's create facts change with the wiring of the picks)
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Immediate · The host app: Create's beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on
+  a Free event, which takes photos only; say what the plan takes (create-wizard r5's helpers).
+- Upcoming · The lab and the kit: a portalled frame's `IntersectionObserver` (the hub's cards row) watches the lab's
+  viewport rather than the frame's, so the row reads stuck whenever its frame's footprint leaves the lab's screen (and
+  a beyond-viewport capture flips it); a `FrameWindow` observer shim, or a line in `traps.ts` (create-wizard r5).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `930608d17` (the board, round five), then this manifest's commit, both pushed to `lp/create-wizard-r5`.
+  No sync: launch-prep moved (crumbs-87, account-moments-r2 and records) but nothing landed in this lane's `reads`
+  and the merge cannot conflict (only this folder and this file change).
+- Gates on `930608d17`, each its own exit code (logs in `../partyreel-wt/_scratch/create-wizard-r5/gate-*.log`):
+  `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); the board's and the kit's own tests (`vitest run
+  src/app/(dev)/design/sandbox/ src/components/lab/`) 0, 20 files, 205 tests; `pnpm test:rules` 0, 85 files, 1458
+  tests; `pnpm lab:smoke --base http://localhost:3133` 0 (5 checks, 0 failing, the board 667 words of 1200);
+  `pnpm lab:demo --board create-wizard --base http://localhost:3133` 0 (3 steps, 0 failing, every option drawn and
+  differing, at a desk and a phone).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/create-wizard/`
+  (arrival.tsx, board.tsx, close.tsx, create-wizard.css, create.tsx, entry.ts, fixtures.ts, hub.tsx, pictures.tsx,
+  previews.tsx, scene.tsx, spec.ts, styles.tsx deleted) + this file; no exceptions.
+- `close` (Create's last screen, recommended `enter`): `enter` (the beat's line moved into the room's sub, "Share it,
+  and guests can start adding photos", Print and Share under her code, Go to your event, the room opening into her
+  event with her code carried to its mat); `invite` (her code alone, Invite guests, one screen of the message guests
+  get, Share, Copy link and Print, then in); `photos` (Add your first photos, each tile developing as it goes up, her
+  event opening with them on its cover and in the album).
+- `arrival` (her event's first greeting, recommended `done`): `list` (production's checklist, 2 of 3); `share` (one
+  line in the beat's words with Invite and Print, "on its way" once she shared in Create); `done` (readiness fixed at
+  its source: "Ready for guests · Your code is all they need" with Invite, Show opening the rest).
+- `previews` (the styles told apart, recommended `one`, today `built`): `built`; `one` (three cards resting where they
+  differ, a sharper rest for Review and the Disposable, only the picked card playing its story once, its moment named
+  on a picture wide enough); `open` (three rows, the picked one opening on its album large, its three moments stops);
+  `still` (the rest, nothing playing).
+- The method: a helper per option (eight specs, each built), one fresh-eyes pass (`a7e3bcaf5d1e59ac1`), every MUST it
+  named applied but one: the cards row "landing stuck" reproduced only under the lane's beyond-viewport captures, never
+  in the browser pane, so production's row stands (Deferred, the lab line).
+- Assets requested from Will: none.
+- Board ideas: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the
+  optional reads as owed once Create is the payoff; a Settings board could draw its groups as places, not steps.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none (`done` is pure readiness; `photos` needs none).
+- Calls his to overrule: `kind` (no kind of event), `entry` (the room opens into her event), `album` (the empty
+  album's voice), `close-x` (the head's close), each drawn above the board's sections.
+- Look at first: `close`'s Try it frame under `enter` (Create event, then Go to your event: the room opening into her
+  event), then `arrival=done`'s frame beside `list`.
