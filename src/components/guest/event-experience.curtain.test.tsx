@@ -87,7 +87,7 @@ vi.mock("@/components/guest/gallery-live", async () => {
 // The view is a dialog that closes through the controller's own `onClose` (its own file pins the engine).
 vi.mock("@/components/guest/reel/live-reel-view", () => ({
   LiveReelView: ({ onClose }: { onClose: () => void }) => (
-    <div role="dialog" aria-label="Highlight reel">
+    <div role="dialog" aria-label="Highlight reel" data-testid="reel-view">
       <button type="button" onClick={onClose}>
         Close the view
       </button>
@@ -295,7 +295,8 @@ function Page({
 }
 
 const curtain = () => document.querySelector("[data-reel-curtain]");
-const view = () => screen.queryByRole("dialog", { name: "Highlight reel" });
+// The view's stand-in by its own mark: the curtain under it is a dialog of the same name (the one reel, loading).
+const view = () => screen.queryByTestId("reel-view");
 
 /**
  * The curtain's whole life as the document saw it, not a look at its end: a curtain drawn in one commit and taken
@@ -431,6 +432,86 @@ describe("an owner arriving on ?reel from her hub (a soft navigation)", () => {
     expect(view()).toBeNull();
     expect(curtain()).toBeNull();
     expect(watch.read().removed).toBe(1);
+  });
+});
+
+/* ★ THE CURTAIN IS THE REEL'S FIRST PHOTOGRAPH, WITH CLOSE, FROM THE PAGE'S FIRST BYTE (guest-moments r1, Will's
+   `opening=still`; the ROADMAP's two curtain lines): drawn before the album's head (it was drawn after it, so a hard
+   `?reel` on a slow link painted the head first), the cover's own first still, and a Close that lets it go before the
+   album or the view has arrived (a seed or a view chunk that never landed left her on black until Back). */
+describe("the curtain is the reel's first photograph", () => {
+  it("★ stands before the album's head: the page's first child", async () => {
+    window.history.replaceState(null, "", REEL);
+    await act(async () => {
+      render(<Page seed={lateSeed().seed} reelAsked />);
+    });
+    const head = document.querySelector("[data-event-head]");
+    expect(curtain()).not.toBeNull();
+    expect(head).not.toBeNull();
+    expect(
+      curtain()!.compareDocumentPosition(head!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("★ is the cover's own first still once the album has told the head", async () => {
+    window.history.replaceState(null, "", REEL);
+    await act(async () => {
+      render(<Page seed={resolvedSeed()} reelAsked />);
+    });
+    await settle();
+    const still = document.querySelector<HTMLImageElement>(
+      "[data-reel-curtain-still]",
+    );
+    const cover = document.querySelector<HTMLImageElement>(
+      '[data-head-still="0"]',
+    );
+    expect(still).not.toBeNull();
+    expect(still!.getAttribute("src")).toBe(cover!.getAttribute("src"));
+  });
+
+  it("★ lets her go before the album has arrived: its own Close takes the curtain down", async () => {
+    const late = lateSeed();
+    await act(async () => {
+      render(
+        <NavigationCommit to={REEL}>
+          <Page seed={late.seed} reelAsked />
+        </NavigationCommit>,
+      );
+    });
+    expect(view()).toBeNull();
+    await act(async () => {
+      within(curtain() as HTMLElement)
+        .getByRole("link", { name: "Close" })
+        .click();
+    });
+    expect(curtain()).toBeNull();
+    // And it never comes back when the album arrives after all.
+    await act(async () => {
+      late.arrive();
+      await late.seed;
+    });
+    await settle();
+    expect(curtain()).toBeNull();
+  });
+
+  it("closes the reel as the view's own Close does once the album stands (the owner back to her hub)", async () => {
+    // The view's chunk is slow: the album has told the head, and no view stands over the curtain yet.
+    await act(async () => {
+      render(
+        <NavigationCommit to={REEL}>
+          <Page seed={resolvedSeed()} reelAsked />
+        </NavigationCommit>,
+      );
+    });
+    await act(async () => {
+      within(curtain() as HTMLElement)
+        .getByRole("link", { name: "Close" })
+        .click();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    });
+    expect(window.location.pathname).toBe(HUB);
+    expect(curtain()).toBeNull();
   });
 });
 

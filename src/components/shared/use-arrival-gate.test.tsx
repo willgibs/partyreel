@@ -14,12 +14,12 @@ import { setReducedMotion } from "../../../vitest.setup";
 /**
  * A GUEST'S LIVE ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, build 26's red-team).
  *
- * The rows push an arrival, and `MediaTile` shows a photograph that is complete when its <img> mounts at
- * once (`data-instant`), so the push reveals a photograph. Nothing had fetched an arrival before the album
- * pushed it (and a delta brings no link at all: `url: ""` until a window asks), so it mounted with
- * `complete: false` and faded in 0.3s after the wipe. The gate holds each arrival out of the rows until
- * its link has landed and its photograph is decoded into the document, then lets it in; a photograph that
- * fails or takes long is let in anyway and fades as it always did.
+ * The rows lay an arrival, and `MediaTile` shows a photograph that is complete when its <img> mounts at
+ * once (`data-instant`). Nothing had fetched an arrival before the album laid it (and a delta brings no
+ * link at all: `url: ""` until a window asks), so it mounted with `complete: false` and faded in 0.3s. The
+ * gate holds each arrival out of the rows until its link has landed and its photograph is decoded into the
+ * document, and a batch until its slowest (guest-moments r1, `batch=settle`), then lets it in; a photograph
+ * that fails or takes long is let in anyway and fades as it always did.
  *
  * jsdom loads no images, so `Image` is stood in for by a class whose `decode()` the test settles: what is
  * pinned is WHEN the rows are handed an arrival and WHAT the browser is asked to hold for it, never a frame.
@@ -83,12 +83,14 @@ function Harness({
   items,
   arrivals,
   needLinks,
+  own,
 }: {
   items: GridMedia[];
   arrivals?: readonly string[];
   needLinks?: (ids: readonly string[]) => void;
+  own?: readonly string[];
 }) {
-  const gate = useArrivalGate(items, arrivals, needLinks);
+  const gate = useArrivalGate(items, arrivals, needLinks, own);
   return (
     <ul data-testid="rows" data-count={gate.items.length}>
       {gate.items.map((item) => (
@@ -225,27 +227,157 @@ describe("an arrival is held out of the rows until its photograph is decoded", (
   });
 });
 
-describe("a burst is not held whole", () => {
-  it("★ holds at most ARRIVAL_HOLD_MAX at once and lets the rest straight in, glowing", async () => {
+/**
+ * ★ A BATCH LANDS WHOLE, AT ITS SLOWEST PHOTOGRAPH (guest-moments r1, Will's `batch=settle`): what one answer brings
+ * goes into the rows together, so the top of the album opens once and every photograph of it stands whole. Let in
+ * one by one, a batch of six re-laid the top six times in a second, and the slow one came in after the rest.
+ */
+describe("a batch lands whole", () => {
+  it("★ waits for its slowest photograph, then goes in at once, every one glowing", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} />);
+    view.rerender(
+      <Harness
+        items={[photo("e"), photo("d"), photo("c"), ...SEED]}
+        arrivals={["c", "d", "e"]}
+      />,
+    );
+    expect(decodes).toHaveLength(3);
+    // Two of three drawn: the batch still waits, nothing of it in the rows.
+    await act(async () => {
+      decodes[0].resolve();
+      decodes[2].resolve();
+    });
+    expect(shown()).toEqual(["a", "b"]);
+    // The slowest draws: all three go in together.
+    await act(async () => decodes[1].resolve());
+    expect(shown()).toEqual(["e", "d", "c", "a", "b"]);
+    await wait(0);
+    expect(glowing().sort()).toEqual(["c", "d", "e"]);
+  });
+
+  it("★ lets in at its wait whatever of it has not drawn, with the rest of it, never after it", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} />);
+    view.rerender(
+      <Harness
+        items={[photo("d"), photo("c"), ...SEED]}
+        arrivals={["c", "d"]}
+      />,
+    );
+    await act(async () => decodes[0].resolve());
+    expect(shown()).toEqual(["a", "b"]);
+    await wait(ARRIVAL_DECODE_WAIT_MS);
+    expect(shown()).toEqual(["d", "c", "a", "b"]);
+  });
+
+  it("a photograph that cannot be decoded holds its batch no longer", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} />);
+    view.rerender(
+      <Harness
+        items={[photo("d"), photo("c"), ...SEED]}
+        arrivals={["c", "d"]}
+      />,
+    );
+    await act(async () => {
+      decodes[0].reject();
+      decodes[1].resolve();
+    });
+    expect(shown()).toEqual(["d", "c", "a", "b"]);
+  });
+
+  it("goes in once its last unready photograph leaves the album (hidden while it waited)", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} />);
+    view.rerender(
+      <Harness
+        items={[photo("d"), photo("c"), ...SEED]}
+        arrivals={["c", "d"]}
+      />,
+    );
+    await act(async () => decodes[0].resolve());
+    // "d" is hidden by the host before it draws: "c" no longer waits for it.
+    view.rerender(
+      <Harness items={[photo("c"), ...SEED]} arrivals={["c", "d"]} />,
+    );
+    expect(shown()).toEqual(["c", "a", "b"]);
+  });
+
+  /* ★ RESHAPED (album-moments-wiring): this pinned "holds at most ARRIVAL_HOLD_MAX at once and lets the rest straight
+     in". The cap's reason stands (a burst must not send for a hundred photographs together, ahead of what she is
+     looking at), so nothing past it is fetched here; what expired is letting the rest in at once, which re-laid the
+     top twice (the rest now, the held a beat later) where `batch=settle` asks the batch to land as one. */
+  it("★ fetches at most ARRIVAL_HOLD_MAX at once; the rest wait unfetched with their batch, and it goes in whole", async () => {
     const view = render(<Harness items={SEED} arrivals={[]} />);
     const burst = Array.from(
       { length: ARRIVAL_HOLD_MAX + 3 },
       (_, i) => `n${i}`,
     );
+    const needLinks = vi.fn();
     view.rerender(
       <Harness
         items={[...burst.map((id) => photo(id)), ...SEED]}
         arrivals={burst}
+        needLinks={needLinks}
       />,
     );
-    // The first twelve wait for their photographs (twelve requests, not fifteen); the last three are in.
+    // Twelve requests, not fifteen, and only the twelve's links asked for: the rest are the window's to ask.
     expect(decodes).toHaveLength(ARRIVAL_HOLD_MAX);
-    expect(shown()).toEqual([...burst.slice(ARRIVAL_HOLD_MAX), "a", "b"]);
-    await wait(0);
-    expect(glowing()).toEqual(burst.slice(ARRIVAL_HOLD_MAX));
-    // As they decode, the held ones follow.
+    expect(needLinks).toHaveBeenCalledWith(burst.slice(0, ARRIVAL_HOLD_MAX));
+    expect(shown()).toEqual(["a", "b"]);
+    // As the twelve decode, the whole burst goes in, glowing.
     await act(async () => decodes.forEach((d) => d.resolve()));
     expect(shown()).toEqual([...burst, "a", "b"]);
+    await wait(0);
+    expect(glowing().sort()).toEqual([...burst].sort());
+  });
+});
+
+/**
+ * ★ HER OWN NEVER WAITS AT THE DOOR, AND GLOWS AS ANYONE'S DOES (guest-moments r1, Will's `own=glow`). Her landing is
+ * drawn already (her very file), so held like a stranger's it would only vanish from the rows for the hold.
+ */
+describe("her own landing", () => {
+  it("★ stands at once and glows, never held, never fetched", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} own={[]} />);
+    view.rerender(
+      <Harness items={[photo("mine"), ...SEED]} arrivals={[]} own={["mine"]} />,
+    );
+    expect(shown()).toEqual(["mine", "a", "b"]);
+    expect(decodes).toHaveLength(0);
+    await wait(0);
+    expect(glowing()).toEqual(["mine"]);
+    await wait(ARRIVAL_GLOW_MS);
+    expect(glowing()).toEqual([]);
+  });
+
+  it("lights a batch of hers whole, as a batch of anyone's", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} own={[]} />);
+    view.rerender(
+      <Harness
+        items={[photo("m2"), photo("m1"), ...SEED]}
+        arrivals={[]}
+        own={["m2", "m1"]}
+      />,
+    );
+    await wait(0);
+    expect(glowing().sort()).toEqual(["m1", "m2"]);
+  });
+
+  it("is lit once: a later render that still names her landing replays nothing", async () => {
+    const view = render(
+      <Harness items={[photo("mine"), ...SEED]} arrivals={[]} own={[]} />,
+    );
+    view.rerender(
+      <Harness items={[photo("mine"), ...SEED]} arrivals={[]} own={["mine"]} />,
+    );
+    await wait(ARRIVAL_GLOW_MS);
+    view.rerender(
+      <Harness
+        items={[photo("mine"), photo("x"), ...SEED]}
+        arrivals={[]}
+        own={["mine"]}
+      />,
+    );
+    await wait(0);
+    expect(glowing()).toEqual([]);
   });
 });
 
@@ -277,19 +409,29 @@ describe("only what the album's grammar calls an arrival is held", () => {
     expect(decodes).toHaveLength(0);
   });
 
-  it("★ lets in at once a held arrival that turns out to be this device's own (it left the arrivals)", () => {
-    const view = render(<Harness items={SEED} arrivals={[]} />);
+  // ★ RESHAPED (album-moments-wiring): the scar is that it goes in at once; it ended "it takes no glow: an own landing
+  // sweeps", a reason the sweep's retirement expired (guest-moments r1, `own=glow`): hers takes the one light.
+  it("★ lets in at once, lit, a held arrival that turns out to be this device's own (it left the arrivals)", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} own={[]} />);
     view.rerender(
-      <Harness items={[photo("c", false), ...SEED]} arrivals={["c"]} />,
+      <Harness
+        items={[photo("c", false), ...SEED]}
+        arrivals={["c"]}
+        own={[]}
+      />,
     );
     expect(shown()).toEqual(["a", "b"]);
     // Its own landing was noted a beat after the manifest brought it: the grammar takes it out of the arrivals.
     view.rerender(
-      <Harness items={[photo("c", false), ...SEED]} arrivals={[]} />,
+      <Harness
+        items={[photo("c", false), ...SEED]}
+        arrivals={[]}
+        own={["c"]}
+      />,
     );
     expect(shown()).toEqual(["c", "a", "b"]);
-    // ...and it takes no glow: an own landing sweeps.
-    expect(glowing()).toEqual([]);
+    await wait(0);
+    expect(glowing()).toEqual(["c"]);
   });
 
   it("stops waiting for an arrival that leaves the album (hidden, removed) and never lets it in", async () => {

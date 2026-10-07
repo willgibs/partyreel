@@ -133,6 +133,16 @@ export function HeadStills({
   );
 }
 
+/**
+ * ★ THE PHOTOGRAPH THE REEL OPENS ON (guest-moments r1, Will's `opening=still`): the cover's first still, slot 0, the
+ * one the cover loads first and a reduced-motion reader sees, which while the album has a reel is the reel's own
+ * opening (`pickCoverIds`). One rule for the page's curtain, before the view has arrived, and for the view, which
+ * stands it until its first frame and leads its take with it; null where the cover has none (the house light).
+ */
+export function openingStillOf(stills: readonly HeadStill[]): HeadStill | null {
+  return uniqueStills(stills)[0] ?? null;
+}
+
 function uniqueStills(stills: readonly HeadStill[]): HeadStill[] {
   const seen = new Set<string>();
   const out: HeadStill[] = [];
@@ -465,6 +475,8 @@ export type HeadReel = {
    * owner arriving from her hub reads it (`event-experience.tsx`).
    */
   viewAsked: boolean;
+  /** Close the reel as the view's own Close does (the owner back where she came from): the curtain's Close. */
+  close: () => void;
 };
 
 export type HeadBridgeState = {
@@ -549,6 +561,56 @@ function CoverStills({
       stills={stills}
       onStillError={live ? (id) => live.reportExpiry([id]) : undefined}
     />
+  );
+}
+
+/**
+ * THE REEL'S FIRST PHOTOGRAPH, ON THE PAGE'S CURTAIN (`event-experience-curtain.tsx`): the cover's own slot 0, from the
+ * page's seed in the very HTML the server streams (as `CoverStills` draws it, the same link, so the browser fetches it
+ * once for both), then from the live album's word. Nothing until either is in hand: the curtain's dark stands.
+ */
+function CurtainStill({
+  seed,
+  bridge,
+  eventId,
+  className,
+}: {
+  seed: Promise<GallerySeed>;
+  bridge: HeadBridge;
+  eventId: string;
+  className?: string;
+}) {
+  const live = useHeadBridge(bridge);
+  const read = live ? null : use(readSeed(seed));
+  const still = openingStillOf(
+    live ? live.stills : read ? stillsFromSeed(read, eventId) : [],
+  );
+  if (!still) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a link that expires)
+    <img
+      src={still.tile}
+      alt=""
+      aria-hidden
+      draggable={false}
+      fetchPriority="high"
+      data-reel-curtain-still={still.id}
+      className={className}
+    />
+  );
+}
+
+/** The curtain's photograph in a boundary of its own, so the curtain's dark streams with the page's first byte. */
+export function OpeningStill(props: {
+  seed: Promise<GallerySeed>;
+  bridge: HeadBridge;
+  eventId: string;
+  className?: string;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <CurtainStill {...props} />
+    </Suspense>
   );
 }
 

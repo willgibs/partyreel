@@ -41,11 +41,10 @@
  * only the lab's scale harness (`/design/album-scale`) still does. Its engine is
  * `lib/shared/album-rows.ts`; its box, windowed, is `album-window.tsx`.
  */
-// THE ARRIVAL GRAMMAR'S SHEET, on the ONE grid every album is made of: the glow
-// an arriving tile takes (`data-arrived`, anyone's), the sweep a guest's own
-// landing takes (`data-landed`) and the rows' push (`data-entering`). It used to
-// be `guest/live-gallery.css`, where the host could not reach it, which is
-// exactly what `landing=sweep` refused.
+// THE ARRIVAL GRAMMAR'S SHEET, on the ONE grid every album is made of: the one
+// light every photograph new to the album takes (`data-arrived`, hers as anyone's)
+// and the rows' settle (`data-entering`). It used to be `guest/live-gallery.css`,
+// where the host could not reach it, which is exactly what `landing=sweep` refused.
 import "./arrival.css";
 
 import {
@@ -483,15 +482,13 @@ export function MasonryColumns<T extends GridMedia>(props: {
    * OWN photographs, never another's); `prefix` renders before the first tile (the in-flight
    * tiles' seat).
    *
-   * ★ THE ARRIVAL GRAMMAR IS TWO SETS AND ONE SHEET (`landing=sweep`, Will 2026-09-21:
-   * "This should be consistent across guest and host arrival experiences"). `arrivedIds` are the
-   * tiles that appeared by themselves and take the glow; `landedIds` are the ones THIS device
-   * just sent and take the sweep, and it is never more than one (lib/shared/arrival.ts decides
-   * both, and holds each id for exactly as long as its keyframe runs). A surface that passes
-   * neither draws neither.
+   * ★ THE ARRIVAL GRAMMAR IS ONE SET AND ONE SHEET (`landing=sweep`, Will 2026-09-21:
+   * "This should be consistent across guest and host arrival experiences"; guest-moments r1's
+   * `own=glow` made it one light). `arrivedIds` are the tiles new to the album, anyone's, this
+   * device's own included, and take the glow (lib/shared/arrival.ts decides them, and holds each id
+   * for exactly as long as its keyframe runs). A surface that passes none draws none.
    */
   arrivedIds?: ReadonlySet<string>;
-  landedIds?: ReadonlySet<string>;
   canDelete?: (item: GridMedia) => boolean;
   prefix?: ReactNode;
   stagger?: boolean;
@@ -600,7 +597,6 @@ export function MasonryColumns<T extends GridMedia>(props: {
     albumRef,
     selection,
     arrivedIds,
-    landedIds,
     canDelete,
     prefix,
     photoAddress = true,
@@ -1064,7 +1060,6 @@ export function MasonryColumns<T extends GridMedia>(props: {
     enter: stagger,
     seedIndex: stagger ? (seedIndex.get(item.id) ?? 0) : undefined,
     arrived: arrivedIds?.has(item.id),
-    landed: landedIds?.has(item.id),
     dimmed: dimItem?.(item),
     hideLikeMark,
     actions: tileActions?.(item),
@@ -1075,7 +1070,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
     observe,
   });
 
-  // The rows' tile: the engine's box, entering once, pushing on arrival.
+  // The rows' tile: the engine's box, entering once, standing whole on arrival.
   const rowTile = (item: T, t: RowTile) => (
     <AlbumTile
       key={item.id}

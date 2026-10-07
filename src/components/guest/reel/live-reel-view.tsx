@@ -150,6 +150,12 @@ import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 
 import { preloadReelCreator, type ReelCreator } from "./creator-seam";
+import {
+  REEL_CLOSE_SPOT,
+  REEL_KEY,
+  REEL_KEY_HOVER,
+  REEL_TOP_WHISPER,
+} from "./reel-close";
 
 /** What a page with no guest album's live source hands the view in its place (`ReelViewProps.standIn`). */
 export type ReelStandIn = Pick<
@@ -199,6 +205,14 @@ export type ReelViewProps = {
    */
   dockNote?: string;
   /**
+   * ★ THE PHOTOGRAPH THE REEL OPENS ON (guest-moments r1, Will's `opening=still`): the cover's first still (its id and
+   * the preview the cover already drew), standing edge to edge from the press, with Close beside it, until the
+   * player's first frame is on screen, and the reel starts from it (the source leads its first loop with it). Absent
+   * (the hub's own reel, whose cover is her guests' and holds no stills before the develop), the opening is a quiet
+   * dark with Close. A video's still is its poster.
+   */
+  opening?: { id: string; tile: string } | null;
+  /**
    * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
    * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
    */
@@ -228,6 +242,8 @@ const DOCK_R = 22;
 const FAILURE_REPORT_THRESHOLD = 12;
 /** The longest the creator's room waits on the album's links before it opens with what has landed. */
 const CREATOR_LINK_WAIT_MS = 5000;
+/** The opening still's crossfade into the first frame (`live-reel.css`'s `.lr-opening`), and then it goes. */
+const OPENING_FADE_MS = 260;
 
 export function LiveReelView({
   mode,
@@ -247,6 +263,7 @@ export function LiveReelView({
   standIn,
   screenLink = true,
   dockNote,
+  opening = null,
   onSetForEveryone,
   onClose,
 }: ReelViewProps) {
@@ -319,6 +336,7 @@ export function LiveReelView({
     live?.ownIds ?? null,
     clips,
     onFailedIds,
+    opening?.id ?? null,
   );
   const playerRef = useRef<LiveReelPlayerHandle>(null);
   const orientation = useViewportOrientation();
@@ -408,19 +426,39 @@ export function LiveReelView({
     }
   };
 
+  /* ── the opening: the first photograph, until the reel's first frame is on screen ── */
+  // ★ THE CURTAIN IS THE REEL'S FIRST PHOTOGRAPH (guest-moments r1, `opening=still`): `opening` stands over the
+  // picture from the view's first frame, with Close, while the player loads (about a second on a slow phone, a third
+  // warmed); the dock waits with it, since there is nothing yet to play or pause. The first clip on screen ends it: the
+  // still goes (a short crossfade into the same photograph, at once under reduced motion) and the controls make their
+  // first-sight beat from then, not from a press made a second before anything played.
+  const [started, setStarted] = useState(false);
+  const startedRef = useRef(false);
+  const [openingGone, setOpeningGone] = useState(false);
+  useEffect(() => {
+    if (!started) return;
+    const t = setTimeout(() => setOpeningGone(true), OPENING_FADE_MS);
+    return () => clearTimeout(t);
+  }, [started]);
+
   /* ── the progress ────────────────────────────────────────────────────────── */
   const loopRef = useRef({ loop: -1, seen: 0 });
   const [progress, setProgress] = useState(0);
   const onClipChange = useCallback(
     (item: LiveMediaItem | null) => {
       if (!item) return;
+      if (!startedRef.current) {
+        startedRef.current = true;
+        setStarted(true);
+        wake();
+      }
       // The timeline is the LOOP: how much of the album this take has shown. A new loop starts it
       // over, silently (nothing marks the seam).
       const takeLength = Math.max(1, source.stats().takeLength);
       loopRef.current.seen = Math.min(takeLength, loopRef.current.seen + 1);
       setProgress(loopRef.current.seen / takeLength);
     },
-    [source],
+    [source, wake],
   );
   const onFrame = useCallback((state: LiveFrameState) => {
     if (state.loopIndex !== loopRef.current.loop) {
@@ -765,6 +803,22 @@ export function LiveReelView({
               </div>
             )}
 
+            {/* THE OPENING: the reel's first photograph, edge to edge over the picture until its first frame is
+              on screen (`opening`, above), then crossfading into it. The page's curtain stood the same picture
+              before the view arrived, so the view landing over it changes nothing. */}
+            {!idle && opening && !openingGone && (
+              // eslint-disable-next-line @next/next/no-img-element -- a presigned preview the cover already drew (next/image would cache a link that expires)
+              <img
+                src={opening.tile}
+                alt=""
+                aria-hidden
+                draggable={false}
+                decoding="sync"
+                data-reel-opening={started ? "out" : "in"}
+                className="lr-opening pointer-events-none absolute inset-0 z-10 size-full object-cover"
+              />
+            )}
+
             {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone, until the reel returns
               (a screen whose album drops under two while it plays, or reloads there). */}
             {idle && (
@@ -788,8 +842,9 @@ export function LiveReelView({
             <div
               aria-hidden
               className={cn(
-                "pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent transition-opacity duration-200 ease-emphasis",
-                chromeUp || rows.length > 0 || pillUp
+                REEL_TOP_WHISPER,
+                "z-[11] transition-opacity duration-200 ease-emphasis",
+                chromeUp || rows.length > 0 || pillUp || !started
                   ? "opacity-100"
                   : "opacity-0",
               )}
@@ -798,10 +853,11 @@ export function LiveReelView({
             {/* THE ARRIVALS, top left. */}
             {!idle && <ArrivalFeed rows={rows} screen={screen} />}
 
-            {/* CLOSE, top right: shows and hides with the dock. */}
+            {/* CLOSE, top right: shows and hides with the dock, and stands while the reel opens (the way out of a
+              wait is never hidden). */}
             <div
-              className="lr-follow absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-30"
-              data-state={chromeUp || idle ? "up" : "rest"}
+              className={cn("lr-follow", REEL_CLOSE_SPOT)}
+              data-state={chromeUp || idle || !started ? "up" : "rest"}
             >
               <TooltipProvider delayDuration={350} skipDelayDuration={250}>
                 <ChromeButton label="Close" onClick={onClose} shortcut="Esc">
@@ -833,8 +889,8 @@ export function LiveReelView({
               </div>
             )}
 
-            {/* THE BAR THAT BECOMES THE DOCK. */}
-            {!idle && (
+            {/* THE BAR THAT BECOMES THE DOCK, once there is a reel to play (`started`). */}
+            {!idle && started && (
               <ReelDock
                 state={chromeUp ? "up" : "rest"}
                 playing={!effectivePaused}
@@ -982,6 +1038,8 @@ function useLiveSource(
   ownIds: ReadonlySet<string> | null,
   resolver: ClipResolver | null,
   onFailedIds: (ids: readonly string[]) => void,
+  /** The photograph standing as the view opens: the first loop leads with it (read once, at the source's birth). */
+  opensOn: string | null,
 ): ClipSource {
   // ★ ON THE PAGED ALBUM THE SOURCE PLANS FROM THE MANIFEST AND READS LINKS BY ID: the items carry no
   // urls, the resolver mints them a window or two ahead of each clip's turn and the source reads them
@@ -994,6 +1052,7 @@ function useLiveSource(
       ownIds,
       resolver: resolver ?? undefined,
       onFailedIds,
+      opensOn,
     }),
   );
   useEffect(() => {
@@ -1405,7 +1464,6 @@ function SetForEveryoneFooter({
  * order: a pressed key (`aria-pressed`, a React prop) never carries the hover, and an open menu's key (`aria-expanded`,
  * set by the menu alone) is excluded from it in the rule itself.
  */
-const KEY_HOVER = "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/12";
 const MENU_KEY_HOVER =
   "[@media(hover:hover)_and_(pointer:fine)]:not-aria-expanded:hover:bg-white/12";
 
@@ -1441,10 +1499,8 @@ function ChromeButton({
               : ({ "--lr-i": stagger } as CSSProperties)
           }
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-full text-white outline-none",
-            "transition-[transform,background-color] duration-150 ease-emphasis active:scale-[0.94] motion-reduce:active:scale-100",
-            "focus-halo",
-            pressed ? "bg-white/18" : KEY_HOVER,
+            REEL_KEY,
+            pressed ? "bg-white/18" : REEL_KEY_HOVER,
             className ?? GLASS,
           )}
         >

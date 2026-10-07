@@ -20,11 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
-import {
-  ARRIVAL_GLIDE_MS,
-  ARRIVAL_GLOW_MS,
-  ARRIVAL_SWEEP_MS,
-} from "@/lib/shared/arrival";
+import { ARRIVAL_GLIDE_MS, ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import {
   layoutRows,
   perRowFor,
@@ -93,6 +89,12 @@ export type Mark =
 export type Loop = "sweep" | "glow" | "first" | "push" | "settle" | "file";
 
 export type AlbumTile = Photo & { mark?: Mark; loop?: Loop };
+
+/**
+ * The retired sweep's own life (`arrival.ts` held it as `ARRIVAL_SWEEP_MS` until album-moments-wiring landed
+ * `own=glow`): this board's drawing of the option that lost keeps its number.
+ */
+const ARRIVAL_SWEEP_MS = 900;
 
 /** The album's box: the window less its gutter (`px-3 sm:px-5`), and the gallery's gap. */
 const albumWidth = (frame: number) => frame - (frame >= 640 ? 40 : 24);

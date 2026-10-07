@@ -40,6 +40,7 @@ import {
   createHeadBridge,
   useHeadBridge,
 } from "@/components/guest/event-experience-head";
+import { ReelCurtain } from "@/components/guest/event-experience-curtain";
 import { useLiveUploadsWord } from "@/components/guest/event-experience-open";
 import {
   addsWaitFor,
@@ -71,8 +72,10 @@ import {
   type GalleryPayload,
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
+import { guestLens } from "@/components/guest/live-gallery-lens";
 import { LiveReel } from "@/components/guest/reel/live-reel";
 import { ReportFoot } from "@/components/guest/report-dialog";
+import { useSendToast } from "@/components/guest/upload/send-toast";
 import {
   createUploadTrackerStore,
   UploadTracker,
@@ -850,10 +853,21 @@ function EventExperienceBody({
      red-team 43): the album mounts in the commit that writes `?reel` to the address, so its first render
      reads the address it left. The line below drops the curtain on the album's word alone, so that word is the
      address read when it is told (`live-reel.tsx`), never a render's copy: a copied "absent" let the curtain
-     go in the very task it was drawn in. */
+     go in the very task it was drawn in.
+     ★ AND THE BLACK IS THE REEL'S FIRST PHOTOGRAPH NOW, WITH CLOSE (guest-moments r1, `opening=still`;
+     `event-experience-curtain.tsx`): its own Close lets it go at once, before the album's word comes. */
   const [curtainDown, setCurtainDown] = useState(!reelAsked);
   if (!curtainDown && head && !head.reel.viewAsked) setCurtainDown(true);
   const reelCurtain = !curtainDown;
+  const dropCurtain = useCallback(() => setCurtainDown(true), []);
+  // Where the curtain's Close goes before the album's controller can close the reel: the album, with no `?reel`.
+  const albumPath = useMemo(() => {
+    try {
+      return new URL(joinUrl).pathname;
+    } catch {
+      return `/e/${qrToken}`;
+    }
+  }, [joinUrl, qrToken]);
   // The shutter's ring: the run reads the page's queue and its progress store (`useRunProgress`, inside
   // the shutter, so a tick re-renders the shutter alone), in the album's own light.
   const shutterRun = useMemo(
@@ -1067,6 +1081,26 @@ function EventExperienceBody({
     landedCount > 0 &&
     !cameraOpen;
   const onKeepAnswered = useCallback(() => setKeepAnswered(true), []);
+
+  /* ★ THE SEND'S TOAST (guest-moments r1, `own=glow`'s note; `upload/send-toast.ts`): once a send's last file has
+     landed, one short toast says what landed, in the keep's words, with Show yours: the album's Yours view where hers
+     show at once, her uploads where they wait. Never where another surface says the landing: the keep, the door's
+     own upload step or the camera (`quiet`, the failure sheet's same three), or the reel's view. */
+  const showYours = useCallback((place: "album" | "uploads") => {
+    if (place === "album") guestLens.showYours();
+    else setTrackerOpen(true);
+  }, []);
+  useSendToast({
+    queue,
+    removedIds,
+    wait: addsWait,
+    // Her own album's guest page: "joined the album", never her own name back to her.
+    hostName: isOwner ? null : (event.host_display_name ?? null),
+    camera: cameraAlbum,
+    isDemo,
+    quiet: uploadStepActive || keepDue || cameraOpen,
+    onShow: showYours,
+  });
 
   /* ────────────────────────────────────────────────────────────────────────
      ONE BEAT PER CONFIRMATION (`confirm-beat.ts`). A confirmation that plays the follow moment says
@@ -1348,6 +1382,18 @@ function EventExperienceBody({
       )}
       data-reveal-curtain={curtain ? "" : undefined}
     >
+      {/* ★ THE REEL'S CURTAIN, THE PAGE'S FIRST CHILD (the curtain's note above): from the first byte, before the
+          head, the reel's first photograph with Close, under the view's own overlay (z-50) and over everything
+          else on the page. */}
+      {reelCurtain && (
+        <ReelCurtain
+          seed={galleryPromise}
+          bridge={headBridge}
+          eventId={event.id}
+          albumHref={albumPath}
+          onClosed={dropCurtain}
+        />
+      )}
       {developGate && serverDevelopMs !== null && (
         <DevelopGate eventId={event.id} developsAtMs={serverDevelopMs} />
       )}
@@ -1897,16 +1943,6 @@ function EventExperienceBody({
           />
           {/* The album's light is asked for only while the shutter stands to wear it. */}
           {!(headerActionsInView || stageUp) && <LampWhileShown />}
-          {/* The reel's own black, for an owner arriving on `?reel` (the curtain's note above), under
-              the view's own overlay (z-50) and over everything else on the page. */}
-          {reelCurtain && (
-            <div
-              aria-hidden
-              data-reel-curtain=""
-              className="fixed inset-0 z-[49] bg-black"
-            />
-          )}
-
           {/* Discreet anonymous report path (the report capability is the qr_token), never
               for the album's own host: without it no photo offers Report to her either
               (build 23's BUG-3, `ReportFoot`). */}

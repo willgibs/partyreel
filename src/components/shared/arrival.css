@@ -2,42 +2,46 @@
    2026-09-21: "This should be consistent across guest and host arrival
    experiences. Would feel weird for it to be handled differently on either.").
 
-   It lives beside `masonry.tsx` and is imported by it, because the two marks are
+   It lives beside `masonry.tsx` and is imported by it, because the light is
    written by the ONE grid every album in the product is made of. It used to be
    `guest/live-gallery.css`, where the host could not reach it.
+
+   ONE LIGHT (guest-moments r1, Will's `own=glow`): every photograph new to the
+   album wears the same rim and wash, hers on her own phone as anyone's. The
+   pass of light her own newest used to take (`data-landed`, the sweep) retired
+   with that pick (`lib/shared/arrival.ts` keeps the reason).
 
    THE GROWTH IS ALREADY THERE and is deliberately not re-declared here: every
    tile mounts through the `[data-media-tile]` entrance in globals.css (opacity
    plus a small rise and scale on --ease-emphasis, @starting-style so a
    reconciled tile never replays it). A second transform on the same box would
-   fight it. What this sheet adds is the LIGHT — the part that says this one is
-   new, and which of the two kinds of new it is.
+   fight it. What this sheet adds is the LIGHT, the part that says this one is
+   new, and the settle that keeps a newcomer whole while its row opens.
 
-   ★ THEY ARE LIGHTS, NOT COLOURS. The album's tiles are photographs and the
+   ★ IT IS A LIGHT, NOT A COLOUR. The album's tiles are photographs and the
    surface under them is dark, so white reads on every one of them; a state hue
    would also be a claim. Bible: the media is the colour. The green check that
    used to mark a guest's own landing was exactly that claim, and it retired
    here.
 
    ★ INSET, BECAUSE THE TILE CLIPS. The tile box is overflow-hidden, so a halo
-   outside it would be cut by its own corner; both marks are drawn INSIDE the
+   outside it would be cut by its own corner; the light is drawn INSIDE the
    photograph, which is also where a reader is already looking.
 
-   ★ OPACITY AND TRANSLATE ONLY. A box-shadow keyframe repaints the tile every
-   frame across an album that may be eight columns wide; a pseudo-element is
-   composited. The pseudo-elements also keep both marks entirely out of the
-   tile's own stacking work, so nothing here can reach the lightbox's origin or
-   the hover row above it.
+   ★ OPACITY ONLY. A box-shadow keyframe repaints the tile every frame across an
+   album that may be eight columns wide; a pseudo-element is composited. The
+   pseudo-element also keeps the light entirely out of the tile's own stacking
+   work, so nothing here can reach the lightbox's origin or the hover row above
+   it.
 
-   THE LIVES ARE TWO NUMBERS, AND THEY LIVE IN TYPESCRIPT (ARRIVAL_GLOW_MS and
-   ARRIVAL_SWEEP_MS in lib/shared/arrival.ts). The surface writes them onto the
-   album box as --arrival-glow-ms / --arrival-sweep-ms and holds each id for
-   exactly that long, so the attribute and the animation can never disagree:
-   retune them there and both move. ── */
+   THE LIFE IS A NUMBER, AND IT LIVES IN TYPESCRIPT (ARRIVAL_GLOW_MS in
+   lib/shared/arrival.ts). The surface writes it onto the album box as
+   --arrival-glow-ms and holds each id for exactly that long, so the attribute
+   and the animation can never disagree: retune it there and both move. ── */
 
-/* ── data-arrived: SOMEBODY ADDED ONE. A rim and a wash, up fast (the
-   photograph is already landing) and then most of the life is the fade — a
-   light going out, not a pulse asking to be looked at twice. ── */
+/* ── data-arrived: A PHOTOGRAPH NEW TO THE ALBUM. A rim and a wash, up fast
+   (the photograph is already landing) and then most of the life is the fade —
+   a light going out, not a pulse asking to be looked at twice. ── */
 [data-media-tile][data-arrived]::after {
   content: "";
   position: absolute;
@@ -72,98 +76,37 @@
   }
 }
 
-/* ── data-landed: YOURS IS IN. One pass of light across the tile, once — the
-   shimmer Will banked on 2026-09-17 with the reason attached ("The shimmer
-   feels more like a delight moment. A couple dozen photos being uploaded in a
-   single batch would cover the top of a gallery in shimmer"), spent on exactly
-   the one tile that is a delight moment by definition. Only the newest own tile
-   ever carries the attribute (lib/shared/arrival.ts), so a batch never stacks
-   it up the gallery, which is the half he refused.
-
-   The band is oversized and tilted, and the tile's own overflow is what crops
-   it — no extra wrapper, because a wrapper inside the tile would sit between
-   the photograph and the marks that already live there. ── */
-[data-media-tile][data-landed]::before {
-  content: "";
-  position: absolute;
-  top: -20%;
-  bottom: -20%;
-  left: 0;
-  width: 55%;
-  /* z-index below the glow's 5 and below the hover row: both marks can be true
-     at once on a busy album, and the answer to "yours is in" reads first. */
-  z-index: 4;
-  pointer-events: none;
-  translate: -60% 0;
-  rotate: 12deg;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgb(255 255 255 / 0.05) 35%,
-    rgb(255 255 255 / 0.34) 50%,
-    rgb(255 255 255 / 0.05) 65%,
-    transparent 100%
-  );
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-media-tile][data-landed]::before {
-    animation: pr-arrival-sweep var(--arrival-sweep-ms, 900ms)
-      var(--ease-emphasis) 1 forwards;
-  }
-}
-
-@keyframes pr-arrival-sweep {
-  from {
-    translate: -60% 0;
-  }
-  to {
-    translate: 160% 0;
-  }
-}
-
-/* ── THE PUSH: A PHOTOGRAPH NEW TO THE ROWS OPENS ITS ROW (`album-columns` r2,
-   Will's `arrival=push`: "The row opens: the photo is revealed from its left
-   edge while its neighbours glide aside on the same beat. Nothing fades; it
-   reads as inserted."). The neighbours' glide is `AlbumRows`' own (`runFlip`),
-   on the same length and curve as this reveal, so the two are one motion.
+/* ── THE SETTLE: A PHOTOGRAPH NEW TO THE ROWS STANDS WHOLE IN ITS PLACE
+   (guest-moments r1, Will's `batch=settle`: each photograph is whole in its
+   place from the first frame its place opens, glowing, while the neighbours
+   still glide). It replaced `album-columns` r2's push, which revealed each
+   newcomer from its left edge over the glide's 450 ms, so a batch at the album's
+   top read as a row of open places for half a second, right where she looks.
+   The batch itself arrives whole (`use-arrival-gate.ts` lets it in at its
+   slowest photograph), and the neighbours' glide is `AlbumRows`' own
+   (`runFlip`), untouched.
 
    ★ THE ROWS WRITE THE ATTRIBUTE, NOT THE SURFACE. `data-entering` rides the
    very render that lands the photograph (the rows know what their reflow
-   brought in), so the wipe starts on its first frame; a mark set in an effect a
-   commit later would show the photograph whole for a frame, then hide it and
-   wipe it in. It lasts the glide and goes, so a tile scrolled out and back
-   never replays it.
-
-   A clip, never a scale, so the photograph is never squeezed; and the tile's
-   own entrance (globals.css, `[data-media-tile]`'s @starting-style rise) is
-   turned off under it, because a transition outranks an animation in the
-   cascade and the two would fight. The glow still marks whose it is. ── */
-@media (prefers-reduced-motion: no-preference) {
-  [data-album-layout="rows"] [data-media-tile][data-entering] {
-    transition: none;
-    animation: pr-arrival-push var(--arrival-glide-ms, 450ms)
-      var(--arrival-glide-ease, var(--ease-in-out-strong)) both;
-  }
-}
-
-@keyframes pr-arrival-push {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
+   brought in) and lasts the glide. What it does now is lift the newcomer over
+   its neighbours: each neighbour glides on a transform, and a transformed
+   sibling paints over an unmoved one, so a neighbour still leaving the place
+   would slide ACROSS a photograph meant to stand whole there. The lift stays
+   inside the album (the grid isolates its stacking, `album-window.tsx`), so it
+   never rises over a bar stuck to the screen. Nothing here moves, so reduced
+   motion needs no rule of its own: there the rows land at once and nothing
+   glides past it. ── */
+[data-album-layout="rows"] [data-media-tile][data-entering] {
+  z-index: 1;
 }
 
 /* ── REDUCED MOTION: A PLAIN APPEARANCE (ruled). Not a slower light and not a
-   static rim or band left burning on the tile — the photograph simply arrives,
-   which is the whole information. The rules above already leave the glow at
-   opacity 0 with no animation to run and the sweep parked off the tile's left
-   edge, so this is only the belt: neither pseudo-element paints at all. ── */
+   static rim left burning on the tile — the photograph simply arrives, which is
+   the whole information. The rule above already leaves the glow at opacity 0
+   with no animation to run, so this is only the belt: the pseudo-element does
+   not paint at all. ── */
 @media (prefers-reduced-motion: reduce) {
-  [data-media-tile][data-arrived]::after,
-  [data-media-tile][data-landed]::before {
+  [data-media-tile][data-arrived]::after {
     content: none;
   }
 }

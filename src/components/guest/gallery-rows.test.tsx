@@ -39,7 +39,6 @@ vi.mock("@/components/shared/masonry", async () => {
 type GridProps = {
   items: GridMedia[];
   arrivedIds?: ReadonlySet<string>;
-  landedIds?: ReadonlySet<string>;
   rowAnchor?: "start" | "end";
   news?: { arrivals: readonly string[]; lens?: string } | null;
 };
@@ -127,30 +126,37 @@ describe("GalleryRows: an arrival is laid when it can land complete", () => {
     expect(laid()).toEqual(["c", "a", "b"]);
   });
 
-  it("writes the arrival's glow when it is laid, and this device's own landing's sweep as it is handed", async () => {
-    const own = new Set(["a"]);
+  // ★ RESHAPED (album-moments-wiring): this pinned her own landing's sweep handed through as it was handed
+  // (`landedIds`). Guest-moments r1's `own=glow` retired the sweep: hers takes the arrival's one light, lit the
+  // moment it stands and never held, so the scar kept is that both are written here, each when it lands.
+  it("writes the arrival's glow when it is laid, and her own landing's the moment it stands", async () => {
     const view = render(
-      <GalleryRows {...REST} items={SEED} arrivals={[]} landedIds={own} />,
+      <GalleryRows {...REST} items={SEED} arrivals={[]} own={[]} />,
     );
-    expect(grid().landedIds).toBe(own);
     expect(grid().arrivedIds?.size ?? 0).toBe(0);
 
     view.rerender(
       <GalleryRows
         {...REST}
-        items={[photo("c"), ...SEED]}
+        items={[photo("mine"), photo("c"), ...SEED]}
         arrivals={["c"]}
-        landedIds={own}
+        own={["mine"]}
       />,
     );
-    // Held: nothing glows for a photograph that is not in the rows.
+    // Hers stands at once, glowing; the arrival is held, and nothing glows for it while it is not in the rows.
+    expect(laid()).toEqual(["mine", "a", "b"]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(grid().arrivedIds?.has("mine")).toBe(true);
     expect(grid().arrivedIds?.has("c") ?? false).toBe(false);
     await act(async () => decodes[0].resolve());
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     expect(grid().arrivedIds?.has("c")).toBe(true);
-    expect(grid().landedIds).toBe(own);
+    // The retired sweep's set is handed to nobody.
+    expect("landedIds" in grid()).toBe(false);
   });
 
   it("lays an album handed no arrivals exactly as it is handed it", () => {

@@ -218,16 +218,25 @@ describe("HostMediaGrid: an arrival is laid when it can land complete", () => {
     expect(decodes).toHaveLength(0);
   });
 
-  it("holds at most a dozen at once, and lays the rest as they come", async () => {
-    const rows = hub(vi.fn());
+  // ★ RESHAPED (album-moments-wiring): titled "holds at most a dozen at once, and lays the rest as they come", the three
+  // past the cap laid at once. The cap's reason stands (twelve fetched, never fifteen: `onNeedLinks` hears twelve);
+  // what expired is laying the rest ahead of their batch, which re-laid the top twice where guest-moments r1's
+  // `batch=settle` asks a batch to land as one.
+  it("fetches at most a dozen at once; the rest wait with their batch, and it goes in whole", async () => {
+    const onNeedLinks = vi.fn();
+    const rows = hub(onNeedLinks);
     const view = render(<Grid items={SEED} rows={rows} />);
     const burst = Array.from({ length: ARRIVAL_HOLD_MAX + 3 }, (_, i) =>
       photo(`n${i}`, false),
     );
     view.rerender(<Grid items={[...burst, ...SEED]} rows={rows} />);
-    // Twelve wait at the door; the three past the cap are laid, as they were before the gate.
-    expect(laid()).toHaveLength(SEED.length + 3);
-    expect(laid()).toEqual(expect.arrayContaining(["a", "b"]));
+    expect(onNeedLinks).toHaveBeenCalledWith(
+      burst.slice(0, ARRIVAL_HOLD_MAX).map((p) => p.id),
+    );
+    expect(laid()).toEqual(["a", "b"]);
+    // No link ever lands: the batch's wait lets all fifteen in together.
+    await wait(2100);
+    expect(laid()).toHaveLength(SEED.length + burst.length);
   });
 
   it("waits a slow arrival out and lays it as it always was, in the two seconds the gate allows", async () => {

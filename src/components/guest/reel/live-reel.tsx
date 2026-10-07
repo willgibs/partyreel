@@ -53,6 +53,7 @@ import {
   COVER_SLOTS,
   type HeadBridge,
   type HeadStill,
+  openingStillOf,
   pickCoverIds,
 } from "@/components/guest/event-experience-head";
 import {
@@ -236,6 +237,8 @@ export function LiveReel({
         open: () => open("hand"),
         preload: preloadView,
         viewAsked: reelOfAddress() !== null,
+        // The page's curtain's Close: the view's own (the owner back where she came from).
+        close: closeView,
       },
     });
   }, [
@@ -245,7 +248,11 @@ export function LiveReel({
     available,
     open,
     viewAsked,
+    closeView,
   ]);
+  // ★ THE REEL OPENS ON THE COVER'S FIRST PHOTOGRAPH (guest-moments r1, `opening=still`): the still the cover drew
+  // (and the page's curtain stood), handed to the view to stand until its first frame and to lead its take with.
+  const opening = useMemo(() => openingStillOf(stills), [stills]);
   // And it goes with the album: a remount (an access flip) or a page left takes its word with it.
   useEffect(() => () => headBridge?.set(null), [headBridge]);
 
@@ -266,6 +273,7 @@ export function LiveReel({
         moderated,
         isOwner,
         onSetForEveryone: isOwner && !isDemo ? setForEveryone : undefined,
+        opening,
         onClose: closeView,
       }
     : null;

@@ -280,10 +280,10 @@ export type AlbumTileProps = {
   /** Take the album's entrance (and its stagger from `seedIndex`); read once, at mount. */
   enter?: boolean;
   seedIndex?: number;
-  /** A photograph new to the rows this moment: it pushes in (`arrival.css`). */
+  /** A photograph new to the rows this moment: it stands whole over the neighbours gliding out of its place (`arrival.css`). */
   entering?: boolean;
+  /** New to the album: it wears the one arrival light (`arrival.css`), hers as anyone's. */
   arrived?: boolean;
-  landed?: boolean;
   dimmed?: boolean;
   /** The first row: fetched at once and first. */
   eager?: boolean;
@@ -363,7 +363,6 @@ function sameTileProps(a: AlbumTileProps, b: AlbumTileProps): boolean {
     !!a.clampAspect === !!b.clampAspect &&
     !!a.entering === !!b.entering &&
     !!a.arrived === !!b.arrived &&
-    !!a.landed === !!b.landed &&
     !!a.dimmed === !!b.dimmed &&
     !!a.eager === !!b.eager &&
     !!a.hideLikeMark === !!b.hideLikeMark &&
@@ -387,7 +386,6 @@ function AlbumTileBody({
   seedIndex,
   entering,
   arrived,
-  landed,
   dimmed,
   eager,
   hideLikeMark,
@@ -410,7 +408,6 @@ function AlbumTileBody({
       data-rows-key={rowsKey}
       data-media-tile
       data-arrived={arrived ? "" : undefined}
-      data-landed={landed ? "" : undefined}
       data-entering={entering ? "" : undefined}
       data-exiting={exiting ? "" : undefined}
       data-selected={selecting && selected ? "" : undefined}

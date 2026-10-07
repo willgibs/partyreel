@@ -3,8 +3,8 @@
 /**
  * THE GUEST ALBUM'S ROWS (the album-guest-wiring lane): the ONE grid (`MasonryColumns`) in its
  * justified, windowed layout (`layout="rows"`, `album-window.tsx`) with Will's `album-columns` round-2
- * picks: `arrival=push` (a photograph new to the rows is pushed in from its left edge while what it
- * moved glides), `steps=both` (three steps, from View's slider and from a pinch or ctrl and the
+ * picks as guest-moments r1 refined them: `batch=settle` (a photograph new to the rows stands whole in its
+ * place, glowing, while what it moved glides), `steps=both` (three steps, from View's slider and from a pinch or ctrl and the
  * wheel over the album, each anchored on the photograph under it), `rhythm=double` (now and then a
  * landscape leads a row at twice the height; never at one a row, where every photograph is alone).
  *
@@ -28,13 +28,14 @@
  * lives here: the album's Add is the page's (the action row, then the dock).
  *
  * ★ AN ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, `use-arrival-gate.ts`): a live arrival is
- * held out of the rows until its link has landed and its photograph is decoded, then pushed in as a
- * photograph the browser already holds; the glow is written here, when it lands.
+ * held out of the rows until its link has landed and its photograph is decoded, its batch with it, then let in
+ * as photographs the browser already holds; the glow is written here, when each lands, and on her own the
+ * moment it stands (guest-moments r1, `own=glow`: one light for every photograph new to the album).
  *
  * ★ AND ONE SHE CANNOT SEE IS SAID (album-order): the same arrivals tell the rows what is news
  * (`AlbumNews`), so one landing out of sight (the head of a newest-first album while she reads deep, the
  * end of one in order) wears the rows' one pill rather than moving anything she is looking at. Her own
- * landing is not among them: it sweeps.
+ * landing is not among them: the send's toast tells her hers are in (`upload/send-toast.ts`).
  *
  * ★ THE ALBUM'S ORDER IS THE PAGE'S (`anchor`): newest first lays from the end, the growing head on top;
  * the night in order lays from the start, so an arrival lands at the end, and the head's stack follows the
@@ -290,7 +291,7 @@ export function GalleryRows({
   canDelete,
   arrivals,
   onNeedLinks,
-  landedIds,
+  own,
   selection,
   anchor = "end",
   lens,
@@ -320,15 +321,18 @@ export function GalleryRows({
   canDelete?: (item: GridMedia) => boolean;
   /**
    * What appeared in the album by itself (`arrivalMarks().arrived`: never the seed, never this device's own
-   * upload). Each is held out of the rows until its link has landed and its photograph is decoded, so the
-   * push reveals a photograph and nothing fades (`use-arrival-gate.ts`), and each glows from the moment it
-   * lands. Omitted, the album pushes whatever it is handed as it is handed.
+   * upload). Each is held out of the rows until its link has landed and its photograph is decoded, and its
+   * batch goes in at its slowest, so each stands whole and nothing fades (`use-arrival-gate.ts`), glowing
+   * from the moment it lands. Omitted, the album lays whatever it is handed as it is handed.
    */
   arrivals?: readonly string[];
   /** Asks for these ids' links: the arrivals held at the door, which no window has mounted to ask. */
   onNeedLinks?: (ids: readonly string[]) => void;
-  /** The one arrival mark this device's own landing takes: a single pass of light. */
-  landedIds?: ReadonlySet<string>;
+  /**
+   * This device's own landings (`arrivalMarks().own`): drawn already (her own file), so never held, and lit
+   * with the same glow the moment each stands in the rows.
+   */
+  own?: readonly string[];
   /** Select mode (take-home r1, `guest=select`): every tile a toggle wearing the selection's marks. */
   selection?: TileSelection;
   /** The fixed end (`RowAnchor`): "end" for newest first, "start" for the night in order. */
@@ -339,7 +343,7 @@ export function GalleryRows({
   const likeAction = useLikeAction();
   // ★ AN ARRIVAL LANDS COMPLETE OR NOT UNTIL IT CAN (crumbs-23): the rows lay what is in the album, less
   // the arrivals still waiting for their photograph, and the glow is lit as each one lands.
-  const gate = useArrivalGate(items, arrivals, onNeedLinks);
+  const gate = useArrivalGate(items, arrivals, onNeedLinks, own);
   // What the rows judge as news: the same arrivals, through the same lens (one object while neither moves).
   const news = useMemo<AlbumNews>(
     () => ({ arrivals: arrivals ?? NO_ARRIVALS, lens }),
@@ -394,7 +398,6 @@ export function GalleryRows({
         onDeleteItem={onDeleteItem}
         canDelete={canDelete}
         arrivedIds={gate.glow}
-        landedIds={landedIds}
         selection={selection}
         tileActions={tileActions}
         prefix={
