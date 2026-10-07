@@ -19,24 +19,18 @@ import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 import {
+  ALBUM_HUES,
   ClosedLine,
   Cover,
   GuestAlbum,
   HerName,
   InviteRound,
+  QuietAdd,
   ReelRound,
   StartForFree,
 } from "./album";
 import { groundIn, guestScreen, type KeepsakeWay, overIn } from "./answers";
-import {
-  ALBUM,
-  ALBUM_LIGHT,
-  COVER,
-  HERS,
-  PRIYA,
-  WEDDING,
-  WEEK,
-} from "./fixtures";
+import { ALBUM, COVER, HERS, PRIYA, WEDDING, WEEK } from "./fixtures";
 import { type Screen, SCREENS } from "./knobs";
 import {
   actsIn,
@@ -105,9 +99,6 @@ const PARTY_WORDS = `${albumCountWords({
   count: WEEK.album,
   kinds: { photos: WEEK.photos, videos: WEEK.videos },
 }).replace(" & ", " and ")} from ${formatCount(WEEK.guests)} guests`;
-
-/** The album's light, read off its cover's photographs (`ALBUM_LIGHT`): the hues a shutter wears. */
-const ALBUM_HUES = ALBUM_LIGHT.map((lamp) => lamp.h);
 
 /**
  * Select mode's picks: three of the album's first photographs, by their tiles'
@@ -300,30 +291,6 @@ function coverFor(way: KeepsakeWay, screen: Screen, newcomer: boolean) {
 }
 
 /* ── under the cover ───────────────────────────────────────────────────── */
-
-/**
- * THE RECEDED ADD (a wrapped album's): one quiet line in the slot production
- * gives the album's word on adding, its words the album's own size and tone
- * (the closed line's), its one act a plain press as the lens line's Show all
- * is. Open for a late camera roll, never the cover's hero.
- */
-export function QuietAdd() {
-  return (
-    <p
-      data-ap-quiet-add=""
-      className="mt-5 text-center text-reading text-muted-foreground"
-    >
-      Found more from the day?{" "}
-      <button
-        type="button"
-        tabIndex={-1}
-        className="rounded-md font-medium text-foreground underline-offset-4 hover:underline"
-      >
-        Add yours
-      </button>
-    </p>
-  );
-}
 
 /* ── in the album ──────────────────────────────────────────────────────── */
 

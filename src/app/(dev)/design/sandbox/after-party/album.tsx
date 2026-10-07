@@ -34,6 +34,7 @@ import { cn, formatEventDate } from "@/lib/utils";
 
 import {
   ALBUM,
+  ALBUM_LIGHT,
   COVER_SIX,
   type Moment,
   PARTY,
@@ -65,6 +66,9 @@ import type { Screen } from "./knobs";
  * ★ STAND-INS, SAID ONCE: the stills are the marketing photographs, the faces
  * fixtures, the counts the board's (`fixtures.ts`), and every press is inert.
  */
+
+/** The album's own hues, read off its cover's photographs (`ALBUM_LIGHT`): the shutter's Ring wears them. */
+export const ALBUM_HUES = ALBUM_LIGHT.map((lamp) => lamp.h);
 
 /** The album's box: the window less its gutter (`px-3 sm:px-5`), and the gallery's gap. */
 export const albumWidth = (frame: number) => frame - (frame >= 640 ? 40 : 24);
@@ -408,6 +412,30 @@ export function ClosedLine() {
 }
 
 /**
+ * THE RECEDED ADD (a wrapped album's): one quiet line in the slot production
+ * gives the album's word on adding, its words the album's own size and tone
+ * (the closed line's), its one act a plain press as the lens line's Show all
+ * is. Open for a late camera roll, never the cover's hero.
+ */
+export function QuietAdd() {
+  return (
+    <p
+      data-ap-quiet-add=""
+      className="mt-5 text-center text-reading text-muted-foreground"
+    >
+      Found more from the day?{" "}
+      <button
+        type="button"
+        tabIndex={-1}
+        className="rounded-md font-medium text-foreground underline-offset-4 hover:underline"
+      >
+        Add yours
+      </button>
+    </p>
+  );
+}
+
+/**
  * The album's bar: its count, Select and View (production's), with an
  * option's slot after the count (`lead`: a lens, a quiet Add).
  */
@@ -524,10 +552,10 @@ export function Dock({ add = true }: { add?: boolean }) {
           <QrCode />
         </Button>
         {add ? (
-          // The album's own three hues (its stills' sampled light), as production's dock hands the shutter.
+          // The album's own hues (its cover's sampled light, `ALBUM_LIGHT`), as production's dock hands the shutter.
           <Shutter
             state="idle"
-            hues={[52, 67, 248]}
+            hues={ALBUM_HUES}
             tabIndex={-1}
             aria-label="Add photos"
           />

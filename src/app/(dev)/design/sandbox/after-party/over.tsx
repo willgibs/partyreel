@@ -2,7 +2,6 @@
 
 import "./over.css";
 
-import { ImageUp } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import type { ReactNode } from "react";
 
@@ -35,6 +34,7 @@ import {
   GuestAlbum,
   InviteRound,
   LiveActions,
+  QuietAdd,
   ReelRound,
 } from "./album";
 import { hostScreen, type OverWay } from "./answers";
@@ -417,21 +417,6 @@ function SettingsAdds({ screen }: { screen: Screen }) {
 }
 
 /* ── her guests' cover ─────────────────────────────────────────────────── */
-
-/** Add receded (the wrap): one quiet line where today's closed line stands, open for late photos. */
-function QuietAdd() {
-  return (
-    <p
-      data-ap-quiet-add=""
-      className="mt-5 flex items-center justify-center gap-1 text-sm text-muted-foreground"
-    >
-      Found more from the day?
-      <Button type="button" variant="ghost" size="sm" tabIndex={-1}>
-        <ImageUp /> Add yours
-      </Button>
-    </p>
-  );
-}
 
 /** Her guests' cover a week on: today's, with only Add's fate changed. */
 function guestsCover(way: OverWay) {
