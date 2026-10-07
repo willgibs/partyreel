@@ -27,7 +27,7 @@ Round 15 goes on from a local seat on Will's Mac (session `ce3ea37b-9032-4189-8a
 from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on build `bbfcc54` is kept verbatim
 (`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed (24 answers; account-moments' `follow` unclear), his
 three program-wide notes folded into PRD.md. Wave 1 of its round, cut at `2e094108` (manifests `156e30906`), eight
-lanes, then two more on Will's +2 seats (2026-10-07: ten at most, his care for the Orchestrator's own focus). His order
+lanes, then two more on Will's +2 seats (2026-10-07; six to eight again as lanes close, paced by the 5-hour window). His order
 to launch (PROGRAM.md, 2026-10-07) stopped `page-themes-r1` minutes in (the marketing foundation round's question; its
 drawing kept at `../partyreel-wt/_scratch/page-themes-r1/`, its branch and manifest gone) and gave its seat to an audit
 of the app's gaps:
@@ -96,8 +96,11 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    day the window falls under the REFUSE line around 2026-10-16 and under WARN in early November, when 2026-09-29 to
    10-04 roll off; qrcdn is 1 to 14% of a day). Until then nothing runs against the alias or partyreel.com but what Will
    asks for by name; `node usher/kit/vercel-usage.mjs` before any.
-8. **Pacing:** a fresh weekly limit on willg97 (resets Sunday 2026-10-11 13:00Z); ten lanes at most (Will's +2,
-   2026-10-07), the Mac's memory the other limit (86% free with ten cut).
+8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, `get_usage`
+   read at every cut, and nothing new started when the window would run out before its reset, so the account rolls
+   into about 99% at the reset and the session goes on in context. At 03:16Z the window read 50% (it resets 06:10Z)
+   after two hours of ten agents, so nothing is cut until the reset; weekly 14% (resets 2026-10-13 21:00Z). Who does
+   the work: the runbook's "Working with Will" (a lane for focus; small in-context work the Orchestrator's own).
 
 ## Waiting on Will
 
