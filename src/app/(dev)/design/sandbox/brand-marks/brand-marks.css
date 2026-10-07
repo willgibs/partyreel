@@ -1,0 +1,8 @@
+/* THE BRAND MARKS BOARD'S SHEET: every selector is `.bm-…` or `[data-bm-…]`,
+   every keyframe `bm-…` (keyframe names are document-global, and the lab's
+   own sheet declares none). Production's own pieces are reached only through
+   the frames' pastes, never from here. */
+
+[data-bm-story] {
+  min-width: 0;
+}
