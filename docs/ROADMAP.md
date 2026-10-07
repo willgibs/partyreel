@@ -54,6 +54,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: on the hub, once the band folds, the Review pill's 99+ badge sits over its icon (event-header-wiring-2's shoulder badge): at 375, where the pill shows no word, it reads only "99+", and at 1440 the word stays but the badge still covers the icon; anchor the badge at the glyph's shoulder so it grows outward (red-team 57, LOW).
 - Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
 - Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
+- Create: the name field draws a box at rest though NameStep means one field on a rule, never in a box: Input's `field-well` keeps its rim in `--tw-inset-ring-shadow`, which `shadow-none` leaves; give `.cr-name-field` `background-color: transparent; box-shadow: none` (`create-room.css`, unlayered) (after-party r1; app-gaps-r1's shots 02 and 24).
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
@@ -153,9 +154,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guest, the demo: the guest export (`api/export/guest/route.ts`) and the per-tile Save and Share serve the demo album in full with no server-side demo check (the UI only hides them); decide whether the demo's token carries a read-only claim.
 - Guests: the cover's eyebrow ("Disposable · develops Thursday at 2 AM", `coverEyebrow`) says only the reader's clock where the sheet under it says both; a far party's wants the party's clock too, on the guest page and See it as a guest (crumbs-86).
 - Door: a camera-only Disposable's welcome says "Add your photos and videos in seconds." where its guests only use the album's camera; and the door page's hidden summaries (Private, Only people already in) say uploads are paused while they are open, a screen-reader check (app-gaps-r1).
-- Lab exploration: the album after its party, the gap audit's highest design gap: a phase-aware album (live, then keepsake: its title, a card carrying its photographs, Add receding), the host's morning-after recap (Share, Make a clip, Download), a guest-to-host bridge into Create carrying this album's style, an anniversary; one card family for every shared link (`/e/[token]/card` draws the name alone) (app-gaps-r1).
 - Lab exploration: presence r2, the guest row where r1 did not reach (a photograph's credit in the viewer, the reel's closing credits, the host's dashboard stage on the party's day), and a person's seed as the light of her own page before her first photograph, after account-moments r2's invitation (presence r1).
 - Lab exploration: a guest's own "what happened to my photos" across albums (her sends, what landed, what waits, what was refused and why), after no-signal's carry is wired; and the install board's new reason (a home-screen album is exempt from Safari's 7-day eviction and can be granted `persist()`) (no-signal r1).
+- Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event", and it still wears the placeholder aperture tile left for the wordmark on 2026-09-17; the card's wiring loads its face (after-party r1).
+- Lab exploration: after-party r2, the album's later moments once Will picks where the recap lives: the anniversary a year on, and the keepsake's premiere (the reel opening by itself on a guest's return, with Skip: motion r1's stills could not judge) (after-party r1).
 
 ### Accounts and profiles
 
@@ -191,6 +193,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
 - Guests room: a guest let in who adds nothing is on no list (guest-flow.md's one definition of a guest), so after Let in she leaves the room until a photo lands; the room's wiring holds her as in with nothing added yet (guests-room r1).
 - Settings' door menu (`settings-rows.tsx`'s `doorConsequence`) says an address gate "Turns An email first on" but not what it asks of the guests in by name, which the door page now says before the move (crumbs-89).
+- Hub: the Live mark (`EventLive`) reads only the realtime connection, so a closed album's hub says LIVE beside its paused code; it gives way to the album's phase (after-party r1's `over` answer) (after-party r1).
 
 ### Admin and operations
 
