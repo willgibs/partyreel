@@ -1,6 +1,6 @@
 ---
 track: account-moments-wiring-2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c04da309"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -90,13 +90,19 @@ Each is built as its recommended answer and is Will's to overrule.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
+- **Commits**, all pushed on `lp/account-moments-wiring-2`: `0e6215b3b` (a first follow says once, Connections' line, the chips), `9323369c0` (the plate), `cffea73cc` (the system doc, her page's scope pinned), `7a11ace58` (a dismissed plate reads no photograph), `803d401e9` (FollowButton's name test), and the manifests (`9c073fea2`, `79644dda6`, this Handoff on top: the chat line's sha). launch-prep moved by one record commit (`626cd109f`: STATUS and the pickup), so no sync.
+- **Gates**, each on its own exit code (logs in `../partyreel-wt/_scratch/account-moments-wiring-2/`, `f-*.log` the final ones, `g-*.log` the first): typecheck 0 and lint 0 at `7a11ace58` (typecheck again 0 at `803d401e9`); **test 1 at `79644dda6`: 13,939 passed, 1 failed, `src/lib/calls/calls.test.ts` "refuses the 31st entry", which is red on a clean `origin/launch-prep` too** (it adds an entry to a copy of the real `docs/calls.json` and expects the cap of 30, which holds 29 since the desk-8 retires; the Orchestrator's, untouched here); build 0 through `scripts/build-lock.sh`; `pnpm lab:smoke --base http://localhost:3135` 0 (192 checks, 0 failing; its scope reached account-moments, after-party, create-wizard, customize, guests-room, presence and signature through the actions files); `pnpm test:rules` 0 (85 files). One load flake once, `pricing-sheet.back.test.tsx` (green alone and in the next full run). A production build was served and walked too (the plate at 320, 375 and 1440, paper and room; a first follow at 1440).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`) = owned paths + this file + `docs/systems/profiles-social.md` (listed above). **One exception, with why:** `src/lib/r2/stored-copies-policy.test.ts`, one line in its own `DISPLAY_ONLY` list for the new reader `src/lib/db/queries/invite-light.ts` (a reader of `preview_key` that draws and never deletes, which that policy asks to be listed). The new files were added to `owns` before they were written (none claimed by a live lane), and `supabase/migrations/20261008040000_first_follow.sql` is released: no migration, nothing for the Orchestrator to apply or regenerate.
+- **The items:**
+  - `follow=once`, the read: `followProfileAction` asks `followsNoOne()` before the write and answers `first` (`u/[slug]/actions.ts`, `lib/db/queries/first-follow.ts`; `actions.test.ts`, `first-follow.test.ts`).
+  - `follow=once`, the line: `RelationToggle` draws it under the button, announced from a standing live region and gone when she unfollows (`relation-toggle.tsx`, `first-follow-line.tsx` and `.css`, `private-line.tsx`), so the guest list, the moment card, claims and the look get it with no host file edited; her page draws it under the head through a scope and a slot (`u/[slug]/page.tsx`). Walked live at 375 and 1440 on her page, and on the guest list's chip, the moment card, a claim's follow-up and the look, over the real action.
+  - Connections keeps the line above Following, and a row's own Follow stays quiet (`page-connections.tsx`, `FOLLOWING_WORDS`, `privateLine={false}`).
+  - `invite=plate`: `dashboard/page-invite-card.tsx` and `.css` (`surface-ink`, the room's card in the dark theme), `page-invite-light.ts` (her photographs' key and answer, else her seed, else the house ember), `page-invite-read.ts` (read on her device), `(app)/me/actions.ts` and `lib/db/queries/invite-light.ts` (her six previews and seed); `/me` and the dashboard keep their call sites. Walked on a signed-in test host's page through a scratch route (deleted): 320, 375, 1440, paper and room, reduced motion, forced colours, R2 refused (the seed's light), Not now.
+  - ROADMAP line closed (delete it): the owner mode's Connections chips open the look (`u/[slug]/connection-chips.tsx`, `owner-sections.tsx`).
+  - `docs/systems/profiles-social.md` refined in place: the follow bullet, `/me`, Connections.
+  - Test data: none created. The walk's follows (willg97 to partyr33l, several) were each unfollowed; `user_follows` holds the one row it held (hi@willgibs.com to willg97), checked by SQL.
+- Assets requested from Will: none
+- Board ideas: her page's redesign with the content below the plate as a teaser of what going public unlocks (his other `invite=plate` idea, left as the brief says); the Library's RelationToggle specimen of her first follow (Deferred above), since production shows that state only to an account that follows nobody.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- Calls for Will: none
+- Look at first: (1) `/me` with no handle (hi@willgibs.com holds a second factor, so only Will's own session can walk it): the plate at 375 and 1440 in both themes, lit by her photographs; the dashboard's same plate (Not now) once the page invites; (2) a first follow: `willg97@gmail.com` follows nobody now, so Follow on `/u/partyr33l` says the line once, then Following alone (unfollow it after); (3) when brand-marks-wiring lands, the plate's paper ground deepens with `.surface-ink` and needs no edit here.
