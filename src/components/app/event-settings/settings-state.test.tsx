@@ -323,16 +323,15 @@ describe("the email step a gate held on", () => {
       view,
       settings: view.result,
       /** The server's next row for this event. */
-      row(over: Partial<HostEvent> & { email_held?: boolean }) {
+      row(over: Partial<HostEvent>) {
         event = hostEvent(over);
         act(() => view.rerender());
       },
     };
   }
 
-  /** A row as the database holds it, with its memory of a hold (the column the regenerated types will name). */
-  const rowOf = (over: Partial<HostEvent> & { email_held?: boolean }) =>
-    hostEvent(over as Partial<HostEvent>);
+  /** A row as the database holds it, with its memory of a hold (`email_held`). */
+  const rowOf = (over: Partial<HostEvent>) => hostEvent(over);
 
   /** `set_event_door`'s answers, as the database gives them (20261007140000). */
   const held = { ok: true, emailHeld: true, emailRestored: false, admitted: 0 };

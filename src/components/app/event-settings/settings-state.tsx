@@ -118,14 +118,6 @@ export function moodLabel(id: string): string {
   return STYLE_CATALOG.find((entry) => entry.id === id)?.label ?? id;
 }
 
-/**
- * The row's memory of a hold (`events.email_held`, 20261007140000), read through a typed seam until `types.ts` is
- * regenerated with the column; a row from before it carries none, which reads as no memory (nothing is given back).
- */
-function heldOf(event: HostEvent): boolean {
-  return (event as HostEvent & { email_held?: boolean }).email_held === true;
-}
-
 function valuesOf(
   event: HostEvent,
   social: { displayInProfile: boolean } | null,
@@ -138,7 +130,7 @@ function valuesOf(
     door: event.door,
     hasPassword: event.has_password,
     requireVerifiedEmail: event.require_verified_email,
-    emailHeld: heldOf(event),
+    emailHeld: event.email_held,
     requireUploadToView: event.require_upload_to_view,
     acceptingUploads: event.accepting_uploads,
     review: event.moderation_mode === "hold_for_approval",
