@@ -53,6 +53,17 @@ working.
 
 ## Handoff (replaces the chat report)
 
+**Paused 2026-10-07 for the usage window (the Orchestrator's ask) at `267002f6e`; resume from here.** Done: the four
+asks drawn on production's surfaces (wordmark, icon, grade, status), each option refined by its own helper (the
+method's helper per option; the grade and status helpers took their ask's three), then the lane's fixes (the wordmark
+paste a transform, the sheet's large word fitted, the band's seams a pixel wide, the grade's room frame with its menu
+open, the helpers' option words in the spec, the board's own tests `palette/grades.test.ts` and
+`wordmark/wordmarks.test.ts`); typecheck, lint and the board's tests green on it. Next, in order: the creative
+director's fresh-eyes pass over the 24 captures in `_scratch/brand-marks-r1/cd/` (every option at a desk and a phone),
+one refinement on everything it names; a carried call for the display cut's three kisses (Pa, yr, ee at 72px and up);
+this manifest's Questions, Deferred and Handoff; the light gate (`test:rules`, `lab:smoke`, `lab:demo --board
+brand-marks`, all on :3138); hand off.
+
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code, and the sha they ran on
