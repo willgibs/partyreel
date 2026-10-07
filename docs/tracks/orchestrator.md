@@ -47,6 +47,7 @@ of the app's gaps:
 | `crumbs-87` | the gap audit's and the last merges' small things: the door's email gate (MEDIUM), the shared link's words, the dashboard's tally, the waiting amber retired, the hub's two clocks, INVITED on Public, Follow where a block stands, Settings' clipped halo | RUNNING (cut at `3dde5801`) | Sonnet, 3131 | `afb4d81f98410c145` |
 | `account-moments-r2` | board round 2: what a follow says when it lands (first time and steady state), the invitation on her page redrawn beautiful and inviting | RUNNING (cut at `3dde5801`) | Opus, 3135 | `a7f3f3204bbc5d747` |
 | `create-wizard-r5` | board round 5: Create's close as the payoff of a made event (the code's share as the one next step, the hub's first arrival), the styles' previews, perhaps a kind of event | RUNNING (cut at `6d216dd9`) | Opus, 3133 | `a6a93a37363af5099` |
+| `redteam-57` | the walk before milestone 39 on the desk build `b1e219f26` (refreshed 06:46Z, DESK READY): both waves since milestone 38 and the storage sums' signal; its brief `../partyreel-wt/_scratch/redteam-57/brief.md`; it also moves the lanes' seven disposable test events to Deleted | RUNNING (from 06:47Z) | Opus, its own headless Chrome (never Will's) | `a4ff00e0ff54750d0` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session,
 spawned 2026-10-07 for Q40 (camera-wiring's `reshoots`: three CREATE OR REPLACE, the ceiling the roll plus 3, the
@@ -79,8 +80,10 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    polished: his let-back note). The audit's nine decisions wait on Will (the calls lab's X9 to X17); a board draws a
    decision's surfaces once he picks its model. Lanes take ports 3131 to 3139 only (R2's CORS). The desk's old
    leftovers: drive-export's unclear `exit` and `naming`, reworded or retired.
-3. **Milestone 39 carries both waves** (Will, 2026-10-07: one walk): red-team 57 on the desk build (`desk-refresh.sh`)
-   once `storage-sums-signal` and wave 1's six wirings merge. Its walks: halo-last's Tab walk (pricing's sheet,
+3. **Milestone 39 carries both waves** (Will, 2026-10-07: one walk): every lane it holds is MERGED (six wirings and
+   `storage-sums-signal`, gates 56 to 62; three migrations live: `reshoots`, `let_in`, `storage_sums_signal`); red-team
+   57 RUNNING on the desk build `b1e219f26`. Still the Orchestrator's before his yes: regenerate `src/lib/db/types.ts`
+   (only `let_in` moved a type) and drop host-moments' `liftDb` seam. Its walks: halo-last's Tab walk (pricing's sheet,
    Account's Plan card, the Drive picker at 375 and 1440, light and dark, the working words on a throttled network);
    upload-sums' screen (willg97's sums equal the walk: 21 of 24 events listed, the heaviest `dc74eb95` at 302,608,403
    bytes in 111 items; an upload, a Remove and a Delete permanently move each by the file; `storage_sums_drift(null,
