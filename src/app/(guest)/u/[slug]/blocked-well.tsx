@@ -36,15 +36,19 @@ export function BlockedWell({
         You blocked {name}. Neither of you can follow the other, and they
         aren&rsquo;t told.
       </p>
-      <RelationToggle
-        relation="block"
-        profileId={profileId}
-        on
-        person={name}
-        srLabel={name}
-        size="sm"
-        onSettle={handBackFocus}
-      />
+      {/* The page's status region holds this well, so what it says is announced the moment it arrives; the
+          button's own flip (Unblock turns to Block for the beat before the well goes) is not part of that. */}
+      <div aria-live="off" className="shrink-0">
+        <RelationToggle
+          relation="block"
+          profileId={profileId}
+          on
+          person={name}
+          srLabel={name}
+          size="sm"
+          onSettle={handBackFocus}
+        />
+      </div>
     </div>
   );
 }
