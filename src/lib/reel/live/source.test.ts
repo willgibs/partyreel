@@ -180,6 +180,37 @@ describe("the windows", () => {
  * every hold. These walk the real chain at exactly 1, 2 and 6 clips and hold the handover to what it
  * claims: the same clip, the same plan, the same frame.
  */
+/**
+ * ★ THE REEL OPENS ON THE PHOTOGRAPH ALREADY STANDING (guest-moments r1, Will's `opening=still`): the view stands the
+ * cover's first photograph from the press, and the first loop leads with it, so the reel starts from it. The cover
+ * keeps its deal while the album moves and the take re-plans over the album as it stands, so the take's own head was
+ * another photograph.
+ */
+describe("the photograph it opens on", () => {
+  it("★ leads the first loop, the take's order behind it", () => {
+    const items = album(12);
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const opening = take[5]!;
+    const { source: s } = source(items, { opensOn: opening });
+    const first = s.windowAt(0, LOOK)!;
+    expect(first.ids[0]).toBe(opening);
+    expect(first.ids.slice(1)).toEqual(
+      take.filter((id) => id !== opening).slice(0, 3),
+    );
+  });
+
+  it("is ignored when it is not one the reel plays (a clip, a hidden one, or gone)", () => {
+    const items = album(8).map((it) =>
+      it.id === "m3" ? { ...it, reelEligible: false } : it,
+    );
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    for (const opensOn of ["m3", "gone", null]) {
+      const { source: s } = source(items, { opensOn });
+      expect(s.windowAt(0, LOOK)!.ids[0]).toBe(take[0]);
+    }
+  });
+});
+
 describe("the small-album seam", () => {
   const DEFAULT_SIZE = { windowSize: 6 };
 

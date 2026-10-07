@@ -126,3 +126,22 @@
     }
   }
 }
+
+/* ── the opening (guest-moments r1, Will's `opening=still`) ─────────────────────
+   The reel's first photograph stands edge to edge from the press while the player loads, then crossfades into the
+   same photograph's first frame (`OPENING_FADE_MS` in the view is this length, so it unmounts once it is spent).
+   Opacity only; at once under reduced motion. */
+
+.lr-opening {
+  transition: opacity 240ms var(--ease-emphasis);
+}
+
+.lr-opening[data-reel-opening="out"] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lr-opening {
+    transition: none;
+  }
+}

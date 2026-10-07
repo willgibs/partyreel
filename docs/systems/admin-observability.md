@@ -114,7 +114,12 @@ job's `counts`; a dead letter and a key the backup alone holds each fail at any 
   number it did not take.
 - **A sub-sweep can be a job of its own** (which, and why, is [lifecycle-recovery.md](lifecycle-recovery.md)'s): it
   opens and closes its own row inside the parent run through `createSweepRunner`, with its own switch and card; the
-  rest ride the parent's row.
+  rest ride the parent's row. A row is a flat tally, but for what waits on a person: the storage sums' check keeps its
+  drifted hosts whole (`findings`, at most 25, each with both figures) through its own `counts` builder.
+- ★ **The storage sums' Rebuild** (`rebuildStorageSumsAction`, AAL2) rebuilds only a host the check's own record names
+  (the newest run that wrote one, read on the server), checks her at once, and writes what moved as a closed manual run
+  of the check, so the card follows the fix and the bell stops once no host stays named; who pressed it is one Sentry
+  line, as the account acts are.
 - ★ **Per-row isolation never buys silence:** a sweep's loop runs under `forEachIsolated` (`jobs/isolate.ts`), so the
   rows behind a bad one still run, and its tally closes the run: any failed row makes it an ERROR (the parent's too,
   for a sweep that rides it: `purgeRunVerdict`), and consecutive failures abort the loop as a dead dependency, not a

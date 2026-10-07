@@ -1318,3 +1318,41 @@ undoing a decline means yes.
 **CD5. The banner goes quiet once you are under your cap,** while the grace waits for the night's sweep, and a plan is
 named by its tier and size ("Pro 50 GB", "Event Pass 50 GB").
 - *Push back if* it should say you are back under until the sweep.
+
+## CE. A guest's night, wired (album-moments-wiring)
+
+Your guest-moments r1 picks are in production: her own photo glowing as everyone's, a short toast once her send has
+landed (when it shows was my call, on your "your call"), a batch standing whole in its places, and the reel opening on
+its first photograph. These are the calls built into them, yours to overrule.
+
+**CE1. The toast comes once the send's last photo has landed,** never at the start (the stack already shows a send
+while it runs), in the album's own words ("Your 6 photos joined Maya's ..."), with Show yours; where hers wait for
+Review or a develop, Show yours opens her uploads.
+- *Push back if* it should come as the first photo lands, or say less.
+
+**CE2. A send with a refusal speaks twice:** the failure sheet for what didn't go, the toast for what landed.
+- *Push back if* one voice should carry both.
+
+**CE3. The reel's opening still holds still,** with Close standing and the controls waiting, where the board drew a
+slow push on it.
+- *Push back if* the still should move while the reel loads.
+
+**CE4. The reel's curtain waits at most 12 seconds,** then says "The reel is taking a while." with Try again.
+- *Push back if* it should wait longer, or never give up.
+
+**CE5. A batch past the fetch cap (12) waits with its batch** rather than going in piecemeal.
+- *Push back if* the first twelve should land at once.
+
+## CF. The storage sums, proven every night (storage-sums-signal)
+
+What a host stores is now checked every night against a full walk, loud on any drift, with a Rebuild on the admin's
+jobs page; and the one deadlock the sums' trigger opened is closed. These are the calls built into it, yours to
+overrule.
+
+**CF1. There is no operator audit table yet,** so a Rebuild is recorded as the portal's other operator acts are (a
+Sentry line naming who, whom and both figures) plus a closed run of the check on its own card.
+- *Push back if* an audit table should come first.
+
+**CF2. A night's check that runs out of time reads Needs a look,** as the backup's reconcile does; at today's size it
+takes about 30 ms.
+- *Push back if* a partial pass should read clean until it finishes.

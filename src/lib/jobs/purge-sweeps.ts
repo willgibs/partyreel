@@ -8,9 +8,10 @@
  * and could not stop the inactivity sweep for one night without giving up storage reclamation.
  *
  * So the four heaviest sweeps (the ones that loop over ACCOUNTS and either email somebody or delete
- * bytes), and the album change log's prune (it deletes rows in the album's live core), open and close
- * a `job_runs` row of their own, with their own `ops_flags` switch and their own card on /admin/jobs.
- * The rest still ride the parent row.
+ * bytes), the album change log's prune (it deletes rows in the album's live core), the develop (it
+ * reveals photographs) and the storage sums' check (its finding is a figure a host is capped by) open
+ * and close a `job_runs` row of their own, with their own `ops_flags` switch and their own card on
+ * /admin/jobs. The rest still ride the parent row.
  *
  * WHERE THIS LIVES: the route (`src/app/api/cron/purge/route.ts`) hands every sweep to the runner
  * below through its `runSweep`; the sweep bodies are in `src/lib/lifecycle/sweeps/`. For a sweep with
@@ -32,6 +33,7 @@ import {
   startJobRun,
   type JobTrigger,
 } from "@/lib/db/queries/jobs";
+import type { Json } from "@/lib/db/types";
 import {
   readRemaining,
   readRowsNote,
@@ -43,13 +45,27 @@ import {
 } from "@/lib/jobs/sweep-tally";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 
+/** How one sweep's own run row is written, where it differs from every other's. */
+export type SweepRunOptions = {
+  /**
+   * What of the sweep's tally its own row keeps, in place of the flat tally every other row keeps (`sanitizeCounts`).
+   * For a sweep whose finding waits on a person and so has to reach its card whole: the storage sums' check keeps its
+   * drifted hosts, each with both figures (`storageSumsCounts`), beside the flat tally. Its builder decides the bound.
+   */
+  counts?: (result: unknown) => Json | null;
+};
+
 export type SweepRunner = {
   /**
    * Run one sweep and return exactly what the route stores in `sweeps[name]`: the sweep's own tally,
    * `{ error }` on a throw (the shape the route's `isSweepError` already looks for), or
    * `{ skipped }` when the sub-sweep's own switch is off.
    */
-  run: (name: string, fn: () => Promise<unknown>) => Promise<unknown>;
+  run: (
+    name: string,
+    fn: () => Promise<unknown>,
+    opts?: SweepRunOptions,
+  ) => Promise<unknown>;
 };
 
 /**
@@ -65,6 +81,7 @@ export function createSweepRunner(triggeredBy: JobTrigger): SweepRunner {
     job: JobId,
     name: string,
     fn: () => Promise<unknown>,
+    opts: SweepRunOptions,
   ): Promise<unknown> {
     let enabled: boolean;
     try {
@@ -111,7 +128,7 @@ export function createSweepRunner(triggeredBy: JobTrigger): SweepRunner {
         .join(" ");
       const done = await finishJobRun(run, {
         status: lostRows ? "error" : "ok",
-        counts: sanitizeCounts(result) ?? undefined,
+        counts: (opts.counts ?? sanitizeCounts)(result) ?? undefined,
         note: note || undefined,
       });
       reportHeartbeat(job, done.heartbeatError, "finish");
@@ -130,10 +147,10 @@ export function createSweepRunner(triggeredBy: JobTrigger): SweepRunner {
   }
 
   return {
-    async run(name, fn) {
+    async run(name, fn, opts = {}) {
       const job = subSweepJobFor(name);
       const result = job
-        ? await runTracked(job, name, fn)
+        ? await runTracked(job, name, fn, opts)
         : await runUntracked(name, fn);
       reportStoppedEarly(name, result);
       return result;

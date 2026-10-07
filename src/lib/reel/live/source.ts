@@ -156,6 +156,15 @@ export type ClipSourceOptions = {
    * Called once per prepare that had any; a still with no url at all is not a failure.
    */
   onFailedIds?: (ids: string[]) => void;
+  /**
+   * ★ THE PHOTOGRAPH THE REEL OPENS ON (guest-moments r1, Will's `opening=still`): the view stands the
+   * cover's first photograph from the press while the player loads, so the first loop leads with it and
+   * the reel starts from the picture already on screen. The cover keeps its deal while the album moves
+   * (`keepStills`) and the take re-plans over the album as it is, so without this the first clip was
+   * the take's own head, a different photograph from the one standing. Carried as a loop boundary
+   * carries its clip (the take minus it, behind it); ignored when it is not playable here.
+   */
+  opensOn?: string | null;
 };
 
 /**
@@ -310,6 +319,13 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     );
   }
 
+  /** The photograph the first loop leads with, while it is one the take could place. */
+  function opensOn(): string | null {
+    const id = opts.opensOn ?? null;
+    const item = id ? items.get(id) : undefined;
+    return item && isReelEligible(item) ? id : null;
+  }
+
   function newLoop(carryId: string | null) {
     const take = planTake(eligibleItems(), {
       eventId,
@@ -373,7 +389,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     if (hit) return hit;
     if (lastBuilt === null) {
       if (index !== 0) return null;
-      if (loopIds.length === 0) newLoop(null);
+      if (loopIds.length === 0) newLoop(opensOn());
       if (loopIds.length === 0) return null;
       const first: Slot = {
         index: 0,

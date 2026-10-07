@@ -491,18 +491,18 @@ describe("the sheets say what jsdom cannot see", () => {
     expect(on![1]).toMatch(/animation-delay:\s*\d+ms/);
   });
 
-  it("keys the push on the rows' own attribute, and only with motion allowed", () => {
+  // ★ RESHAPED (album-moments-wiring): this pinned the push, the newcomer revealed from its left edge
+  // (`pr-arrival-push`, a clip over the glide). Guest-moments r1's `batch=settle` retired it, since a batch at
+  // the album's top read as open places for the length of the wipe. The scar kept: the rows' own attribute
+  // still keys what an arrival does, and now that is to stand whole over the neighbours gliding out of its place.
+  it("keys the settle on the rows' own attribute: the newcomer stands whole, over the glide, never clipped", () => {
     const css = sheet("arrival.css");
-    const push = css.match(
-      /@media \(prefers-reduced-motion: no-preference\)\s*\{\s*\[data-album-layout="rows"\] \[data-media-tile\]\[data-entering\]\s*\{([^}]*)\}/,
+    const settle = css.match(
+      /\[data-album-layout="rows"\] \[data-media-tile\]\[data-entering\]\s*\{([^}]*)\}/,
     );
-    expect(push).not.toBeNull();
-    expect(push![1]).toMatch(/transition:\s*none/);
-    expect(push![1]).toMatch(
-      /animation:\s*pr-arrival-push var\(--arrival-glide-ms/,
-    );
-    expect(css).toMatch(
-      /@keyframes pr-arrival-push[\s\S]*clip-path:\s*inset\(0 100% 0 0\)/,
-    );
+    expect(settle).not.toBeNull();
+    expect(settle![1]).toMatch(/z-index:\s*1/);
+    expect(css).not.toMatch(/clip-path/);
+    expect(css).not.toMatch(/pr-arrival-push/);
   });
 });

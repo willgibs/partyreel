@@ -3,8 +3,10 @@
 import "./event-experience-head.css";
 
 import {
+  memo,
   Suspense,
   use,
+  useEffect,
   type CSSProperties,
   type ComponentProps,
   type ReactNode,
@@ -131,6 +133,16 @@ export function HeadStills({
       <div className="head-scrim" />
     </div>
   );
+}
+
+/**
+ * ★ THE PHOTOGRAPH THE REEL OPENS ON (guest-moments r1, Will's `opening=still`): the cover's first still, slot 0, the
+ * one the cover loads first and a reduced-motion reader sees, which while the album has a reel is the reel's own
+ * opening (`pickCoverIds`). One rule for the page's curtain, before the view has arrived, and for the view, which
+ * stands it until its first frame and leads its take with it; null where the cover has none (the house light).
+ */
+export function openingStillOf(stills: readonly HeadStill[]): HeadStill | null {
+  return uniqueStills(stills)[0] ?? null;
 }
 
 function uniqueStills(stills: readonly HeadStill[]): HeadStill[] {
@@ -465,6 +477,8 @@ export type HeadReel = {
    * owner arriving from her hub reads it (`event-experience.tsx`).
    */
   viewAsked: boolean;
+  /** Close the reel as the view's own Close does (the owner back where she came from): the curtain's Close. */
+  close: () => void;
 };
 
 export type HeadBridgeState = {
@@ -501,6 +515,55 @@ export function createHeadBridge(): HeadBridge {
 
 const NO_BRIDGE_STATE = () => null;
 
+/**
+ * ★ THE REEL'S OPENING PHOTOGRAPH, CHOSEN ONCE (guest-moments r1, `opening=still`). The page's curtain stands a
+ * photograph from its first byte, the seed's slot 0, which the server can only pick with nothing of hers leading (it
+ * cannot see a guest's own uploads); the live cover leads with her own newest once the album knows them, and the
+ * owner's own uploads lead hers. Read twice, the curtain would stand one photograph and the view open on another, a
+ * swap in the very second the curtain exists to make calm (measured: the view's still changed photograph 60 ms after it
+ * stood). So the curtain pins the photograph it stands, and the reel's controller opens the view on the pin: one
+ * photograph from the press to the reel's first frame. The page clears it when the curtain goes, so a reel opened later
+ * from the cover opens on the cover's own first still.
+ */
+export type OpeningPin = {
+  get: () => HeadStill | null;
+  set: (still: HeadStill | null) => void;
+  subscribe: (listener: () => void) => () => void;
+};
+
+export function createOpeningPin(): OpeningPin {
+  let still: HeadStill | null = null;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => still,
+    set(next) {
+      if (next === still) return;
+      still = next;
+      for (const listener of listeners) listener();
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+}
+
+const NO_PIN = () => null;
+const noPinSubscription = () => () => {};
+
+/** The pinned opening photograph, or null (no pin, or none chosen yet). */
+export function useOpeningPin(
+  pin: OpeningPin | null | undefined,
+): HeadStill | null {
+  return useSyncExternalStore(
+    pin?.subscribe ?? noPinSubscription,
+    pin?.get ?? NO_PIN,
+    NO_PIN,
+  );
+}
+
 /** The live album's word to the head, or null until the album has mounted (the server's and the hydration's answer). */
 export function useHeadBridge(bridge: HeadBridge): HeadBridgeState | null {
   return useSyncExternalStore(bridge.subscribe, bridge.get, NO_BRIDGE_STATE);
@@ -525,6 +588,26 @@ function readSeed(page: Promise<GallerySeed>): Promise<SeedRead> {
       (seed) => seed,
       () => null,
     );
+    // ★ A SEED THAT HAS ALREADY ARRIVED IS READ AT ONCE (album-moments-wiring, measured on `?reel`: the curtain's
+    // photograph and the cover's both vanished for 120 ms at hydration, whenever the seed had streamed in before the
+    // page hydrated). The chain above is a fresh promise, pending for a tick even over a seed in hand, and `use()` on a
+    // pending promise suspends: the boundary the server drew was put back to its fallback (nothing) until the tick
+    // passed. React Flight's thenable takes its value as `then` is called (`initializeModelChunk`) and says so on
+    // `status` and `value`, which `use()` reads before it ever suspends; so the read is told the same, and the
+    // hydration draws exactly what the server drew.
+    const arrived = page as Promise<GallerySeed> & {
+      status?: string;
+      value?: GallerySeed;
+    };
+    if (typeof arrived.then === "function")
+      arrived.then(
+        () => {},
+        () => {},
+      );
+    if (arrived.status === "fulfilled")
+      Object.assign(read, { status: "fulfilled", value: arrived.value });
+    else if (arrived.status === "rejected")
+      Object.assign(read, { status: "fulfilled", value: null });
     seedReads.set(page, read);
   }
   return read;
@@ -553,11 +636,83 @@ function CoverStills({
 }
 
 /**
+ * THE REEL'S FIRST PHOTOGRAPH, ON THE PAGE'S CURTAIN (`event-experience-curtain.tsx`): the cover's own slot 0, from the
+ * page's seed in the very HTML the server streams (as `CoverStills` draws it, the same link, so the browser fetches it
+ * once for both), then from the live album's word. Nothing until either is in hand: the curtain's dark stands.
+ */
+function CurtainStill({
+  seed,
+  bridge,
+  eventId,
+  pin,
+  className,
+}: {
+  seed: Promise<GallerySeed>;
+  bridge: HeadBridge;
+  eventId: string;
+  pin: OpeningPin;
+  className?: string;
+}) {
+  const live = useHeadBridge(bridge);
+  const pinned = useOpeningPin(pin);
+  // The seed's own pick first (what the server drew, so the first paint and the hydration agree), the live album's
+  // where the seed carried no link for it; once one stands, the pin holds it.
+  const read = pinned ? null : use(readSeed(seed));
+  const still =
+    pinned ??
+    openingStillOf(read ? stillsFromSeed(read, eventId) : []) ??
+    openingStillOf(live?.stills ?? []);
+  useEffect(() => {
+    if (still && !pin.get()) pin.set(still);
+  }, [still, pin]);
+  if (!still) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a link that expires)
+    <img
+      src={still.tile}
+      alt=""
+      aria-hidden
+      draggable={false}
+      fetchPriority="high"
+      data-reel-curtain-still={still.id}
+      className={className}
+    />
+  );
+}
+
+/**
+ * ★ A SEED'S BOUNDARY IS MEMOIZED, SO NO RENDER OF THE PAGE REACHES IT BEFORE IT HYDRATES (album-moments-wiring,
+ * measured on a slow line: the curtain's photograph and the cover's vanished for 100 to 450 ms as the page hydrated).
+ * The server streams the boundary's photographs long before the page's script runs, and the page renders again the
+ * moment it hydrates (its stored session, the door's first word); a render that reaches a boundary still waiting to
+ * hydrate, whose seed the client has not decoded yet, makes React draw it afresh from its fallback, which is nothing.
+ * Its props never change (the page's seed and stores, held for its life), so a memo stops every such render at the
+ * boundary's door and the photographs the server drew stand until it hydrates in its own time.
+ */
+function OpeningStillBoundary(props: {
+  seed: Promise<GallerySeed>;
+  bridge: HeadBridge;
+  eventId: string;
+  /** Where the photograph it stands is pinned, for the view to open on (`OpeningPin`). */
+  pin: OpeningPin;
+  className?: string;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <CurtainStill {...props} />
+    </Suspense>
+  );
+}
+
+/** The curtain's photograph in a boundary of its own, so the curtain's dark streams with the page's first byte. */
+export const OpeningStill = memo(OpeningStillBoundary);
+
+/**
  * THE ALBUM'S COVER GROUND: its photographs from the page's seed in the very HTML the server streams
  * (the seed resolves inside this small boundary, so the cover's pictures arrive with the album's first
  * rows, before any script runs), then from the live album as it moves. Until the seed lands, the light.
  */
-export function CoverGround({
+function CoverGroundBoundary({
   seed,
   bridge,
   eventId,
@@ -572,6 +727,9 @@ export function CoverGround({
     </Suspense>
   );
 }
+
+/** Memoized for the reason `OpeningStill` is: a page render never reaches the boundary before it hydrates. */
+export const CoverGround = memo(CoverGroundBoundary);
 
 /**
  * THE COVER, SEEN THROUGH THE DOOR (door-reveal, locked-door r3's `reveal=through`: "The album's own

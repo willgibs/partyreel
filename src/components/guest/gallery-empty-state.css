@@ -97,7 +97,7 @@
 .wait-cell[data-sending] > video {
   opacity: 0.45;
 }
-/* The one pass of light her own landing takes (the album's `data-landed`, in the dark). */
+/* The light her own landing takes on the sheet (the album lights hers as anyone's, `data-arrived`), in the dark. */
 .wait-cell[data-landing]::before {
   content: "";
   position: absolute;

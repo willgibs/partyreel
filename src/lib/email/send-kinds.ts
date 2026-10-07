@@ -58,6 +58,7 @@ export const OPERATOR_KINDS = [
   "report_proof",
   "spend_watch",
   "drive_breaker",
+  "storage_sums",
 ] as const;
 
 /**
