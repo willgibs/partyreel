@@ -187,6 +187,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: the hub's head as event-header's boards drew it since r2 (the when as one quiet line over the name, the link under the code) where production keeps date, guests, views and Live under the title with the link under it; whether that drawing should be wired (event-header-wiring-2's board idea).
 - Lab exploration: turned-away demand: a host never learns guests were refused (a Free album's video, a full or closed album; `video_blocked` answers at presign and nothing records it), though PRICING's upgrade triggers turn on it; a count and where she meets it (the hub, the bell, the morning-after recap) (app-gaps-r1).
 - Lab exploration: the host's picks: one mark of hers feeding the cover (dealt from the stills today), the reel's opening, the share card, the keepsake and a best-of download, where "Use as the cover", host pins and a featured clip sit in three buckets (app-gaps-r1).
+- Host: the storage meter's door to the size list (`dashboard/storage-meter.tsx`) leaves her plan's name off its fit goal, so its list says "Fits your plan once these go" where the banner's says "Fits Pro 50 GB once these go"; pass `plan: planWithCap(tier, storageCap)` (`grace-banner.tsx`) there too (host-moments-wiring).
+- Host: the door's quick choice (`settings-rows.tsx`'s `doorConsequence`) moves to a password already set while people wait and says nothing of their asks ending there (`events_door_to_password`), where the steps page asks first; say it, and ask, as the page does (host-moments-wiring).
 
 ### Admin and operations
 

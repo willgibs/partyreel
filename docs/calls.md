@@ -1294,3 +1294,27 @@ shot taken, so a guest whose host removed five of her 24 can take only 3 more, a
 **CC5. Past the ceiling the server says "You've used all 3 re-shoots on your roll.",** and once her 3 are spent both
 doors still take a shot back and say it frees no frame.
 - *Push back if* a spent roll should hide the take-back.
+
+## CD. A host's party moments, wired (host-moments-wiring)
+
+Your host-moments r1 picks are in production: both groups said at a first password's field, Let in that lets a declined
+newcomer in with one press, the over-plan banner's number and one key, and your plan's line drawn on the size list.
+These are the calls built into them, yours to overrule.
+
+**CD1. Someone who was in when blocked keeps Let back in and its confirm,** since that confirm holds your restore
+switch (off by default); he goes straight back in, his uploads in Deleted unless you turn them on.
+- *Push back if* he should be one press too wherever nothing of his can come back.
+
+**CD2. The decline's toast says Let in, not Undo,** and does what Blocked's Let in does ("Dev Kapoor is in."), since
+undoing a decline means yes.
+- *Push back if* Undo should be a true undo, back at the door.
+
+**CD3. The one-press row reads "Let in: into the album, now",** until a Guests-room board redraws the rows (your note).
+- *Push back if* the row should say less.
+
+**CD4. A password already set keeps its consequence line,** where a first password names both groups at its field.
+- *Push back if* both groups should be said there too.
+
+**CD5. The banner goes quiet once you are under your cap,** while the grace waits for the night's sweep, and a plan is
+named by its tier and size ("Pro 50 GB", "Event Pass 50 GB").
+- *Push back if* it should say you are back under until the sweep.
