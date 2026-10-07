@@ -1,0 +1,57 @@
+{
+  "board": "host-moments",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "password",
+          "choice": "both",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "tell",
+          "choice": "line",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "fresh-roll",
+          "choice": "panel",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "decline",
+          "choice": "block",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "let-back",
+          "choice": "straight",
+          "note": "The UI design of how we present this (and guest card items in general) could definitely be polished.",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "banner",
+          "choice": "number",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "goal",
+          "choice": "line",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

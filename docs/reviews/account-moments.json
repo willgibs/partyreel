@@ -1,0 +1,47 @@
+{
+  "board": "account-moments",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "follow",
+          "choice": null,
+          "note": "I'm split here. I'd like to know what you think, and you're welcome to run another round of exploration if helpful. On the first or first few follow actions, the additional context may be helpful to understand what that entails. However, as follow becomes a common action for some users, it might get annoying to have that hint bubble up every time. Imagine following 1000+ users on Instagram and being told 1000 times what a follow does. You'd think \"alright, I get it\". Our solutions also need to be a bit more polished.",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "block",
+          "choice": "line",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "tidy",
+          "choice": "stays",
+          "note": "How do we handle the rare case of unblocking somebody but then wanting to follow them? Can guest names be clicked here to open the mini card on screen for additional actions beyond the row action flip? That'd be my first guess as a user. Don't want to overcrowd the row actions.",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "me-page",
+          "choice": "private",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "invite",
+          "choice": "today",
+          "note": "We can do much better than the design itself, but I think the more visible presentation wins here. The whole goal of this page is to be activated and become public, so it doesn't make a ton of sense to minimize the main flow that opens that up. Making it more minimal may lead users to think it's already active if they don't notice the set up blurb. This design should feel very beautiful and inviting, but not yelling or in your face. When we want attention, we allow that component to draw attention, but never yell at users or overcrowd UI (more global note).",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

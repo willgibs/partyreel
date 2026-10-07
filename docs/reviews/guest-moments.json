@@ -1,0 +1,46 @@
+{
+  "board": "guest-moments",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "own",
+          "choice": "glow",
+          "note": "I'm not sure we need to mark guest uploads to avoid crowding gallery view, and marking the first specifically makes it easy to get lost in the gallery when more uploads follow. If we can pop up a temporary toast, whether when their uploads begin landing or the last one completes (your call, and we're always open to even better ideas you may have0, that's likely enough for them to feel confident about the upload success and go find their media in the album if they'd like.",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "batch",
+          "choice": "settle",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "limit",
+          "choice": "three",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "where",
+          "choice": "reel",
+          "note": "Both are probably the best option. That way, if they naturally go to remove an image from their uploads, it inherently frees up a slot for them as well.",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        },
+        {
+          "ask": "opening",
+          "choice": "still",
+          "by": "Will",
+          "at": "2026-10-07T01:38:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
