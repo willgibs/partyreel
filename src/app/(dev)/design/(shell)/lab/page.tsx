@@ -1,3 +1,4 @@
+import { CALLS, callsByTheme, questionsOf } from "@/lib/calls/calls";
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +43,7 @@ import { type SessionStep, stepParam, toSteps } from "./_desk/session-step";
 import { CopySoFar } from "./_desk/copy-so-far";
 import { StartReview } from "./_desk/start-review";
 import { stepId } from "./_desk/step-id";
+import { CallsPlace } from "./calls/calls-place";
 
 /**
  * THE DESK (the review wave, 2026-09-14; Will's queue since the Library x Lab
@@ -58,6 +60,11 @@ import { stepId } from "./_desk/step-id";
  * view below is still here for the dry run (`?session=sample`, a fixture board
  * with no page of its own) and as the fallback for a board that has no page;
  * `?session=end` is the summary that composes the message.
+ *
+ * THE CALLS SIT HERE TOO (calls-desk; Will, 2026-10-07: "probably just build it
+ * into the lab"). Beside the boards' queue, the decisions built into the
+ * product that he cannot see by using it (`docs/calls.json`), answered in a
+ * press, their answers riding the same message as the boards'.
  */
 
 const DESK_HREF = "/design/lab";
@@ -238,7 +245,7 @@ export default async function DeskPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="The desk"
-        description="What waits on you, what every board is asking, and where the work is. Everything here is read from the repo: the boards' own specs, the manifests, and your answers so far. Nothing on this page writes anything."
+        description="What waits on you, what every board is asking, and where the work is. Everything here is read from the repo: the boards' own specs, the calls, the manifests, and your answers so far. Nothing on this page writes anything."
       />
       {/* ★ WHICH BUILD THIS IS. A page cannot know a newer one exists, and on a
           stale deployment the round, the ledger and the spec all agree because
@@ -260,6 +267,7 @@ export default async function DeskPage({
           ["cards awaiting a verdict", `${openItemsNow} of ${itemsNow}`],
           ["answered this round", answeredNow],
           ["asked for a clearer question", unclearNow],
+          ["questions and calls", CALLS.entries.length],
           ["standing boards", rows.length],
           ["tracks in flight", live.length],
         ]}
@@ -371,6 +379,19 @@ export default async function DeskPage({
             </p>
           </div>
         )}
+      </Section>
+
+      {/* ★ THE CALLS PLACE (calls-desk), second because it waits on him too:
+          what the boards cannot show him, since it is built in where using
+          the product never meets it. Its answers ride the same paste, so the
+          copy button here is the boards' own. */}
+      <Section
+        id="calls"
+        title="Calls"
+        blurb="The decisions built into Partyreel that you can't see by using it. Answer a question with its recommendation, another way, or your own words. A call is built and stays as it is: keep it and it leaves the list, or change it and say how. Your answers ride the same paste as the boards'."
+        aside={<CopySoFar transcribed={transcribed} build={build} />}
+      >
+        <CallsPlace questions={questionsOf()} themes={callsByTheme()} />
       </Section>
 
       {/* The redesign queue. A catalog entry marked `redesign` or `retire` is

@@ -4,15 +4,18 @@ import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
 import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
+import { CALLS, openCall } from "@/lib/calls/calls";
 import { cn } from "@/lib/utils";
 
 import { Step } from "@/components/lab/step";
 
 import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
+import { answerWords } from "../calls/answer-words";
 import {
   alreadySent,
   composeMessage,
+  heldCallAnswers,
   type SessionAnswer,
   type SessionItem,
   type SessionNote,
@@ -202,11 +205,24 @@ export function ReviewSession({
   // server's first paint, so a word typed before the page hydrated is kept
   // (`adopt-typed-value.ts`).
   const adoptProgram = useAdoptTypedValue<HTMLTextAreaElement>(program);
-  const message = useMemo(
-    () => composeMessage(answers, notes, items, [], build, program),
-    [answers, notes, items, build, program],
+  // ★ AND THE CALLS RIDE THIS MESSAGE TOO (calls-desk: one message a sitting),
+  // by the rule "Copy so far" sends them by, a paste's mark included, since
+  // the calls have no ledger for this page to compare against. Never in a dry
+  // run, whose message is a sample board's alone.
+  const calls = useMemo(
+    () =>
+      sample
+        ? []
+        : heldCallAnswers(store.calls, openCall, (key) =>
+            Boolean(store.sent?.[key]),
+          ).calls,
+    [sample, store],
   );
-  const answered = answers.length + items.length;
+  const message = useMemo(
+    () => composeMessage(answers, notes, items, [], build, program, calls),
+    [answers, notes, items, build, program, calls],
+  );
+  const answered = answers.length + items.length + calls.length;
   // A note on the whole program is a message on its own.
   const said = answered > 0 || program.trim() !== "";
 
@@ -400,6 +416,43 @@ export function ReviewSession({
                     </li>
                   );
                 })}
+                {/* The calls answered at the desk's Calls place, read back
+                    the way the place says them: a check that the paste holds
+                    what he meant, changed where he answered them. */}
+                {calls.length > 0 && (
+                  <li className="rounded-xl border border-border bg-card px-4 py-3">
+                    <p className="flex flex-wrap items-baseline justify-between gap-2 text-sm font-medium">
+                      Calls
+                      <LabLink
+                        href="/design/lab#calls"
+                        className="text-[11px] font-normal text-muted-foreground hover:text-foreground"
+                      >
+                        Change them on the desk
+                      </LabLink>
+                    </p>
+                    <ul className="mt-1.5 space-y-1">
+                      {calls.map((c) => {
+                        const entry = CALLS.entries.find((e) => e.id === c.id);
+                        return (
+                          <li key={c.id} className="text-xs">
+                            <span className="text-muted-foreground">
+                              {c.id} {entry?.title}
+                            </span>{" "}
+                            <span className="font-medium">
+                              {entry ? answerWords(entry, c.answer) : c.answer}
+                            </span>
+                            {c.note && (
+                              <span className="text-muted-foreground">
+                                {" "}
+                                &ldquo;{c.note}&rdquo;
+                              </span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </li>
+                )}
               </ul>
             </>
           )}

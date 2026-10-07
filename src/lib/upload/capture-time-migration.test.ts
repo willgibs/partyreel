@@ -1,5 +1,5 @@
 /**
- * THE CAPTURE TIME'S SQL FACTS (lane `capture-time`, 20261005200000; Will's X7), pinned LATEST-WINS across the whole
+ * THE CAPTURE TIME'S SQL FACTS (`capture-time`, 20261005200000; uploads-and-r2.md), pinned LATEST-WINS across the whole
  * migration set (`liveFunction`: a body is its last definition), so a later file that drops a clause fails here, and
  * the two writers' wires held to their functions' own signatures. What they hold:
  *   1. THE COLUMN: `media.captured_at`, a nullable timestamptz, finite by CHECK; the host reads it (her album's

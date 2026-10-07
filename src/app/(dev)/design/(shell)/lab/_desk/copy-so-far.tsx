@@ -2,6 +2,7 @@
 
 import { boardSpec } from "@/app/(dev)/design/sandbox/registry";
 import { CopyButton } from "@/components/lab/paste";
+import { openCall } from "@/lib/calls/calls";
 import { cn } from "@/lib/utils";
 
 import { composeSoFar, type Transcribed } from "./review-message";
@@ -28,6 +29,12 @@ import { markSent, useReviewStore } from "./review-store";
  * on screen, greyed and dated, and only stop travelling. "Copy everything" is
  * the one way back, for the rare paste that went missing between here and the
  * chat window.
+ *
+ * ★ AND THE CALLS RIDE THE SAME PASTE (calls-desk, 2026-10-07: one message a
+ * sitting). An answer at the desk's Calls place joins as one `calls:` line
+ * wherever this button stands, on the desk or on a board's spine, read against
+ * the calls file this page was built with: an entry the record has retired is
+ * not open, so its answer never rides again.
  */
 export function CopySoFar({
   transcribed,
@@ -52,17 +59,18 @@ export function CopySoFar({
       }
     );
   };
-  const fresh = composeSoFar(store, openOf, transcribed, build);
+  const fresh = composeSoFar(store, openOf, transcribed, build, { openCall });
   const all = composeSoFar(store, openOf, transcribed, build, {
     ignoreSent: true,
+    openCall,
   });
-  const held = fresh.answers + fresh.items + fresh.notes;
-  const everything = all.answers + all.items + all.notes;
+  // A call's answer is an answer: the label counts it with the boards'.
+  const answered = fresh.answers + fresh.calls;
+  const held = answered + fresh.items + fresh.notes;
+  const everything = all.answers + all.calls + all.items + all.notes;
   if (everything === 0) return null;
   const parts = [
-    fresh.answers
-      ? `${fresh.answers} answer${fresh.answers === 1 ? "" : "s"}`
-      : "",
+    answered ? `${answered} answer${answered === 1 ? "" : "s"}` : "",
     fresh.items ? `${fresh.items} verdict${fresh.items === 1 ? "" : "s"}` : "",
     fresh.notes ? `${fresh.notes} note${fresh.notes === 1 ? "" : "s"}` : "",
   ].filter(Boolean);

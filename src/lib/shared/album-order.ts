@@ -69,7 +69,7 @@ export function sortViewGroup(
  * WHEN AN ENTRY WAS TAKEN, as the wire carries it (`entryCaptureTime`: `media.captured_at`, an entry's seventh
  * element), or null where the upload kept none.
  *
- * ★ THE ONE PLACE THE CAPTURE TIME IS READ (Will's X7, 2026-10-05: "keep the capture time, never the place or
+ * ★ THE ONE PLACE THE CAPTURE TIME IS READ (uploads-and-r2.md: "keep the capture time, never the place or
  * device"). The capture-time lane carries `media.captured_at` on the album's wire; this function is the switch it
  * flipped, and nothing that orders an album changed with it. Microseconds, like `t`.
  */

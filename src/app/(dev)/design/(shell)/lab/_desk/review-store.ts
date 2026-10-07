@@ -2,8 +2,11 @@
 
 import { useSyncExternalStore } from "react";
 
+import { KEEP } from "@/lib/calls/answers";
+
 import {
   boardNoteHoldId,
+  callHoldId,
   holdId,
   itemHoldId,
   PROGRAM_NOTE_HOLD,
@@ -26,6 +29,12 @@ import {
 export type Held = { choice: string; note: string };
 /** An item's verdict (`keep | refine | kill`, or the Library's words) and note. */
 export type HeldItem = { verdict: string; note: string };
+/**
+ * A call's answer (`@/lib/calls/answers`: keep or change; a question's
+ * recommendation or an `altN`) and his words. A question's words with no pick
+ * are his own answer; a change's words are what it should be instead.
+ */
+export type HeldCall = { answer: string; note: string };
 
 /**
  * WHEN AN ENTRY WENT INTO A PASTE, AND FROM WHICH BUILD (lab-tides,
@@ -71,6 +80,13 @@ export type ReviewStore = {
    * Empty when there is none; a payload from before it existed loads with none.
    */
   program: string;
+  /**
+   * ★ THE CALLS (calls-desk, 2026-10-07): a call's or a question's id to his
+   * answer at the desk's Calls place. They ride the same paste as one `calls:`
+   * line; an id the record has since retired is simply never read again.
+   * A payload from before the Calls place loads with none.
+   */
+  calls: Record<string, HeldCall>;
 };
 
 /**
@@ -90,6 +106,7 @@ export const EMPTY_REVIEW: ReviewStore = Object.freeze({
   items: {},
   sent: {},
   program: "",
+  calls: {},
 });
 
 let store: ReviewStore = EMPTY_REVIEW;
@@ -112,6 +129,9 @@ function load() {
       sent: parsed.sent ?? {},
       // And a payload from before the program's note loads with none.
       program: typeof parsed.program === "string" ? parsed.program : "",
+      // And one from before the Calls place with no call answered.
+      calls:
+        parsed.calls && typeof parsed.calls === "object" ? parsed.calls : {},
     });
   } catch {
     // Private mode, or a blocked store: the session still works, unsaved.
@@ -282,6 +302,56 @@ export function setItemNote(
   if (!note && !now?.verdict) delete items[key];
   else items[key] = { verdict: now?.verdict ?? "", note };
   setReviewStore({ ...store, items, sent: unmark(store.sent, key) });
+}
+
+/**
+ * A CALL'S ANSWER, PICKED OR CLEARED by the same toggle rule as every other
+ * answer: a second press on the held answer clears it, its words survive, and
+ * an entry with neither is dropped. A store from before the Calls place has no
+ * `calls` map, so every writer starts from an empty one.
+ */
+export function toggleCallAnswer(id: string, answer: string): boolean {
+  load();
+  const now = store.calls?.[id];
+  const calls = { ...store.calls };
+  const sent = unmark(store.sent, callHoldId(id));
+  if (now?.answer === answer) {
+    if (now.note) calls[id] = { answer: "", note: now.note };
+    else delete calls[id];
+    setReviewStore({ ...store, calls, sent });
+    return false;
+  }
+  calls[id] = { answer, note: now?.note ?? "" };
+  setReviewStore({ ...store, calls, sent });
+  return true;
+}
+
+export function setCallNote(id: string, note: string): void {
+  load();
+  const now = store.calls?.[id];
+  const calls = { ...store.calls };
+  if (!note && !now?.answer) delete calls[id];
+  else calls[id] = { answer: now?.answer ?? "", note };
+  setReviewStore({ ...store, calls, sent: unmark(store.sent, callHoldId(id)) });
+}
+
+/**
+ * ★ KEEP EVERY CALL STILL UNANSWERED, IN ONE PRESS (calls-desk). Keeping a
+ * call is the usual answer, and sixteen presses to say "the rest stand" (his
+ * own words, in the calls doc's example) would be the friction that leaves
+ * them unanswered. Only an id with no answer held takes it: a change he made
+ * is never overwritten by the sweep.
+ */
+export function keepCalls(ids: readonly string[]): void {
+  load();
+  const calls = { ...store.calls };
+  let sent = store.sent;
+  for (const id of ids) {
+    if (calls[id]?.answer) continue;
+    calls[id] = { answer: KEEP, note: calls[id]?.note ?? "" };
+    sent = unmark(sent, callHoldId(id));
+  }
+  setReviewStore({ ...store, calls, sent });
 }
 
 /** The live answers; the server render sees none, which is correct. */

@@ -6,10 +6,11 @@
  *
  *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep "a note"; note: "a board note"
  *   review library: <entry-id>=keep|redesign|retire "a note"
+ *   calls: <id>=keep|change|recommended|alt<n>|own "a note"
  *   note: "a note on the whole program"
  *
- * One line per board, plus at most one Library line and one note on the whole
- * program. This module COMPOSES;
+ * One line per board, plus at most one Library line, one line of the Calls
+ * place's answers and one note on the whole program. This module COMPOSES;
  * `scripts/lab-review.mjs` PARSES, and `lab-review.test.ts` runs the round trip
  * so the two never drift. Pure and isomorphic: the session composes in the
  * browser, the test in node.
@@ -24,7 +25,9 @@
  * nothing here should ever learn to.
  */
 
-import { boardNoteHoldId, PROGRAM_NOTE_HOLD } from "./step-id";
+import { type CallKind, KEEP, needsWords, OWN } from "@/lib/calls/answers";
+
+import { boardNoteHoldId, callHoldId, PROGRAM_NOTE_HOLD } from "./step-id";
 
 export type SessionAnswer = {
   board: string;
@@ -51,6 +54,13 @@ export type SessionNote = { board: string; round: number; text: string };
 export type LibraryEntryAnswer = {
   entry: string;
   verdict: string;
+  note?: string;
+};
+
+/** One answer at the desk's Calls place: a call kept or changed, a question's pick or his own words. */
+export type CallAnswer = {
+  id: string;
+  answer: string;
   note?: string;
 };
 
@@ -105,6 +115,64 @@ export function composeLibraryLine(entries: LibraryEntryAnswer[]): string {
 }
 
 /**
+ * ★ THE CALLS' OWN LINE (calls-desk, 2026-10-07): `calls: <id>=<answer> "a note"; ...`, one line for every answer at
+ * the desk's Calls place, in the grammar's style (`@/lib/calls/answers` holds the words). It carries no round: an id
+ * is never used again, so it names one entry for good. The transcript writes nothing for it: it prints where each
+ * answer goes, and the record retires each entry through `usher/kit/calls.py`. Empty when nothing is answered.
+ */
+export function composeCallsLine(calls: CallAnswer[]): string {
+  const parts = calls
+    .filter((c) => c.answer)
+    .map((c) => clause(c.id, c.answer, c.note));
+  return parts.length === 0 ? "" : `calls: ${parts.join("; ")}`;
+}
+
+/** What the composer needs of an open entry (`openCall`, `@/lib/calls/calls`): its kind, its answers, its place. */
+export type OpenCallEntry = {
+  kind: CallKind;
+  answers: readonly string[];
+  at: number;
+};
+
+/**
+ * EVERY CALL ANSWER HELD THAT CAN RIDE A PASTE, in the list's order, and the hold ids they ride under. One rule for
+ * both composers ("Copy so far" and the end of the walk):
+ *   - only an entry still open: once answered and retired its id is gone from the file, so it never rides again;
+ *   - a question's words with no pick are his own answer, and a change or his own answer without words is not yet
+ *     an answer (nothing anyone could act on), so it waits;
+ *   - a kept call sends no words: Keep has no field, so words a Change left behind are not his note on keeping it;
+ *   - and, unless `ignoreSent`, nothing a paste already took (its mark, `callHoldId`).
+ */
+export function heldCallAnswers(
+  held: Record<string, { answer: string; note: string }> | undefined,
+  openOf: (id: string) => OpenCallEntry | undefined,
+  marked: (key: string) => boolean = () => false,
+): { calls: CallAnswer[]; included: string[] } {
+  const rows: { at: number; call: CallAnswer; key: string }[] = [];
+  for (const [id, h] of Object.entries(held ?? {})) {
+    const open = openOf(id);
+    if (!open) continue;
+    const words = (h.note ?? "").trim();
+    const answer = h.answer || (open.kind === "question" && words ? OWN : "");
+    if (!answer || !open.answers.includes(answer)) continue;
+    if (needsWords(answer) && !words) continue;
+    const key = callHoldId(id);
+    if (marked(key)) continue;
+    rows.push({
+      at: open.at,
+      key,
+      call: {
+        id,
+        answer,
+        note: answer === KEEP ? undefined : words || undefined,
+      },
+    });
+  }
+  rows.sort((a, b) => a.at - b.at);
+  return { calls: rows.map((r) => r.call), included: rows.map((r) => r.key) };
+}
+
+/**
  * The whole session as one message, one line per board and round, in the order
  * they were first answered. `composeSoFar` only ever hands this one round per
  * board; grouping on the pair is the guard that two rounds can never share a
@@ -145,6 +213,7 @@ export function composeMessage(
   library: LibraryEntryAnswer[] = [],
   build?: string | null,
   program?: string | null,
+  calls: CallAnswer[] = [],
 ): string {
   const order: { board: string; round: number }[] = [];
   const see = (board: string, round: number) => {
@@ -168,6 +237,9 @@ export function composeMessage(
       return composeBoardLine(board, round, mine, myNotes, myItems);
     }),
     composeLibraryLine(library),
+    // The calls after every board's line and the Library's, and before the
+    // note on the whole program, which always prints last.
+    composeCallsLine(calls),
     composeProgramLine(program),
   ].filter(Boolean);
   // An empty review carries no stamp: a bare "# build ..." reads as a message.
@@ -280,16 +352,24 @@ export function composeSoFar(
     sent?: Record<string, unknown>;
     /** The note on the whole program, which names no board. */
     program?: string;
+    /** The answers at the desk's Calls place, by id. */
+    calls?: Record<string, { answer: string; note: string }>;
   },
   openOf: (board: string) => OpenRound | undefined,
   transcribed: Transcribed = NOTHING_TRANSCRIBED,
   build?: string | null,
-  opts: { ignoreSent?: boolean } = {},
+  opts: {
+    ignoreSent?: boolean;
+    /** An open call or question by its id (`openCall`); none, and no call rides. */
+    openCall?: (id: string) => OpenCallEntry | undefined;
+  } = {},
 ): {
   message: string;
   answers: number;
   items: number;
   notes: number;
+  /** The answers from the Calls place, apart from the boards'. */
+  calls: number;
   /** Exactly the hold ids this message carries, for the Copy button to mark. */
   included: string[];
 } {
@@ -370,11 +450,27 @@ export function composeSoFar(
   const program =
     store.program?.trim() && !marked(PROGRAM_NOTE_HOLD) ? store.program : "";
   if (program) included.push(PROGRAM_NOTE_HOLD);
+  // The calls have no ledger to compare against (the transcript writes nothing
+  // for them): the file closes an answered one when the record retires it, and
+  // the paste's mark stops one riding twice before then.
+  const calls = opts.openCall
+    ? heldCallAnswers(store.calls, opts.openCall, marked)
+    : { calls: [], included: [] };
+  included.push(...calls.included);
   return {
-    message: composeMessage(answers, notes, items, [], build, program),
+    message: composeMessage(
+      answers,
+      notes,
+      items,
+      [],
+      build,
+      program,
+      calls.calls,
+    ),
     answers: answers.length,
     items: items.length,
     notes: notes.length + (program ? 1 : 0),
+    calls: calls.calls.length,
     included,
   };
 }

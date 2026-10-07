@@ -1,5 +1,5 @@
 /**
- * THE CAPTURE TIME THROUGH THE STRIP (Will's X7, 2026-10-05: "keep the capture time, never the place or device"):
+ * THE CAPTURE TIME THROUGH THE STRIP (uploads-and-r2.md: "keep the capture time, never the place or device"):
  * what each walk reads from the ORIGINAL (`captured`), and exactly what the stored file keeps. Every case here fails on
  * the code before the lane: it read no time, and its minimal Exif kept the orientation alone.
  *

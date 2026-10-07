@@ -531,7 +531,7 @@ export async function createMedia(input: {
   width?: number | null;
   height?: number | null;
   reelEligible?: boolean; // the live reel: false only for a clip added to the album
-  /** When the original says it was taken (Will's X7), already held to its bounds by the route; null for none. */
+  /** When the original says it was taken (uploads-and-r2.md), already held to its bounds by the route; else null. */
   capturedAt?: string | null;
 }): Promise<CreateMediaResult> {
   // Server-mediated (H1): create_media is service-role-only (revoked from anon/authenticated), so it can't

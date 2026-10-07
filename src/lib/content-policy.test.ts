@@ -274,7 +274,7 @@ describe("content policy", () => {
     //
     // ("Nothing but their phones" was a second pattern until 2026-10-07: it read a line that sells
     // the feeling truthfully as a literal inventory, since the inbox a guest confirms with is on her
-    // phone, against Will's marketing principle of 2026-10-04; the calls lab's X8, settled.)
+    // phone, against Will's marketing principle of 2026-10-04; marketing-content.md's "No app required" line.)
     const BANNED = [/\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i];
     const surfaces = [
       ...new Set([

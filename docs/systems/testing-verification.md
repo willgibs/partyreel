@@ -151,9 +151,9 @@ function of elapsed time can be frozen at a chosen moment and shot.
 - **Downloads in Will's Chrome land in** `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/`, not
   `~/Downloads`. For the export Worker the network panel shows phantom 503s while the stream succeeds: `wrangler tail
   partyreel-export` is the truth (a bad signature is a clean "Forbidden", never a 503).
-- ★ **The desk's answers live in Will's Chrome:** `/design/lab` keeps his held picks, notes, verdicts and desk prefs in
-  the alias origin's localStorage (`review-store.ts`, `lab-prefs.ts`), so an agent walks the desk only in a headless
-  Chrome of its own; a pick, a note or a pref set in his Chrome reads as his.
+- ★ **The desk's answers live in Will's Chrome:** `/design/lab` keeps his held picks, notes, verdicts, call answers and
+  desk prefs in the alias origin's localStorage (`review-store.ts`, `lab-prefs.ts`), so an agent walks the desk only in
+  a headless Chrome of its own; a pick, a note or a pref set in his Chrome reads as his.
 - **The Preview MCP's `preview_start` runs the dev server in the shared git root,** the Orchestrator's checkout and
   branch, never your worktree (it resolves the project by git common dir; `preview_logs`' first line prints the cwd).
   From a worktree, run `pnpm dev -p <your port>` through Bash and drive it with `navigate`, `read_page` and

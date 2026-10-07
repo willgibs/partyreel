@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { answersFor } from "@/lib/calls/answers";
+
 import {
   composeSoFar,
+  type OpenCallEntry,
   type OpenRound,
   type Transcribed,
 } from "./review-message";
-import { holdId, itemHoldId, PROGRAM_NOTE_HOLD } from "./step-id";
+import { callHoldId, holdId, itemHoldId, PROGRAM_NOTE_HOLD } from "./step-id";
 
 /**
  * "COPY SO FAR" (Will, 2026-09-16: "it's really annoying that there's not an
@@ -429,5 +432,101 @@ describe("the note for the whole program, so far", () => {
     expect(
       composeSoFar(store, roundOf, nothing, null, { ignoreSent: true }).message,
     ).toBe('note: "a note about every board"');
+  });
+});
+
+/**
+ * THE CALLS RIDE THE SAME PASTE (calls-desk, 2026-10-07: one message a sitting). His answers at the desk's Calls place
+ * join "Copy so far" as one `calls:` line, by one rule: only an entry still open (an answered one leaves the file when
+ * the record retires it, and never rides again), only an answer its kind takes, a change and his own answer only with
+ * their words, a keep without words, nothing a paste already took, and in the list's own order.
+ */
+describe("composeSoFar's calls", () => {
+  const LIST: Record<string, OpenCallEntry> = {
+    X2: {
+      kind: "question",
+      answers: answersFor({ kind: "question", alternatives: ["a", "b"] }),
+      at: 0,
+    },
+    X12: { kind: "question", answers: answersFor({ kind: "question" }), at: 1 },
+    L2: { kind: "call", answers: answersFor({ kind: "call" }), at: 2 },
+    R1: { kind: "call", answers: answersFor({ kind: "call" }), at: 3 },
+  };
+  const openCall = (id: string) => LIST[id];
+  const none = { answers: {}, items: {}, notes: {} };
+  const noRound = () => undefined;
+
+  it("composes one calls line in the list's order, his words with the answers that take them", () => {
+    const out = composeSoFar(
+      {
+        ...none,
+        calls: {
+          R1: { answer: "change", note: "a week of grace" },
+          L2: { answer: "keep", note: "words a Change left behind" },
+          X12: { answer: "", note: "a guestbook later" },
+          X2: { answer: "alt2", note: "" },
+        },
+      },
+      noRound,
+      undefined,
+      "abc1234",
+      { openCall },
+    );
+    expect(out.calls).toBe(4);
+    expect(out.message.split("\n")).toEqual([
+      "# build abc1234",
+      'calls: X2=alt2; X12=own "a guestbook later"; L2=keep; R1=change "a week of grace"',
+    ]);
+    expect(out.included).toEqual(["X2", "X12", "L2", "R1"].map(callHoldId));
+  });
+
+  it("holds back what is not an answer yet, and what is not open any more", () => {
+    const out = composeSoFar(
+      {
+        ...none,
+        calls: {
+          // A change with no words, and a call's words with no answer.
+          R1: { answer: "change", note: "  " },
+          L2: { answer: "", note: "on second thoughts" },
+          // A pick the entry does not offer, and an entry the record retired.
+          X2: { answer: "alt3", note: "" },
+          X7: { answer: "recommended", note: "" },
+        },
+      },
+      noRound,
+      undefined,
+      null,
+      { openCall },
+    );
+    expect(out.calls).toBe(0);
+    expect(out.message).toBe("");
+  });
+
+  it("leaves out what a paste already took, until 'Copy everything' asks for it", () => {
+    const store = {
+      ...none,
+      calls: { L2: { answer: "keep", note: "" } },
+      sent: {
+        [callHoldId("L2")]: { build: "abc1234", at: "2026-10-07T12:00:00Z" },
+      },
+    };
+    expect(
+      composeSoFar(store, noRound, undefined, null, { openCall }).calls,
+    ).toBe(0);
+    expect(
+      composeSoFar(store, noRound, undefined, null, {
+        openCall,
+        ignoreSent: true,
+      }).message,
+    ).toBe("calls: L2=keep");
+  });
+
+  it("sends no call where nobody says which are open", () => {
+    expect(
+      composeSoFar(
+        { ...none, calls: { L2: { answer: "keep", note: "" } } },
+        noRound,
+      ).message,
+    ).toBe("");
   });
 });

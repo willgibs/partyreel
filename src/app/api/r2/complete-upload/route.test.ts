@@ -744,7 +744,7 @@ describe("a complete sent again for an upload already recorded", () => {
   });
 });
 
-describe("★ the capture time a guest's complete claims (capture-time, Will's X7)", () => {
+describe("★ the capture time a guest's complete claims (capture-time, uploads-and-r2.md)", () => {
   // The server's clock, fixed: the bounds are now plus a day and 1990 (`capture-time.ts`, their one home).
   beforeEach(() => {
     vi.useFakeTimers({

@@ -23,9 +23,10 @@
  * whose state changes under a hidden tab (the doorbell leaving its channel)
  * restarts none.
  *
- * ★ POLLS THAT REST (compute-levers; Will's call X4, built as recommended and
- * his to overrule). A lit album's net was 13% of a wedding's calls, because a
- * page left lit kept asking whether anyone was looking or not:
+ * ★ POLLS THAT REST (compute-levers; guest-flow.md, "The conditional poll",
+ * built as recommended and his to change). A lit album's net was 13% of a
+ * wedding's calls, because a page left lit kept asking whether anyone was
+ * looking or not:
  *   - the net under a live doorbell slows to every five minutes after ten lit
  *     minutes without a touch, and stops after two hours without one. The
  *     doorbell still rings at once; the net only catches a ring that was lost.

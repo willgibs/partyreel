@@ -54,7 +54,10 @@ export type AlbumChange = {
   createdAt: number | null;
   /** HOST SCOPE ONLY (the quick-add key); always null in the guest album's scope. */
   guestId: string | null;
-  /** `captured_at` in microseconds (Will's X7); null or absent where the upload kept none, and from a reader before it. */
+  /**
+   * `captured_at` in microseconds (uploads-and-r2.md); null or absent where the upload kept none, and from a reader
+   * before it.
+   */
   capturedAt?: number | null;
 };
 

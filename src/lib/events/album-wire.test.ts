@@ -151,7 +151,7 @@ describe("a manifest entry", () => {
   });
 });
 
-describe("★ a manifest entry's capture time (capture-time, Will's X7)", () => {
+describe("★ a manifest entry's capture time (capture-time, uploads-and-r2.md)", () => {
   const base = {
     id: "0f000000-0000-4000-8000-000000000002",
     type: "photo" as const,
