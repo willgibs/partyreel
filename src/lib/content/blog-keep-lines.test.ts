@@ -12,7 +12,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 /**
  * THE BLOG'S KEEP LINES SAY THE FREE PLAN'S ONE EXCEPTION (crumbs-36, from crumbs-34; the help guide's rule 7 and
  * `docs/systems/marketing-content.md`'s ★ on "stays up"). Events never expire, but on the Free plan an event
- * nobody touches for about six months is warned about by email, then moved to Deleted, where it can be restored
+ * nobody touches for about N months is warned about by email, then moved to Deleted, where it can be restored
  * for thirty days. The home FAQ and the event pages say both halves in one breath (`faq-data.test.ts`,
  * `events.test.ts`); two posts still said the rule alone: the reunion's "no expiry clock on it and no countdown to
  * a deletion", and the trip's "an event has no end date" and "Nothing expires underneath it". A Free host who

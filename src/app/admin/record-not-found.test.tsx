@@ -53,6 +53,13 @@ vi.mock("@/lib/db/queries/pass-credits", () => ({
 vi.mock("@/app/admin/accounts/[id]/credit-retry-control", () => ({
   CreditRetryControl: () => null,
 }));
+// (crumbs-92) The account page's operator credits: their read and their control, each a `server-only` chain.
+vi.mock("@/lib/db/queries/uploads-credits", () => ({
+  readAccountUploadsCredits: later,
+}));
+vi.mock("@/app/admin/accounts/[id]/uploads-credit-control", () => ({
+  UploadsCreditControl: () => null,
+}));
 vi.mock("@/lib/admin/pending", () => ({ serverNow: () => Date.now() }));
 
 const album = await import("./albums/[eventId]/page");

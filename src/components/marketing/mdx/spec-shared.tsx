@@ -248,7 +248,7 @@ export const MaxEvents = ({
   );
 };
 export const UploadCapFloor = () => <>{formatBytes(MIN_UPLOAD_CAP_BYTES)}</>;
-/** "about 6 months": the free-tier inactivity window, from the day count. */
+/** "about 24 months": the free-tier inactivity window, from the day count (`INACTIVE_MONTHS`, inactivity.ts). */
 export const InactivityMonths = ({ capitalized }: PhraseCase) =>
   phrase(`about ${INACTIVE_MONTHS} months`, capitalized);
 /** "about a year": the Event Pass term. */

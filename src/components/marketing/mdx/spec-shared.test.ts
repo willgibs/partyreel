@@ -5,12 +5,13 @@ import { describe, expect, it } from "vitest";
 
 import { mdxComponents } from "@/components/marketing/mdx-components";
 import { getAllArticles } from "@/lib/content/help";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 
 import { EventPassTerm, InactivityMonths, MaxEvents } from "./spec-shared";
 
 /**
  * A PHRASE THAT OPENS A SENTENCE WEARS ITS CAPITAL (crumbs-14). The phrase inlines (`<MaxEvents />`
- * "one event", `<EventPassTerm />` "about a year", `<InactivityMonths />` "about 6 months") render
+ * "one event", `<EventPassTerm />` "about a year", `<InactivityMonths />` "about 24 months") render
  * lowercase for the middle of a sentence, and only the article knows where one stands, so the
  * article says `capitalized` where it opens a bullet, a sentence or a table cell (help's cells are
  * sentence case: "No end date", "One per pass"). The free plan's first bullet read "one event at a
@@ -23,12 +24,13 @@ describe("MaxEvents", () => {
     expect(renderToStaticMarkup(EventPassTerm({ capitalized: true }))).toBe(
       "About a year",
     );
-    expect(renderToStaticMarkup(InactivityMonths({}))).toMatch(
-      /^about \d+ months$/,
+    // The window's own months (the sweep's), not a shape: help says exactly what the sweep enforces.
+    expect(renderToStaticMarkup(InactivityMonths({}))).toBe(
+      `about ${INACTIVE_MONTHS} months`,
     );
-    expect(
-      renderToStaticMarkup(InactivityMonths({ capitalized: true })),
-    ).toMatch(/^About \d+ months$/);
+    expect(renderToStaticMarkup(InactivityMonths({ capitalized: true }))).toBe(
+      `About ${INACTIVE_MONTHS} months`,
+    );
     expect(renderToStaticMarkup(MaxEvents({ tier: "free" }))).toBe("one event");
     expect(
       renderToStaticMarkup(MaxEvents({ tier: "free", capitalized: true })),

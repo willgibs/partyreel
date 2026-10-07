@@ -12,6 +12,7 @@ import { Step } from "@/components/lab/step";
 import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import { answerWords } from "../calls/answer-words";
+import { ClearHeld, tallyHeld } from "./copy-so-far";
 import {
   alreadySent,
   composeMessage,
@@ -22,7 +23,6 @@ import {
   type Transcribed,
 } from "./review-message";
 import {
-  EMPTY_REVIEW,
   type ReviewStore,
   setProgramNote,
   setReviewStore,
@@ -225,6 +225,18 @@ export function ReviewSession({
   const answered = answers.length + items.length + calls.length;
   // A note on the whole program is a message on its own.
   const said = answered > 0 || program.trim() !== "";
+  // ★ WHAT "CLEAR THIS SESSION" EMPTIES, said as the desk's Clear says it (`ClearHeld`): the whole store, counted the
+  // way the Copy buttons count it. A dry run's sample answers are the store's too (the sample board is no board of
+  // the registry, so the desk's count cannot see them) and the Clear takes them with the rest, so they join the sum.
+  const held = tallyHeld(store, transcribed, build);
+  const tally = sample
+    ? {
+        answers: held.answers + answers.length,
+        verdicts: held.verdicts + items.length,
+        notes: held.notes + notes.length,
+        unsent: held.unsent + answers.length + items.length + notes.length,
+      }
+    : held;
 
   if (steps.length === 0) return null;
 
@@ -497,16 +509,12 @@ export function ReviewSession({
               Back to the desk
             </LabLink>
             {said && (
-              <button
-                type="button"
-                onClick={() => {
-                  update(EMPTY_REVIEW);
-                  goTo(0);
-                }}
-                className="ml-auto text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Clear this session
-              </button>
+              <ClearHeld
+                tally={tally}
+                label="Clear this session"
+                onCleared={() => goTo(0)}
+                className="ml-auto"
+              />
             )}
           </div>
         </section>

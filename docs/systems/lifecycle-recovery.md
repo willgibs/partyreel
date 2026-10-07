@@ -169,10 +169,14 @@ PostgREST fake.
   `resolveNotificationPrefs` before any send; a failed read stops the sweep rather than guess); its button opens
   `/account/renew`, which posts the Plan card's own renewal to the checkout route. `expired_passes` recomputes every
   holder from the ledger ([billing-caps.md](billing-caps.md)).
-- **Free-tier inactivity** (Pro and Event Pass are exempt): an event idle for six months is warned about two weeks out,
-  then soft-deleted into the recoverable window. The clock is the newest of `profiles.last_active_at`, the event's own
-  dates and its newest media, so a used or still-collecting event never trips it; `touchHostActive` bumps
-  `last_active_at` from the `(app)` layout (throttled), so any host use counts.
+- **Free-tier inactivity** (Pro and Event Pass are exempt): an event idle for two years (`INACTIVE_DAYS`) is warned
+  about two weeks out (`WARN_BEFORE_DAYS`), then soft-deleted into the recoverable window. The clock is the newest of
+  `profiles.last_active_at`, the event's own dates and its newest media, so a used or still-collecting event never
+  trips it; `touchHostActive` bumps `last_active_at` from the `(app)` layout (throttled), so any host use counts.
+  ★ `lib/lifecycle/inactivity.ts` is the window's one home and no SQL mirrors it (the sweep passes its cutoff to the
+  query). Help, marketing, the warning mail and the operator's jobs line derive `INACTIVE_MONTHS` ("about 24 months")
+  and `inactivity.test.ts` refuses a line that types a figure beside the idle words; the Terms and the Privacy Policy
+  state no figure at all, window or warning lead (PRD's legal-text principle), and the same test holds it.
 - **A system removal's email** (over-cap reduced, inactivity removed) names the concrete 30-day window and points to
   the in-app restore, never to a reply (host mail comes from a noreply sender). A host's own delete is never emailed;
   the bell covers it. The grace mails say the deadline's order: what is in Deleted first, then her largest files.

@@ -8,15 +8,23 @@ import {
   honorPassCredit,
 } from "@/app/api/stripe/webhook/pass-credit";
 import { requireAdminAction } from "@/lib/auth/admin-context";
+import { MEGABYTE } from "@/lib/constants/tiers";
 import {
   cancelAccountDeletion,
   requestAccountDeletion,
 } from "@/lib/db/mutations/account";
+import { grantUploadsCredit } from "@/lib/db/mutations/uploads-credit";
 import { getAccountDetail } from "@/lib/db/queries/accounts";
 import { readPassCredit } from "@/lib/db/queries/pass-credits";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { getStripe } from "@/lib/stripe/client";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
+
+import {
+  creditRefusalWords,
+  UPLOADS_CREDIT_MAX_MB,
+  UPLOADS_CREDIT_REASON_MAX,
+} from "./uploads-credit";
 
 /**
  * The operator trigger behind /admin/accounts/[id]. Same request path as the
@@ -245,6 +253,102 @@ export async function retryPassCreditAsOperatorAction(
       ok: false,
       code: "unknown",
       message: "The retry failed. Check Sentry before retrying.",
+    };
+  }
+}
+
+/**
+ * ★ THE OPERATOR'S AUDITED UPLOADS CREDIT (crumbs-92, Will's yes to the calls lab's X6): extra room in a host's current
+ * uploads window, for the false positive PRICING.md names as the outcome worth engineering against, a paying host held
+ * at her line. `grant_uploads_credit` does the work and refuses what it cannot honestly do, in words (a Pro with no cap
+ * on record, a lapsed pass, an amount past the bound, a reason left blank); nothing here edits the ledger the spend
+ * watch reads (admin-observability.md, Accounts).
+ *
+ * ★ requireAdminAction() FIRST (admin + AAL2), like every write beside it, and the database checks the operator again
+ * (the function raises 42501 for an id that is no admin profile's). The reason is required, trimmed, and bounded; the
+ * amount is whole megabytes within a sanity ceiling, and the real bound (one more of her plan's allowance) is the SQL's.
+ *
+ * ★ IDEMPOTENT PER PRESS: `requestId` is minted as the sheet opens and rides every attempt of that sheet, so a double
+ * press or a retry after a dropped answer is one credit (the function answers the credit it already made).
+ *
+ * ★ AUDITED IN THE DATABASE (`admin_actions`, in the credit's own transaction: who, whom, why, how much, until when) and
+ * by one Sentry line here, as the acts beside it are. A refusal says that nothing was credited; a failure whose outcome
+ * is unknown says to press again, which is safe (the same key).
+ */
+export async function creditUploadsAsOperatorAction(
+  userId: string,
+  megabytes: number,
+  reason: string,
+  requestId: string,
+): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+  // An id that is not one names no account and is never read (the page's own rule).
+  if (!isUuidShape(userId) || !isUuidShape(requestId)) {
+    return { ok: false, code: "unknown", message: "No such account." };
+  }
+  if (
+    !Number.isSafeInteger(megabytes) ||
+    megabytes < 1 ||
+    megabytes > UPLOADS_CREDIT_MAX_MB
+  ) {
+    return {
+      ok: false,
+      code: "unknown",
+      message:
+        "Enter a whole number of megabytes from 1 up. Nothing was credited.",
+    };
+  }
+  const why = typeof reason === "string" ? reason.trim() : "";
+  if (why === "" || why.length > UPLOADS_CREDIT_REASON_MAX) {
+    return {
+      ok: false,
+      code: "unknown",
+      message:
+        why === ""
+          ? "A credit needs a reason. Nothing was credited."
+          : `Keep the reason to ${UPLOADS_CREDIT_REASON_MAX} characters. Nothing was credited.`,
+    };
+  }
+
+  try {
+    const result = await grantUploadsCredit({
+      operatorId: auth.ctx.userId,
+      hostId: userId,
+      bytes: megabytes * MEGABYTE,
+      reason: why,
+      requestId,
+    });
+    if (!result.ok) {
+      return {
+        ok: false,
+        code: "unknown",
+        message: `${creditRefusalWords(result.why, result)} Nothing was credited.`,
+      };
+    }
+    captureWarning("admin", "operator_credited_uploads", {
+      user_id: userId,
+      operator_id: auth.ctx.userId,
+      credit_id: result.creditId,
+      bytes: result.bytes,
+      window_ends_at: result.windowEndsAt,
+      replayed: result.replayed,
+    });
+    revalidatePath("/admin/accounts/[id]", "page");
+    revalidatePath("/admin/accounts");
+    return { ok: true };
+  } catch (error) {
+    captureError("admin", error, {
+      action: "operator_credit_uploads",
+      user_id: userId,
+    });
+    return {
+      ok: false,
+      code: "unknown",
+      // Said without claiming the outcome: a lost answer may hide a credit that landed. The sheet stays open on its key,
+      // so a repeat press answers that credit and never makes a second.
+      message:
+        "The credit did not go through. Press Credit uploads again: a repeat press never credits twice. If it keeps failing, check Sentry.",
     };
   }
 }

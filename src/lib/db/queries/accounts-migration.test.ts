@@ -45,8 +45,16 @@ describe("1. parity by construction", () => {
     expect(liveFunction("meter_upload").code).toContain(
       "public.uploads_refused(v_host, v_tier, v_storage_cap, p_bytes)",
     );
+    // ★ Reshaped by crumbs-92 (20261008060000; scar kept: the figure and the refusal are one count, so no row can
+    // disagree with the refusal it warns of): the figure `uploads_used` is the gross count less the operator's credit,
+    // and the refusal reads those same two parts (`uploads_gross`, `uploads_credit`), not the clamped figure, which
+    // past a credit larger than the count would refuse a file the credit makes room for. The expired reason: the
+    // refusal asked `uploads_used` itself.
+    expect(liveFunction("uploads_used").code).toContain(
+      "greatest(public.uploads_gross(p_host_id, p_tier) - public.uploads_credit(p_host_id), 0)",
+    );
     expect(liveFunction("uploads_refused").code).toContain(
-      "public.uploads_used(p_host_id, p_tier) + p_bytes > a.allowance",
+      "public.uploads_gross(p_host_id, p_tier) + p_bytes > a.allowance + public.uploads_credit(p_host_id)",
     );
   });
 });
