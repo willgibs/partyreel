@@ -1,6 +1,6 @@
 ---
 track: presence-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "3569b33b"            # the launch-prep SHA the branch was cut from
 board: presence
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -40,25 +40,87 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Who is here now (the brief's question, with its Realtime cost).** Should a face ever mean "has the album open right
+  now"? It would be Supabase Realtime Presence on the album's own broadcast channel (`gallery:<qr_token>`, the
+  doorbell's): each visible tab tracks itself, and every join and leave reaches every open tab, billed as one message
+  plus one a listener ($2.50 a million past Pro's 5M a cycle, the spend cap off; the 500 peak connections are the
+  doorbell's own, `docs/PRICING.md`). A hidden tab already leaves its channel (album-calm), so each tab switch is a
+  leave and a join: a 100-guest wedding with about 40 tabs open and 20 switches each is about 0.2M messages (about
+  $0.50), 300 guests with about 150 open about 1.8M (about $4.50); it grows with guests times open tabs. It also
+  publishes something new, who is watching, which no guest rule consents to (a guest is listed only by an upload).
+  Recommended: no; the ring marks who added last, read from the album's own photographs at no new read (the board's
+  carried call `here-now`); a host's opt-in after launch if anyone asks. Built that way: no presence anywhere.
+- **Scope: five asks, the colour first.** colour (asked first: every other frame wears it), album, hover (staged after
+  album), hub, atmosphere. How the newest is ringed is carried, not asked (taken: lands; overrule: the white ring held
+  a quarter hour, as he first loved it): the creative director's pass found Aperture's "still until something happens"
+  already decides it, and a held ring and a landing differ in time, which stills cannot show. The marketing site's row
+  waits for the marketing round (carried `marketing`). Recommended and built.
+- **The atmosphere's home.** The creative director advised moving `atmosphere` to signature r2 (it is light, not faces,
+  and a party's seed means something only if signature's `create` lights her code in it). Kept here, last, because the
+  brief asks for the hashvatar as the light of screens without media, and Will answers signature (desk place 8) just
+  before this board (10). Recommended: keep it here; if he picks anything but `dark` at signature's `create`, the
+  house is the honest answer. Built that way.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: an exploration ships no production byte, and nothing the board met contradicted a system doc.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Before launch · Marketing and content: the guest row on the marketing site, from fixtures only (ASSETS row 41's
+  portraits where a face needs a photograph), drawn in the marketing round (presence r1's carried `marketing`).
+- Upcoming · The lab and the kit: at 375, once an option is picked, a step's dock wraps "Not clear to me" onto a row of
+  its own under the note field (presence r1's creative director, seen on every board).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Commits on `lp/presence-r1`, pushed: `ea3d5515d` (the first draw), `8b3713c42` (the ring's sheet apart, so a helper
+  per question could draw in parallel), `cfc3eaa60` (each question drawn to its best by a helper: album and pointer,
+  ring, colour, hub and seed), `c98b5d178` (the creative director's refinement); this manifest's commit is the head.
+  No sync: launch-prep moved (guests-room r1, create-wizard r5, crumbs-87, records) but none of this lane's reads
+  changed and the lane touches one folder; the `GuestList` the `foot` option draws gained an optional `blockedIds`,
+  unused here.
+- Gates on `c98b5d178`, each on its own exit code (logs in `../partyreel-wt/_scratch/presence-r1/`): `pnpm typecheck` 0
+  (`typecheck.log`), `pnpm lint` 0 (`lint.log`), the board's own tests `registry.test.ts` 0 (48 passed,
+  `registry.log`), `pnpm test:rules` 0 (85 files, 1475 tests, `test-rules.log`), `pnpm lab:smoke --base
+  http://localhost:3134` 0 (7 checks, 0 failing; the board 909 words of 1200, `lab-smoke.log`), `pnpm lab:demo --board
+  presence --base http://localhost:3134` 0 (5 steps, 0 failing, every option drawn at 1440 by 900 and 375 by 812,
+  `lab-demo.log`; hover's comb and settled draw one still picture, by design: they differ in motion, read moving). A
+  board's light gate (no full test run, no build).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/presence/` (16 files)
+  + this file.
+- colour (first): how a face with no photograph is coloured, everywhere (one colour a person): today's wheel, one warm
+  arc (wine through coral to pale apricot, never olive, a quarter less chroma), or lit (recommended: her hue as light
+  falling across a disc of the room, deeper and quieter than paint, the same on a photograph and on paper); drawn as the
+  row closer, on the cover, in the bar on paper, all 38 as the list opens them, and Priya's face at 80px.
+- album: where her party's faces stand on a guest's album: today's list at the album's end (production's `GuestList`),
+  under the cover's byline (recommended: the newest faces, the newest ringed, "38 guests"; also drawn on a bright
+  photograph and at the door, where the count stands alone, the privacy frame), or beside the album's count in its bar.
+- hover (after album): how the row answers a pointer at a desk: still (today), transitions.dev's comb as published
+  (recommended: the face lifts to the front, its neighbours less, springing back past rest, and "38 guests" turns to its
+  name), or the comb settled (no overshoot, the same name); three loupes at twice the size, one playing a pointer's walk.
+- hub: where Maya's guests' faces stand on her hub: today's people glyph, the cover's line (recommended: her newest faces
+  at the line's own height, then the count, beside her strip), or the Guests door's glyph (three faces, the waiting count
+  on their shoulder); drawn closer (the line, the doors at rest and folded) and whole.
+- atmosphere: what lights a new party's cover before its first photograph: the house ember (today), the party's seed as
+  a lamp (recommended: its light pooled behind the name on a guest's album; on the hub the room dark and the Seam alone
+  in the seed's light), or the seed's colour edge to edge; the seed follows the colour answer.
+- For the wiring lane (drawn, not built): the row's faces, newest first, can come from the album's own newest
+  photographs' credits (`AlbumLinkTuple`'s `who` faces already ride the wire: a typed name's row colour, an account's
+  face, a blocked person's plain disc, the host's flag), so the row costs no new read and keeps the guest rules by
+  construction; the count stays the one count (`getEventGuests`). `AvatarGroup` cannot carry a ring outside a face
+  (the face clips): the row's slot (`row.tsx`) is the shape a wiring would give it.
+- Assets requested from Will: none new (ASSETS row 41's twenty guest portraits, requested, would replace a few of this
+  board's seeded faces by name).
+- Board ideas: presence r2, the row where this round did not reach (a photograph's credit in the viewer, the reel's
+  closing credits, the host's dashboard stage on the party's day) · a person's seed as the light of her own page before
+  her first photograph, after account-moments r2's invitation.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule (the board's carried calls): `newest` (lands, over the held white ring), `order` (the newest
+  first, six at a phone and eight at a desk), `here-now` (added last, never who is watching), `empty` (nothing until the
+  first face; five empty seats on her hub as the overrule), `marketing` (waits for its round, fixtures only); and the
+  lane's: `atmosphere` kept here rather than at signature r2, and hover's recommendation the comb as published (the
+  creative director's), the settled comb its overrule.
+- Look at first: the colour step's crowd frame (`?session=presence.colour`, lit beside the wheel at all 38), then the
+  album's cover option at a phone (`?session=presence.album`, with the door's count-alone frame), then the hover's
+  playing loupe (`?session=presence.hover&album=cover`).
