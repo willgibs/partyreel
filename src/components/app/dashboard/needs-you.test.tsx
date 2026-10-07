@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 
 import { EventCard } from "@/components/app/event-card";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
-import { Mark, StateDot } from "@/components/app/dashboard/marks";
+import { LiveDot, Mark, StateDot } from "@/components/app/dashboard/marks";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 
 const NEEDS_YOU = "bg-(--needs-you)";
@@ -44,6 +44,34 @@ describe("the waiting dot", () => {
     const mark = screen.getByText("2 at the door").closest("[data-mark]");
     expect(markup(mark)).toContain(NEEDS_YOU);
     expect(markup(mark)).not.toContain("warning");
+  });
+});
+
+/**
+ * ★ LIVE SHARES THE ONE RED (brand-marks r1's status set): a fault, a count that needs her and live are the one red,
+ * and live alone breathes. The dashboard's live dot was the success green with a ping, which read as done.
+ */
+describe("the live dot", () => {
+  it("is the recording red, one point that breathes, never Ready's green", () => {
+    const { container } = render(<LiveDot />);
+    const dot = container.querySelector("[data-live-dot]");
+    expect(dot?.className).toContain("bg-(--signal)");
+    expect(dot?.className).toContain("motion-safe:animate-live-signal");
+    expect(dot?.className).not.toContain("success");
+    expect(dot?.className).not.toContain("ping");
+    // One point: no ring of light rung out beside it.
+    expect(dot?.children).toHaveLength(0);
+  });
+
+  it("is the one a live mark carries", () => {
+    render(
+      <Mark tone="live" on="page">
+        Live
+      </Mark>,
+    );
+    const mark = screen.getByText("Live").closest("[data-mark]");
+    expect(mark?.querySelector("[data-live-dot]")).not.toBeNull();
+    expect(markup(mark)).not.toContain("success");
   });
 });
 

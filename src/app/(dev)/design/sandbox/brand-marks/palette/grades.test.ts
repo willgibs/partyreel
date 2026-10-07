@@ -40,10 +40,10 @@ const PRODUCTION = [
 ];
 
 describe("the plates", () => {
-  it("draws the lifted plate as production's own grade, value for value", () => {
+  it("draws the room plate, his pick, as production's own grade, value for value", () => {
     const differ: string[] = [];
     let checked = 0;
-    for (const b of blocks(gradePaste(GRADES.lifted))) {
+    for (const b of blocks(gradePaste(GRADES.room))) {
       const theirs = PRODUCTION.filter((p) => p.sel === b.sel);
       for (const [token, value] of b.decls) {
         // The ember's stops and the relit lamps are the one thing it adds.

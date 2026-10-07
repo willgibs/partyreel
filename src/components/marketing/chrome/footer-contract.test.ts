@@ -42,11 +42,12 @@ describe("the ink-slab footer contract", () => {
     // block.
     //
     // ★ THE NAMES, NOT THE VALUES. This used to pin each line as
-    // `var(--gallery-*)`, which pinned a LOOK: the palette's round eight split
-    // the slab (0.165) from the media well (0.065), so the block writes its own
-    // values and deriving from --gallery would drag the leaf into the well. What
-    // the contract is actually for is that every token the leaf needs is
-    // re-declared on the class, whatever it is set to.
+    // `var(--gallery-*)`, which pinned a LOOK: the slab is its own register,
+    // the room's own black (0.085, brand-marks r1's `plate=room`), a step above
+    // the media well (0.065), so the block writes its own values and deriving
+    // from --gallery would drag the leaf into the well. What the contract is
+    // actually for is that every token the leaf needs is re-declared on the
+    // class, whatever it is set to.
     expect(footerCode).toMatch(/className=\{cn\(\s*"surface-ink"/);
     expect(footerCode).not.toContain("[--background:var(--gallery)]");
     // bg-gallery on the slab would now paint the WELL, two registers deeper.
