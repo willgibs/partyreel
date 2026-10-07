@@ -159,6 +159,8 @@ design's ten. Native mobile apps are a non-goal: guests use the mobile web, whic
   disclosure is a sentence in the Terms.
 - **Help tracks shipped reality; marketing presents the product as complete** (punchy, never pedantic:
   `systems/marketing-content.md`); the Terms and the Privacy Policy are rewritten once, right before launch, and no
-  milestone waits on them.
+  milestone waits on them. They, help and the product's own words promise what the law and trust require and what is
+  true today, never a number or a "never" that would box out a later choice (a removal window, a feature not built
+  yet), so no decision after launch breaks a promise made before it.
 - **A one-way door waits for him:** what defines the product's core output or identity is asked first (build now, or
   research first); well-bounded infrastructure and features are built without asking.
