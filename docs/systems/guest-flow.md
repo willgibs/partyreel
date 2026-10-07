@@ -184,8 +184,9 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     photograph lands in (the album's head, or its end in an album in order), and while that slot is out of her sight a
     stand-in carries its thumb, its count, its bar and its x in view above the shutter's band
     ([`upload/sending-stand-in.tsx`](../../src/components/guest/upload/sending-stand-in.tsx), `useStandIn`); either x
-    stops the file in the air, one at a time (E6), and one standing by for the line (it leaves at once). It asks first on the product's toast ("Stop this upload?", Keep going
-    first), then the queue's `stop` aborts that file alone (each file of a burst carries its own signal: its siblings
+    stops the file in the air, one at a time (E6), and one standing by for the line (it leaves at once). It asks first
+    on the product's toast ("Stop this upload?", Keep going first), then the queue's `stop` aborts that file alone (each
+    file of a burst carries its own signal: its siblings
     go on and are recorded together) and the toast says "Upload cancelled." with Try again, which puts the same file
     back. A stopped file is no failure: it leaves the queue (the failure sheet, the shutter's ring and her uploads never
     count it) and nothing is recorded or metered. The x is drawn only while the file can still be stopped (going up, or
@@ -247,16 +248,16 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     refused, or its bytes are up: its complete is asked then (at the burst's end, or at once as the page hides) and sent
     `keepalive`, so it outlives a closed page, and a copy carried past it would go up again whole and land twice, so a
     file whose complete then lost its answer waits in its page alone (asking that complete again), never carried.
-    Nothing is copied with no one to send as (a first pick on its join, a door that holds her: the
-    held door keeps its own choice, `door/wait-picks-store.ts`). Once, as a page opens with an identity, it takes back
-    what an earlier page kept and never sent (a page closed in a dead zone) and the queue sends it by itself under the
-    same ids (`restore`), the send's toast saying it landed; a record that is not this identity's, past
-    `UNSENT_KEEP_DAYS` (14), or no whole record, is put down unread, and a kept file the server then refuses as somebody else's ticket is put
-    down, never re-sent on a fresh one. ★ One page sends each: a page holds a Web Lock of its own while it keeps a copy,
-    and an opening page takes, under the album's lock, only records no live page holds (an iOS page frozen in the
-    background still holds its lock; a discarded one does not); where the browser has no Web Locks every record is
-    taken. Safari's 7-day cap on script-written storage and a private tab's close bound what it keeps, which is why no
-    word promises more than "kept on this phone".
+    Nothing is copied with no one to send as (a first pick on its join, a door that holds her: the held door keeps its
+    own choice, `door/wait-picks-store.ts`). Once, as a page opens with an identity, it takes back what an earlier page
+    kept and never sent (a page closed in a dead zone) and the queue sends it by itself under the same ids (`restore`),
+    the send's toast saying it landed; a record that is not this identity's, past `UNSENT_KEEP_DAYS` (14), or no whole
+    record, is put down unread, and a kept file the server then refuses as somebody else's ticket is put down, never
+    re-sent on a fresh one. ★ One page sends each: a page holds a Web Lock of its own while it keeps a copy, and an
+    opening page takes, under the album's lock, only records no live page holds (an iOS page frozen in the background
+    still holds its lock; a discarded one does not); where the browser has no Web Locks every record is taken. Safari's
+    7-day cap on script-written storage and a private tab's close bound what it keeps, which is why no word promises
+    more than "kept on this phone".
   - **The send's toast** ([`upload/send-toast.ts`](../../src/components/guest/upload/send-toast.ts), guest-moments
     r1's `own=glow` note): once, as a run's last file lands (never at its start: the stack shows a send while it
     runs, and a send standing by for the line is still running, so it is one toast once the line's return has landed
@@ -265,7 +266,8 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     and the album brought into view (`live-gallery-lens.ts`), or her uploads where they wait. Heard at the page, whose
     queue outlives the slot, so a run's own files are counted (a Retry's included, an earlier run's never). A run that
     ends with a file of its own refused, or under a failure sheet still standing (`failureSheetStands`: a row's Retry,
-    a file that waited for the line landing under it), is the sheet's alone, which says what joined ("Everything else is in Maya's album.");
+    a file that waited for the line landing under it), is the sheet's alone, which says what joined ("Everything else
+    is in Maya's album.");
     a run that landed nothing says nothing; and it is spent, never said later, where another surface says the landing:
     the keep, the door's upload step, the camera (`quiet`), or the reel's view. The demo's has no press (its
     photographs are nobody's).
