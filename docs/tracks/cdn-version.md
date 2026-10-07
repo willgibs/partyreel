@@ -5,6 +5,22 @@ cut: "5ed23311"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/api/album/guest/sync/
+  # The client's ask on its cadence (claimed at boot): the store's poll, the transport, the cadence, the provider.
+  - src/lib/album/edge-version.ts
+  - src/lib/album/edge-version.test.ts
+  - src/lib/album/store.ts
+  - src/lib/album/store.test.ts
+  - src/lib/album/transport.ts
+  - src/lib/album/transport.test.ts
+  - src/lib/shared/use-live-poll.ts
+  - src/lib/shared/use-live-poll.test.tsx
+  - src/components/guest/gallery-live.tsx
+  - src/components/guest/gallery-live.test.tsx
+  # The event read with no identity (anon.ts), beside the request read it mirrors.
+  - src/lib/db/queries/guest-events.ts
+  - src/lib/db/queries/guest-events.test.ts
+  # One line: the new route stays outside the proxy (a proxy run is an invocation before the CDN).
+  - src/proxy.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/architecture.md
