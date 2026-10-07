@@ -28,6 +28,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/dashboard/page-invite-light.ts
   - src/components/app/dashboard/page-invite-light.test.ts
   - src/components/app/dashboard/page-invite-read.ts
+  - src/components/app/dashboard/page-invite-read.test.tsx
   - src/components/app/dashboard/page-invite-card.css
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/account-moments.json
