@@ -1,71 +1,129 @@
 /* THE KEEPSAKE QUESTION'S OWN SHEET (`keepsake.tsx`): the still title page's
-   composition and her strip's sizes, the two places an option draws a layout
-   production has no class for.
+   composition and the door to her own photographs, the two places an option
+   draws a layout production has no class for.
 
    ★ UNLAYERED, SO IT WINS (the `lab-utility-loses-to-production` trap): a
    board's utilities compile into `utilities.lab` and lose to production's on
    a shared element, and a breakpoint variant reaches a frame only where
    production uses that exact class. Every rule here is the board's own, its
    media queries included; every class is `ap-`. Type stays on production's
-   ladder in the markup (`text-title`, `text-working`, `text-sm`). */
+   ladder in the markup (`text-label`, `text-title`, `text-sm`,
+   `text-working`): this sheet sets only place, measure and spacing. */
 
 /* ══ THE STILL TITLE PAGE (the `still` option) ════════════════════════════
 
-   The cover held on its one photograph, its words a title page: centred, the
-   name, then who and the day said in full, then the party in words, and the
-   album's two rounds under them. A book's title page is centred; the live
-   cover keeps the page's left line because it is a working surface, and a
-   finished thing is not. Restraint is the craft: no rule, no ornament, the
-   spacing alone sets the three lines apart. */
+   The cover held on its one photograph and set as a book's title page: the
+   words centred in the photograph's middle rather than at its foot, where
+   today's working cover keeps them, so the picture above and below them is
+   the page's margin. Top to bottom: the day in full as a small eyebrow, the
+   name at title size, Maya's byline, a short hairline, the party in words.
+   Nothing on it to press: its two rounds stand in the dock.
+
+   Restraint is the craft. One hairline is the only ornament; the spacing
+   opens as the lines go down (the name's group tight, the hairline given room
+   on both sides) so the page reads as three things, when, what and how much.
+   The block sits a breath above the middle, the optical centre a title page
+   is set at. No light is added: the photograph is the light, and the one
+   scrim (below) only quiets it where the words stand. */
 
 .ap-title {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 1.25rem 1.75rem;
+  justify-content: center;
+  /* The photograph under the header (the cover reaches up under it, `-mt-14`):
+     the page the title is set in. */
+  height: calc(var(--cover-h) - 3.5rem);
+  padding: 0 1.5rem 1.5rem;
   text-align: center;
+  /* Production's INK (`live-reel-view.tsx`, the reel's words over its
+     frames): type over a photograph carries its own shade, invisible over a
+     dark frame and the whole difference over a bright one. Today's cover
+     needs none (its words stand in the foot's scrim); words in a
+     photograph's middle do, or the eyebrow over a white dress fails.
+     Measured over this photograph's yellow roses at a laptop: the eyebrow
+     read 2.3:1 on the band alone. */
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 2px 24px rgb(0 0 0 / 0.45);
+}
+
+/* The host's face is a disc of its own colour: its initial takes no shade. */
+.ap-title [data-slot="avatar"] {
+  text-shadow: none;
+}
+
+/* The name's measure at a phone: two balanced lines, "Maya & Jay's / Wedding",
+   inside a margin a title page keeps, never one line run edge to edge. */
+.ap-title-name {
+  max-width: 17.5rem;
+  margin-top: 0.75rem;
 }
 
 .ap-title-by {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  column-gap: 0.625rem;
-  row-gap: 0.25rem;
-  margin-top: 0.875rem;
+  gap: 0.5rem;
+  margin-top: 1.125rem;
+}
+
+.ap-title-rule {
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 1.375rem;
+  background: rgb(255 255 255 / 0.5);
 }
 
 .ap-title-party {
-  margin-top: 0.375rem;
-}
-
-.ap-title-acts {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
   margin-top: 1.375rem;
 }
 
 @media (min-width: 768px) {
   .ap-title {
-    padding-bottom: 2.75rem;
+    padding-bottom: 2rem;
+  }
+  /* One line at a laptop: the widest line of the page, every other narrower. */
+  .ap-title-name {
+    max-width: none;
+    margin-top: 1rem;
   }
   .ap-title-by {
-    margin-top: 1.125rem;
+    margin-top: 1.5rem;
   }
-  .ap-title-acts {
+  .ap-title-rule {
+    width: 3.5rem;
+    margin-top: 1.75rem;
+  }
+  .ap-title-party {
     margin-top: 1.75rem;
   }
 }
 
-/* ══ HER STRIP (the `hers` option) ═════════════════════════════════════════
+/* THE PAGE'S ONE SCRIM, over production's own (`.head-scrim`, which weights
+   the foot where today's words stand): a band as wide as the photograph,
+   feathered top and bottom so it has no edge and no shape, darkening only the
+   middle where the words now stand. Never a pool of light behind the name. */
+.ap-title-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0) 14%,
+    rgb(0 0 0 / 0.3) 32%,
+    rgb(0 0 0 / 0.3) 74%,
+    rgb(0 0 0 / 0) 94%
+  );
+}
 
-   Her nine photographs as one strip under the byline, a hairline apart like
-   a contact strip, then "Yours · 9": the door to the album's Yours lens. Small
-   at a phone (the strip and its word on one line inside the cover's 20px
-   gutters), larger at a desk. A hairline of white keeps a dark photograph
-   from sinking into the cover's own. */
+/* ══ HER DOOR (the `hers` option) ═════════════════════════════════════════
+
+   Three of her photographs overlapped as production's select bar sets its
+   picks (`live-gallery.tsx`'s `SelectBar`: 24px, a 5px corner, a ring of the
+   ground between them), then "Yours · 9" and its chevron: the door to the
+   album's Yours lens. The same height as the byline's face above it, so the
+   two lines keep one rhythm. */
 
 .ap-hers {
   display: inline-flex;
@@ -76,30 +134,9 @@
   color: white;
 }
 
-.ap-hers-strip {
-  display: flex;
-  gap: 2px;
-}
-
-.ap-hers-shot {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 4px;
-  object-fit: cover;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.2);
-}
-
 .ap-hers-go {
   width: 1rem;
   height: 1rem;
-  margin-left: -0.375rem;
+  margin-left: -0.25rem;
   opacity: 0.7;
-}
-
-@media (min-width: 768px) {
-  .ap-hers-shot {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 6px;
-  }
 }

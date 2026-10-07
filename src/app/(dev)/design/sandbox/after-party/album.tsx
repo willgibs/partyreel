@@ -627,7 +627,12 @@ export function GuestAlbum({
   past?: ReactNode;
   /** What stands at the album's end, above Report. */
   end?: ReactNode;
-  /** The foot's shutter in a scrolled frame: with Add, without it, or none. */
+  /**
+   * The foot's shutter: with Add, without it, or none. It stands in a scrolled
+   * frame (the cover's row has gone), and on a first screen only where it is
+   * given one there: a cover with no row of its own hands its acts to the dock
+   * from the first screen (the keepsake's title page, `keepsakeTop`'s `dock`).
+   */
   dock?: "add" | "look" | null;
   /** A foot of the option's own in a scrolled frame, in the dock's place (select mode's Save). */
   foot?: ReactNode;
@@ -670,10 +675,13 @@ export function GuestAlbum({
         </div>
       </div>
       <Report />
-      {/* The dock rises once the cover's actions have gone: never beside the cover. */}
-      {scroll === "top"
-        ? null
-        : (foot ?? (dock ? <Dock add={dock === "add"} /> : null))}
+      {/* The dock rises once the cover's actions have gone, never beside them: on a first screen it stands only where
+          the frame gives it one, a cover with no row for it to wait on (production's dock waits on that row alone). */}
+      {scroll !== "top" && foot ? (
+        foot
+      ) : dock ? (
+        <Dock add={dock === "add"} />
+      ) : null}
     </div>
   );
 }

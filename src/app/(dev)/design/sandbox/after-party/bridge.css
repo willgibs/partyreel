@@ -1,116 +1,17 @@
-/* THE BRIDGE QUESTION'S OWN SHEET (`bridge.tsx`): the album's end in its own
-   light (the `end` option) and the chip that says what Create carried (the
-   `header` and `end` landings), the two places an option draws what
-   production has no class for.
+/* THE BRIDGE QUESTION'S OWN SHEET (`bridge.tsx`): the two places the `header`
+   and `end` landings draw what production has no class for, Create's chip that
+   says what it carried, and her name standing on its rule alone.
 
    ★ UNLAYERED, SO IT WINS (the `lab-utility-loses-to-production` trap): a
    board's utilities compile into `utilities.lab` and lose to production's on
-   a shared element. Every rule here is the board's own, its media queries
-   included; every class is `ap-`. Type stays on production's ladder in the
-   markup. */
+   a shared element, and production's own utilities live in a layer too, so
+   an unlayered rule here outranks both. Every class is `ap-`. Type stays on
+   production's ladder in the markup.
 
-/* ══ THE ALBUM'S END, IN ITS OWN LIGHT (the `end` option) ══════════════════
-
-   Production's Seam (`event-hub-head-seam.css`, the hub's light under its
-   cover) moved to where the album's photographs end: light born at the last
-   row's edge, in that row's own colours, the album's one light at its foot
-   (a closed album's dock carries no shutter, so no Ring argues with it).
-
-   ★ ON PAPER IT LIVES IN A STRIP OF THE ROOM (Aperture, brand r2, as the
-   hub's does): straight on from the last row's foot, the rows' own width, a
-   photograph's corner at its foot, so the light is seen coming out of the
-   photographs rather than a band laid over the page (set a gallery gap
-   apart, the first draw read as a copper bar); never a pale wash on white.
-   ★ A SILL, HALF THE HUB'S STRIP (16px in a hand, 20 from 40rem): the hub's
-   strip runs on from a cover its scrim has already darkened, but an album's
-   last row ends on whatever its photographs end on (a white dress, a grey
-   suit), and 30px of the room under a bright row read as a dark bar; half of
-   it reads as the photographs' own lit edge. In the room the strip is clear
-   and the light falls into the page itself, the hub's whole reach (72px in a
-   hand, 104 from 40rem, 120 at a desk).
-
-   ★ THE WORDS STAND PAST THE LIGHT (the Seam's geometry: nothing pressed
-   stands in the light), one quiet line in the album's own voice and size,
-   the closed line's and the lens line's grammar: the words muted, the press
-   in the foreground's ink. */
-
-.ap-past {
-  --ap-strip: 16px;
-  --ap-reach: 72px;
-}
-@media (width >= 40rem) {
-  .ap-past {
-    --ap-strip: 20px;
-    --ap-reach: 104px;
-  }
-}
-@media (width >= 68rem) {
-  .ap-past {
-    --ap-reach: 120px;
-  }
-}
-
-.ap-past-light {
-  position: relative;
-  overflow: hidden;
-  pointer-events: none;
-  height: var(--ap-strip);
-  /* Straight on from the last row's foot, as the hub's runs on from its cover: the light is born at the photographs'
-     own edge, so nothing of the page may stand between them; a photograph's corner at its own foot. */
-  border-radius: 0 0 var(--radius-tile, 2px) var(--radius-tile, 2px);
-}
-[data-ap-ground="room"] .ap-past-light {
-  height: var(--ap-reach);
-  border-radius: 0;
-}
-
-/* The strip wears the room (`dark` on the element): its ground is the room's own surfaces, as the hub's field. */
-.ap-past-field {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--popover) 0%, var(--card) 100%);
-}
-[data-ap-ground="room"] .ap-past-field {
-  background: none;
-}
-
-.ap-past-line {
-  margin-top: 1.125rem;
-  text-align: center;
-  text-wrap: balance;
-}
-[data-ap-ground="room"] .ap-past-line {
-  /* In the room the light has its whole reach under the row: the words stand just past it. */
-  margin-top: 0.25rem;
-}
-
-.ap-past-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  color: var(--foreground);
-  text-underline-offset: 4px;
-  white-space: nowrap;
-}
-.ap-past-go svg {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-@media (hover: hover) {
-  .ap-past-go:hover {
-    text-decoration: underline;
-  }
-}
-
-/* Forced colours: the light is decoration; the line carries everything (the hub's own rule). */
-@media (forced-colors: active) {
-  .ap-past-light {
-    display: none;
-  }
-}
+   (The `end` answer's line past the last photograph needs nothing here: it is
+   the album's own quiet line, drawn in the page's utilities, with no light of
+   its own. A Seam under the last row reads, on paper, as a dark bar stuck to
+   the photographs, and spends the album's one light on a line of ours.) */
 
 /* ══ WHAT CREATE CARRIED (the `header` and `end` landings) ═════════════════
 
@@ -150,4 +51,21 @@
     color: var(--foreground);
     text-decoration: underline;
   }
+}
+
+/* ══ HER NAME, ON ITS RULE ALONE ═══════════════════════════════════════════
+
+   NameStep's own verdict: "One field on a rule, never in a box". Production's
+   Input wears the house `field-well`, and its well outlives the name field's
+   `shadow-none` and `bg-transparent`: the well writes its rim into
+   `--tw-inset-ring-shadow`, a slot `shadow-none` leaves standing, and its
+   focused state (`:focus-within`, the step's `autoFocus`) outranks
+   `bg-transparent` to light its inside. So the name stood in a box above its
+   own rule, a form with two rules. Here the field is the name alone; the fix
+   at its source is the same two lines on `.cr-name-field` (`create-room.css`,
+   unlayered as this is). */
+
+.ap-name-field {
+  background-color: transparent;
+  box-shadow: none;
 }

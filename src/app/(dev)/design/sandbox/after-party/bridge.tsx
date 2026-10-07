@@ -1,10 +1,9 @@
 "use client";
 
-import "@/components/app/event-feed/event-hub-head-seam.css";
 import "./bridge.css";
 
-import { ArrowRight, Check } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { CalendarPlus, Check, LifeBuoy, LogIn, Pencil } from "lucide-react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 
 import {
   footButton,
@@ -13,27 +12,39 @@ import {
   RoomHead,
   RoomPage,
 } from "@/components/app/create-event-wizard/room";
-import {
-  chromaOf,
-  edgeBand,
-  edgeHues,
-  type EdgeLight,
-  fillGreys,
-  intensityOf,
-  SEGMENTS,
-  type Thumb,
-  threeAtMost,
-} from "@/components/app/event-feed/event-hub-head-edge";
+import { DoorLamp } from "@/components/guest/door/lit";
+import { KEEP_TITLE } from "@/components/guest/save-account-prompt";
 import { type BoardState, Fit, Frame } from "@/components/lab";
+import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { QR_PRESETS, type QrStyleKey } from "@/lib/constants/qr-presets";
+import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 import { type AlbumStyle, STYLE_NAMES } from "@/lib/disposable/album-style";
+import { hueOfOklch, publishDoorHues } from "@/lib/guest/door-light";
+import { useSampledPalette } from "@/lib/shared/sampled-palette";
 import { cn } from "@/lib/utils";
 
-import { ClosedLine, Cover, GuestAlbum, InviteRound, ReelRound } from "./album";
-import { type BridgeWay, guestScreen } from "./answers";
-import { WEDDING, WEEK } from "./fixtures";
+import { GuestAlbum } from "./album";
+import {
+  type BridgeWay,
+  guestScreen,
+  keepsakeIn,
+  type KeepsakeWay,
+  overIn,
+  type OverWay,
+} from "./answers";
+import { ALBUM, PRIYA, WEDDING, WEEK } from "./fixtures";
+import { keepsakeTop } from "./keepsake";
 import { type Screen, SCREENS } from "./knobs";
 import {
   actsIn,
@@ -49,19 +60,35 @@ import {
 
 /**
  * WHERE A GUEST WHO WANTS HER OWN PARTY IS TAKEN (the `bridge` question):
- * Priya, signed out, ten minutes into Maya & Jay's album a week on, with a
- * birthday next month. Three frames an answer, as the moment runs: the
- * album's top (the header's corner, the one way production gives her), the
- * album's end, and where the way lands.
+ * Maya & Jay's album a week on, and Priya with a birthday next month. Four
+ * frames an answer, as the moment runs: the album's top for a stranger (the
+ * header's corner), the same top for a guest who joined by her name (her
+ * corner is her name menu, open), the album's end, and where the way lands.
  *
- * ★ THE ALBUM IS TODAY'S IN EVERY ANSWER, a week on and closed (the board's
- * today for the `over` and `keepsake` questions): the cover's acts without
- * Add, the closed line under it. Only the corner, the end and the landing
- * are this question's, so the three answers differ there and nowhere else.
+ * ★ THE ALBUM WEARS THE EARLIER ANSWERS (the question is staged after
+ * `keepsake`): its cover and what stands under it are the keepsake answer's,
+ * Add as the `over` answer leaves it, through the keepsake story's own
+ * `keepsakeTop`, so the corner is judged against the cover Will just chose
+ * and the two questions never draw the keepsake two ways. The stranger has
+ * nothing of hers in it (`newcomer`); the guest who joined has her nine.
+ *
+ * ★ THE CORNER REACHES ONLY A STRANGER (`guest-header.tsx`): Start for free
+ * is the empty slot's, and a guest who has joined sees herself there
+ * instead: her name menu at a name-only party (`guest-name-menu.tsx`), her
+ * account menu where she confirmed her email, the default
+ * (`guest-account-menu.tsx`). So a way that lives in the corner's link alone
+ * never reaches a guest who joined. Her name menu is drawn open in every
+ * answer: `home` exactly as built (nothing in it leads to a party of her
+ * own), `header` and `end` with one quiet row more, Make one like this, the
+ * corner's words and way, its glyph the app's own for a new event
+ * (`home-head.tsx`'s New event). (The account menu would take the same row,
+ * straight into Create with no sign-up; one frame draws the menu the
+ * question's signed-out guest holds.)
  *
  * ★ EACH ANSWER, AS ITS OWN ADVOCATE:
  *  - `home` is today exactly: production's quiet ghost Start for free, a link
- *    to `/`, and the home page itself, the real route in a frame, at its top.
+ *    to `/`, her name menu as built, and the home page itself, the real route
+ *    in a frame, at its top.
  *  - `header` keeps the corner's weight (production's ghost button, the same
  *    size and place) and changes its words and its way: "Make one like this"
  *    speaks of the album she is in, never of our price, and leads through
@@ -72,14 +99,11 @@ import {
  *    first foot is Create event; a chip under the question names what was
  *    carried, Change beside it.
  *  - `end` is `header` and one line more, where production marks the album's
- *    end: past the last photograph, before Guests, the album's own light
- *    (production's Seam, born at the last row's edge in that row's own
- *    colours: on paper inside a strip of the room, the album's last floor),
- *    and past it one quiet line in the album's voice, "Your party next?" and
- *    Make one like this, into the same Create. Restraint is the craft: no
- *    card, no button, no mark of ours; the light is the album's, never
- *    Partyreel's, and the screen's only one (a closed album's dock carries no
- *    shutter).
+ *    end: past the last photograph, before Guests, "Your party next? Make one
+ *    like this" in the page's quiet ink, the closed line's own grammar. No
+ *    light, no card, no arrow, no mark of ours: the album's one light stays
+ *    the album's, so a line of Partyreel's earns no glow of its own (the
+ *    bible's seventh, and attention earned).
  *
  * ★ WHAT RIDES ALONG AND WHAT NEVER DOES: the album's two style answers
  * (`STYLE`: Live, and the code's Classic look), never its name, its guests or
@@ -91,15 +115,11 @@ import {
  * same in every answer, so it is said in the landing's title rather than
  * drawn as a frame that would not differ.
  *
- * ★ THE LIGHT IS READ, NEVER TYPED: the last row's photographs are read off
- * their own pixels by production's edge read (`event-hub-head-edge.ts`, as
- * the hub's light reads its cover), at each tile's own size, so the light
- * under the grass is the grass's. (A tile's crop is read centred, as the
- * hub's is; the board's tiles hold a few stills a little off centre.)
- *
  * ★ STAND-INS, SAID ONCE: the photographs, faces and counts are the board's
- * (`fixtures.ts`); every press is inert; `?like=` is this drawing's name for
- * the album Create is styled from.
+ * (`fixtures.ts`); every press is inert; her menu is production's own parts
+ * recomposed and held open (the built menu opens only to a press, and a modal
+ * menu would lock the lab page's own scroll); `?like=` is this drawing's name
+ * for the album Create is styled from.
  */
 
 /* ── what the album carries ────────────────────────────────────────────── */
@@ -145,156 +165,144 @@ function Corner({ way }: { way: BridgeWay }) {
   );
 }
 
-/* ── the album's end, in its own light ─────────────────────────────────── */
+/* ── her corner once she's joined: her name menu ───────────────────────── */
 
-/** How wide a photograph is read, and how small for its intensity: the hub's own sizes (`event-hub-head-light.tsx`). */
-const THUMB_W = 192;
-const INTENSITY_PX = 32;
-
-/** A photograph read small, as the hub's light reads one: its pixels at `THUMB_W`, and its light's chroma. */
-async function readStill(
-  src: string,
-): Promise<{ thumb: Thumb; c: number } | null> {
-  const img = new Image();
-  img.src = src;
-  await img.decode();
-  const { naturalWidth: nw, naturalHeight: nh } = img;
-  if (!nw || !nh) return null;
-  const w = Math.min(THUMB_W, nw);
-  const h = Math.max(1, Math.round((w * nh) / nw));
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const small = document.createElement("canvas");
-  small.width = INTENSITY_PX;
-  small.height = INTENSITY_PX;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const sctx = small.getContext("2d", { willReadFrequently: true });
-  if (!ctx || !sctx) return null;
-  ctx.drawImage(img, 0, 0, w, h);
-  sctx.drawImage(img, 0, 0, INTENSITY_PX, INTENSITY_PX);
-  return {
-    thumb: { w, h, px: ctx.getImageData(0, 0, w, h).data },
-    c: chromaOf(
-      intensityOf(sctx.getImageData(0, 0, INTENSITY_PX, INTENSITY_PX).data),
-    ),
-  };
-}
+/** The album's newest twelve, the window production's lamp reads (`album-light.tsx`'s `LOOKBACK`). */
+const NEWEST = ALBUM.slice(0, 12).map((s) => s.src);
 
 /**
- * THE LAST ROW'S OWN LIGHT, read off the album as laid and off its
- * photographs' own pixels, by production's edge read (`edgeHues`): the tiles
- * whose foot is the album's foot, each one's visible edge in sixths at its
- * own size, then the strip's six (`SEGMENTS`) each the edge of the
- * photograph standing over it, a grey sixth borrowing its neighbour's
- * (`fillGreys`), at most three hues kept (`threeAtMost`), as soft as the
- * row's own photographs are (`chromaOf`). Null where nothing can be read.
+ * HER MENU'S CARD WEARS THE ALBUM'S LIGHT, as built: production's page
+ * samples its newest previews and hands the hues to every lamp
+ * (`AlbumLightSampler`, through `door-light.ts`'s store), so this reads the
+ * board's newest twelve by production's own sampler and hands them the same
+ * way, never a typed hue. Until it lands the lamp wears the house five, as a
+ * page's does.
  */
-async function lastRowLight(rows: Element): Promise<EdgeLight | null> {
-  const tiles = [...rows.children].map((el) => {
-    const s = (el as HTMLElement).style;
-    return {
-      left: parseFloat(s.left),
-      width: parseFloat(s.width),
-      height: parseFloat(s.height),
-      foot: parseFloat(s.top) + parseFloat(s.height),
-      src: el.querySelector("img")?.getAttribute("src") ?? "",
-    };
-  });
-  if (!tiles.length) return null;
-  const foot = Math.max(...tiles.map((t) => t.foot));
-  const last = tiles.filter((t) => Math.abs(t.foot - foot) < 1 && t.src);
-  const reads = await Promise.all(
-    last.map(async (t) => {
-      const read = await readStill(t.src).catch(() => null);
-      return read
-        ? { ...t, c: read.c, edge: edgeHues(read.thumb, t.width, t.height) }
-        : null;
-    }),
-  );
-  const row = reads.filter((r): r is NonNullable<typeof r> => r !== null);
-  if (!row.length) return null;
-  const right = Math.max(...row.map((t) => t.left + t.width));
-  const raw = Array.from({ length: SEGMENTS }, (_, i) => {
-    const x = ((i + 0.5) / SEGMENTS) * right;
-    const over = row.find((t) => x >= t.left && x <= t.left + t.width);
-    if (!over?.edge) return null;
-    const j = Math.floor(((x - over.left) / over.width) * SEGMENTS);
-    return over.edge[Math.min(SEGMENTS - 1, Math.max(0, j))] ?? null;
-  });
-  const filled = fillGreys(raw, null);
-  if (!filled) return null;
-  return {
-    hues: threeAtMost(filled),
-    c: row.reduce((n, t) => n + t.c, 0) / row.length,
-  };
-}
-
-/**
- * PAST THE LAST PHOTOGRAPH (the `end` answer): the album's own light at its
- * foot, then one quiet line past its reach, into Create in this style.
- */
-function AlbumEnd() {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [light, setLight] = useState<EdgeLight | null | "none">(null);
+function useAlbumLamp() {
+  const colors = useSampledPalette(NEWEST, "dark");
   useEffect(() => {
-    // The rows are laid by production's engine at a known width, so their places stand from the first commit.
-    const rows = ref.current
-      ?.closest("[data-ap-album-box]")
-      ?.querySelector("[data-ap-rows]");
-    if (!rows) return;
-    let gone = false;
-    // A read that fails leaves the end unlit and says so (`none`), never a light that is guessed.
-    void lastRowLight(rows)
-      .catch(() => null)
-      .then((read) => {
-        if (!gone) setLight(read ?? "none");
-      });
-    return () => {
-      gone = true;
-    };
-  }, []);
-  const lit = light && light !== "none" ? light : null;
+    if (!colors) return;
+    const hues = colors.map(hueOfOklch).filter((h): h is number => h !== null);
+    if (hues.length >= 3) publishDoorHues(hues);
+  }, [colors]);
+}
+
+/**
+ * ★ A MENU HELD OPEN NEVER TAKES THE LAB'S FOCUS: Radix focuses a menu's
+ * content as it opens, which in a frame would pull the keyboard off the lab
+ * page (the keys Will compares options with) and into the frame. Its open
+ * focus is declined; Radix keeps that prop off the public type
+ * (`MenuContentImplPrivateProps`) and passes it through all the same.
+ */
+const HELD_OPEN = {
+  onOpenAutoFocus: (event: Event) => event.preventDefault(),
+} as unknown as ComponentProps<typeof DropdownMenuContent>;
+
+/**
+ * PRIYA'S NAME MENU, OPEN, AS `guest-name-menu.tsx` DRAWS IT for a guest
+ * who joined by her name and added her nine: her name over Unverified, the
+ * keep's card lit by the album and its one act, Change name, Log in and Help
+ * center. With `make`, one row more in the second group, the corner's own
+ * words and way: after Log in, Help center keeping its place at the menu's
+ * foot, a plain row on the icon rail like its neighbours (quiet: no card, no
+ * fill, nothing the eye is pulled to).
+ */
+function NameMenu({ make }: { make: boolean }) {
+  useAlbumLamp();
   return (
-    <div ref={ref} data-ap-past="" className="ap-past">
-      <div
-        aria-hidden
-        data-ap-light={
-          lit
-            ? [...new Set(lit.hues.map(Math.round))].join(" ")
-            : light === "none"
-              ? "none"
-              : "unread"
-        }
-        className="ap-past-light"
+    <DropdownMenu open modal={false}>
+      <DropdownMenuTrigger
+        aria-label="Your name on this album"
+        tabIndex={-1}
+        className="flex focus-halo items-center gap-2 rounded-full outline-none"
       >
-        <div className="dark ap-past-field">
-          {lit ? (
-            // Production's Seam: the edge's colours pooled in three soft ellipses, and the edge itself lit.
-            <div className="hub-light-lit">
-              <div
-                className="hub-light-glow"
-                style={{ background: edgeBand(lit, "glow") }}
-              />
-              <div
-                className="hub-light-line"
-                style={{ background: edgeBand(lit, "line") }}
-              />
-            </div>
-          ) : null}
+        <Avatar size="sm" seed={PRIYA.seed}>
+          <AvatarFallback className="text-[10px]">
+            {PRIYA.name.slice(0, 1).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span className="max-w-28 truncate text-sm">{PRIYA.name}</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-60"
+        data-ap-menu=""
+        {...HELD_OPEN}
+      >
+        <DropdownMenuLabel className="flex flex-col gap-0.5">
+          <span className="truncate leading-tight font-medium">
+            {PRIYA.name}
+          </span>
+          <span className="truncate text-xs leading-tight font-normal text-muted-foreground">
+            {UNVERIFIED_LABEL}
+          </span>
+        </DropdownMenuLabel>
+        <div
+          data-menu-card
+          className="relative isolate m-1 overflow-hidden rounded-md bg-muted/60 p-3"
+        >
+          <DoorLamp edge="card" />
+          <p className="text-reading text-pretty text-foreground">
+            {KEEP_TITLE}
+          </p>
+          <DropdownMenuItem className="mt-2 h-8 justify-center bg-primary font-medium text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground">
+            Add your email
+          </DropdownMenuItem>
         </div>
-      </div>
-      <p
-        data-ap-past-line=""
-        className="ap-past-line text-reading text-muted-foreground"
+        <DropdownMenuItem>
+          <Pencil /> Change name
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <LogIn /> Log in
+        </DropdownMenuItem>
+        {make ? (
+          <DropdownMenuItem asChild>
+            <a href={WAYS.create.href} tabIndex={-1} data-ap-menu-way="">
+              <CalendarPlus /> {WAYS.create.words}
+            </a>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem asChild>
+          <a
+            href={HELP_CENTER_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            tabIndex={-1}
+          >
+            <LifeBuoy /> Help center
+          </a>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/* ── the album's end ───────────────────────────────────────────────────── */
+
+/**
+ * PAST THE LAST PHOTOGRAPH (the `end` answer): one quiet line in the album's
+ * own voice and size, the grammar of the line production stands under its
+ * cover (`ClosedLine`, and a wrapped album's `QuietAdd`): the words in the
+ * page's muted ink, the one press in its own ink, into the same Create.
+ * Nearer the last row (24px) than Guests is to it (40px), so it reads as the
+ * album's own last word, never a heading for the faces under it.
+ */
+function EndLine() {
+  return (
+    <p
+      data-ap-past=""
+      className="mt-6 text-center text-reading text-balance text-muted-foreground"
+    >
+      Your party next?{" "}
+      <a
+        href={WAYS.create.href}
+        tabIndex={-1}
+        className="rounded-md font-medium text-foreground underline-offset-4 hover:underline"
       >
-        Your party next?{" "}
-        <a href={WAYS.create.href} tabIndex={-1} className="ap-past-go">
-          Make one like this
-          <ArrowRight aria-hidden />
-        </a>
-      </p>
-    </div>
+        {WAYS.create.words}
+      </a>
+    </p>
   );
 }
 
@@ -328,7 +336,8 @@ function Carried() {
  * question in one place, its foot), its two style screens answered by the
  * album, so its steppers are her name and her code, and its first foot is
  * Create event. The name is hers, typed (the field is NameStep's own markup,
- * read-only: the real step's `autoFocus` would pull the lab's page to it).
+ * read-only: the real step's `autoFocus` would pull the lab's page to it),
+ * standing on its rule alone (`ap-name-field`, `bridge.css`).
  */
 function CreateCarried() {
   const type = "font-heading text-chapter md:text-title";
@@ -350,8 +359,9 @@ function CreateCarried() {
               tabIndex={-1}
               value="Priya’s 30th"
               aria-labelledby="ap-bridge-create-q"
+              data-ap-name-field=""
               className={cn(
-                "cr-name-field h-auto rounded-none border-0 bg-transparent px-0 py-0 text-center shadow-none",
+                "cr-name-field ap-name-field h-auto rounded-none border-0 bg-transparent px-0 py-0 text-center shadow-none",
                 "focus-visible:ring-0 aria-invalid:ring-0 dark:bg-transparent",
                 type,
               )}
@@ -455,48 +465,103 @@ function wayOf(href: string | null): string {
   return `to ${href}`;
 }
 
-/** The album's top: what the corner says, in what weight, and where it leads. */
+/**
+ * The cover the album wears (the keepsake answer it is drawn in): its white
+ * act where it has one, the rest beside it (or in the dock, where a title
+ * page hands them there), her strip where it shows, and the line under it.
+ * Null until the cover has drawn.
+ */
+function coverOf(root: HTMLElement, win: Window): string | null {
+  if (!find(root, "[data-event-head]")) return null;
+  const acts = find(root, "[data-ap-acts]");
+  const all =
+    acts && inView(acts, win) ? actsIn(root, win, "[data-ap-acts]") : [];
+  const white = acts?.querySelector<HTMLElement>("[data-variant='on-photo']");
+  const dock = actsIn(root, win, "[data-ap-dock]");
+  const lead = white
+    ? `"${textOf(white)}" in white${all.length > 1 ? `, ${all.filter((a) => a !== textOf(white)).join(" and ")} beside it` : ""}`
+    : all.length
+      ? `no white act, only ${all.join(" and ")}`
+      : dock.length
+        ? `no acts, ${dock.join(" and ")} in the dock`
+        : "no acts";
+  const page = find(root, "[data-ap-title]") ? "a title page, " : "";
+  const hers = find(root, "[data-ap-hers-word]");
+  const under =
+    find(root, "[data-ap-closed]") ?? find(root, "[data-ap-quiet-add]");
+  return [
+    `the cover: ${page}${lead}`,
+    hers ? `her strip "${textOf(hers)}"` : "",
+    under ? `under it "${textOf(under)}"` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+/** A stranger's top: what the corner says, in what weight, where it leads, and the cover it stands over. */
 const readTop: Reader = (root, win) => {
   const corner = find(root, "[data-ap-corner] [data-ap-way]");
   if (!corner || !inView(corner, win)) return null;
   const weight = `${corner.getAttribute("data-variant")} ${win.getComputedStyle(corner).fontSize}`;
   return parts(
-    `the corner: "${textOf(corner)}" (${weight})`,
-    wayOf(corner.getAttribute("href")),
+    `the corner: "${textOf(corner)}" (${weight}), ${wayOf(corner.getAttribute("href"))}`,
+    coverOf(root, win),
   );
 };
 
-/** The album's end: what stands past the last photograph, in what light, and the dock. */
+/** A joined guest's top: her name menu, open, row by row, and whether anything in it leads to a party of her own. */
+const readMenu: Reader = (root, win) => {
+  const menu = find(root, "[data-ap-menu]");
+  if (!menu || !inView(menu, win)) return null;
+  const who = textOf(menu.querySelector("[data-slot='dropdown-menu-label']"));
+  const card = textOf(menu.querySelector("[data-menu-card] p"));
+  const rows = [...menu.querySelectorAll<HTMLElement>("[role='menuitem']")]
+    .map((r) => textOf(r))
+    .filter(Boolean);
+  const way = menu.querySelector<HTMLElement>("[data-ap-menu-way]");
+  return parts(
+    `her corner: her name menu, open ("${who}"), the card "${card}", then ${rows.join(", ")}`,
+    way
+      ? `"${textOf(way)}" goes ${wayOf(way.getAttribute("href"))}`
+      : "nothing in it leads to a party of her own",
+    coverOf(root, win),
+  );
+};
+
+/** The album's end: what stands past the last photograph, and the dock. */
 const readEnd: Reader = (root, win) => {
   const guests = find(root, "section[aria-label='Guests']");
   if (!guests || !inView(guests, win)) return null;
-  const past = find(root, "[data-ap-past]");
-  const light = find(root, "[data-ap-light]")?.getAttribute("data-ap-light");
-  if (past && light === "unread") return null;
-  const lit =
-    light === "none"
-      ? "unlit (no edge to read)"
-      : `in the last row's own light (hues ${light})`;
+  const line = find(root, "[data-ap-past]");
   const end =
-    past && inView(past, win)
-      ? `past the last photo, ${lit}: "${textOf(find(root, "[data-ap-past-line]"))}"; then Guests and Report`
+    line && inView(line, win)
+      ? `past the last photo, one quiet line (${win.getComputedStyle(line).fontSize}): "${textOf(line)}", ${wayOf(line.querySelector("a")?.getAttribute("href") ?? null)}; then Guests and Report`
       : "past the last photo: Guests, then Report, nothing of ours";
   const dock = actsIn(root, win, "[data-ap-dock]");
   return parts(end, dock.length ? `the dock: ${dock.join(", ")}` : "no dock");
 };
 
+/** Whether a field stands in a box (a rim, or a ground of its own) or on its rule alone. */
+function boxed(field: HTMLElement, win: Window): boolean {
+  const cs = win.getComputedStyle(field);
+  return cs.boxShadow !== "none" || cs.backgroundColor !== "rgba(0, 0, 0, 0)";
+}
+
 /**
  * Create's first screen: its question, where its head says she stands (the
  * room's own words for a reader, "Step 1 of N", and its hairlines), what it
- * carried, and its foot.
+ * carried, how her name stands, and its foot.
  */
-const readCreate: Reader = (root) => {
+const readCreate: Reader = (root, win) => {
   if (!find(root, "[data-app-room]")) return null;
   const step = textOf(find(root, "[data-room-head] .sr-only"));
   const carried = find(root, "[data-ap-carried-words]");
+  const field = find(root, "[data-ap-name-field]") as HTMLInputElement | null;
+  if (!field) return null;
   return parts(
     `"${textOf(find(root, "[data-room-heading]"))}", ${step.toLowerCase()} (${findAll(root, "[data-room-step]").length} hairlines)`,
     carried ? `carried: ${textOf(carried)}, with Change` : "nothing carried",
+    `her name "${field.value}" ${boxed(field, win) ? "in a box over its rule" : "on its rule alone"}`,
     `the foot: "${textOf(find(root, "[data-room-foot] button"))}"`,
   );
 };
@@ -518,66 +583,84 @@ const readHome: Reader = (root, win) => {
 
 /* ── the story ─────────────────────────────────────────────────────────── */
 
-/** Maya & Jay's album a week on, signed out, as today but for what the answer places. */
+/**
+ * Maya & Jay's album a week on, as the earlier answers leave it, with what
+ * this answer places: the corner (a stranger's) or her name menu (a guest
+ * who joined, with her nine), and the album's end.
+ */
 function AlbumAt({
   way,
+  keepsake,
+  over,
   screen,
   scroll,
+  joined = false,
 }: {
   way: BridgeWay;
+  keepsake: KeepsakeWay;
+  over: OverWay;
   screen: Screen;
   scroll: "top" | "end";
+  joined?: boolean;
 }) {
+  const top = keepsakeTop(keepsake, over, screen, !joined);
   return (
     <GuestAlbum
       screen={screen}
       moment={WEEK}
-      corner={<Corner way={way} />}
-      cover={
-        <Cover
-          screen={screen}
-          moment={WEEK}
-          actions={
-            <>
-              <ReelRound />
-              <InviteRound />
-            </>
-          }
-        />
+      corner={
+        joined ? <NameMenu make={way !== "home"} /> : <Corner way={way} />
       }
-      under={<ClosedLine />}
-      past={way === "end" ? <AlbumEnd /> : undefined}
+      cover={top.cover}
+      under={top.under}
+      past={way === "end" ? <EndLine /> : undefined}
       scroll={scroll}
-      dock={scroll === "end" ? "look" : null}
+      // Scrolled to the end, the cover's acts have gone and the dock stands (no shutter: Add is gone or receded).
+      dock={scroll === "end" ? "look" : top.dock}
     />
   );
 }
 
 export function BridgeStory({ way, s }: { way: BridgeWay; s: BoardState }) {
   const screen = guestScreen(s);
+  const keepsake = keepsakeIn(s);
+  const over = overIn(s);
   const { w, h } = SCREENS[screen];
   const tall = screen === "1440" ? 640 : h;
+  // Every frame's id names the answers it is drawn in, so a frame re-reads when an earlier answer changes.
+  const drawn = `${way}-${keepsake}-${over}-${screen}`;
+  const album = { way, keepsake, over, screen };
   return (
     <Story>
       <Scene
-        id={`ap-bridge-top-${way}-${screen}`}
+        id={`ap-bridge-top-${drawn}`}
         w={w}
         h={tall}
         ground="paper"
         title="Signed out, a week on: the album's top"
         measure={readTop}
       >
-        <AlbumAt way={way} screen={screen} scroll="top" />
+        <AlbumAt {...album} scroll="top" />
       </Scene>
       <Scene
-        id={`ap-bridge-end-${way}-${screen}`}
+        id={`ap-bridge-menu-${drawn}`}
+        w={w}
+        h={tall}
+        ground="paper"
+        title="Joined by her name: her menu, open"
+        measure={readMenu}
+      >
+        <AlbumAt {...album} scroll="top" joined />
+      </Scene>
+      <Scene
+        id={`ap-bridge-end-${drawn}`}
         w={w}
         h={tall}
         ground="paper"
         title="Past the last photo: the album's end"
         measure={readEnd}
       >
-        <AlbumAt way={way} screen={screen} scroll="end" />
+        <AlbumAt {...album} scroll="end" />
       </Scene>
       {way === "home" ? (
         <RouteScene

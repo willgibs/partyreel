@@ -19,10 +19,17 @@ import { formatCount } from "@/lib/format/count";
 import { RangeText } from "@/lib/format/range-text";
 import { cn, formatEventDate } from "@/lib/utils";
 
-import { groundIn, hostScreen, type RecapWay } from "./answers";
+import {
+  groundIn,
+  hostScreen,
+  overIn,
+  type OverWay,
+  type RecapWay,
+} from "./answers";
 import { COVER_SIX, MORNING, type Still, still, WEDDING } from "./fixtures";
 import { AppBar, HubHead, HubScreen } from "./hub";
 import { type Screen, SCREENS } from "./knobs";
+import { SundayHub, WrapFold } from "./over";
 import {
   actsIn,
   find,
@@ -43,9 +50,9 @@ import {
  * album), each as the answer draws it. Each answer draws only what it changes:
  *  - `stage` (today): nothing. Production's `Stage` on the party's facts
  *    already turns to it ("Yesterday", the name, 186 in the album, 39 guests,
- *    Share the album and Open), and production's hub reads as it did at the
- *    party: its checklist is not drawn from the day after the date
- *    (`checklistOver`), so its place under the light is empty.
+ *    Share the album and Open), and her hub is the `over` answer's own Sunday
+ *    (`SundayHub`): production's, its checklist not drawn from the day after
+ *    the date (`checklistOver`), so its place under the light is empty.
  *  - `hub`: in the checklist's place, the room under her cover holds the
  *    recap (`RecapPlate`): the party in words and its three acts, lit by the
  *    hub's one light, with a quiet close.
@@ -55,6 +62,16 @@ import {
  *  - `home`: her home's stage made the recap (`RecapStage`): production's
  *    stage, its light and its live wall's grammar, saying what the party
  *    made, with the three acts in place of Share the album and Open.
+ *
+ * ★ SUNDAY MORNING IS ONE MOMENT, DRAWN IN THE `over` ANSWER (the creative
+ * director's pass: the recap never read it). Today's switch and the offer say
+ * nothing on Sunday (the offer comes on Wednesday), so the recap stands alone.
+ * The wrap is offered on Sunday, so it is folded into whichever recap stands,
+ * one block for one moment, in the over question's own words (`WrapFold`,
+ * `over.tsx`): the plate's quiet last line, the turned cover's foot, or beside
+ * the acts on her home's stage, whose hub then does not repeat it; today's
+ * stage stands no recap on her hub, so the hub's cover foot says it as the
+ * over question draws it (`SundayHub`). It is never said twice.
  *
  * ★ THE THREE ACTS ARE ONE COMPONENT (`RecapActs`), arranged by where they
  * stand: Share the album leads (every shared album invites the next party),
@@ -161,7 +178,15 @@ function numbersOf(stage: HTMLElement): string | null {
     .join(", ");
 }
 
-/** Her home: whether its stage is the recap, what it says, how many photographs it shows, and its acts. */
+/** The wrap where it stands (`over.tsx`'s row or its fold): its words and its keys, as she reads them. */
+function wrapOf(wrap: HTMLElement): string {
+  const keys = [...wrap.querySelectorAll<HTMLElement>("button")]
+    .map((b) => `[${textOf(b)}]`)
+    .join(" ");
+  return `"${textOf(wrap.querySelector("p"))}" ${keys}`;
+}
+
+/** Her home: whether its stage is the recap, what it says, how many photographs it shows, its acts and the wrap beside them. */
 const readHome: Reader = (root, win) => {
   const stage = find(root, "[data-stage]");
   if (!stage) return null;
@@ -174,6 +199,7 @@ const readHome: Reader = (root, win) => {
     ),
   ].filter((t) => inView(t, win)).length;
   const made = stage.querySelector("[data-ap-made]");
+  const wrap = stage.querySelector<HTMLElement>("[data-ap-wrap]");
   return parts(
     recap ? "her home's stage is the recap" : "her home's stage, no recap",
     `it says "${textOf(stage.querySelector("[data-stage-word]"))}", "${textOf(stage.querySelector("h2"))}", ${
@@ -181,10 +207,16 @@ const readHome: Reader = (root, win) => {
     }`,
     `${tiles} ${tiles === 1 ? "photograph" : "photographs"}`,
     `acts: ${acts.join(", ")}`,
+    wrap && inView(wrap, win)
+      ? `beside them, the wrap: ${wrapOf(wrap)}`
+      : undefined,
   );
 };
 
-/** Her hub: where the recap stands (on the cover, under its light, or nowhere), what it says, its acts, and the code. */
+/**
+ * Her hub: where the recap stands (on the cover, under its light, or nowhere), what it says, its acts, where the wrap
+ * stands if it is offered (on the cover's foot, or folded into the recap), and the code.
+ */
 const readHub: Reader = (root, win) => {
   const head = find(root, "[data-ap-hub-head]");
   const album = find(root, "section[aria-label='Album']");
@@ -194,11 +226,22 @@ const readHub: Reader = (root, win) => {
     code && inView(code, win)
       ? "her code on the cover"
       : "no code on the cover";
+  const wrap = find(root, "[data-ap-wrap]");
+  const wrapAt = !wrap
+    ? null
+    : wrap.closest("[data-ap-recap]")
+      ? "in it, its last line"
+      : wrap.closest("[data-ap-foot]")
+        ? "on the cover's foot"
+        : "on her hub";
+  const theWrap =
+    wrap && inView(wrap, win) ? `${wrapAt}, the wrap: ${wrapOf(wrap)}` : null;
   const recap = find(root, "[data-ap-recap]");
   if (!recap || !inView(recap, win))
     return parts(
       "her hub, no recap",
       `the cover says "${wordsOf(find(root, "[data-ap-hub-facts]"))}"`,
+      theWrap ?? "its foot offers nothing",
       theCode,
       find(root, "[data-checklist]")
         ? "the checklist under the light"
@@ -226,6 +269,7 @@ const readHub: Reader = (root, win) => {
     `her hub: the recap ${where}`,
     `it says "${wordsOf(find(root, "[data-ap-say]"))}"`,
     `acts${actsAt}: ${actsIn(root, win, "[data-ap-acts]").join(", ")}`,
+    theWrap ?? undefined,
     away ? `a quiet "${away.getAttribute("aria-label")}"` : undefined,
     theCode,
   );
@@ -344,9 +388,10 @@ function Ring() {
  * HER HOME THE MORNING AFTER, AS PRODUCTION COMPOSES IT (`home.tsx`): her
  * bar with no trail, the wide page's gutter, the day's head ("1 event · Event
  * Pass": a pass holds one event, so the stage says its phase, never the
- * chooser's words), then the stage, as the answer draws it.
+ * chooser's words), then the stage, as the answer draws it (the wrap beside
+ * the recap's acts where the recap stands here and the over answer wraps).
  */
-function Home({ way }: { way: RecapWay }) {
+function Home({ way, over }: { way: RecapWay; over: OverWay }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AppBar trail={false} />
@@ -358,7 +403,7 @@ function Home({ way }: { way: RecapWay }) {
             storage={<Ring />}
           />
           {way === "home" ? (
-            <RecapStage />
+            <RecapStage wrap={over === "wrap"} />
           ) : (
             <Stage
               event={PARTY_EVENT}
@@ -383,9 +428,11 @@ function Home({ way }: { way: RecapWay }) {
  * there, then "Your party made 186" where the name stood, the party's line
  * where the date stood, the three acts where its two stood, and on its picture
  * side the live wall's grammar (`Wall`: nine at a desk, the lead four cells
- * large; three in a hand), a press on which opens her hub as today.
+ * large; three in a hand), a press on which opens her hub as today. In the
+ * wrap the wrap stands beside the acts, a step under them (production's own
+ * place for a quiet word beside the stage's acts, its "Ready for guests").
  */
-function RecapStage() {
+function RecapStage({ wrap }: { wrap: boolean }) {
   const lead = WALL[0]!;
   return (
     <section
@@ -425,8 +472,11 @@ function RecapStage() {
             {MADE}
           </p>
         </div>
-        <div data-stage-acts="recap">
-          <RecapActs layout="stack" />
+        <div className="ap-recap-stage-foot">
+          <div data-stage-acts="recap">
+            <RecapActs layout="stack" />
+          </div>
+          {wrap ? <WrapFold on="room" /> : null}
         </div>
       </div>
 
@@ -487,13 +537,14 @@ function Wall({ stills }: { stills: readonly Still[] }) {
  * under her cover holding what the party made and its three acts, lit by the
  * hub's own Seam (`recap.css` says how: one light, the cover's, reaching the
  * room's length into the plate on paper as in the room). The words stand where
- * the light is spent; the close is quiet, at its corner.
+ * the light is spent; the close is quiet, at its corner. In the wrap the wrap
+ * is the plate's own quiet last line, under a hairline, the whole width.
  *
  * ★ IT LEAVES ONCE SHE HAS SHARED OR PUT IT AWAY, NEVER UNDER HER EYES (the
  * checklist's own rule): it stays through the visit she pressed it in, and the
  * next visit draws the strip again, the hub as it is today.
  */
-function RecapPlate() {
+function RecapPlate({ wrap }: { wrap: boolean }) {
   return (
     <section
       data-ap-recap="hub"
@@ -511,6 +562,7 @@ function RecapPlate() {
           <p className="mt-1 text-reading text-muted-foreground">{MADE}</p>
         </div>
         <RecapActs layout="stack" />
+        {wrap ? <WrapFold on="room" /> : null}
         <Button
           type="button"
           variant="ghost"
@@ -536,7 +588,8 @@ function RecapPlate() {
  * production's, as today). A cover is the album's for good, so it says the
  * day, never "yesterday", which would go stale on it. The corner holds the
  * three acts where the code stood; in a hand they stand on the cover's foot
- * and the corner is left to the name.
+ * and the corner is left to the name. In the wrap the wrap is the cover's
+ * last line, on its foot under the acts, in the photograph's glass.
  *
  * ★ WHERE THE CODE WENT: into Share the album, which after the party is
  * production's own Invite door (it opens the code card: the code scannable on
@@ -545,8 +598,9 @@ function RecapPlate() {
  * need telling: its code chip waits on the cover's code leaving the screen,
  * `headerCodeHidden`, which a cover with none never reports.)
  */
-function CoverRecap({ screen }: { screen: Screen }) {
+function CoverRecap({ screen, wrap }: { screen: Screen; wrap: boolean }) {
   const desk = screen === "1440";
+  const fold = wrap ? <WrapFold on="photo" /> : null;
   return (
     <HubHead
       moment={MORNING}
@@ -566,30 +620,54 @@ function CoverRecap({ screen }: { screen: Screen }) {
         </span>
       }
       corner={desk ? <RecapActs layout="corner" /> : <></>}
-      foot={desk ? undefined : <RecapActs layout="foot" />}
+      foot={
+        desk ? (
+          fold
+        ) : (
+          <div className="ap-recap-foot">
+            <RecapActs layout="foot" />
+            {fold}
+          </div>
+        )
+      }
     />
   );
 }
 
-function hubFor(way: RecapWay, screen: Screen): ReactNode {
+/**
+ * HER HUB ON SUNDAY, AS THE ANSWER DRAWS IT, IN THE `over` ANSWER: the plate,
+ * the turned cover, or production's; today's stage leaves the hub to the over
+ * question (`SundayHub`: the wrap's row on its cover's foot where she wraps,
+ * nothing otherwise), and her home's stage, holding the wrap itself, leaves
+ * the hub as it is.
+ */
+function hubFor(way: RecapWay, screen: Screen, over: OverWay): ReactNode {
+  const wrap = over === "wrap";
   if (way === "hub")
-    return <HubScreen screen={screen} moment={MORNING} slot={<RecapPlate />} />;
+    return (
+      <HubScreen
+        screen={screen}
+        moment={MORNING}
+        slot={<RecapPlate wrap={wrap} />}
+      />
+    );
   if (way === "cover")
     return (
       <HubScreen
         screen={screen}
         moment={MORNING}
-        head={<CoverRecap screen={screen} />}
+        head={<CoverRecap screen={screen} wrap={wrap} />}
       />
     );
+  if (way === "stage") return <SundayHub way={over} screen={screen} />;
   return <HubScreen screen={screen} moment={MORNING} />;
 }
 
 /** The `cover` answer's third frame: Share the album pressed, the code card over her hub (production's, drawn open). */
-function CodeOpen({ screen }: { screen: Screen }) {
+function CodeOpen({ screen, over }: { screen: Screen; over: OverWay }) {
   return (
     <>
-      {hubFor("cover", screen)}
+      {hubFor("cover", screen, over)}
       <CodeCard
         open
         onOpenChange={() => {}}
@@ -609,40 +687,41 @@ function CodeOpen({ screen }: { screen: Screen }) {
 export function RecapStory({ way, s }: { way: RecapWay; s: BoardState }) {
   const screen = hostScreen(s);
   const ground = groundIn(s);
+  const over = overIn(s);
   const { w } = SCREENS[screen];
   const desk = screen === "1440";
   return (
     <Story>
       <Scene
-        id={`ap-recap-home-${way}-${screen}`}
+        id={`ap-recap-home-${way}-${over}-${screen}`}
         w={w}
         h={desk ? 620 : 812}
         ground={ground}
         title="Sunday at 9: her home"
         measure={readHome}
       >
-        <Home way={way} />
+        <Home way={way} over={over} />
       </Scene>
       <Scene
-        id={`ap-recap-hub-${way}-${screen}`}
+        id={`ap-recap-hub-${way}-${over}-${screen}`}
         w={w}
         h={desk ? 860 : 812}
         ground={ground}
         title="Sunday at 9: her hub"
         measure={readHub}
       >
-        {hubFor(way, screen)}
+        {hubFor(way, screen, over)}
       </Scene>
       {way === "cover" ? (
         <Scene
-          id={`ap-recap-code-${way}-${screen}`}
+          id={`ap-recap-code-${way}-${over}-${screen}`}
           w={w}
           h={desk ? 760 : 812}
           ground={ground}
           title="Share the album, pressed: where the code went"
           measure={readCode}
         >
-          <CodeOpen screen={screen} />
+          <CodeOpen screen={screen} over={over} />
         </Scene>
       ) : null}
     </Story>

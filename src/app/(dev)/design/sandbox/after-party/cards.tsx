@@ -8,15 +8,15 @@ import { cn } from "@/lib/utils";
 import { openAlbumWords } from "@/app/(guest)/e/[token]/card/words";
 import { EVENT_CARD_SIZE } from "@/lib/guest/event-card";
 
-import { Card, CardAt, type CardOf, type CardWay } from "./card";
-import { MORNING, still, WEDDING, WEEK } from "./fixtures";
+import { Card, CardAt, type CardOf, type CardWay, ROUTE_FAMILY } from "./card";
+import { still, WEDDING } from "./fixtures";
 import type { Ground } from "./knobs";
-import { findAll, type Reader, Scene, Story } from "./scene";
+import { find, findAll, type Reader, Scene, Story } from "./scene";
 
 /**
  * THE CARD EVERY SHARED LINK WEARS (the `card` question), judged where it
- * lands: two chats at a phone, then each card at its true size, then a gated
- * album's pair.
+ * lands: two chats at a phone first (the bubble is where the decision is
+ * made), then one sheet of the cards at half size.
  *
  * ★ TWO CHATS, BOTH GROUNDS: the family's the morning after, on paper (Maya
  * pastes the album, Aunt Rosa one photo's link), and a week on, the phone of a
@@ -25,6 +25,13 @@ import { findAll, type Reader, Scene, Story } from "./scene";
  * A bubble is 268 px wide (a phone's 260 to 300), and every caption reads the
  * card's own type at that width off its markup, so legibility is measured,
  * never claimed.
+ *
+ * ★ ONE SHEET AT HALF SIZE (600 by 315 a card, the creative director's pass):
+ * the album the morning after beside it a week on, its two halves, and a
+ * password album's card under them beside a Private one's. A new way's two
+ * halves are one picture, nothing on it to go stale in a pasted chat, and the
+ * caption reads that off the two cards' markup; today's differ by their line.
+ * It stands on paper, so a dark card's edge is a card's edge.
  *
  * ★ THE CHAT IS NOBODY'S APP: a plain thread in the house's own type and
  * greys, an unfurl drawn the way every messenger draws one (the picture, the
@@ -37,6 +44,10 @@ import { findAll, type Reader, Scene, Story } from "./scene";
 
 /** A phone's link bubble: its card's width. */
 const BUBBLE = 268;
+
+/** The sheet: each card at half its size, a gutter between and around. */
+const HALF = EVENT_CARD_SIZE.width / 2;
+const GUTTER = 24;
 
 /** Aunt Rosa's favourite: a photograph no card carries (past the cover's first four), so no picture shows twice. */
 const ROSA = still("wedding-rings");
@@ -60,13 +71,36 @@ function hueWord(h: number): string {
   return names.find(([upTo]) => h < upTo)?.[1] ?? "red";
 }
 
-/** A face's name off a computed family: the app's two by name, else the first named. */
-const faceOf = (family: string) =>
-  /urbanist/i.test(family)
-    ? "Urbanist"
-    : /inter/i.test(family)
-      ? "Inter"
-      : (family.split(",")[0] ?? "").replace(/["']/g, "").trim();
+/** A family's first name, unquoted. */
+const firstOf = (family: string) =>
+  (family.split(",")[0] ?? "").replace(/["']/g, "").trim();
+
+/** The route's own face, by the family the lab loads its TTF under. */
+const ROUTE_OWN = firstOf(ROUTE_FAMILY);
+
+/**
+ * THE FACE A CARD'S NAME PAINTS IN, read off the frame: the app's heading face
+ * by name, and the route's own Geist only once this frame holds its TTF loaded
+ * (`document.fonts`), so a caption never says Geist over a fallback. Null while
+ * it loads (not settled); a file that failed says so.
+ */
+function faceOf(el: HTMLElement, win: Window): string | null {
+  const family = win.getComputedStyle(el).fontFamily;
+  if (ROUTE_OWN && firstOf(family) === ROUTE_OWN) {
+    const faces: FontFace[] = [];
+    win.document.fonts.forEach((f) => {
+      if (firstOf(f.family) === ROUTE_OWN) faces.push(f);
+    });
+    if (faces.some((f) => f.status === "loaded"))
+      return "Geist Regular, the route's own TTF, loaded here";
+    if (faces.length > 0 && faces.every((f) => f.status === "error"))
+      return "the route's Geist, its TTF failed to load";
+    return null;
+  }
+  if (/urbanist/i.test(family)) return "Urbanist, a face the route would load";
+  if (/inter/i.test(family)) return "Inter";
+  return firstOf(family);
+}
 
 /** What a card carries, in words, read off its own markup. */
 function carries(card: HTMLElement): string | null {
@@ -83,29 +117,28 @@ function carries(card: HTMLElement): string | null {
       .join(", ");
     return source === "house"
       ? `the house ember (${named}), no album read`
-      : `its light (${named}): its colours, never a photograph`;
+      : `its light (${named}), never a photograph`;
   }
-  if (drawn === "today") return "the name card as today, no photograph";
-  if (drawn === "named") return "a name card, no photograph";
+  if (drawn === "today") return "the name card as today";
+  if (drawn === "named") return "its name alone";
   return null;
 }
 
-/** A card's type at the size it is drawn: the name's and its line's px, and the scale it stands at. */
+/** A card's words: its name, and the line under it where it has one. */
+const wordsOf = (card: HTMLElement, part: "name" | "foot") =>
+  (
+    card.querySelector<HTMLElement>(`[data-ap-${part}]`)?.textContent ?? ""
+  ).trim();
+
+/** A card's type at the size it is drawn: its name's px and its line's (none on a new way's card). */
 function sizes(card: HTMLElement, win: Window) {
   const name = card.querySelector<HTMLElement>("[data-ap-name]");
   const foot = card.querySelector<HTMLElement>("[data-ap-foot]");
   const k = card.getBoundingClientRect().width / EVENT_CARD_SIZE.width;
-  if (!name || !foot || !(k > 0)) return null;
+  if (!name || !(k > 0)) return null;
   const px = (el: HTMLElement) =>
     Math.round(parseFloat(win.getComputedStyle(el).fontSize) * k);
-  return {
-    name: px(name),
-    foot: px(foot),
-    face: faceOf(win.getComputedStyle(name).fontFamily),
-    words: (name.textContent ?? "").trim(),
-    line: (foot.textContent ?? "").trim(),
-    mark: card.querySelector("[data-ap-mark]")?.getAttribute("data-ap-mark"),
-  };
+  return { name: px(name), foot: foot ? px(foot) : null };
 }
 
 /** The chat's links, in order: what each unfurls into, and how big its card's words stand in the bubble. */
@@ -118,39 +151,54 @@ const readChat: Reader = (root, win) => {
     const what = card ? carries(card) : null;
     const at = card ? sizes(card, win) : null;
     if (!what || !at) return null;
-    return `the album: ${what}; its name ${at.name} px, its line ${at.foot} px`;
+    const line =
+      at.foot === null ? "nothing under it" : `its line ${at.foot} px`;
+    return `the album: ${what}; its name ${at.name} px, ${line}`;
   });
   if (said.some((s) => s === null)) return null;
   return `${said.join(" · ")} (a ${BUBBLE} px bubble)`;
 };
 
-/** A card at its true size: what it carries, its name's face and size, its line, its mark. */
-const readCard: Reader = (root, win) => {
-  const card = findAll(root, "[data-ap-card]")[0];
-  if (!card) return null;
-  const what = carries(card);
-  const at = sizes(card, win);
-  if (!what || !at) return null;
+/**
+ * THE SHEET: what the album's card carries, whether the morning after's and a
+ * week on's are one picture (their markup, compared whole) or what turns
+ * between them, each door's card, then the face every name paints in (the
+ * route's own, or one it would load), each read where it stands.
+ */
+const readSheet: Reader = (root, win) => {
+  const order: readonly CardOf[] = ["live", "keepsake", "password", "private"];
+  const cards = order.map((of) =>
+    find(root, `[data-ap-of="${of}"] [data-ap-card]`),
+  );
+  const [live, kept, pass, shut] = cards;
+  if (!live || !kept || !pass || !shut) return null;
+  const names = cards.map((c) =>
+    c?.querySelector<HTMLElement>("[data-ap-name]"),
+  );
+  const faces = names.map((n) => (n ? faceOf(n, win) : null));
+  const said = cards.map((c) => (c ? carries(c) : null));
+  if (faces.some((f) => f === null) || said.some((s) => s === null))
+    return null;
+  // The name's size on the card's own 1200: the card is drawn at half, and its type is read unscaled.
+  const px = names.map((n) =>
+    n ? `${Math.round(parseFloat(win.getComputedStyle(n).fontSize))} px` : "",
+  );
+  const halves =
+    live.outerHTML === kept.outerHTML
+      ? "one picture the morning after and a week on"
+      : `its line turns from '${wordsOf(live, "foot")}' to '${wordsOf(kept, "foot")}'`;
+  const own = wordsOf(live, "name");
+  const named = (card: HTMLElement) =>
+    wordsOf(card, "name") === own ? "" : `, '${wordsOf(card, "name")}'`;
+  const face = faces.every((f) => f === faces[0])
+    ? `every name in ${faces[0]}`
+    : `the names in ${faces.join(", ")}`;
   return [
-    what,
-    `the name in ${at.face} ${at.name} px`,
-    `'${at.line}'`,
-    at.mark === "tile" ? "the aperture tile" : "the wordmark, small",
-  ].join("; ");
-};
-
-/** A gated pair: what each door's card carries. */
-const readGated: Reader = (root) => {
-  const cards = findAll(root, "[data-ap-card]");
-  if (cards.length < 2) return null;
-  const said = cards.map((c) => {
-    const what = carries(c);
-    if (!what) return null;
-    const who = c.dataset.apGeneric === undefined ? "password" : "Private";
-    const name = (c.querySelector("[data-ap-name]")?.textContent ?? "").trim();
-    return `${who}: ${what}, '${name}'`;
-  });
-  return said.some((s) => s === null) ? null : said.join(" · ");
+    `${said[0]}, its name ${px[0]}; ${halves}`,
+    `password: ${said[2]}${named(pass)}, ${px[2]}`,
+    `Private: ${said[3]}${named(shut)}, ${px[3]}`,
+    face,
+  ].join(" · ");
 };
 
 /* ── the chat ──────────────────────────────────────────────────────────── */
@@ -258,18 +306,10 @@ function Unfurl({
 }
 
 /** The album's card in a bubble. */
-function AlbumPicture({
-  way,
-  of,
-  moment,
-}: {
-  way: CardWay;
-  of: CardOf;
-  moment: typeof MORNING;
-}) {
+function AlbumPicture({ way, of }: { way: CardWay; of: CardOf }) {
   return (
     <CardAt width={BUBBLE}>
-      <Card way={way} of={of} moment={moment} />
+      <Card way={way} of={of} />
     </CardAt>
   );
 }
@@ -287,7 +327,11 @@ function PhotoPicture() {
   );
 }
 
-/** The family chat the morning after: the album, live, and one photo's link. */
+/**
+ * The family chat the morning after: the album, live, and one photo's link.
+ * Maya's own words thank and point; the link's title and line do the inviting
+ * (three "add yours" in one bubble read as the product talking, never her).
+ */
 function MorningChat({ way }: { way: CardWay }) {
   const album = openAlbumWords(WEDDING.name, true);
   const photo = openAlbumWords(WEDDING.name, true, true);
@@ -297,11 +341,11 @@ function MorningChat({ way }: { way: CardWay }) {
       <Message
         ground="paper"
         from="Maya"
-        words="Everyone's photos from yesterday! Add yours"
+        words="Thank you all for yesterday! Everyone's photos so far"
         unfurl={
           <Unfurl
             link="album"
-            picture={<AlbumPicture way={way} of="live" moment={MORNING} />}
+            picture={<AlbumPicture way={way} of="live" />}
             title={album.title}
             line={album.description}
           />
@@ -340,7 +384,7 @@ function WeekChat({ way }: { way: CardWay }) {
         unfurl={
           <Unfurl
             link="album"
-            picture={<AlbumPicture way={way} of="keepsake" moment={WEEK} />}
+            picture={<AlbumPicture way={way} of="keepsake" />}
             title={kept.title}
             line={kept.description}
           />
@@ -350,29 +394,22 @@ function WeekChat({ way }: { way: CardWay }) {
   );
 }
 
-/** A card at its true size in a frame of its own. */
-function TrueSize({
-  id,
-  title,
-  way,
-  of,
-}: {
-  id: string;
-  title: string;
-  way: CardWay;
-  of: CardOf;
-}) {
+/** The four links' cards at half size: the album the morning after and a week on, over the two doors'. */
+function Sheet({ way }: { way: CardWay }) {
+  const cells: readonly CardOf[] = ["live", "keepsake", "password", "private"];
   return (
-    <Scene
-      id={id}
-      w={EVENT_CARD_SIZE.width}
-      h={EVENT_CARD_SIZE.height}
-      ground="room"
-      title={title}
-      measure={readCard}
+    <div
+      className="grid grid-cols-2"
+      style={{ gap: GUTTER, padding: GUTTER, width: HALF * 2 + GUTTER * 3 }}
     >
-      <Card way={way} of={of} moment={of === "live" ? MORNING : WEEK} />
-    </Scene>
+      {cells.map((of) => (
+        <div key={of} data-ap-of={of}>
+          <CardAt width={HALF}>
+            <Card way={way} of={of} />
+          </CardAt>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -399,34 +436,15 @@ export function CardStory({ way }: { way: CardWay; s: BoardState }) {
       >
         <WeekChat way={way} />
       </Scene>
-      <TrueSize
-        id={`ap-card-live-${way}`}
-        title="The album's card the morning after, at its true size (1200 × 630)"
-        way={way}
-        of="live"
-      />
-      <TrueSize
-        id={`ap-card-kept-${way}`}
-        title="Its card a week on, as its keepsake (1200 × 630)"
-        way={way}
-        of="keepsake"
-      />
       <Scene
-        id={`ap-card-gated-${way}`}
-        w={1200}
-        h={330}
-        ground="room"
-        title="A password album's card, and a Private one's"
-        measure={readGated}
+        id={`ap-card-sheet-${way}`}
+        w={HALF * 2 + GUTTER * 3}
+        h={(EVENT_CARD_SIZE.height / 2) * 2 + GUTTER * 3}
+        ground="paper"
+        title="Its cards at half size: the morning after and a week on, over a password album's and a Private one's"
+        measure={readSheet}
       >
-        <div className="flex gap-6">
-          <CardAt width={588}>
-            <Card way={way} of="password" moment={WEEK} />
-          </CardAt>
-          <CardAt width={588}>
-            <Card way={way} of="private" moment={WEEK} />
-          </CardAt>
-        </div>
+        <Sheet way={way} />
       </Scene>
     </Story>
   );

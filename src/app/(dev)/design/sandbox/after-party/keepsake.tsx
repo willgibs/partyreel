@@ -76,14 +76,19 @@ import {
  *    opens production's own Select, then Save (the dock's shutter turns to
  *    Save in select mode): two acts, one hero. Its scrolled frame is that
  *    press's landing.
- *  - `hers`: her nine stand as a strip under the byline, "Yours · 9", the door
- *    to the album's own Yours lens (its scrolled frame); the white act is
- *    Take yours home. A newcomer has nothing of hers, so the party's reel
- *    leads in its place: her cover is never a cover with its lead cut out.
+ *  - `hers`: under the name, three of her photographs overlap beside "Yours ·
+ *    9", in production's own idiom for a set of hers (the select bar's picks,
+ *    `SelectBar` below): the door to the album's own Yours lens (its scrolled
+ *    frame); the white act is Take yours home. A newcomer has nothing of
+ *    hers, so the party's reel leads in its place: her cover is never a cover
+ *    with its lead cut out.
  *  - `still`: a title page. The cover held on its one photograph (slot 0,
  *    the one production already stands for a reduced-motion reader), its
- *    words centred: the name, who and the day said in full, the party in
- *    words, the album's two rounds (`keepsake.css`).
+ *    words set in the photograph's middle as a book's title page: the day in
+ *    full over the name, Maya's byline, a short hairline, the party in words,
+ *    and nothing to press on it (`keepsake.css`). Its two rounds, the reel
+ *    and Invite, stand in production's dock from the first screen: the dock
+ *    waits only on a cover's row, and a title page has none (`keepsakeTop`).
  *
  * ★ STAND-INS: the photographs, counts and faces are the board's
  * (`fixtures.ts`); select mode's three picks are the frame's own; every press
@@ -101,6 +106,14 @@ const DAY_IN_FULL = new Intl.DateTimeFormat("en-US", {
   month: "long",
   day: "numeric",
 }).format(new Date(`${WEDDING.date}T00:00:00Z`));
+
+/**
+ * THE NAME AS A TITLE PAGE SETS IT: an ampersand never ends a line or starts
+ * one (bound to the words either side by no-break spaces), so a narrow
+ * measure breaks "Maya & Jay's / Wedding", never "Maya & / Jay's Wedding"
+ * (`text-balance` alone measured the two as near-equal and took the second).
+ */
+const titleSet = (name: string) => name.replace(/ & /g, "\u00a0&\u00a0");
 
 /** The party in words: what the album holds in production's count words (`albumCountWords`), and from how many. */
 const PARTY_WORDS = `${albumCountWords({
@@ -166,20 +179,28 @@ function TakeYoursHome() {
   );
 }
 
-/** Her nine as a strip under the byline, "Yours · 9": the door to the album's Yours lens. */
-function HerStrip() {
+/**
+ * HER DOOR, "Yours · 9": three of her photographs overlapped as production's
+ * select bar sets her picks (`SelectBar` below, `live-gallery.tsx`'s own: the
+ * first three the Yours lens lays, 24px, ringed in the ground), then the
+ * words and a chevron. It opens the album's Yours lens: her nine.
+ */
+function HerDoor() {
   return (
     <button type="button" tabIndex={-1} data-ap-hers="" className="ap-hers">
-      <span aria-hidden className="ap-hers-strip">
-        {HERS.map((s) => (
-          // eslint-disable-next-line @next/next/no-img-element -- a stand-in photograph, drawn as the album draws one
+      <span aria-hidden className="flex">
+        {HERS.slice(0, 3).map((s, k) => (
+          // eslint-disable-next-line @next/next/no-img-element -- a stand-in photograph, drawn as the bar draws one
           <img
             key={s.id}
             src={s.src}
             alt=""
             draggable={false}
-            className="ap-hers-shot"
-            style={{ objectPosition: s.focus }}
+            className="size-6 rounded-[5px] object-cover ring-2 ring-background"
+            style={{
+              marginLeft: k === 0 ? 0 : -8,
+              objectPosition: s.focus,
+            }}
           />
         ))}
       </span>
@@ -195,8 +216,11 @@ function HerStrip() {
 
 /**
  * THE STILL TITLE PAGE: production's head (`EventHead`, its house light and
- * scrim) held on one photograph, the words centred as a title page
- * (`keepsake.css`): the name, who and the day in full, the party in words.
+ * scrim) held on one photograph, its words set as a book's title page in the
+ * photograph's middle (`keepsake.css`): the day in full as the eyebrow
+ * production's cover already has a place for, the name at title size,
+ * Maya's byline, a short hairline, and the party in words as its last line.
+ * Nothing on it to press: `keepsakeTop` hands its rounds to the dock.
  */
 function TitlePage() {
   return (
@@ -207,33 +231,36 @@ function TitlePage() {
       ground={
         <div className="absolute inset-0">
           <HeadStills stills={[{ id: COVER.id, tile: COVER.src }]} />
+          <div aria-hidden className="ap-title-scrim" />
         </div>
       }
     >
       <div data-ap-title="" className="ap-title">
-        <h1 className="font-heading text-title text-balance">{WEDDING.name}</h1>
-        <p className="ap-title-by text-sm text-white/85">
-          <span className="flex items-center gap-2">
-            <Avatar seed={WEDDING.host.seed} size="sm">
-              <AvatarFallback>M</AvatarFallback>
-            </Avatar>
-            <span className="font-medium text-white">{WEDDING.host.name}</span>
-          </span>
-          <span aria-hidden className="text-white/45">
-            ·
-          </span>
-          <span data-ap-day="">{DAY_IN_FULL}</span>
+        {/* Production's eyebrow (`AlbumCover`'s), a step whiter: it stands in the photograph's middle, not the foot's scrim. */}
+        <p
+          data-ap-day=""
+          className="text-label font-medium text-white/90 uppercase"
+        >
+          {DAY_IN_FULL}
         </p>
+        <h1 className="ap-title-name font-heading text-title text-balance">
+          {titleSet(WEDDING.name)}
+        </h1>
+        <p className="ap-title-by text-sm">
+          <Avatar seed={WEDDING.host.seed} size="sm">
+            <AvatarFallback>M</AvatarFallback>
+          </Avatar>
+          <span data-ap-by="" className="font-medium text-white">
+            {WEDDING.host.name}
+          </span>
+        </p>
+        <span aria-hidden data-ap-rule="" className="ap-title-rule" />
         <p
           data-ap-party=""
-          className="ap-title-party text-working text-white/80"
+          className="ap-title-party text-working text-white/80 tabular-nums"
         >
           {PARTY_WORDS}
         </p>
-        <div data-ap-acts="" className="ap-title-acts">
-          <ReelRound />
-          <InviteRound />
-        </div>
       </div>
     </EventHead>
   );
@@ -273,7 +300,7 @@ function coverFor(way: KeepsakeWay, screen: Screen, newcomer: boolean) {
       <Cover
         screen={screen}
         moment={WEEK}
-        beneath={<HerStrip />}
+        beneath={<HerDoor />}
         actions={
           <>
             <TakeYoursHome />
@@ -304,7 +331,8 @@ function coverFor(way: KeepsakeWay, screen: Screen, newcomer: boolean) {
  * stands under the cover (today's closed line, the wrapped album's quiet Add,
  * or nothing), and whether the foot's dock stands from the first screen (a
  * cover with no acts of its own hands them to the dock). One source for this
- * story and any other, so the two never draw the keepsake two ways.
+ * story and any other, so the two never draw the keepsake two ways: pass
+ * `dock` as a first screen's `GuestAlbum` dock.
  */
 export function keepsakeTop(
   way: KeepsakeWay,
@@ -316,11 +344,14 @@ export function keepsakeTop(
     cover: coverFor(way, screen, newcomer),
     under:
       way === "closed" ? <ClosedLine /> : over === "wrap" ? <QuietAdd /> : null,
-    dock: null,
+    // ★ PRODUCTION'S DOCK WAITS ONLY ON A COVER'S ROW (`hidden` while the row's sentinel is in view): a title page has
+    // no row, so its two rounds (Invite, the reel; never a shutter, since Add is gone or a quiet line) stand at the foot
+    // from the first screen. Every other cover keeps its row, and the dock waits for it to leave. Built, the page must
+    // say so: `useInViewSentinel` starts `inView` true and only a mounted row turns it false, so a cover with no row
+    // left to the sentinel would hide the dock, and the reel with it, for good.
+    dock: way === "still" ? "look" : null,
   };
 }
-
-/* ── under the cover ───────────────────────────────────────────────────── */
 
 /* ── in the album ──────────────────────────────────────────────────────── */
 
@@ -483,20 +514,47 @@ function SaveFoot() {
 
 /* ── what a frame reads ────────────────────────────────────────────────── */
 
+/** The cover's ground in words: its one photograph held, or its photographs dissolving. */
+const groundWords = (held: string) =>
+  held === "1" ? "one photograph held" : `${held} photographs dissolving`;
+
+/**
+ * The title page as it stands: its lines top to bottom, whether it carries a
+ * hairline (one that draws), anything to press on it, and the dock below it.
+ */
+function titleOf(root: HTMLElement, win: Window, held: string): string {
+  const rule = find(root, "[data-ap-rule]");
+  const ruled = !!rule && rule.getBoundingClientRect().width > 0;
+  const onIt = actsIn(root, win, "[data-event-head]");
+  const dock = actsIn(root, win, "[data-ap-dock]");
+  // The day's own words (its eyebrow sets them in capitals), and the name it stands over as the page breaks it.
+  const day = (find(root, "[data-ap-day]")?.textContent ?? "").trim();
+  const name = find(root, "[data-ap-title] h1");
+  const lines = name
+    ? Math.round(
+        name.getBoundingClientRect().height /
+          parseFloat(win.getComputedStyle(name).lineHeight),
+      )
+    : 0;
+  return [
+    `leads: a title page on ${groundWords(held)}: "${day}" as its eyebrow over the name (${lines === 1 ? "one line" : `${lines} lines`}), ${textOf(find(root, "[data-ap-by]"))}'s byline${ruled ? ", a hairline" : ""}, "${textOf(find(root, "[data-ap-party]"))}"`,
+    onIt.length ? `on it: ${onIt.join(" and ")}` : "no buttons on it",
+    dock.length ? `the dock: ${dock.join(", ")}` : "no dock",
+  ].join("; ");
+}
+
 /** What leads the screen: the cover's lead where it stands, else what the album shows and its foot. */
 function leadOf(root: HTMLElement, win: Window): string | null {
+  const held = find(root, "[data-head-stills]")?.getAttribute(
+    "data-head-stills",
+  );
+  const page = find(root, "[data-ap-title]");
+  if (page && inView(page, win)) return held ? titleOf(root, win, held) : null;
   const acts = find(root, "[data-ap-acts]");
   if (acts && inView(acts, win)) {
-    const held = find(root, "[data-head-stills]")?.getAttribute(
-      "data-head-stills",
-    );
     if (!held) return null;
-    const ground =
-      held === "1" ? "one photograph held" : `${held} photographs dissolving`;
-    const page = find(root, "[data-ap-title]");
+    const ground = groundWords(held);
     const others = actsIn(root, win, "[data-ap-acts]");
-    if (page)
-      return `leads: a title page on ${ground}, "${textOf(find(root, "[data-ap-day]"))}" and "${textOf(find(root, "[data-ap-party]"))}", then ${others.join(" and ")}`;
     const white = find(root, "[data-ap-acts] [data-variant='on-photo']");
     if (white) {
       const rest = others.filter((a) => a !== textOf(white));
@@ -534,11 +592,20 @@ function addOf(root: HTMLElement, win: Window): string {
   return "Add: gone, no notice in its place";
 }
 
-/** What of hers shows: her strip, the Yours lens, select mode's Yours, or nothing. */
+/** What of hers shows: her door on the cover, the Yours lens, select mode's Yours, or nothing. */
 function hersOf(root: HTMLElement, win: Window): string {
-  const strip = find(root, "[data-ap-hers]");
-  if (strip && inView(strip, win))
-    return `hers: a strip of ${strip.querySelectorAll("img").length} under the byline, "${textOf(find(root, "[data-ap-hers-word]"))}"`;
+  const door = find(root, "[data-ap-hers]");
+  if (door && inView(door, win)) {
+    const shots = [...door.querySelectorAll("img")];
+    // Overlapped where each photograph after the first starts inside the one before it.
+    const overlapped = shots.every(
+      (img, k) =>
+        k === 0 ||
+        img.getBoundingClientRect().left <
+          shots[k - 1]!.getBoundingClientRect().right,
+    );
+    return `hers: ${shots.length} of her photos${overlapped ? " overlapped" : ""} under the name, beside "${textOf(find(root, "[data-ap-hers-word]"))}"`;
+  }
   const lens = find(root, "[data-ap-lens]");
   if (lens && inView(lens, win))
     return `hers: the Yours lens, her ${findAll(root, "[data-ap-rows] > div").length} alone`;
@@ -555,11 +622,11 @@ const readKeepsake: Reader = (root, win) => {
 
 /* ── the story ─────────────────────────────────────────────────────────── */
 
-/** Scrolled in, each answer's own landing: her picks for Save, her nine from the strip, or the album. */
+/** Scrolled in, each answer's own landing: her picks for Save, her nine from her door, or the album. */
 const SCROLLED: Record<KeepsakeWay, string> = {
   closed: "Scrolled into the album",
   reel: "Take them home: Select, then Save",
-  hers: "Her strip opens Yours: her nine",
+  hers: "Yours · 9 opens her nine",
   still: "Scrolled into the album",
 };
 
@@ -595,6 +662,8 @@ export function KeepsakeStory({ way, s }: { way: KeepsakeWay; s: BoardState }) {
         const album = f.scroll === "album";
         const selecting = album && way === "reel";
         const lens = album && way === "hers";
+        // The first screen as the answer draws it, one source with the bridge's album.
+        const top = keepsakeTop(way, over, screen, f.newcomer);
         return (
           <Scene
             key={f.key}
@@ -609,8 +678,8 @@ export function KeepsakeStory({ way, s }: { way: KeepsakeWay; s: BoardState }) {
               screen={screen}
               moment={WEEK}
               corner={f.newcomer ? <StartForFree /> : <HerName />}
-              cover={keepsakeTop(way, over, screen, f.newcomer).cover}
-              under={keepsakeTop(way, over, screen, f.newcomer).under}
+              cover={top.cover}
+              under={top.under}
               bar={selecting ? <SelectBar /> : undefined}
               lens={lens ? <YoursLens /> : undefined}
               stills={lens ? HERS : undefined}
@@ -623,7 +692,8 @@ export function KeepsakeStory({ way, s }: { way: KeepsakeWay; s: BoardState }) {
               scroll={f.scroll}
               // Scrolled until the cover's row has left the screen: production's dock stands only then.
               offset={selecting ? 0 : 12}
-              dock="look"
+              // On the first screen, only where the answer's cover hands the dock its acts (the title page's).
+              dock={album ? "look" : top.dock}
               foot={selecting ? <SaveFoot /> : undefined}
             />
           </Scene>

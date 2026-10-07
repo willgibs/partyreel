@@ -55,33 +55,56 @@ import {
 
 /**
  * WHAT TELLS THE ALBUM ITS PARTY IS OVER (the `over` question): the album's
- * phase model, drawn in the same four frames for every answer so they compare
- * like for like. Maya's hub on Sunday, the morning after; her hub on
- * Wednesday, once the photos have stopped; her press and what it changes; and
- * her guests' cover a week on. Each answer draws only what it changes:
- *  - `switch` (today): nothing offers anything on either day and her cover
- *    keeps production's Live mark; the third frame is where closing waits,
+ * phase model, drawn as each answer's own week in the order it happens (three
+ * frames of her hub, then her guests' cover a week on), so an answer reads as
+ * the days it makes. Each answer draws only what it changes:
+ *  - `switch` (today): Sunday and Wednesday offer nothing and her cover keeps
+ *    production's Live mark; the third frame is where closing waits,
  *    production's own Settings page (`AddsPage` in the `settings` popup, over
  *    her hub at a desk), its switch still on; her guests still meet Add.
- *  - `offer`: on Wednesday, two days after the last photo (dated or not, so an
- *    undated party reads the same), a row on her cover's foot, over the strip
- *    of what the party made, offers Close adding or Keep it open; pressed,
- *    production's own consequences (the code dims and wears its pause,
- *    Settings' door says Paused) and her guests' cover loses Add for today's
+ *  - `offer`: Sunday offers nothing (the photos are still landing). On
+ *    Wednesday, two days after the last photo (dated or not, so an undated
+ *    party reads the same), a row on her cover's foot, over the strip of what
+ *    the party made, offers Close adding or Keep it open; pressed, the row is
+ *    its receipt, the cover's status says Keepsake where Live stood, and
+ *    production's own consequences follow (the code dims and wears its pause,
+ *    Settings' door says Paused); her guests' cover loses Add for today's
  *    closed line.
  *  - `wrap`: the morning after a dated party the same row offers Wrap the
- *    party; pressed, the cover's status is a point and its word (production's
- *    Badge, "Keepsake") where Live stood, Add stays open but recedes, and a
- *    quiet Close adding stays hers for later.
+ *    party; pressed, the row is its receipt and the cover's status says
+ *    Keepsake; by Wednesday her hub is calm, the keepsake kept and adding
+ *    still open (the code bright, nothing asking her), and her guests meet Add
+ *    receded to a quiet line.
  *
- * ★ ONE ROW, ONE PLACE, EVERY STATE (`HubHead`'s `foot`): the offer, its
- * receipt once pressed, and the wrap's quiet remainder all stand in one row
- * across the cover's foot, never in the recap's places (the checklist's place
- * under the light, the cover's line, the code's corner, her home's stage). An
- * offer is words and the photograph's own buttons (`on-photo`, `glass`), never
- * a new light: the cover has its photographs and the hub its Seam. A press
- * turns the row into its receipt in the same place, with the way back, so the
- * act is said out loud and undone where it was done.
+ * ★ THE WRAP'S WEDNESDAY ASKS NOTHING. It used to keep a quiet row on her
+ * cover for good ("Late photos still welcome", Close adding): a row standing
+ * where nothing needs her, whose one key argued against the wrap's own point
+ * (the late photos still come in), and which made the wrap's Wednesday read
+ * like the offer's. Closing stays in Settings, as today; the receipt said
+ * what she did, and the Keepsake mark keeps saying it.
+ *
+ * ★ THE TWO OFFERS ARE DRAWN EQUALLY FINISHED (the creative director's pass):
+ * the same row, the same keys, a receipt carrying its way back, and the same
+ * status once pressed. Live in production only says the realtime channel is
+ * up (`EventLive`), but at a desk it reads as the album's state, so a closed
+ * album still wearing it read half-done: either answer, pressed, puts a point
+ * and its word in Live's place ("Keepsake", help's own word for a closed
+ * album, `share-the-album-after-the-event.mdx`).
+ *
+ * ★ ONE ROW, ONE PLACE, EVERY STATE (`HubHead`'s `foot`): an offer and its
+ * receipt stand in one row across the cover's foot, never in the recap's
+ * places (the checklist's place under the light, the cover's line, the code's
+ * corner, her home's stage). An offer is words and the photograph's own
+ * buttons (`on-photo`, `glass`), never a new light: the cover has its
+ * photographs and the hub its Seam. A press turns the row into its receipt in
+ * the same place, and the receipt carries the way back (Open it again, Undo),
+ * so the offer never has to say it: two lines and its keys on her phone.
+ *
+ * ★ SUNDAY IS ONE MOMENT WITH THE RECAP (`recap.tsx` draws its Sunday in this
+ * question's answer): her Sunday hub (`SundayHub`) and the wrap folded into a
+ * recap (`WrapFold`) are exported from here, both on the wrap's one set of
+ * words (`WRAP`), so the recap says the wrap in these words and never draws
+ * it twice.
  *
  * ★ THE GUESTS' COVER IS TODAY'S, ONLY ADD'S FATE CHANGED (still the hero,
  * gone, or a quiet line under it): what a keepsake leads with is the next
@@ -159,24 +182,54 @@ const readCover: Reader = (root, win) => {
 
 /* ── her cover's foot ──────────────────────────────────────────────────── */
 
+/** A line as words, or as its phrases (`Phrases`). */
+type Line = string | readonly string[];
+
+/**
+ * A LINE IN ITS PHRASES: where a line is narrower than its words (a phone), it
+ * breaks between two phrases, never inside one ("Close adding?" whole, the
+ * wrap at its semicolon); a phrase wider than the line still wraps inside
+ * itself. Even lines (`text-wrap: balance`) broke mid-phrase instead.
+ */
+function Phrases({ line }: { line: Line }) {
+  if (typeof line === "string") return <>{line}</>;
+  return (
+    <>
+      {line.map((phrase, i) => (
+        <span key={phrase}>
+          {i > 0 ? " " : null}
+          <span className="inline-block">{phrase}</span>
+        </span>
+      ))}
+    </>
+  );
+}
+
 /**
  * THE ROW ON HER COVER'S FOOT, over the strip of what the party made: a lead
  * in white, the line in the cover's own quieter white, then the photograph's
- * own buttons. `quiet` is the wrap's remainder, a step softer than an offer.
+ * own buttons. `quiet` is a step softer than an offer (the wrap folded into a
+ * recap, which leads with its own white key). `wrap` marks the wrap's row for
+ * a reader beside it (the recap's frames say where the wrap stands).
  */
 function Foot({
   lead,
   line,
   quiet = false,
+  wrap,
   children,
 }: {
   lead?: string;
-  line: string;
+  line: Line;
   quiet?: boolean;
+  wrap?: "offer" | "fold";
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+    <div
+      data-ap-wrap={wrap}
+      className="flex flex-wrap items-center gap-x-4 gap-y-2.5"
+    >
       <p
         data-ap-foot-say=""
         className={cn(
@@ -185,7 +238,7 @@ function Foot({
         )}
       >
         {lead ? <span className="font-medium text-white">{lead} </span> : null}
-        {line}
+        <Phrases line={line} />
       </p>
       <div className="flex shrink-0 items-center gap-2">{children}</div>
     </div>
@@ -211,19 +264,39 @@ function Quiet({ children }: { children: ReactNode }) {
 }
 
 /*
- * ★ THE WORDS SAY THE PRESS WHOLE, IN ONE BREATH: why now (the lead), what her
- * guests will meet, that nothing is lost, and that it goes back; the keys say
- * the act and the way out ("Not yet" answers "The party's over" in its own
- * voice). The offer and the wrap are worded alike so the two read as answers to
- * one question, never as two products.
+ * ★ AN OFFER SAYS ITS PRESS IN TWO LINES: why now (the lead), then the act and
+ * what her guests will meet; the keys say the act and the way out ("Not yet"
+ * answers "The party's over" in its own voice). That it goes back is the
+ * receipt's to say, with its key, once she has pressed (Open it again, Undo),
+ * never the offer's third line. The offer and the wrap are worded alike so the
+ * two read as answers to one question, never as two products.
  */
+
+/** The wrap's words, said once: its offer here and every recap that folds it in (`recap.tsx`) read them. */
+const WRAP = {
+  /** Why now: the offer's lead (a recap that folds the wrap in leads with its own headline instead). */
+  lead: "The party's over.",
+  /**
+   * Its line in two phrases, so a narrow line breaks at the semicolon
+   * (`Phrases`); "a keepsake" never parts where the line runs on after the lead.
+   */
+  line: [
+    "Wrap it, and guests meet a\u00a0keepsake;",
+    "late photos still come in.",
+  ],
+  act: "Wrap the party",
+  later: "Not yet",
+} as const;
 
 /** `offer`: once the album has been quiet two days, dated or not. */
 function CloseOffer({ moment }: { moment: Moment }) {
   return (
     <Foot
       lead="No new photos since Monday."
-      line={`Close adding, and guests can still see and save all ${formatCount(moment.album)}. You can open it again any time.`}
+      line={[
+        "Close adding?",
+        `Guests can still see and save all ${formatCount(moment.album)}.`,
+      ]}
     >
       <Primary>Close adding</Primary>
       <Quiet>Keep it open</Quiet>
@@ -231,49 +304,77 @@ function CloseOffer({ moment }: { moment: Moment }) {
   );
 }
 
-/** `offer`, pressed: the row says what it did, with the way back. */
+/** `offer`, pressed: the row says what it did, and carries the way back. */
 function ClosedDone({ moment }: { moment: Moment }) {
   return (
     <Foot
       lead="Adding is closed."
-      line={`Guests can still see and save all ${formatCount(moment.album)}.`}
+      line={[`Guests can still see and save all ${formatCount(moment.album)}.`]}
     >
       <Quiet>Open it again</Quiet>
     </Foot>
   );
 }
 
-/** `wrap`: the morning after a dated party (an undated one wraps from her hub whenever she likes). */
+/**
+ * `wrap`: the morning after a dated party (an undated one wraps from her hub
+ * whenever she likes). Its line runs as words after the lead: in phrases, the
+ * lead and the first would not share a phone's line, and the offer would take
+ * three.
+ */
 function WrapOffer() {
   return (
-    <Foot
-      lead="The party's over."
-      line="Wrap it, and guests meet the album as a keepsake, with late photos still welcome. You can undo it any time."
-    >
-      <Primary>Wrap the party</Primary>
-      <Quiet>Not yet</Quiet>
+    <Foot wrap="offer" lead={WRAP.lead} line={WRAP.line.join(" ")}>
+      <Primary>{WRAP.act}</Primary>
+      <Quiet>{WRAP.later}</Quiet>
     </Foot>
   );
 }
 
-/** `wrap`, pressed: the row says what it did, with the way back. */
+/** `wrap`, pressed: the row says what it did, and carries the way back. */
 function WrapDone() {
   return (
     <Foot
       lead="The party's wrapped."
-      line="Guests now meet the keepsake, with late photos still welcome."
+      line={["Guests now meet a keepsake;", "late photos still come in."]}
     >
       <Quiet>Undo</Quiet>
     </Foot>
   );
 }
 
-/** `wrap`, settled: Add open and receded, and closing it hers whenever she likes. */
-function WrapQuiet() {
+/**
+ * THE WRAP FOLDED INTO A RECAP (`recap.tsx`, in this question's `wrap`):
+ * Sunday morning is one moment, so where a recap stands, the wrap is its quiet
+ * last line rather than a second block beside it saying the party is over. It
+ * is the offer's own line and key, without its lead (the recap's headline says
+ * the moment) and without Not yet (a recap is put away whole, or stays). On
+ * her cover it wears the photograph's glass, a step under the recap's white
+ * key; in the room (the hub's plate, her home's stage) a hairline key, a step
+ * under the recap's three acts (`over.css`, `.ap-wrap-room`).
+ */
+export function WrapFold({ on }: { on: "photo" | "room" }) {
+  if (on === "photo")
+    return (
+      <Foot wrap="fold" quiet line={WRAP.line}>
+        <Quiet>{WRAP.act}</Quiet>
+      </Foot>
+    );
   return (
-    <Foot quiet line="Late photos still welcome.">
-      <Quiet>Close adding</Quiet>
-    </Foot>
+    <div data-ap-wrap="fold" className="ap-wrap-room">
+      <p className="min-w-0 text-sm text-pretty text-muted-foreground">
+        <Phrases line={WRAP.line} />
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        tabIndex={-1}
+        className="shrink-0"
+      >
+        {WRAP.act}
+      </Button>
+    </div>
   );
 }
 
@@ -284,8 +385,12 @@ function KeepsakeMark() {
 
 /* ── the hub's frames ──────────────────────────────────────────────────── */
 
-/** Sunday at 9, the morning after: only the wrap offers anything (the photos are still landing). */
-function sundayHub(way: OverWay, screen: Screen) {
+/**
+ * Her hub on Sunday at 9, the morning after, in an answer: only the wrap
+ * offers anything (the photos are still landing). The recap's `stage` answer,
+ * which leaves her hub to say it, draws this frame as its own.
+ */
+export function SundayHub({ way, screen }: { way: OverWay; screen: Screen }) {
   return (
     <HubScreen
       screen={screen}
@@ -293,44 +398,14 @@ function sundayHub(way: OverWay, screen: Screen) {
       head={
         way === "wrap" ? (
           <HubHead moment={MORNING} foot={<WrapOffer />} />
-        ) : (
-          <HubHead moment={MORNING} />
-        )
+        ) : undefined
       }
     />
   );
 }
 
-/** Wednesday, the photos stopped since Monday: the offer asks; the wrap, pressed on Sunday, is quiet. */
-function wednesdayHub(way: OverWay, screen: Screen) {
-  const head =
-    way === "offer" ? (
-      <HubHead moment={WEEK} foot={<CloseOffer moment={WEEK} />} />
-    ) : way === "wrap" ? (
-      <HubHead moment={WEEK} status={<KeepsakeMark />} foot={<WrapQuiet />} />
-    ) : (
-      <HubHead moment={WEEK} />
-    );
-  return <HubScreen screen={screen} moment={WEEK} head={head} />;
-}
-
-/** Her hub the moment she presses: Close adding on Wednesday, Wrap the party on Sunday. */
-function pressedHub(way: Exclude<OverWay, "switch">, screen: Screen) {
-  if (way === "offer")
-    return (
-      <HubScreen
-        screen={screen}
-        moment={WEEK}
-        accepting={false}
-        head={
-          <HubHead
-            moment={WEEK}
-            accepting={false}
-            foot={<ClosedDone moment={WEEK} />}
-          />
-        }
-      />
-    );
+/** Sunday, once she wraps the party: the receipt, and the keepsake's mark where Live stood. */
+function WrappedHub({ screen }: { screen: Screen }) {
   return (
     <HubScreen
       screen={screen}
@@ -340,6 +415,36 @@ function pressedHub(way: Exclude<OverWay, "switch">, screen: Screen) {
           moment={MORNING}
           status={<KeepsakeMark />}
           foot={<WrapDone />}
+        />
+      }
+    />
+  );
+}
+
+/** Wednesday, the photos stopped since Monday: the offer asks; the wrap, pressed on Sunday, is kept and calm. */
+function WednesdayHub({ way, screen }: { way: OverWay; screen: Screen }) {
+  const head =
+    way === "offer" ? (
+      <HubHead moment={WEEK} foot={<CloseOffer moment={WEEK} />} />
+    ) : way === "wrap" ? (
+      <HubHead moment={WEEK} status={<KeepsakeMark />} />
+    ) : undefined;
+  return <HubScreen screen={screen} moment={WEEK} head={head} />;
+}
+
+/** Wednesday, once she closes adding: the receipt, the keepsake's mark, the code paused and Settings' door Paused. */
+function ClosedHub({ screen }: { screen: Screen }) {
+  return (
+    <HubScreen
+      screen={screen}
+      moment={WEEK}
+      accepting={false}
+      head={
+        <HubHead
+          moment={WEEK}
+          accepting={false}
+          status={<KeepsakeMark />}
+          foot={<ClosedDone moment={WEEK} />}
         />
       }
     />
@@ -454,59 +559,87 @@ function guestsCover(way: OverWay) {
 
 /* ── the story ─────────────────────────────────────────────────────────── */
 
+/** One frame of her hub: its key (the frame's id), its title, what it reads and what it draws. */
+type HubFrame = {
+  key: string;
+  title: string;
+  measure: Reader;
+  node: ReactNode;
+};
+
+/**
+ * EACH ANSWER'S DAYS, IN THE ORDER THEY HAPPEN (the creative director's pass:
+ * the wrap's frames ran Sunday, Wednesday, Sunday): today's Sunday, Wednesday
+ * and where closing waits; the offer's Sunday with nothing yet, its Wednesday
+ * offer and the moment she closes; the wrap's Sunday offer, the moment she
+ * wraps, and its Wednesday kept.
+ */
+function hubFrames(way: OverWay, screen: Screen): HubFrame[] {
+  const sunday: HubFrame = {
+    key: "sunday",
+    title: "Sunday, the morning after: her hub",
+    measure: readHub,
+    node: <SundayHub way={way} screen={screen} />,
+  };
+  const wednesday: HubFrame = {
+    key: "wednesday",
+    title: "Wednesday, the photos have stopped: her hub",
+    measure: readHub,
+    node: <WednesdayHub way={way} screen={screen} />,
+  };
+  if (way === "switch")
+    return [
+      sunday,
+      wednesday,
+      {
+        key: "settings",
+        title: "Where closing waits: Settings, What guests can add",
+        measure: readSettings,
+        node: <SettingsAdds screen={screen} />,
+      },
+    ];
+  if (way === "offer")
+    return [
+      sunday,
+      wednesday,
+      {
+        key: "closed",
+        title: "Wednesday, once she closes adding: her hub",
+        measure: readHub,
+        node: <ClosedHub screen={screen} />,
+      },
+    ];
+  return [
+    sunday,
+    {
+      key: "wrapped",
+      title: "Sunday, once she wraps the party: her hub",
+      measure: readHub,
+      node: <WrappedHub screen={screen} />,
+    },
+    wednesday,
+  ];
+}
+
 export function OverStory({ way, s }: { way: OverWay; s: BoardState }) {
   const screen = hostScreen(s);
   const { w } = SCREENS[screen];
   const h = screen === "1440" ? 600 : 700;
   return (
     <Story>
-      <Scene
-        id={`ap-over-sunday-${way}-${screen}`}
-        w={w}
-        h={h}
-        ground="paper"
-        title="Sunday, the morning after: her hub"
-        measure={readHub}
-      >
-        {sundayHub(way, screen)}
-      </Scene>
-      <Scene
-        id={`ap-over-wednesday-${way}-${screen}`}
-        w={w}
-        h={h}
-        ground="paper"
-        title="Wednesday, the photos have stopped: her hub"
-        measure={readHub}
-      >
-        {wednesdayHub(way, screen)}
-      </Scene>
-      {way === "switch" ? (
+      {hubFrames(way, screen).map((f) => (
         <Scene
-          id={`ap-over-press-${way}-${screen}`}
+          key={f.key}
+          id={`ap-over-${f.key}-${way}-${screen}`}
           w={w}
           h={h}
           ground="paper"
-          title="Where closing waits: Settings, What guests can add"
-          measure={readSettings}
+          title={f.title}
+          measure={f.measure}
         >
-          <SettingsAdds screen={screen} />
+          {f.node}
         </Scene>
-      ) : (
-        <Scene
-          id={`ap-over-press-${way}-${screen}`}
-          w={w}
-          h={h}
-          ground="paper"
-          title={
-            way === "offer"
-              ? "Wednesday, once she closes adding: her hub"
-              : "Sunday, once she wraps the party: her hub"
-          }
-          measure={readHub}
-        >
-          {pressedHub(way, screen)}
-        </Scene>
-      )}
+      ))}
       <Scene
         id={`ap-over-guests-${way}`}
         w={375}

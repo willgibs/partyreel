@@ -87,7 +87,8 @@
 }
 
 /* The plate's room: where the strip's field ends (the room's card), its words in the page's own gutter, and
-   nothing pressed in the light (the band starts where the light's reach ends). */
+   nothing pressed in the light (the band starts where the light's reach ends). From a tablet up the words and the acts
+   share a row, and a wrap folded in (`WrapFold`) takes a row of its own under them. */
 .ap-recap-room {
   position: relative;
   display: flex;
@@ -104,14 +105,47 @@
 @media (width >= 40rem) {
   .ap-recap-room {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 32px;
+    gap: 20px 32px;
     padding: 4px 20px 32px;
   }
   .dark .ap-recap-band .ap-recap-room {
     padding-bottom: 20px;
   }
+}
+
+/* ★ THE WRAP, FOLDED IN (the `over` question's `wrap`): Sunday is one moment, so the wrap is the recap's own quiet last
+   line, never a second block. On the plate it runs the whole width under a hairline, a footer to the recap's words and
+   acts (they stand side by side above it at a desk); its words and key are the over question's (`over.tsx`). */
+.ap-recap-room > [data-ap-wrap] {
+  flex-basis: 100%;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+/* On her home's stage, beside the acts, a step under them: the quiet word production stands beside its acts. The
+   stage's column is narrow, so the wrap keeps the acts' left edge: its line, then its key under it. */
+.ap-recap-stage-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ap-recap-stage-foot > .ap-wrap-room {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ap-recap-stage-foot > .ap-wrap-room > p {
+  flex: none;
+}
+
+/* On the turned cover's foot in a hand: the acts' row, the wrap's line under it. */
+.ap-recap-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 /* The words, clear of the close in a hand. */
@@ -145,4 +179,29 @@
    after it on the next. */
 .ap-recap-cover-made {
   flex-basis: 100%;
+}
+
+/* ★ IN A HAND THE TURNED COVER'S WORDS STAND HIGHER ON ITS PHOTOGRAPH THAN THE HUB'S OWN (the party's line under the
+   name, the acts and, in the wrap, its line on the foot), up where the hub's scrim has already lifted (`0.4` at 58% of
+   the cover, nothing at 72%), so her link and the party's line stood on the flowers unread. The scrim keeps its weight
+   behind the words as production's rule says it does ("its weight behind the name, the strip and the cards"), its fall
+   moved up to the name; the top's breath and the foot's lift are production's. A desk's cover holds its words low on a
+   wider photograph and keeps production's scrim. */
+@media (width < 40rem) {
+  [data-ap-hub-head]:has([data-ap-recap="cover"])
+    [data-event-head="hub"]
+    .head-scrim {
+    background:
+      linear-gradient(to bottom, rgb(0 0 0 / 0.42) 0, rgb(0 0 0 / 0) 7.5rem),
+      linear-gradient(
+        to top,
+        rgb(0 0 0 / 0.22) 0,
+        rgb(0 0 0 / 0.34) var(--hub-under),
+        rgb(0 0 0 / 0.78) var(--hub-rise),
+        rgb(0 0 0 / 0.78) calc(var(--hub-rise) + var(--hub-words) + 56px),
+        rgb(0 0 0 / 0.62) 70%,
+        rgb(0 0 0 / 0.3) 90%,
+        rgb(0 0 0 / 0) 100%
+      );
+  }
 }
