@@ -78,6 +78,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { needsDisplayName } from "@/lib/welcome";
 
+import { openAlbumCardPath, openAlbumWords } from "./card/words";
 import { notFoundMetadata } from "./not-found.metadata";
 import { GuestNotFoundScreen } from "./not-found.screen";
 
@@ -88,7 +89,7 @@ export const dynamic = "force-dynamic";
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
 // nothing (generic title); a PASSWORD event shows its NAME (it's link-shared, the name
 // isn't the secret) but no description; OPEN gets the full unfurl, one invitation for
-// every open event whatever its identity switch (below). The IMAGE is the event's own
+// every open event whatever its identity switch, said as the album stands (below). The IMAGE is the event's own
 // card (`/e/<token>/card`), or, for a link to one photograph on an album anyone may open,
 // that photograph (`photoCard` below). ★ EVERY SHUT DOOR gets the private event's metadata
 // (a block, a decline, a closed door and Only me alike, `closed-door.server.ts`): the tab's
@@ -150,11 +151,19 @@ export async function generateMetadata({
   // an event that requires a verified email still gates the guest after the tap,
   // and that cost was weighed, not missed. The gate itself is honest where it
   // happens, at the entry modal's account step.
-  const description = "Photos and videos from the day. Add yours.";
-
+  //
+  // ★ AND IT SAYS WHAT THE ALBUM IS RIGHT NOW (crumbs-87): an album that takes
+  // photos invites ("Add photos to <name>", "Add yours."); one whose host closed
+  // uploads is the album to look through, and no longer asks for what the page
+  // then refuses. The title, the line and the card's own address all follow
+  // `accepting_uploads` in the same breath (`card/words.ts`).
   const photo = await photoCard(event, (await searchParams)[PHOTO_PARAM]);
   if (photo) {
-    const title = `A photo from ${event.name}`;
+    const { title, description } = openAlbumWords(
+      event.name,
+      event.accepting_uploads,
+      true,
+    );
     return {
       title,
       description,
@@ -175,7 +184,13 @@ export async function generateMetadata({
     };
   }
 
-  const title = `Add photos to ${event.name}`;
+  const { title, description } = openAlbumWords(
+    event.name,
+    event.accepting_uploads,
+  );
+  const openCard = cardImage(
+    openAlbumCardPath(event.qr_token, event.accepting_uploads),
+  );
   return {
     title,
     description,
@@ -185,13 +200,13 @@ export async function generateMetadata({
       description,
       url: `/e/${event.qr_token}`,
       type: "website",
-      images: [card],
+      images: [openCard],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [card],
+      images: [openCard],
     },
   };
 }
