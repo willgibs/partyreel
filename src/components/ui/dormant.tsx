@@ -5,6 +5,12 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 /**
+ * The room a clipped control's halo needs (Tailwind's step, a quarter-rem each: 12px): the band and the line (about
+ * 4px) and the bloom's body. A pair, padding and the same pulled back, so the box's content stays where it was.
+ */
+const HALO_ROOM = "-m-3 p-3"
+
+/**
  * THE DORMANT SETTING (event-settings r1, `idle=greyed` with Will's note, 2026-09-29): a setting with
  * no effect right now stays in view, tucked under the switch that controls it as ONE QUIET LINE naming
  * what is inside, and unfolds into its full controls when that switch turns it on.
@@ -23,6 +29,15 @@ import { cn } from "@/lib/utils"
  * Used by the reel's look and hold, A photo first while uploads are paused, the size cap under
  * Videos, and the door's steps under Only me: one primitive, so every setting another one switches
  * off behaves the same.
+ *
+ * ★ THE BOX THAT CLIPS LEAVES ROOM FOR A FOCUS HALO (crumbs-87, red-team 56b's LOW). The fold needs
+ * `overflow: hidden` to collapse its row, and a halo (the band, the line, the bloom: `focus-halo`) is
+ * drawn OUTSIDE its control, so a control that touched the box lost the side of its halo that touched
+ * it: the door's two switches at the card's right edge (measured: 0px of room), the size select, the
+ * first look and the first hold. The clip box is padded by `HALO_ROOM` and pulled back by the same, so
+ * nothing in the layout moves and the clip stands a halo's reach outside the content. Its padding
+ * takes no press (`pointer-events-none`; the content keeps its own), so the strip lying over a
+ * neighbour never catches a tap meant for it.
  */
 function Dormant({
   awake,
@@ -51,10 +66,13 @@ function Dormant({
           awake ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
         )}
       >
-        <div className="min-h-0 overflow-hidden">
+        <div
+          data-dormant-clip=""
+          className={cn("pointer-events-none min-h-0 overflow-hidden", HALO_ROOM)}
+        >
           <p
             data-dormant-summary=""
-            className="border-l-2 border-border py-0.5 pl-3 text-caption text-pretty text-muted-foreground"
+            className="pointer-events-auto border-l-2 border-border py-0.5 pl-3 text-caption text-pretty text-muted-foreground"
           >
             {summary}
           </p>
@@ -68,7 +86,12 @@ function Dormant({
           awake ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )}
       >
-        <div className="min-h-0 overflow-hidden">{children}</div>
+        <div
+          data-dormant-clip=""
+          className={cn("pointer-events-none min-h-0 overflow-hidden", HALO_ROOM)}
+        >
+          <div className="pointer-events-auto">{children}</div>
+        </div>
       </div>
     </div>
   )
