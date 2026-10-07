@@ -348,11 +348,13 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
 
 - ★ **`set_event_door` is the one writer of the pair** (`setEventDoorAction` re-verifies with `getUser()`). A move
   that changes things for people already in or waiting (Only me with guests in; Public, only people already in or a
-  password with newcomers waiting) says what happens first and waits for the confirm. Opening an album to Public lets
+  password with newcomers waiting) says what happens first and waits for the confirm; a first password says it at its
+  field, before she types, a line a group (`passwordGroups`: the guests in stay in on every phone, the people at the
+  door stop waiting on her and get in with it), in place of the gates' inside note. Opening an album to Public lets
   everyone waiting in but an ask a block holds (`events_door_opened`, reading the one set `event_door_asks`), so a
-  declined newcomer waits through a Public trip for Let back in rather than walking into an album its host never let
-  her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks leave
-  At the door, the dashboard and the bell.
+  declined newcomer waits through a Public trip for the host's Let in rather than walking into an album its host never
+  let her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks
+  leave At the door, the dashboard and the bell.
 - ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists are
   the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it whenever
   the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place; the panel
@@ -364,12 +366,15 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   from `countWaitingGuestShots`, which the hub reads only while a develop time is ahead (`hubCovered`), after
   `getEvent`, and never worth the page (a failed read leaves the guests' count, captured).
 - **The Guests room's At the door** heads it: Let in (`let_in_at_door`) opens her door on every device, and her held
-  door opens by itself at its next check-in. ★ Decline is a block (the account where there is one, else the row), with
-  Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and cannot keep
-  re-asking. Back from either, she returns to the door and still needs Let in unless the door as it stands lets her in
-  (the invite list naming her, or a Public album), and Let back in's words say which (`BlockedPerson.lands`, read from
-  the door as it stands, once for the whole Blocked list). A waiting newcomer counts on the hub's Guests card, the
-  dashboard and the bell, and sends no mail.
+  door opens by itself at its next check-in (at Only me the toast says she meets the album closed instead). ★ Decline
+  is a block (the account where there is one, else the row), so a declined newcomer meets the one shut screen and
+  cannot keep re-asking. Her ask stands under the block, so the way back answers it: Let in, on the decline's own
+  toast and on her Blocked row, lifts the block and lets her in on every device she asked from in one call
+  (`let_back_in`'s `p_let_in`, 20261007020000; one press on the row unless a restore can be chosen or the album is Only
+  me, whose confirm says so first). A newcomer whose ask ended (a password) gets Let back in, and its words say where she
+  lands; every landing is `BlockedPerson.lands`, read from the door as it stands, once for the whole Blocked list, and
+  every Let in says what its answer says (`admitted`: one let in by nobody promises nothing past the lifted block). A
+  waiting newcomer counts on the hub's Guests card, the dashboard and the bell, and sends no mail.
 - **Invited**: one field takes a typed address or a pasted list (`readAddresses`: the readable saved at once and
   counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address reads
   Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it let
@@ -455,9 +460,10 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   and which offers An email first, off, on a names-only album. It keys on the account, the confirmed address or the
   guest row, never a device or an IP, so a typed name is held on the phone that used it. Their live uploads move to
   Deleted in the same step as the host's own removal (a held one stays, as every host write leaves it). The Guests
-  room's foot lists the blocks with Let back in (`let_back_in`), whose restore is off unless the host turns it on and
-  brings back only what this block removed and still waits in Deleted, to the status each had, newest first within
-  the cap. What the person meets is [guest-flow.md](guest-flow.md)'s.
+  room's foot lists the blocks with their way back (`let_back_in`: Let in for a newcomer whose ask stands, above, Let
+  back in for anyone else), whose restore is off unless the host turns it on and brings back only what this block
+  removed and still waits in Deleted, to the status each had, newest first within the cap. What the person meets is
+  [guest-flow.md](guest-flow.md)'s.
 
 ## The highlight reel, the host's side
 
