@@ -100,8 +100,8 @@ vi.mock("@/components/app/display-name-form", () => ({
 vi.mock("@/components/app/notification-prefs-form", () => ({
   NotificationPrefsForm: part,
 }));
-vi.mock("@/components/social/relation-toggle", () => ({
-  RelationToggle: part,
+vi.mock("@/app/(app)/account/page-connections", () => ({
+  ConnectionsLists: part,
 }));
 vi.mock("@/components/social/attended-events-visibility", () => ({
   AttendedEventsVisibility: part,

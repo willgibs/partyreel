@@ -343,21 +343,27 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
       (await getEventBlocks(EVENT, format)).map((p) => [p.id, p.lands]),
     );
 
-  it("★ a declined newcomer goes back to the door; someone who was in comes back in", async () => {
+  // ★ RESHAPED ON PURPOSE (host-moments r1, `let-back=straight`; scar kept: a declined newcomer is never promised the
+  // album as someone who was in is). The expired reason: "a declined newcomer goes back to the door". Her ask stands,
+  // so the act is Let in, which answers it (`blockedLanding`, the rule's one home; this pins what the read hands it).
+  it("★ a declined newcomer whose ask stands is Let in; someone who was in comes back in", async () => {
     tables.events = [{ id: EVENT, visibility: "private", gate: "approve" }];
     await expect(standing()).resolves.toEqual({
-      "b-wren": "door",
+      "b-wren": "let_in",
       "b-sam": "in",
-      "b-lou": "door",
+      "b-lou": "let_in",
     });
   });
 
+  // ★ RESHAPED ON PURPOSE (host-moments r1; scar kept: the list, while it is the door, lets a listed one straight
+  // in, and the door and the list are the host's own reads). A standing ask is Let in whoever the list names, so the
+  // list decides only once the asks have ended.
   it("★ the invite list, while it is the door, lets a listed one straight in, as let_back_in does", async () => {
     tables.events = [{ id: EVENT, visibility: "private", gate: "invite" }];
     await expect(standing()).resolves.toEqual({
-      "b-wren": "door",
+      "b-wren": "let_in",
       "b-sam": "in",
-      "b-lou": "in",
+      "b-lou": "let_in",
     });
     // The door and the list are the host's own reads, never the admin client's.
     expect(
@@ -365,6 +371,13 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
         .filter((r) => r.table === "events" || r.table === "event_invites")
         .map((r) => r.client),
     ).toEqual(["host", "host"]);
+    // With the asks ended (a password trip, then the list again), the list decides: she is in by it, Wren may ask.
+    tables.guests = tables.guests.filter((g) => g.admission === "in");
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "door",
+      "b-sam": "in",
+      "b-lou": "in",
+    });
   });
 
   it("★ a newcomer whose ask a password ended meets it like anyone new, never the album she was never in (crumbs-24)", async () => {
@@ -409,14 +422,15 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
 
   // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: a newcomer keeps her own landing, never the one of someone who was
   // in): a newcomer's standing ask at Only me was "door", and the words promised a Let in that leaves her at a
-  // closed album; it is her own Only me landing at the door now.
+  // closed album; it is her own Only me landing. ★ AND AGAIN (host-moments r1; scar kept): the expired reason is "at
+  // the door": the act is the Let in now, into the album Only me keeps shut, said before the press.
   it("★ at Only me, someone who was in is told the album is closed until the host opens it; a newcomer keeps her own landing (crumbs-27)", async () => {
     tables.events = [{ id: EVENT, visibility: "private", gate: null }];
     await expect(standing()).resolves.toEqual({
-      // Their ask still stands at a door the host answers, whose Let in meets the album Only me keeps shut.
-      "b-wren": "door_only_me",
+      // Their ask still stands, and the press lets them in to the album Only me keeps shut.
+      "b-wren": "let_in_only_me",
       "b-sam": "only_me",
-      "b-lou": "door_only_me",
+      "b-lou": "let_in_only_me",
     });
     // Everyone in: every one of them lands on the closed album.
     tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));

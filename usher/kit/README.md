@@ -43,13 +43,22 @@ the lines he holds stay his. Nothing here or anywhere lives only in an agent's m
   drops included, timed so partyreel.com's live build never reads a dropped thing; a milestone needs his explicit yes; a
   one-way door goes to him with the Advisor's view beside the Orchestrator's. A classifier refusal, here or in a lane,
   stops that step and goes to him with the smallest action it needs, never re-run another way.
-- **Pacing and seats:** weekly usage is no constraint (two Claude accounts: willg97@gmail.com resets Sunday 9am ET,
-  hi@willgibs.com Tuesday 5pm ET; plus cloud credit), so lanes run to the machine's measured memory. Near a week's
-  end he may call a wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current into
-  the auto-kill at 100%, so the next account's Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
+- **Pacing and seats:** the 5-hour window paces the lanes, never a kill (Will, 2026-10-07): six to eight agents, with
+  `get_usage` read at every cut; when the window would run out before its reset, start nothing new, so the account
+  rolls into about 99% at the reset and this session goes on in context. Weekly usage is no constraint (two Claude
+  accounts, each resetting weekly, `get_usage` says when; plus cloud credit). Near a week's end he may call a
+  wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current, so the next account's
+  Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
   lanes come first while cloud credit lasts: from a cloud seat, each lane is a cloud session of its own ("Cut a
   lane", step 4); from a desktop session the Agent tool's remote flag runs on the Mac, so the route there is a
   claude.ai routine (a saved item: his yes first).
+- **Who does the work** (Will, 2026-10-07): an Opus Orchestrator costs what an Opus lane costs, so a lane is cut for
+  the focus it buys, never to save tokens. Explorations, reviews of critical work, red-teams and multi-hour wiring stay
+  lanes, their depth the point. A small, well-specified change already in the Orchestrator's context (a fix met at an
+  integration, a board's retirement, a kit or doc fix, an Advisor-approved plan's mechanical steps) it makes itself,
+  gated by hand, sparing a lane's boot and handoff, while its orchestration across the lanes never thins. Every step a
+  lane runs is paid once per lane: a brief asks for the problem's depth and nothing ceremonial, and the wide checks
+  gather at the milestone (the red-team, the FULL gate, CI on `main`).
 - **His browser and accounts:** never click Copy or "Copy so far" in the built-in browser (a stray paste reads as a real
   answer); his Supabase dashboard is read-only to agents; Moltbook runs only on his word (`usher/moltbook/README.md`).
 - **The tools' reach:** the Cloudflare MCP cannot mint R2 tokens or set bucket CORS, and the Vercel MCP never sets env
@@ -138,8 +147,8 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included; the scratch is a
    lane's working area by design, so what a successor needs goes to the repo at the merge), one port each from 3131 to
    3139, as many lanes as measured memory allows (`memory_pressure` first, `free -g` on Linux: six to eight on the
-   36 GB Mac, at 60% free or more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
-   current for the auto-kill at 100%), their production builds taking turns through
+   36 GB Mac, at 60% free or more, paced by the 5-hour window: "Working with Will"), their production builds taking
+   turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
    **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,

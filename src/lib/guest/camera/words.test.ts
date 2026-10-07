@@ -18,11 +18,21 @@ import {
   cameraSubLine,
   clockWords,
   developsWhen,
+  freeAFrameLine,
+  freshRollLine,
+  newestShotLabel,
   reelCaption,
   reelLabel,
+  removingSpentLine,
+  reshootsLeft,
+  reshootsSpentLine,
   revealFor,
   rollCount,
   rollDoneLine,
+  shotsCountLine,
+  TAKE_BACK,
+  takeBackLine,
+  takenBackLine,
   unsentLine,
   yourShotsLine,
 } from "./words";
@@ -263,6 +273,10 @@ describe("the lines", () => {
       "Frame 9 of 24 · sending 2",
     );
     expect(reelCaption({ ...base, frame: 24, done: true })).toBe("24 of 24");
+    // A roll the ceiling ended with a frame free (her re-shoots spent): what she holds, never the roll's size.
+    expect(reelCaption({ ...base, held: 23, frame: 24, done: true })).toBe(
+      "23 of 24",
+    );
     // ★ Two shots under a roll of 1 (red-team 56's LOW): what she holds, never "1 of 1" beside two shots.
     expect(
       reelCaption({ ...base, cap: 1, held: 2, frame: 1, done: true }),
@@ -321,5 +335,114 @@ describe("the camera at any roll a host may name", () => {
     expect(
       rollView({ server: null, rollSize: ROLL_MAX, pending: ROLL_MAX }).refusal,
     ).toBe(rollSpentMessage(ROLL_MAX));
+  });
+});
+
+/* ── her 3 re-shoots, said where she takes one back (guest-moments r1's `limit=three` and `where=reel`) ─────────── */
+describe("her re-shoots", () => {
+  it("counts them as a number she can hold, at her list's head", () => {
+    expect(reshootsLeft(3)).toBe("3 re\u2011shoots left");
+    expect(reshootsLeft(1)).toBe("1 re\u2011shoot left");
+    expect(reshootsLeft(0)).toBe("No re\u2011shoots left");
+    expect(shotsCountLine(6, 24, 2)).toBe("6 of 24 · 2 re\u2011shoots left");
+    expect(shotsCountLine(2, 1, 0)).toBe(
+      "2 on a roll of 1 · No re\u2011shoots left",
+    );
+  });
+
+  it("says at the roll's end what a take-back still frees, and when they are spent", () => {
+    expect(freeAFrameLine(3)).toBe(
+      "Take a shot back to free its frame: 3 re\u2011shoots left.",
+    );
+    expect(freeAFrameLine(1)).toBe(
+      "Take a shot back to free its frame: 1 re\u2011shoot left.",
+    );
+    expect(reshootsSpentLine(3)).toBe("Your 3 re\u2011shoots are used.");
+    expect(reshootsSpentLine(1)).toBe("Your 1 re\u2011shoot is used.");
+    expect(removingSpentLine(3)).toBe(
+      "Your 3 re\u2011shoots are used, so removing a shot won’t free its frame.",
+    );
+  });
+
+  it.each([
+    [
+      { reshoots: 3, allowance: 3, frees: true },
+      "Taking it back frees its frame: 1 of your 3 re\u2011shoots.",
+    ],
+    [
+      { reshoots: 2, allowance: 3, frees: true },
+      "Taking it back frees its frame: 1 of your 2 re\u2011shoots left.",
+    ],
+    [
+      { reshoots: 1, allowance: 3, frees: true },
+      "Taking it back frees its frame: your last re\u2011shoot.",
+    ],
+    [
+      { reshoots: 0, allowance: 3, frees: false },
+      "Your 3 re\u2011shoots are used: taking it back won’t free its frame.",
+    ],
+    [
+      { reshoots: 2, allowance: 3, frees: false },
+      "Your roll is smaller now: taking it back won’t free a frame.",
+    ],
+  ])(
+    "the newest shot's sheet says what taking it back does: %o",
+    (input, line) => {
+      expect(takeBackLine(input)).toBe(line);
+    },
+  );
+
+  it("names the sheet's keys and the reel's newest frame, and says what is left once one is taken back", () => {
+    expect([TAKE_BACK.take, TAKE_BACK.keep]).toEqual([
+      "Take it back",
+      "Keep it",
+    ]);
+    // Working words, never an ellipsis: the key's arc says it goes on.
+    expect(TAKE_BACK.taking).toBe("Taking it back");
+    expect(newestShotLabel("10:41")).toBe("Your newest shot, 10:41");
+    expect(newestShotLabel()).toBe("Your newest shot");
+    expect(takenBackLine({ reshoots: 2, freed: true })).toBe(
+      "Taken back. 2 re\u2011shoots left.",
+    );
+    expect(takenBackLine({ reshoots: 0, freed: true })).toBe(
+      "Taken back. No re\u2011shoots left.",
+    );
+    expect(takenBackLine({ reshoots: 0, freed: false })).toBe("Taken back.");
+  });
+});
+
+/* ── a fresh roll, said once (host-moments r1's `fresh-roll=panel`) ─────────────────────────────────────────────── */
+describe("a fresh roll", () => {
+  it("says why it started again and when it develops, in the drawing's words", () => {
+    expect(
+      freshRollLine({
+        host: "Maya",
+        roll: 24,
+        reveal: "develop",
+        developsAt: NINE_AM,
+        nowMs: PARTY,
+      }),
+    ).toBe(
+      "Maya set a develop time, so everyone starts again with 24 shots. Everything develops together tomorrow at 9 am.",
+    );
+  });
+
+  it("names the host where the page holds no name, and a camera started again with no develop says only the roll", () => {
+    expect(
+      freshRollLine({
+        host: null,
+        roll: 1,
+        reveal: "develop",
+        developsAt: NINE_AM,
+        nowMs: PARTY,
+      }),
+    ).toMatch(
+      /^The host set a develop time, so everyone starts again with 1 shot\./,
+    );
+    expect(
+      freshRollLine({ host: "  ", roll: 12, reveal: "live", developsAt: null }),
+    ).toBe(
+      "The host started the camera again, so everyone starts again with 12 shots.",
+    );
   });
 });

@@ -97,11 +97,14 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   `<Suspense>`, and a visitor's render runs none of their queries. The two feeds page on a keyset through a Server
   Function that takes a cursor and nothing else (`feed-actions.ts`), so Show more too pages only the caller's own. A
   like count is the host's alone and appears on no profile.
-- **`/me` is the owner mode for an account with no handle** (`(app)/me`): the same `OwnerSections`, in the app shell
-  behind the sign-in gate and the name gate (`name-gate.test.ts` holds every (app) route to one). It names nobody (no
+- **`/me` is her page before it is public** (`(app)/me`): the public page's own head (`u/[slug]/profile-head.tsx`: her
+  photo, name and joined month, no handle) marked "Only you can see this page.", then the standing invitation (no Not
+  now) and the same `OwnerSections`, in the app shell behind the sign-in gate and the name gate (`name-gate.test.ts`
+  holds every (app) route to one). Going public changes who sees the page, never what it is. It names nobody (no
   segment, no param), so there is no `isSelf` to get wrong, and `owner-mode.test.ts` reads it beside the profile. Once
   a handle exists it redirects to `/u/<handle>`, a real 307, so it has no `loading.tsx` either (a stream would start
-  before the redirect), and it is noindex.
+  before the redirect), and it is noindex. The line that marks the private half ("Only you can see the sections
+  below.") is the public page's (`OwnerNote`), not the sections': `/me`'s head already says the whole page is hers.
 - **An empty page says how many events it keeps private** (`private_event_count`): the attended arm's predicate with
   only the owner's choice inverted, so a viewer counts only what she could confirm (a Require-an-upload-to-view album
   she has not passed stays out). The RPC returns it only while the page shows nothing; `profile.private-count.test.ts`
@@ -130,9 +133,19 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **A person's block shapes the follow graph only,** never profile reads (the viewer may be anonymous). `follow_user`
   is block-silent, for privacy, and the `enforce_follow_not_blocked` trigger (DEFINER, since owner RLS cannot see
   "they blocked me") is the hard backstop; a block severs both directions atomically. The block menu stays visible
-  even when they blocked me (a vanishing menu would leak the block); only the follow button hides. Every face of a
-  follow or a block is one control (`relation-toggle.tsx`), whose Server Functions revalidate every profile and
-  Account, so no face refreshes by hand.
+  even when they blocked me (a vanishing menu would leak the block); only the follow button hides. Where Follow stood
+  on a page she blocked, a quiet well says so on every visit, with Unblock beside it (`u/[slug]/blocked-well.tsx`):
+  drawn for `hasBlocked` alone, her own block, and never when only they blocked her. Every face of a follow or a
+  block is one control (`relation-toggle.tsx`), whose Server Functions revalidate every profile and Account, so no
+  face refreshes by hand; a flip that never answers (offline) is a refusal with a toast, not a trip to the error
+  boundary.
+- ★ **Account's Connections ignore the server's re-render by design** (`account/page-connections.tsx`, an island): a
+  row she turns off stays, turned back (Follow on an unfollowed row, Block on an unblocked one), until she leaves
+  Account, so the lists are read once from props and kept by the island, one answer per person for every control that
+  shows it (a row's button, the look's Follow). Deriving them from props after mount would take the row out from
+  under her again. A name opens `GuestPeek` (never a second card), whose Follow is offered only where the row's own
+  action is not the Follow and she does not block them; a follow from it joins Following, and a block that lands
+  takes the person's Following row (it severs the follow).
 - **Email preferences follow the consent tiers:** transactional mail always sends and has no column by design;
   relationship and service mail default on with a per-category opt-out, for account holders only (a guest without an
   account receives none of it); marketing stays explicit opt-in. Every send resolves them through

@@ -78,8 +78,9 @@ describe("the flag for the lit stage's lamp", () => {
       message: "Nope.",
     });
     await pressCreate();
-    // Back on the look, her name kept: nothing was made, so nothing is just made.
-    await screen.findByRole("button", { name: /create event/i });
+    // Held on the beat, Try again at the foot (create-wizard r4's `failed=held`): nothing was made, so nothing is just
+    // made. ★ RESHAPED ON PURPOSE (scar kept: no flag without an event); the failure no longer returns to the look.
+    await screen.findByRole("button", { name: /^try again$/i });
     expect(isJustMade(EVENT.id)).toBe(false);
     expect(window.sessionStorage.length).toBe(0);
   });

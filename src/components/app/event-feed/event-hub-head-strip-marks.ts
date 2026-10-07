@@ -17,8 +17,7 @@
  * ★ LIT IS "PHOTOS LANDING NOW": the newest within a quarter of an hour, on the reader's clock. It holds its light and
  * never pulses (a host keeps the hub open all night; a pulse for hours would pull her eye off the album).
  *
- * The board this was picked on (`sandbox/event-header/facts.tsx`) leaves with its round, so the maths lives here, as
- * its own copy. Pure and isomorphic.
+ * The board this was picked on (event-header r3) has left, so the maths lives here alone. Pure and isomorphic.
  */
 import { isHubEntry } from "@/lib/event/hub-album";
 import type { ManifestEntry } from "@/lib/events/album-wire";

@@ -143,6 +143,16 @@
      set that declares it, because a var() in a custom property resolves where
      it is declared and would carry this ground's red into another. */
   --signal: var(--destructive);
+  /* NEEDS YOU, the one status of a count that waits on her (event-header r6,
+     Will's `attention=tally`): people at her door, uploads in Review. The
+     camera's tally, the red the palette already holds, so the palette gains no
+     hue; worn solid and hard-edged (a badge, a pill's count, the code's
+     corner), never a light or a glow, so the Seam stays the screen's one light.
+     One token for the cards and the code alike, so the two cannot disagree.
+     On paper it is the signal itself (5.18:1 under its white figures); the room
+     declares its own, a step deeper than its brighter signal. */
+  --needs-you: var(--signal);
+  --needs-you-foreground: oklch(1 0 0);
   /* The LINES are ink at an alpha, the one place a token here is not opaque: a
      line has to read on the body and on a card a step whiter, and one opaque
      grey reads on only one of them. A line is never a surface. */
@@ -400,6 +410,11 @@
   --accent-foreground: oklch(0.97 0.002 286);
   --destructive: oklch(0.68 0.2 24);
   --signal: var(--destructive);
+  /* Needs you in the room (see :root): the room's signal is bright enough to
+     read as a light on near-black, and white figures on it fall to 3.16:1, so
+     the status steps deeper, to 4.64:1 under white and 4.24:1 against a card. */
+  --needs-you: oklch(0.585 0.2 26);
+  --needs-you-foreground: oklch(1 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.97 0.002 286);

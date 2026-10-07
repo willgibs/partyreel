@@ -27,6 +27,69 @@ Every call about how something looks or moves has moved to the lab (your word, 2
 - **Recommended:** when you set or move the date, an untouched develop time that falls before the party ends moves to the morning after (9 am, your zone). A time you chose yourself never moves.
 - Or: ask the date in Create, or put a "morning after" shortcut beside the row.
 
+The nine below came from the walk of the whole app on 2026-10-07 (`app-gaps-r1`): product decisions only you can make,
+each cheapest now, since every lane that ships adds to today's answer. Ordered by what they would reshape decided late.
+
+**X9. Who can act for an event?** Today one account owns and runs each event: no co-host, no helper for the night, no
+hand-over (`events.host_id` is the only owner, assumed by 121 checks in 39 migrations, and the planners post says so in
+public). Nearly every wedding has two hosts, and Pro's sizes are sold as a planner's year and a venue's year.
+- **Recommended:** co-hosts invited by email, acting for the event as the owner does (Review, the door, Settings,
+  Share), while billing, storage, the plan and deleting the event stay the owner's; handing an event to another account
+  waits for X14.
+- Or: one owner for good, with a read-only link for a partner; roles per event (owner, co-host, a night helper who runs
+  only Review and the door); hand-over now.
+
+**X10. What is inside an event, and what does one pass buy?** An event is one stream with one reel, one folder and one
+roll, so a wedding weekend is either one undivided album or several paid events (a competitor sells sub-albums).
+- **Recommended:** day dividers drawn from the dates and the capture times, display only (no schema, no price change),
+  now; named chapters or linked events only when hosts ask.
+- Or: chapters she names, each with its own reel and folder; a weekend grouping several events under one link and one
+  pass.
+
+**X11. Who may Partyreel contact, and for what?** Account says "Your guests never hear from us" and help promises no
+"album is ready" mail, yet the ROADMAP plans a guest's develop and let-in mails; and a host hears nothing when her
+event goes live, when someone waits at her door while she is away, or when the album develops.
+- **Recommended:** a host's email for her event's moments (a receipt with the code and the print link, a quiet alert
+  for the door and Review while she is away, a morning-after recap); a guest hears from us only when she asks at the door
+  ("Email me when it develops"), once, never marketing: "never" becomes "only when you ask".
+- Or: hosts only, guests never; web push for hosts through an installed app; messages the host writes, sent once.
+
+**X12. Does the album hold words?** It holds photographs and videos alone: no caption, no note, no guestbook, though the
+guestbook is a wedding staple and competitors include one.
+- **Recommended:** a guestbook as its own kind (a short note, a voice memo or a video message to the hosts), in a room of
+  its own and at the reel's end, moderated in Review like any upload; no captions or comments on photographs, so the
+  album stays the pictures.
+- Or: never, as part of the identity; an optional one-line caption at send; comments and reactions.
+
+**X13. Will a guest ever see Partyreel in her own language?** Everything is US English, written inline in about 260
+files, and the cost of translating grows with every string.
+- **Recommended:** English at launch, with the guest's journey (the door, the album, the camera, the reel) made
+  translation-ready now (a string catalog, dates and plurals by her locale); the host's app later.
+- Or: English only for good, said plainly; three to five languages at launch, by the phone's setting; the host picks
+  the album's language.
+
+**X14. Is the professional host (a planner, a venue, a photographer) a launch target?** Pro's sizes are sold for them,
+but nothing exists for them: no hand-over, no partner mark, no templates.
+- **Recommended:** not at launch: Pro's sizes say what they hold instead, and the professional is decided with X9's
+  hand-over after launch.
+- Or: the minimum now (roles, hand-over, templates); a partner's mark on the guest page, the prints and the reel as a
+  paid lever; a host theme.
+
+**X15. Will Partyreel ever find a guest's photos by her face?** Selfie search is becoming a premium default among
+competitors, but it is biometric data (Illinois' BIPA, the GDPR's special category).
+- **Recommended:** never, said as a privacy feature, with ways to find a photograph that need no face (by day, by who
+  sent it, videos, likes).
+- Or: opt-in selfie search per album through a vendor, deleted with the event; tagging yourself; decide later, promising
+  nothing meanwhile.
+
+**X16. Prints or a book?** Export is the only way out today; a competitor sells photobooks.
+- **Recommended:** not before launch; after it, a print partner built on the host's picks.
+
+**X17. What does a follow do before the feed exists?** Nothing reads follows until the after-launch feed
+(account-moments r2 asks how a follow feels; this asks what it is for).
+- **Recommended:** keep Follow as a private list (whom she follows, on her page) and say so; its payoff is the feed.
+- Or: hide Follow until the feed ships.
+
 ---
 
 ## F. Create
@@ -1127,3 +1190,131 @@ and walk disagree, and an operator's Rebuild on its card is the fix.
 **BY4. A restore that bypasses triggers is a written warning, nothing built:** a partial restore of media rows runs the
 Rebuild for each host it touched.
 - *Push back if* a guard should refuse such a restore.
+
+## BZ. Her account's quiet moments, wired (account-moments-wiring)
+
+Your account-moments r1 picks are in production: a block said where Follow stood, Connections' rows that stay turned
+back, and `/me` as her own page before it is public. These are the calls built into them, yours to overrule.
+
+**BZ1. The block's words and place:** "You blocked {name}. Neither of you can follow the other, and they aren't told.",
+under the bio, with Unblock beside it.
+- *Push back if* it should say less, or stand where Follow stood in the row.
+
+**BZ2. Following someone from their card after an Unblock** puts them in Following at once and leaves their turned-back
+row under Blocked until she leaves Account, so a list she is reading never loses a row but to a block she confirmed.
+- *Push back if* the row should leave Blocked the moment she follows.
+
+**BZ3. The card offers no Follow from a Following row** (that row's own button is the follow), and none while a block
+stands.
+- *Push back if* the card should always carry Follow.
+
+**BZ4. `/me` shows no handle** (she has none yet) and drops "Only you can see the sections below.", since the page as a
+whole now says "Only you can see this page."
+- *Push back if* the sections should keep their own line.
+
+**BZ5. A follow or a block with no connection springs back with one toast,** "Couldn't reach Partyreel just now. Please
+try again.", where it used to fall to the error screen.
+- *Push back if* the words should differ.
+
+**BZ6. A name in Connections opens the person's card,** Open full profile its last button, where the name used to link
+straight to their page.
+- *Push back if* a name should still go straight to the page.
+
+## CA. Create's last steps, wired (create-wizard-wiring)
+
+Your create-wizard r4 picks are in production: the three style cards standing still with Disposable's time on a screen
+of its own, a one-line close, and a failure held where you are with everything kept. These are the calls built into
+them, yours to overrule.
+
+**CA1. At the plan's event limit the held screen offers Upgrade and Back,** never Try again, since a full plan cannot
+pass until an event is deleted.
+- *Push back if* Try again should stand there too.
+
+**CA2. The storage line stays beside the one-line close** when the account runs short (the plan's line, never a step).
+- *Push back if* the close should say only what guests still need.
+
+**CA3. A held failure says the server's own sentence after "Nothing was lost"** (the catch-all as "Please try again.",
+a line that never answered as "Check your connection and try again.").
+- *Push back if* every failure should say one plain sentence of ours.
+
+**CA4. Focus stays on the foot's key when a failure lands** (the same key, turned Try again); the arrival still takes it
+to the question.
+- *Push back if* focus should move to the failure's words.
+
+**CA5. The code holds still across the wait, the hold and the arrival,** where the board's held frame let it drop.
+- *Push back if* the plate should make room for the words.
+
+## CB. The hub's cards, the light made right (event-header-wiring-2)
+
+Your event-header r6 picks are in production: the Seam as Afterglow draws it, each count a badge on its glyph's
+shoulder where it needs you, and one "needs you" colour (the camera's red) on the badges, the pills and the code's
+corner. These are the calls built into them, yours to overrule.
+
+**CB1. The light's colours are read in the browser, off the cover's previews,** never stored at upload: the cover's
+crop changes with its width, so a stored colour would be one crop's guess (at most six small reads a hub view, no
+server cost).
+- *Push back if* the colour should be computed once at upload instead.
+
+**CB2. Before a photograph is read the Seam stays unlit,** then the light arrives once; a cover with no photograph
+wears the house's dusk.
+- *Push back if* the light should show a guess at once.
+
+**CB3. From 640 to 800 px a folded pill is its glyph and its badge,** its word joining from 800, since the board's
+pills would run an upright iPad's band off its edges.
+- *Push back if* the pills should keep their words and scroll.
+
+**CB4. No light follows the pointer and no card lifts on hover,** since the Seam is the screen's one light.
+- *Push back if* a card should answer the pointer.
+
+**CB5. A tablet's tile line truncates from 640 to 739 px,** the whole line kept in the card's name.
+- *Push back if* the tile should wrap instead.
+
+## CC. The camera's roll, wired (camera-wiring)
+
+Your picks on two boards are in production: a develop time added mid-party asks about fresh rolls first, a guest
+meets her fresh roll once, a flat 3 re-shoots (27 shots in all on a roll of 24, the server's own ceiling now), and the
+reel's newest frame taking a shot back beside Your shots' X. These are the calls built into them, yours to overrule.
+
+**CC1. "The first time" on a fresh roll is known by the album's period against her device's,** so a second device may
+say it once more, and a guest who never shot there is never told her roll is fresh.
+- *Push back if* it should be said once per guest across devices (a server memory).
+
+**CC2. The fresh-rolls question is asked on every running camera,** guests or none, since Settings holds no count of
+the guests' rolls and the line is true either way.
+- *Push back if* it should ask only while guests are in.
+
+**CC3. The reel's newest frame is a door only while it holds this visit's newest shot,** on an album that keeps shots
+out of sight; an earlier visit's frames stay glass, and Your shots' X takes those back.
+- *Push back if* every frame of the reel should open its shot.
+
+**CC4. A host's removal spends a guest's shots as her own take-back does** (the Advisor's note): the roll counts every
+shot taken, so a guest whose host removed five of her 24 can take only 3 more, and is refused with frames free.
+- *Push back if* a host's removal should give her frames back (the ledger would then tell removals apart).
+
+**CC5. Past the ceiling the server says "You've used all 3 re-shoots on your roll.",** and once her 3 are spent both
+doors still take a shot back and say it frees no frame.
+- *Push back if* a spent roll should hide the take-back.
+
+## CD. A host's party moments, wired (host-moments-wiring)
+
+Your host-moments r1 picks are in production: both groups said at a first password's field, Let in that lets a declined
+newcomer in with one press, the over-plan banner's number and one key, and your plan's line drawn on the size list.
+These are the calls built into them, yours to overrule.
+
+**CD1. Someone who was in when blocked keeps Let back in and its confirm,** since that confirm holds your restore
+switch (off by default); he goes straight back in, his uploads in Deleted unless you turn them on.
+- *Push back if* he should be one press too wherever nothing of his can come back.
+
+**CD2. The decline's toast says Let in, not Undo,** and does what Blocked's Let in does ("Dev Kapoor is in."), since
+undoing a decline means yes.
+- *Push back if* Undo should be a true undo, back at the door.
+
+**CD3. The one-press row reads "Let in: into the album, now",** until a Guests-room board redraws the rows (your note).
+- *Push back if* the row should say less.
+
+**CD4. A password already set keeps its consequence line,** where a first password names both groups at its field.
+- *Push back if* both groups should be said there too.
+
+**CD5. The banner goes quiet once you are under your cap,** while the grace waits for the night's sweep, and a plan is
+named by its tier and size ("Pro 50 GB", "Event Pass 50 GB").
+- *Push back if* it should say you are back under until the sweep.

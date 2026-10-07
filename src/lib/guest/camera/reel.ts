@@ -81,6 +81,14 @@ export function reelCells(input: {
   return cells;
 }
 
+/** The newest frame she has spent: the last exposed one (this visit's newest shot, where it has one), or none. */
+export function newestCell(cells: readonly ReelCell[]): ReelCell | undefined {
+  for (let i = cells.length - 1; i >= 0; i--) {
+    if (cells[i].state === "exposed") return cells[i];
+  }
+  return undefined;
+}
+
 /** The frame the reel centres on: the one she is on, or the last once the roll is spent. */
 export function reelCentre(cells: readonly ReelCell[]): number {
   const live = cells.find(

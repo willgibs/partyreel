@@ -16,13 +16,17 @@
  * ★ THE LIVE MINIATURE NEVER MOVES. It is the reel's centre, where the frame she is on always stands; the track glides
  * under it, so a shot never re-mounts the picture (one stream, two elements: the picture and this).
  *
- * ★ THE WHOLE REEL IS ONE BUTTON: her shots (the end's "See your shots" opens the same list). Its frames are pictures,
- * hidden from a screen reader, which hears the button's name and the count beside it.
+ * ★ THE REEL IS HER SHOTS' DOOR, AND ITS NEWEST FRAME HER TAKE-BACK'S (guest-moments r1's `where=reel`): a press
+ * anywhere on it opens her shots (the end's "See your shots" opens the same list), and a press on the newest frame,
+ * where her eye goes the second after a shot, opens that shot with Take it back and Keep it, where the camera offers it
+ * (`newest`). Two buttons over one film: nested buttons are no HTML, so the reel's box holds the door, the film over it
+ * (a picture, hidden from a screen reader, which hears the doors' names) and the newest frame's own button standing
+ * where that frame always stands, one pitch left of the reel's centre, or at it once the roll is spent.
  */
 import { Play } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
 
-import { reelCentre, type ReelCell } from "@/lib/guest/camera/reel";
+import { newestCell, reelCentre, type ReelCell } from "@/lib/guest/camera/reel";
 import { cn } from "@/lib/utils";
 
 /**
@@ -55,6 +59,7 @@ export function CameraReel({
   progress,
   label,
   onOpen,
+  newest,
   className,
 }: {
   cells: readonly ReelCell[];
@@ -71,6 +76,16 @@ export function CameraReel({
   /** The button's name: "Your shots, 6 on the roll". */
   label: string;
   onOpen: () => void;
+  /**
+   * The newest frame's own door, where the camera offers a take-back: the shot it must hold (the newest exposed frame's
+   * own, or no door), its name, and what a press opens.
+   */
+  newest?: {
+    shotKey: string;
+    label: string;
+    onOpen: () => void;
+    disabled?: boolean;
+  } | null;
   className?: string;
 }) {
   const live = useRef<HTMLVideoElement>(null);
@@ -84,17 +99,21 @@ export function CameraReel({
   const liveCell = cells.find(
     (c) => c.state === "current" || c.state === "rolling",
   );
+  const centre = reelCentre(cells);
+  const last = newestCell(cells);
+  const door = newest && last?.shotKey === newest.shotKey ? newest : null;
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={label}
-      data-cam-reel=""
-      // The house's focus mark (identity r4, `focus-halo`), round the reel's own box: the film's fade is on the
-      // film inside it (`cam-reel-film`), since a mask on the button would fade its halo away with the frames.
-      className={cn("cam-reel focus-halo", className)}
-    >
+    <div className={cn("cam-reel-box", className)} data-cam-reel-box="">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={label}
+        data-cam-reel=""
+        // The house's focus mark (identity r4, `focus-halo`), round the reel's own box: the film's fade is on the
+        // film over it (`cam-reel-film`), since a mask on the button would fade its halo away with the frames.
+        className="cam-reel focus-halo"
+      />
       <span aria-hidden className="cam-reel-film">
         <span
           aria-hidden
@@ -153,6 +172,18 @@ export function CameraReel({
           )}
         </span>
       </span>
-    </button>
+      {door && last && (
+        <button
+          type="button"
+          onClick={door.onOpen}
+          disabled={door.disabled}
+          aria-label={door.label}
+          data-cam-newest={door.shotKey}
+          // Where the newest frame stands against the reel's centre: one pitch left, or at it once the roll is spent.
+          style={{ "--d": last.n - centre } as CSSProperties}
+          className="cam-reel-newest focus-halo"
+        />
+      )}
+    </div>
   );
 }

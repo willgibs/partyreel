@@ -48,7 +48,7 @@ export function GuestsRoom({
   /** The permanent link: what the code encodes. */
   joinUrl: string;
   qrStyle: string;
-  /** The door as it stands: the invite list says whether it is the way in. */
+  /** The door as it stands: the invite list says whether it is the way in, and At the door what a Let in opens. */
   door: Door;
   data: GuestsRoomData;
   /** The section the room's opener named (`at-the-door`, `invited`), brought into view once. */
@@ -98,6 +98,7 @@ export function GuestsRoom({
         eventId={eventId}
         people={data.atTheDoor}
         total={data.doorTotal}
+        door={door}
       />
       {developing ? (
         <p data-guests-developing="" className="text-sm text-muted-foreground">

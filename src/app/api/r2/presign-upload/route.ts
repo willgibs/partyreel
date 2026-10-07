@@ -217,7 +217,7 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
       };
     }
     // ★ THE ALBUM'S CAMERA (20261002200000): a video shot has a length and a byte bound (`media/limits.ts`), her roll
-    // holds its frames (24), and a period takes three rolls' worth. Refused here before the bytes move, in the server's own words;
+    // holds its frames (24), and a period takes the roll and its 3 re-shoots. Refused here before the bytes move, in the server's own words;
     // create_media holds the same lines on the R2-HEAD size and counts the roll under its locks, so this is the
     // friendly half, never the boundary. A burst's earlier shots are counted on her roll (`rollAfter`).
     const shot = cameraShotRefusal(

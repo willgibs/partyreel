@@ -338,7 +338,7 @@ describe("the album's camera", () => {
     );
     const { status, body } = await presign();
     expect(status).toBe(409);
-    expect(body.message).toBe("You've used every retake this roll allows.");
+    expect(body.message).toBe("You've used all 3 re-shoots on your roll.");
     expect(presignUpload).not.toHaveBeenCalled();
   });
 

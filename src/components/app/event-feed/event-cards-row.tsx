@@ -17,6 +17,7 @@ import { prefetchGuestsRoom } from "@/components/app/share/guests-panel";
 import { warmRoom } from "@/components/app/share/room-chunks";
 import type { HeadStill } from "@/components/guest/event-experience-head";
 import { CodeChip } from "@/components/ui/code-chip";
+import type { HubDevelopFacts } from "@/lib/disposable/host-cover";
 import { ENTRY_PENDING, entryId } from "@/lib/events/album-wire";
 import {
   AS_GUEST_DOOR,
@@ -35,6 +36,7 @@ import {
 
 import { useDoorFold } from "./event-cards-row-fold";
 import { useHubCoverStills } from "./event-hub-head";
+import { HubLight } from "./event-hub-head-light";
 import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
 import { DoorParts, doorAttrs } from "./room-card-door";
 import { reviewCardFace, type RoomFace } from "./room-card";
@@ -48,10 +50,10 @@ export type RoomCard = RoomFace & { id: PlainRoomId };
 /**
  * THE CARDS ROW (Will, `event=hub`: "The additional controls (review, reel, guests, etc) feel much more beautiful,
  * actionable, and intuitive to hosts than the album-heavy page"), going sticky as the album scrolls (his `nav` note: "Could
- * pick up sticky-style from the cards below"), and, since event-header r4, CARDS OVER THE SEAM (his pick: "a bit more
- * pronounced than the glass capsule, without shouting like the quiet windows"): the cover's photograph dissolves into the
- * page at its foot and five cards stand across that seam, every one in sight on a phone; stuck, the same five fold into pills
- * under the bar (`event-cards-row-fold.ts`) and unfold the same way back.
+ * pick up sticky-style from the cards below"), and, since event-header r4, CARDS (his pick: "a bit more pronounced than the
+ * glass capsule, without shouting like the quiet windows"), drawn as r6 left them: the five cards stand on the cover's foot,
+ * every one in sight on a phone; stuck, the same five fold into pills under the bar (`event-cards-row-fold.ts`) and unfold
+ * the same way back.
  *
  * ★ LINKS IN A GROUP, NEVER TABS. Every room opens OVER the hub (Will, event-header r2 `rooms=over`: "This feels phenomenally
  * more fluid, natural, and intuitive"): Guests, Review and Settings in one panel, See it as a guest in a phone over the dimmed
@@ -75,19 +77,20 @@ export type RoomCard = RoomFace & { id: PlainRoomId };
  * and back for ever, and every jump past the band landing short by what the row lost. Anchoring is right to keep the album
  * still, so it stays on; the row simply stops moving the album.
  *
- * ★ OVER THE SEAM, THE ROW RISES INTO THE COVER by `--hub-rise` (`event-hub-head-seam.css`, the one stylesheet the cover and
- * the row both read, so the cover's foot clears exactly what the row covers): the footprint's own negative margin, which the
- * hub's `space-y-6` (a production utility in a layer, which an unlayered rule outranks) cannot touch. The footprint holds the
- * resting row's height, rise included, so folding never moves the album.
+ * ★ THE CARDS STAND ON THE COVER'S FOOT, AND THE LIGHT FALLS PAST THEM (event-header r6's correction and its carried
+ * `cards-on-cover`): the footprint rises into the cover by `--hub-rise` (`event-hub-head-seam.css`, the one stylesheet the
+ * cover, the row and the light all read: the cards' height and the photograph left showing under them), an unlayered
+ * negative margin the hub's `space-y-6` (a utility, in a layer) cannot touch, and the Seam (`HubLight`) follows the footprint
+ * in the page, born at the photograph's edge below the cards and falling into the page, the album past its reach. Nothing
+ * pressed stands in the light, and the fold, which moves only the band, never touches it.
  *
- * ★ EVERY DOOR IS IN SIGHT, AT EVERY WIDTH, SO THE ROW NEVER SCROLLS SIDEWAYS: a hand's grid, a tablet's tiles, a desk's
- * cards, and the pills under the bar sized to fit a 320px phone (`room-card.css`). The sideways scroller and its edge fades
- * that the row's old tiles needed went with it.
+ * ★ EVERY DOOR IS IN SIGHT, AT EVERY WIDTH, SO THE ROW NEVER SCROLLS SIDEWAYS: a hand's one row of five tiles, a tablet's
+ * five tiles, a desk's five cards, and the pills under the bar sized to fit a 320px phone (`room-card.css`).
  *
- * ★ STUCK, IT CARRIES THE HEAD IT CAME FROM (`event-header` r1, `host=shared`; his note: "Love how they're captured into a
- * sticky menu on scroll for page-wide access"). Once the cover has scrolled away the band leads with the cover's face, its
- * first photograph (and, from a desk's width, the event's name), so the hub still reads as the album's however deep Maya goes,
- * and closes on the code as a chip (`ui/code-chip.tsx`): the code is always one press away, on the white it always stands on.
+ * ★ STUCK, THE BAND PUTS EVERYTHING BACK WHERE THE COVER HAD IT (r6's carried `band-ends`): the cover's face at its left end
+ * (its first photograph and, from a desk's width, the event's name), so the hub still reads as the album's however deep Maya
+ * goes; the code at its right end, where the cover's code stood, as a pill of the band's own material that opens the real
+ * one (`ui/code-chip.tsx`); and the doors in its middle, so Review, the door pressed most at a party, folds straight up.
  */
 export function EventCardsRow({
   eventId,
@@ -102,8 +105,16 @@ export function EventCardsRow({
   reel: ReelCardData;
   /** Whether uploads wait in Review: the Review card's words follow the album's live count. */
   moderationOn?: boolean;
-  /** The head the band came from: its name and its cover's photographs, for the stuck band's lead. */
-  head?: { name: string; stills: readonly HeadStill[] };
+  /**
+   * The head the band came from: its name and its cover's photographs (with the develop facts the cover is handed, so the
+   * band's face and the Seam's light read exactly the photographs the cover dissolves through), for the stuck band's lead
+   * and the light under the cover.
+   */
+  head?: {
+    name: string;
+    stills: readonly HeadStill[];
+    develop?: HubDevelopFacts | null;
+  };
 }) {
   // ★ THE REVIEW CARD AND THE REEL CARD FOLLOW THE ALBUM (the album-host-wiring lane). The page is never refreshed to show an
   // arrival, so what these two say is read off the page's album store: the held count the host's poll brings (a guest's
@@ -123,28 +134,32 @@ export function EventCardsRow({
     useEventShare();
   const { stuck, instantRef, footRef, bandRef } = useStuckBand();
   useDoorFold(bandRef, stuck, instantRef);
-  // The cover's first photograph, live as the cover's own (`event-hub-head.tsx`).
-  const coverStills = useHubCoverStills(head?.stills ?? NO_STILLS);
+  // The cover's photographs, live as the cover's own (`event-hub-head.tsx`): the band's face and the Seam's light.
+  const coverStills = useHubCoverStills(
+    head?.stills ?? NO_STILLS,
+    head?.develop,
+  );
   const face = coverStills[0]?.tile ?? null;
 
   return (
-    // THE FOOTPRINT: what sticks and what the bar is measured against, holding the resting row's height while the band inside
-    // it condenses. Its empty lower part lets every press through to the album scrolling under it. It bleeds by the wide
-    // page's own gutter (12px, then 20px from `sm`: app-shell.tsx), so its stuck backdrop meets both window edges.
-    <div
-      ref={footRef}
-      data-hub-row=""
-      className="hub-seam hub-row pointer-events-none sticky top-14 z-30 -mx-3 sm:-mx-5"
-    >
-      <div ref={bandRef} className="hub-band pointer-events-auto">
-        {/* Stuck, the band's ground fades into the album rather than ending on a line: a layer of its own, so the fold can
-            bring it up under the pills. */}
-        <span aria-hidden data-fold="veil" className="hub-band-veil" />
-        <div role="group" aria-label="This event" className="hub-doors">
-          {/* THE HEAD'S FACE, once the head has gone (the head note): the cover's first photograph, and from a desk's width
-              the name, the page's own title in the bar it rides. Decorative to a reader of the page (the h1 above already
-              named it), so it is words and a picture, never a control. An album with no photograph yet leads with its name
-              alone (and a phone with nothing): an empty plate where the face would be reads as a hole. */}
+    <>
+      {/* THE FOOTPRINT: what sticks and what the bar is measured against, holding the resting row's height while the band
+          inside it condenses. Its empty lower part lets every press through to the album scrolling under it. It bleeds by
+          the wide page's own gutter (12px, then 20px from `sm`: app-shell.tsx), so its stuck ground meets both window
+          edges. */}
+      <div
+        ref={footRef}
+        data-hub-row=""
+        className="hub-seam hub-row pointer-events-none sticky top-14 z-30 -mx-3 sm:-mx-5"
+      >
+        <div ref={bandRef} className="hub-band pointer-events-auto">
+          {/* Stuck, the band is the bar's own second row, its material a layer of its own, there from the fold's first
+              frame. */}
+          <span aria-hidden data-fold="veil" className="hub-band-veil" />
+          {/* THE HEAD'S FACE, once the head has gone: the cover's first photograph, and from a desk's width the name, the
+              page's own title in the bar it rides. Decorative to a reader of the page (the h1 above already named it), so it
+              is words and a picture, never a control. An album with no photograph yet leads with its name alone (and a
+              phone with nothing): an empty plate where the face would be reads as a hole. */}
           {stuck && head && (
             <span data-fold="lead" className="hub-lead">
               <span
@@ -165,48 +180,49 @@ export function EventCardsRow({
               </span>
             </span>
           )}
-          {EVENT_ROOMS.map((room) => {
-            if (room.id === "reel") {
-              return <ReelCard key="reel" eventId={eventId} reel={reel} />;
-            }
-            const card = cards.find((c) => c.id === room.id);
-            if (!card) return null;
-            return (
-              <Link
-                key={card.id}
-                {...roomDoor(eventId, card.id, openSheet, album)}
-                {...doorAttrs(card.id, card.value)}
-                {...trackAttrs("cta_click", {
-                  cta: `room-${card.id}`,
-                  location: "hub-cards",
-                })}
-              >
-                <DoorParts room={card.id} face={card} />
-              </Link>
-            );
-          })}
-
-          {/* ★ SEE IT AS A GUEST, THE PAYOFF AT THE ROW'S END (the carried call `guest-door`): her album as her guests meet
-              it, in a phone over the dimmed hub. A fifth door like the rest; on a phone's grid it takes the third row, the
-              width, as the board drew it. */}
-          <Link
-            {...roomDoor(eventId, AS_GUEST_DOOR.id, openSheet, album)}
-            {...doorAttrs(AS_GUEST_DOOR.id, "What they see")}
-            {...trackAttrs("cta_click", {
-              cta: "room-as-guest",
-              location: "hub-cards",
+          <div role="group" aria-label="This event" className="hub-doors">
+            {EVENT_ROOMS.map((room) => {
+              if (room.id === "reel") {
+                return <ReelCard key="reel" eventId={eventId} reel={reel} />;
+              }
+              const card = cards.find((c) => c.id === room.id);
+              if (!card) return null;
+              return (
+                <Link
+                  key={card.id}
+                  {...roomDoor(eventId, card.id, openSheet, album)}
+                  {...doorAttrs(card.id, card.value)}
+                  {...trackAttrs("cta_click", {
+                    cta: `room-${card.id}`,
+                    location: "hub-cards",
+                  })}
+                >
+                  <DoorParts room={card.id} face={card} />
+                </Link>
+              );
             })}
-          >
-            <DoorParts
-              room={AS_GUEST_DOOR.id}
-              face={{ value: "What they see" }}
-            />
-          </Link>
 
-          {/* SHARE'S PLACE IN THE STICKY ROW (his `nav` note asked for "a creative way to get share in there if it doesn't
-              have a card"): the code as a chip, which exists ONLY while the head's code is off screen and the band has
-              stuck, so at rest nothing is duplicated and the row is five doors. It carries the morph's name while it is the
-              code on screen. */}
+            {/* ★ SEE IT AS A GUEST, THE PAYOFF AT THE ROW'S END (the carried call `guest-door`): her album as her guests
+                meet it, in a phone over the dimmed hub. A fifth door like the rest. */}
+            <Link
+              {...roomDoor(eventId, AS_GUEST_DOOR.id, openSheet, album)}
+              {...doorAttrs(AS_GUEST_DOOR.id, "What they see")}
+              {...trackAttrs("cta_click", {
+                cta: "room-as-guest",
+                location: "hub-cards",
+              })}
+            >
+              <DoorParts
+                room={AS_GUEST_DOOR.id}
+                face={{ value: "What they see" }}
+              />
+            </Link>
+          </div>
+
+          {/* SHARE'S PLACE IN THE STICKY BAND (his `nav` note asked for "a creative way to get share in there if it doesn't
+              have a card"): the code as a pill at the band's right end, where the cover's code stood, which exists ONLY
+              while the head's code is off screen and the band has stuck, so at rest nothing is duplicated and the row is
+              five doors. It carries the morph's name while it is the code on screen. */}
           {stuck && headerCodeHidden && (
             <span data-fold="code" className="hub-code">
               <CodeChip
@@ -223,7 +239,10 @@ export function EventCardsRow({
           )}
         </div>
       </div>
-    </div>
+      {/* THE SEAM: the cover's one light, past the cards, the album starting past its reach (`event-hub-head-light.tsx`);
+          a row drawn with no cover above it has no edge to light. */}
+      {head ? <HubLight stills={coverStills} /> : null}
+    </>
   );
 }
 

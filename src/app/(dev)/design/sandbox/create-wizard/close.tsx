@@ -2,7 +2,6 @@
 
 import { Check } from "lucide-react";
 
-import { BeatSteps } from "@/components/app/create-event-wizard/beat";
 import {
   type Readiness,
   readyHead,
@@ -11,13 +10,63 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
+ * THE MARKS AS THEY WERE BUILT (`marks`): production's `BeatSteps`, retired by the wiring of `close=next`, kept here
+ * whole so this round's drawing of it stays what he weighed until the board retires.
+ */
+function BeatSteps({ r }: { r: Readiness }) {
+  const steps = settingsSteps(r);
+  return (
+    <div className="flex flex-col items-center gap-2.5">
+      <ol
+        data-beat-steps=""
+        aria-label="Settings' steps"
+        className="flex items-center"
+      >
+        {steps.map((s, i) => (
+          <li
+            key={s.item}
+            data-done={s.done ? "true" : "false"}
+            className="flex items-center"
+          >
+            {i > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  "h-px w-3.5 md:w-5",
+                  s.done && steps[i - 1].done ? "bg-success/50" : "bg-border",
+                )}
+              />
+            ) : null}
+            <span
+              aria-hidden
+              className={cn(
+                "flex size-5 items-center justify-center rounded-full",
+                s.done
+                  ? "bg-success text-success-foreground"
+                  : "bg-muted text-[11px] font-semibold text-muted-foreground tabular-nums ring-1 ring-foreground/10",
+              )}
+            >
+              {s.done ? <Check className="size-3" strokeWidth={3} /> : s.n}
+            </span>
+            <span className="sr-only">{`${s.n}. ${s.title}, ${s.done ? "done" : "to do"}`}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="text-center text-caption text-muted-foreground">
+        {readyHead(r).line}
+      </p>
+    </div>
+  );
+}
+
+/**
  * WHAT CREATE CLOSES ON, UNDER PRINT AND SHARE (F1, built in text on
  * 2026-10-04 as Settings' five marks): four answers, from all of Settings to
  * none of it, each read off production's own readiness of the new event
  * (`readiness.ts`), so the steps, the ticks and what guests still need are
  * the event's, never this board's.
  *
- *  - `marks`: production's `BeatSteps`, untouched.
+ *  - `marks`: production's `BeatSteps` as it was built (its copy below).
  *  - `next`: one line, what guests still need. A new event's one essential
  *    left is always the code (its door and its adds are born done), which the
  *    two rounds above it already do, so the line points at them. Its words
@@ -40,7 +89,7 @@ function stillNeeds(r: Readiness): string {
 
 export function Close({ way, r }: { way: CloseWay; r: Readiness }) {
   if (way === "none") return null;
-  if (way === "marks") return <BeatSteps r={r} onPlans={() => {}} />;
+  if (way === "marks") return <BeatSteps r={r} />;
   if (way === "next")
     return (
       <p
