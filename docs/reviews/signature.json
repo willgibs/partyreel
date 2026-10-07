@@ -1,0 +1,46 @@
+{
+  "board": "signature",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "album",
+          "choice": "follow",
+          "note": "Having both makes it feel more themed and infused with a visual identity, as opposed to a one-off instance to feel cool. That's the idea of infusing the new afterglow - getting away from what felt like one-off uses of aurora, more a real brand visual identity felt through the experience.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "add",
+          "choice": "answer",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "door",
+          "choice": "seam",
+          "note": "We need to be careful when using the light because it's easy to not round it with paired corners (like here with the top card corners), or other instances I've seen where it's meant to naturally leak from a source, but horizontal clipping cuts it off so the glow doesn't naturally extend and fade out, just cut off where it begins overflowing.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "clip",
+          "choice": "seam",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "create",
+          "choice": "dark",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

@@ -116,6 +116,35 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 5,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "close",
+          "choice": "enter",
+          "note": "I think we could add a mini compact link/share card beneath the QR (maybe at the same width for smooth alignment, but may need wider) so that we aren't only visually pushing the idea to share the QR, but also making it a bit more visually clear that that link can be copied and dropped into a group chat or something too. Don't need much, if any, instruction around it, more just a polished design of what you'd kind of expect to send/receive in a group message with an easy one-tap to copy. Additionally, the wizard has done a great job of reaching more polished/focused/seamless experience, but the drop off into the event (mainly the initial event page UI) still feels like a lot going on, rather than a bit of a more minimal presentation where it's very clear what to click into next. Rather than throwing everything at users at once, we should approach UI with a philosophy of feature-rich nested behind a more subtle, minimal feel, and each visible UI offers value and acts as the top-level entry to any underlying features, rather than including as many features as possible one-click away and feeling like an airplane dashboard of controls. This encourages more feature exploration, where the big ideas are very clearly presented and you can progressively explore each to find/try the features behind it. Maybe our best example is tucking the 'make your clip' reel feature within the reel itself, so when users land on the page we aren't shouting 'add photos' and 'make a clip' and 'watch the slideshow' and 'download' all at once, but as they're curious about the reel and click into it, they then find they can make their own. Absolutely anything in the app may be redesigned with new explorations according to this thinking.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "arrival",
+          "choice": "done",
+          "note": "I still think the way we present this checklist could use its own exploration, so it feels like a very natural/seamless entry into the event, rather than just a solo component somewhere down the event page. There also may be an opportunity for better verbiage.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "previews",
+          "choice": "one",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

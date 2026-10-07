@@ -1,0 +1,32 @@
+{
+  "board": "no-signal",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "carry",
+          "choice": "phone",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "drop",
+          "choice": "standby",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "roll",
+          "choice": "taken",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
