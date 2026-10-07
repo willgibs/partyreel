@@ -259,16 +259,30 @@ describe("the door, set (event-settings r1)", () => {
       await import("@/app/(app)/dashboard/[eventId]/actions");
     setEventDoor.mockResolvedValue({
       ok: true,
-      data: { emailHeld: true, admitted: 0 },
+      data: { emailHeld: true, emailRestored: false, admitted: 0 },
     });
     revalidated.length = 0;
     expect(await setEventDoorAction(EVENT, "approve")).toEqual({
       ok: true,
       emailHeld: true,
+      emailRestored: false,
       admitted: 0,
     });
     expect(setEventDoor).toHaveBeenLastCalledWith(EVENT, "approve");
     expect(revalidated).toEqual([`/dashboard/${EVENT}`, "/dashboard"]);
+  });
+
+  it("★ passes on the database's giving back (crumbs-89): her names-only door came back with the door", async () => {
+    const { setEventDoorAction } =
+      await import("@/app/(app)/dashboard/[eventId]/actions");
+    setEventDoor.mockResolvedValue({
+      ok: true,
+      data: { emailHeld: false, emailRestored: true, admitted: 0 },
+    });
+    expect(await setEventDoorAction(EVENT, "open")).toMatchObject({
+      ok: true,
+      emailRestored: true,
+    });
   });
 
   it("passes a refusal on in its own words, revalidating nothing", async () => {
