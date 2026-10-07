@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "4b1abf0b"          # the launch-prep SHA this state was written at
+cut: "7600c223"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -25,77 +25,54 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 Round 15 goes on from a local seat on Will's Mac (session `ce3ea37b-9032-4189-8a20-a57d78adb657`, willg97@gmail.com,
 from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on build `bbfcc54` is kept verbatim
-(`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed (24 answers; account-moments' `follow` unclear), his
-three program-wide notes folded into PRD.md. Wave 1 of its round, cut at `2e094108` (manifests `156e30906`), eight
-lanes, then two more on Will's +2 seats (2026-10-07; six to eight again as lanes close, paced by the 5-hour window). His order
-to launch (PROGRAM.md, 2026-10-07) stopped `page-themes-r1` minutes in (the marketing foundation round's question; its
-drawing kept at `../partyreel-wt/_scratch/page-themes-r1/`, its branch and manifest gone) and gave its seat to an audit
-of the app's gaps:
+(`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed, his three program-wide notes folded into PRD.md.
+Merged since, gates 56 to 66, each recorded and pruned, each one's calls his to overrule in `docs/calls.md` (BZ to CF):
+the six wirings (`account-moments-wiring` `1fdeca5e0`, `create-wizard-wiring` `0617cac99`, `event-header-wiring-2`
+`273a911ac`, `camera-wiring` `770efb29d`, `host-moments-wiring` `a78930d9c`, `album-moments-wiring` `3eace21ad`),
+`storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and three boards for the next desk (`brand-marks-r1`
+`3d2c9d1de`, `signature-r1` `556ad4dc1`, `account-moments-r2` `857376f49`). Three migrations live by protocol
+(`reshoots`, `let_in`, `storage_sums_signal`; the Advisor's Q40 to Q42), the types regenerated after them and the three
+typed seams dropped (`7600c223e`). The gap audit (`app-gaps-r1`, done): its nine product decisions are the calls lab's
+X9 to X17, its design gaps ROADMAP lab lines, its bugs closed by crumbs-87 (ledger
+`../partyreel-wt/_scratch/app-gaps-r1/ledger.md`). **Red-team 57** (agent `a4ff00e0ff54750d0`, done 07:55Z) walked the
+desk build `b1e219f26` whole: every walk PASS, no HIGH or MEDIUM; its LOW (the folded hub's Review pill, its 99+ badge
+over the icon) and NIT (the hub cover's address link without the house ring) are Immediate lines; its own four events
+and the lanes' seven test events are in Deleted; what no agent can drive is under His walks (ledger
+`../partyreel-wt/_scratch/redteam-57/ledger.txt`).
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `event-header-wiring-2` | event-header r6 wired: the Seam as corrected (its colours read at runtime off the cover previews), shoulder badges, `--needs-you` (tally) for badges, pills and the code's corner | MERGED at `273a911ac` (gate 58 green); the board and its ledger retired; calls in the lab's CB; test event to delete through Settings: willg97's `6ab7f2fa-9600-4256-90c6-32a2ad9b7e6f`; its Seam idea for the guest cover passed to signature-r1; pruned | Opus, 3131 | `a7804ee4f7918a72c` |
-| `host-moments-wiring` | password's two groups at the field, Let in for a declined newcomer, the banner's number and one key, the plan's line on the size list | MERGED at `a78930d9c` (gate 60 green); migration `let_in` APPLIED (20261007042038, md5 7b035b32 = the file's; the Advisor's Q41: APPLY; `let_back_in(uuid,boolean,boolean)` at 7383a75e/38aeb655, its grants kept; definer counts 36/4); types regenerate after the 06:10Z reset, then its `liftDb` seam drops; the host-moments board and its ledger retired (both its wirings merged); calls in the lab's CD; test event for the desk's Let-in walk, then deletion through Settings: willg97's `b90fa968-c46e-4872-9bde-92420ed6e4f4`; pruned | Opus, 3132 | `a8058c7c922d55e9a` |
-| `camera-wiring` | tell's consequence line, the fresh-roll panel, a flat 3 re-shoots, the reel's take-back | MERGED at `770efb29d` (gate 59 green); migration `reshoots` APPLIED (20261007040841, md5 16624fa3 = the file's; the Advisor's Q40: APPLY; the three bodies at their expected hashes; advisors 27/4/36; types unchanged by construction, regenerated with `let_in`); calls in the lab's CC; pruned | Opus, 3133 | `a23d9b0f7dc57c8d5` |
-| `album-moments-wiring` | her photo glows as everyone's, the send's done toast, a batch settling whole, the reel opening on its still | MERGED at `3eace21ad` (gate 61 green); the guest-moments board and its ledger retired (both its wirings merged); calls in the lab's CE; test events to delete through Settings: willg97's `be95e898-70e7-4186-9689-bf677306a085`, `def11cbb-aa37-4cc7-977f-2bfc6ce4c3ef`, `883a6edc-0135-4f2d-b947-b90ed75a92bc`; pruned | Opus, 3134 | `ab30d4c8edd82e500` |
-| `account-moments-wiring` | block's quiet well, Connections' rows staying turned back with names opening `GuestPeek`, `/me` private | MERGED at `1fdeca5e0` (gate 56 green); calls in the lab's BZ; account-moments r2 (follow, the invitation) next when a seat frees; pruned | Sonnet, 3135 | `a88d304f53085a3af` |
-| `create-wizard-wiring` | the focused styles (Disposable's own screen), the one-line close, a failure held with everything kept | MERGED at `0617cac99` (gate 57 green); calls in the lab's CA; create-wizard r5 next when a seat frees; test events to delete through Settings: willg97's `ea9115da-60ab-48f4-9349-56a2653fa333` and `3e997ec3-913f-4b0c-86ab-e421289d5867`; pruned | Opus, 3136 | `ac3e135ee3680e27f` |
-| `storage-sums-signal` | the Advisor's condition for 39: the nightly drift sweep, its /admin/jobs card and Rebuild, `remove_my_upload`'s arm | MERGED at `a72c8a64a` (gate 62 green); migration `storage_sums_signal` APPLIED (20261007064024, md5 44f38054 = the file's; the Advisor's Q42: APPLY; `remove_my_upload` at 23eb6673, its grants kept; `storage_sums_enabled` on; definer counts 36/4; no type moves); calls in the lab's CF; pruned | Opus, 3137 | `a91b00d18e7060ca2` |
-| `brand-marks-r1` | board, desk 6's first: the wordmark (v1 finished), the home-screen icon (the ember), the paper plate (lifted), the status set beside the tally (ink) | MERGED at `3d2c9d1de` (gate 63 green); for the next desk; pruned | Opus, 3138 | `a8c41c014cb4714e8` |
-| `signature-r1` | board (desk place 8): where Aperture's one light lives across the app (the Add, the guest album, the hub, Create's room) | MERGED at `556ad4dc1` (gate 64 green); for the next desk; pruned | Opus, 3139 | `a1b22d3b2ec761625` |
-| `app-gaps-r1` | an experience audit of the whole app (no manifest) | DONE 2026-10-07: 16 gaps ranked by what they would reshape decided late; its nine product decisions are the calls lab's X9 to X17 (co-hosts, an event's inner shape, who Partyreel may contact, words in the album, languages, the professional host, face search, prints, what a follow is for), its design gaps ROADMAP lab lines (the album after its party first, then no signal, turned-away demand, the host's picks, duplicates, video playback; Create's kind step rides create-wizard r5), its seven bugs Immediate lines for crumbs-87 (the door's email gate MEDIUM first); its four events moved to Deleted; ★ its cleanup's `pkill -f redteam/drv.mjs` killed album-moments-wiring's driver (that lane told), and port 3140 sits outside R2's CORS (lanes stay on 3131 to 3139); ledger `../partyreel-wt/_scratch/app-gaps-r1/ledger.md` | Opus, 3140 | `a53af3259c7e25b2e` |
-| `crumbs-87` | the gap audit's and the last merges' small things (the door's email gate, the shared link's words, the dashboard's tally, the waiting amber retired, the hub's clocks, INVITED on Public, Follow where a block stands, Settings' halo) | MERGED at `a7991bc30` (gate 65 green); its nine Immediate lines retired; pruned | Sonnet, 3131 | `afb4d81f98410c145` |
-| `account-moments-r2` | board round 2: what a follow says when it lands (once, remembered by the window), the invitation on her page redrawn | MERGED at `857376f49` (gate 66 green); for the next desk; pruned | Opus, 3135 | `a7f3f3204bbc5d747` |
-| `create-wizard-r5` | board round 5: Create's close as the payoff of a made event (the code's share as the one next step, the hub's first arrival), the styles' previews, perhaps a kind of event | RUNNING (cut at `6d216dd9`) | Opus, 3133 | `a6a93a37363af5099` |
-| `redteam-57` | the walk before milestone 39 on the desk build `b1e219f26` (refreshed 06:46Z, DESK READY): both waves since milestone 38 and the storage sums' signal; its brief `../partyreel-wt/_scratch/redteam-57/brief.md`; it also moves the lanes' seven disposable test events to Deleted | RUNNING (from 06:47Z) | Opus, its own headless Chrome (never Will's) | `a4ff00e0ff54750d0` |
+| `create-wizard-r5` | board round 5: Create's close as the payoff of a made event (the code's share as the one next step, the hub's first arrival), the styles' previews, perhaps a kind of event | RUNNING (cut at `6d216dd9`; its fresh-eyes pass `a7e3bcaf5d1e59ac1` is its own) | Opus, 3133 | `a6a93a37363af5099` |
 | `guests-room-r1` | board (desk place 42): the Guests room's person rows and a person's card, polished from Will's let-back note, on the room as wired | RUNNING (cut at `2dd9fe79`) | Opus, 3132 | `a89956235b6492e91` |
 | `presence-r1` | board (desk place 10): the guest row of faces (the newest ringed in light) and the hashvatar wherever they earn a place, in Aperture, inside the guest rules | RUNNING (cut at `3569b33b`) | Opus, 3134 | `a90f8538ce0861d2b` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session,
-spawned 2026-10-07 for Q40 (camera-wiring's `reshoots`: three CREATE OR REPLACE, the ceiling the roll plus 3, the
-gate's `period`), its answer pending; next `let_in` and `storage_sums_signal` together (`let_back_in` and
-`remove_my_upload` share the lock order the sums' trigger set). Queued to integrate: `camera-wiring` (head `40be63698`,
-its message in the session scratchpad) after Q40 and the apply.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
+Q42 answered (each APPLY, each applied); the next migration's read goes to it.
 
 **Seats.** A local `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its
 merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). A successor in another session
 respawns a lane from its transcript (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`)
-on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` seeds a new scratchpad).
+on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` seeds a new scratchpad).
 
 ## Next, in order
 
-1. **Integrate wave 1** as each hands off, one at a time (the runbook), its migration through the Advisor and the
-   protocol first; at each record: the board's ledger deleted when its picks are all built (event-header with its
-   wiring; host-moments and guest-moments once both of each one's wirings merge, by `crumbs-87`), the calls his to
-   overrule into `docs/calls.md`, Deferred lines by `record.py`.
-2. **Wave 2, after the 06:10Z reset, six to eight at once, by leverage:** first regenerate `src/lib/db/types.ts`
-   (`let_back_in`'s Args gain `p_let_in`) and drop host-moments' `liftDb` seam (`src/lib/db/mutations/event-blocks.ts`),
-   the Orchestrator's own; resume the four paused lanes by message (`album-moments-wiring`, `storage-sums-signal` with
-   Q41's note, `brand-marks-r1`, `signature-r1`); `crumbs-87` on Immediate's app lines (the audit's door gate MEDIUM first, its share-card title, the
-   dashboard's tally, the hub's two clocks, the Guests room's INVITED list; then red-team 56b's and the lanes' lines);
-   then boards from the gap audit's design gaps (the album after its party first, then a party with no signal); presence
-   r1; and each follow-up board once its wiring merges: **account-moments r2** (its spec written: follow, a first follow
-   saying once that only she sees it beside a Following state that carries the privacy itself, polished; the invitation
-   redrawn beautiful and inviting, never loud), **create-wizard r5** (Create finishing the event as PRD's core loop says:
-   the close as the payoff, its "Get it ready" foot and the hub's checklist; the styles' previews, one playing and the
-   rest still; Create's kind step from the audit), **guests-room r1** (the Guests room's person rows and `GuestPeek`,
-   polished: his let-back note). The audit's nine decisions wait on Will (the calls lab's X9 to X17); a board draws a
-   decision's surfaces once he picks its model. Lanes take ports 3131 to 3139 only (R2's CORS). The desk's old
-   leftovers: drive-export's unclear `exit` and `naming`, reworded or retired.
-3. **Milestone 39 carries both waves** (Will, 2026-10-07: one walk): every lane it holds is MERGED (six wirings and
-   `storage-sums-signal`, gates 56 to 62; three migrations live: `reshoots`, `let_in`, `storage_sums_signal`); red-team
-   57 RUNNING on the desk build `b1e219f26`. Still the Orchestrator's before his yes: regenerate `src/lib/db/types.ts`
-   (only `let_in` moved a type) and drop host-moments' `liftDb` seam. Its walks: halo-last's Tab walk (pricing's sheet,
-   Account's Plan card, the Drive picker at 375 and 1440, light and dark, the working words on a throttled network);
-   upload-sums' screen (willg97's sums equal the walk: 21 of 24 events listed, the heaviest `dc74eb95` at 302,608,403
-   bytes in 111 items; an upload, a Remove and a Delete permanently move each by the file; `storage_sums_drift(null,
-   1000)` stays empty); marketing-crumbs' look-at-first (/how-it-works step 03, the nav's Features pane,
-   /features/curation, a weddings page's table card); crumbs-86's See it as a guest on a far party; and each wave 1
-   Handoff's walk list. Findings to `crumbs-87`; the FULL gate; `pnpm compute:model` on the Mac; his yes.
+1. **Integrate the three boards** as each hands off (create-wizard r5, guests-room r1, presence r1), one at a time;
+   at each record, its calls into `docs/calls.md`. The next desk serves brand-marks r1, signature r1, account-moments r2
+   and these three: once they land, refresh his desk to the tip (`desk-refresh.sh`, never while a red-team walks it) and
+   tell him it is ready.
+2. **Milestone 39 on Will's yes** (one walk, both waves): everything it holds is merged and red-team 57 found nothing
+   above LOW. The Orchestrator's before his yes: the FULL gate (gate 67) and `pnpm compute:model` at the tip; a lane
+   merged after them means the FULL gate again at the new tip before the merge to `main`.
    **Drive goes live with 39** (Will, 2026-10-07): just before 39's production deploy, from this Mac (`wrangler` is
    logged in as P3), `workers/drive`'s `npm ci`, its two queues (README), `DRIVE_APP_URL` partyreel.com, its secret from
    `.env.local` by stdin, `wrangler deploy`, then `DRIVE_WORKER_URL` on production; his Drive walk follows (P3's
    consent; drive-crumbs' Handoff lists what to press).
+3. **Wave 2's open seats, paced by the 5-hour window** (six to eight agents, `get_usage` at every cut): `crumbs-88` on
+   Immediate's app lines (red-team 57's LOW first, then the hub's, Create's and the guest door's); then boards from the
+   gap audit's design gaps (the album after its party first, then a party with no signal), each brief from the audit's
+   ledger. The audit's nine decisions wait on Will (X9 to X17); a board draws a decision's surfaces once he picks its
+   model. Lanes take ports 3131 to 3139 only (R2's CORS). The desk's old leftovers: drive-export's unclear `exit` and
+   `naming`, reworded or retired.
 4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
    app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6 (his r5 note
    on `stage`, kept in its ledger, is that round's brief for the home's hero), marketing's light, N4, N7, N9, and the
@@ -103,7 +80,7 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
 5. **His list of 100+ items, when he sends it** (Will, 2026-10-06: after the desk batch, with a fresh context): each
    batch kept verbatim first, slotted into the ROADMAP's buckets and areas, a proposed order of rounds on top.
 6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
-   still serves `2634388a8`: refresh it to the tip for his next sitting (never while a red-team walks it).
+   serves `b1e219f26` (red-team 57's walk).
 7. **★ Vercel stays on Hobby** (Will, 2026-10-07; he offered his personal account for Partyreel, not needed: since the
    desks and red-teams moved to the Mac the team's calls fell from 20,000 to 57,000 a day to about 2,000, so at ~250 a
    day the window falls under the REFUSE line around 2026-10-16 and under WARN in early November, when 2026-09-29 to
@@ -111,12 +88,14 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    asks for by name; `node usher/kit/vercel-usage.mjs` before any.
 8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, `get_usage`
    read at every cut, and nothing new started when the window would run out before its reset, so the account rolls
-   into about 99% at the reset and the session goes on in context. At 03:16Z the window read 50% (it resets 06:10Z)
-   after two hours of ten agents, so nothing is cut until the reset; weekly 14% (resets 2026-10-13 21:00Z). Who does
-   the work: the runbook's "Working with Will" (a lane for focus; small in-context work the Orchestrator's own).
+   into about 99% at the reset and the session goes on in context. At 07:59Z the window read 48% (it resets 11:10Z)
+   with three boards running, so a new lane waits for a board's handoff or the reset; weekly 33% (resets 2026-10-13
+   21:00Z). Who does the work: the runbook's "Working with Will" (a lane for focus; small in-context work the
+   Orchestrator's own).
 
 ## Waiting on Will
 
+- **Milestone 39's yes** (Next 2): everything merged, red-team 57 clean, its FULL gate and compute budget run first.
 - **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
   his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
@@ -131,11 +110,13 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
   the six (voice, image, gooey) were read from their MIT source on GitHub, never watched.
 - **His walks:** the halo's Tab walk a11y-halo could not drive (its browser refused): each changed control at 375 and
-  1440, light and dark, above all the live reel's bar, the moderation tile and the upload stop keys on a photograph and
-  the hub reel curtain's close; Tab through Account and Settings on paper at 375 and 1440, Save and Create under a throttled
-  network (identity-r5-wiring); Settings' develop time on his iPhone (type a time, then Back or the picker's close: it holds;
-  crumbs-72), the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
-  size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and on; and
-  trash-in-storage's permanent deletes, which no agent may press (on hi@willgibs.com: the size list's Delete for good
-  on "RT51 free", Make room from Deleted back on and one upload past the line, Empty Deleted, a guest's own removal
-  reading its purge that night); a Ladder A checkout with the test card on the alias.
+  1440, light and dark, above all the live reel's bar, the moderation tile and the upload stop keys on a photograph
+  and the hub reel curtain's close; Tab through Account and Settings on paper at 375 and 1440, Save and Create under a
+  throttled network (identity-r5-wiring); Settings' develop time on his iPhone (type a time, then Back or the picker's
+  close: it holds; crumbs-72), the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos,
+  Record Video's size, a deletion and its Cancel deletion on hi@willgibs.com, the spend watch's uploads switch off and
+  on; and trash-in-storage's permanent deletes, which no agent may press (on hi@willgibs.com: the size list's Delete
+  for good on "RT51 free", Make room from Deleted back on and one upload past the line, Empty Deleted, a guest's own
+  removal reading its purge that night); a Ladder A checkout with the test card on the alias; and what red-team 57
+  could not drive: a guest waiting at a door that asks for a confirmed email (a second confirmed account: the code's
+  corner counting her, a fresh Decline, the password's waiting line), and `/me` without a handle on hi@willgibs.com.

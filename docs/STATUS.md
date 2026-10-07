@@ -13,16 +13,17 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, milestone 39 forming
+## The current round: round 15, milestone 39 ready for Will's yes
 
 - **Milestone 38 is live** (`90ab891c2`, 2026-10-06 21:37Z; its merge commit says what it holds), red-teamed by 56 and
   56b (no HIGH or MEDIUM open); the legal text is rewritten once, right before launch.
-- **Milestone 39 forms on `launch-prep`, both waves in one walk** (Will, 2026-10-07): the second wave merged
-  (crumbs-86, halo-last, marketing-crumbs, upload-sums with its migration live), and his desk batch's wirings running
-  now beside the storage sums' signal lane (the Advisor's condition); then red-team 57 and his yes. Drive goes live
-  with it: its Worker deploys just before 39's production deploy (`tracks/orchestrator.md`).
+- **Milestone 39 is merged on `launch-prep`, both waves in one walk** (Will, 2026-10-07): the second wave (crumbs-86,
+  halo-last, marketing-crumbs, upload-sums), his desk batch's six wirings, the storage sums' signal (the Advisor's
+  condition) and crumbs-87, with three more migrations live; red-team 57 walked it whole and found nothing above LOW.
+  Its FULL gate and compute budget run before his yes. Drive goes live with it: its Worker deploys just before 39's
+  production deploy (`tracks/orchestrator.md`).
 - **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
-  hi@willgibs.com's wound down at its consolidation point; eight lanes run, each a local worktree.
+  hi@willgibs.com's wound down; three boards run, each a local worktree, paced by the 5-hour window.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and
   red-teams moved to the Mac (about 2,000 calls a day, from 20,000 to 57,000); under the REFUSE line around 2026-10-16.
   Nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
@@ -31,7 +32,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 Will's desk (`localhost:3000/design/lab?key=fiesta`; refreshed by `S=<scratch> zsh usher/kit/desk-refresh.sh <sha>`)
 answered brand r2 (Aperture), event-header r6 and desk 7's four moments boards on 2026-10-06 (`docs/reviews/`), all but
-account-moments' follow. Next: desk 6, the brand applied in Aperture (brand-marks r1 drawing now), then the follow-ups.
+account-moments' follow. The next desk: brand-marks r1, signature r1 and account-moments r2 merged; create-wizard r5,
+guests-room r1 and presence r1 drawing; his desk refreshes to the tip once they land.
 
 ## Live state
 
@@ -40,9 +42,9 @@ account-moments' follow. Next: desk 6, the brand applied in Aperture (brand-mark
   deploys with milestone 39 (`DRIVE_WORKER_URL` set then).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
-- **The shared database** runs every migration through `upload_sums` (2026-10-06), each by protocol (the Advisor read
-  each before its apply, the file's md5 matched), each an expand the older build ran beside; no build of either project
-  reads a dropped thing. Advisors stand at 27 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
+- **The shared database** runs every migration through `storage_sums_signal` (2026-10-07), each by protocol (the
+  Advisor's read, the file's md5 matched), each an expand the older build ran beside; no build reads a dropped thing.
+  Advisors stand at 27 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -71,7 +73,7 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 
 ## Waiting on Will
 
-- Milestone 39's yes after the storage sums' signal lane, the batch's wirings and red-team 57; the calls lab's open
+- Milestone 39's yes (everything merged, red-team 57 clean, its FULL gate run first); the calls lab's open
   questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the
   CDN-cached album, X6 the operator's uploads credit, X8 the policy tests' style picks) and the calls built for him to
   overrule; the two backup copies with old EXIF to delete and the six retired Stripe price names to drop; the
