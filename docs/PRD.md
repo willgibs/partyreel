@@ -33,7 +33,9 @@ next host. **North-star metric: a host creates a second event.**
 ## The core loop
 
 1. **Create**: the host makes an event; one `qr_token` (`/e/[qr_token]`) becomes the QR code and the link (a custom
-   link, `/e/<slug>`, opens the same event).
+   link, `/e/<slug>`, opens the same event). Create finishes the event: whatever it needs to go live is done inside
+   Create, each in a focused view, and Settings holds only the optional and changes to Create's choices, so Create's
+   last screen is the payoff of a made event, never a halfway point.
 2. **Join and upload**: a guest scans, gives a name (and confirms an email while the host requires verified emails,
    the default), and uploads straight from the phone: browser to storage, direct, with photo metadata stripped in the
    browser first.
@@ -131,11 +133,13 @@ design's ten. Native mobile apps are a non-goal: guests use the mobile web, whic
   is read for the need under it (more shots for a weekend may be a fresh roll each day).
 - **Delight where it costs nothing in clarity:** "all work and no play is a boring consumer product", so a moment of
   play (a develop, a photograph landing) is worth building wherever it never clouds what a screen says; and never a
-  developer's tool (no terminal or code look, no monospace face).
+  developer's tool (no terminal or code look, no monospace face). Attention is earned the same way: the one thing that
+  needs her may draw the eye, beautiful and inviting, while nothing on a screen yells or crowds it.
 - **Nothing depends on a timeline:** undated, morning-only, daytime and multi-day events all read well, and "night" is
   never identity language (`constants/marketing-voice.ts`).
 - **Immediate, or a clear state and a way out:** everything should feel immediate; anything that takes longer says what
-  it is doing and can be stopped where stopping means something.
+  it is doing and can be stopped where stopping means something; and a failure says what happened, that nothing was
+  lost, and the one easy way to put it right, so it never feels frustrating or scary.
 - **Permission at the moment of need:** sign-up asks only what sign-in needs; Drive, a device or any later grant is
   asked at its first use, after our own words say why.
 - **One moment for every guest:** anything an album does at a time (its turn, a develop, a reveal) happens at one

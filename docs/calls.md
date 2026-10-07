@@ -891,27 +891,6 @@ Built so the gate stays fast as the product grows; your four calls, the first tw
 
 ---
 
-## BI. The hub's cards, the light made right (event-header-r6, on your desk)
-
-Its two asks are on your desk; these are the calls drawn into every option, built and yours to overrule.
-
-**BI1. The cards stand on the cover's foot, and the light falls past them.** The photograph runs on 20 px under the cards (14 at a phone) to its edge, where the Seam starts; the album begins past the light's reach, so nothing you press sits inside it.
-- *Push back if* the cards should sit under the light instead, as a row on the page after the Seam.
-
-**BI2. The light keeps the brand's full reach.** At 1440 the album starts 623 px down in the room (r5: 559) and 539 on paper; a shorter Seam would be the brand's own 104 / 72, never paler.
-- *Push back if* the first screen should show more of the album.
-
-**BI3. At a phone the cards are one row of five tiles** (the glyph, its count, a short word), since the cover's foot cannot hold a two-by-two grid.
-- *Push back if* a phone should keep production's two-by-two grid.
-
-**BI4. 99+ lives in the badge alone.** A screen reader still hears the whole number ("Review: 140 waiting").
-- *Push back if* the cap should show anywhere else.
-
-**BI5. Paper follows brand r2's recommended take (Aperture) until you pick one.** Ink and Cast are on the board's Paper knob, never asked twice.
-- *Push back if* you want paper judged first.
-
----
-
 ## BJ. Your house set and working words, wired (identity-r5-wiring)
 
 Your two identity picks are in production's atoms; these five calls came with them, built and yours to overrule.
@@ -976,42 +955,6 @@ develops tomorrow at 6 pm"), which fits a line at 375.
 **BL5. The held door's camera says the shots wait:** "They go in once you're let in" under the name and in Your shots,
 "Waiting to go in" on each shot, "N shots. They go in once you're let in." at the roll's end.
 - *Push back if* the words should say less (or the shots should not show until she is in).
-
-## BM. A guest's night, drawn (guest-moments-r1, on your desk)
-
-Its five asks are on your desk; these are the calls drawn into its options, built and yours to overrule.
-
-**BM1. The reel's take-back asks first:** a press on the reel's newest frame opens a two-key sheet (Take it back /
-Keep it), since a mis-press there must not delete; Your shots keeps its X with no question.
-- *Push back if* the reel's take-back should be one press too.
-
-**BM2. Her own first photo says "Yours is in"** (the arrival light's own name for the sweep), in the `own` option
-recommended.
-- *Push back if* the words should be quieter, or none.
-
-**BM3. `settle` keeps the glow on other people's photos:** the batch lands whole from the first frame, each new one
-still lit.
-- *Push back if* a settled batch should land unlit.
-
-**BM4. The retake ceiling, asked rather than assumed:** production allows three rolls' worth (72 shots at a roll of
-24), not the "up to 3 shots in all" the brief said; `limit` asks it with your flat 3 recommended, a `create_media`
-constant (a migration) for its wiring lane.
-- *Push back if* three rolls' worth should stand without asking.
-
-## BN. A host's party, drawn (host-moments-r1, on your desk)
-
-Its seven asks are on your desk; these are the calls drawn into them, built and yours to overrule.
-
-**BN1. Two of its options would change the database if you pick them,** and each ask says so in its costs: `tell`'s
-"carry on" (a guest's roll keeps counting through a develop time added mid-party: `create_media` would count from
-`sealed_from`) and `let-back`'s "straight" (lifting a decline lets the newcomer in: `let_back_in` would admit a
-waiting ask). Recommended: "straight" yes, the outcome its words promise; "carry on" no (a consequence line, fresh
-rolls said first).
-- *Push back if* either recommendation should flip.
-
-**BN2. `decline` keeps today's answer as its recommendation:** Decline is a block, the one ask where production's
-built answer stands as recommended.
-- *Push back if* a decline should be a no for now, or her choice each time.
 
 ## BO. The halo everywhere in reach, and captions you can read (a11y-halo)
 
@@ -1114,45 +1057,6 @@ folder is; a second folder of the same name was the bug.
 **BS4. Connecting asks Google once for her Partyreel folder before she lands** (one quick lookup, 10 s at most), so
 Account's card names it at once.
 - *Push back if* the card should fill in a moment later instead.
-
-## BT. Create's last steps, drawn (create-wizard-r4, on your desk)
-
-Its four asks are on your desk (the styles' step on your round-3 note, F1 what is left, F2 the wait and a failure);
-these are the calls drawn into them, built and yours to overrule.
-
-**BT1. F2 is two asks:** what stands while the event is made (`wait`), then where a failure lands (`failed`), drawn
-in the wait you pick.
-- *Push back if* each option should be a wait and a failure together.
-
-**BT2. The styles' step recommends `focused`** (the three cards, then the develop time on a screen of its own) over
-production's step, which already answers your note (the time under its card, in view at 375).
-- *Push back if* one more screen for a Disposable host costs more than it gives.
-
-**BT3. Try it runs slow and recovers:** its slow line shows at 2.6 s and a retry succeeds, so every wait and failure
-frame can be seen.
-- *Push back if* Try it should fail for good, or be quick.
-
-**BT4. The round's new words stand as drawn** ("When do the photos develop?", "Guests still need your code: print it,
-or share it.", "Couldn't create it yet"); the voice tunes them at wiring.
-- *Push back if* a line reads wrong.
-
-## BU. Her account's quiet moments, drawn (account-moments-r1, on your desk)
-
-Its five asks are on your desk (I4 Follow and Block staying quiet, I5 her page before it's public); these are the
-calls drawn into them, built and yours to overrule.
-
-**BU1. The board stands on Shared,** since a follow, a block and her own page are a guest's and a host's alike.
-- *Push back if* Guest should own them.
-
-**BU2. It opens at 375,** where a guest meets these from her album; 1440 is one press away.
-- *Push back if* it should open at a desk.
-
-**BU3. A refused follow or block is settled and drawn nowhere:** it springs back, the server's words in one toast.
-- *Push back if* refusal should be asked too.
-
-**BU4. The profile setup's three screens are untouched:** I5 stops at the invitation that leads into them, so a pick
-changes /me and the card, never the setup.
-- *Push back if* the setup itself should be redrawn.
 
 ## BV. Ten small things, made right (crumbs-86)
 
