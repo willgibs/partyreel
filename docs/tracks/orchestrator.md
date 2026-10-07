@@ -50,6 +50,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | `after-party-r1` | board (desk place 12), the gap audit's highest design gap: what an album becomes once its party is over, for a returning guest, a shared link and the host the morning after | RUNNING (from 11:05Z) | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
 | `crumbs-90` | the guest's send and album: Immediate's upload and album lines (a hung complete, the heal beside a Retry, a HEIC with no preview, the failure sheet beside the toast and a roll's refusal, a tile's focus, a photo link's image size, two dead arms); merges after 39 and crumbs-88 | RUNNING (from 13:40Z) | Opus, 3132 | `a792a2c5719fc2ca0` |
+| `redteam-57c` | the re-walk that closes milestone 39: crumbs-89's fixes on every path 57b named, on the desk build `bea40689d` (refreshed 14:09Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57c/brief.md` | RUNNING (from 14:11Z) | Opus, its own headless Chrome (never Will's) | `a93c1b646bf62a281` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q43 answered (each APPLY, each applied); the next migration's read goes to it.
