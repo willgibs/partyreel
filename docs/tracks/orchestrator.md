@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "156e3090"          # the launch-prep SHA this state was written at
+cut: "f4becf84"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -27,7 +27,8 @@ Round 15 goes on from a local seat on Will's Mac (session `ce3ea37b-9032-4189-8a
 from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on build `bbfcc54` is kept verbatim
 (`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed (24 answers; account-moments' `follow` unclear), his
 three program-wide notes folded into PRD.md. Wave 1 of its round, cut at `2e094108` (manifests `156e30906`), eight
-lanes, each a local worktree from `spawn-prompt.txt`:
+lanes, then two more boards on Will's +2 seats (2026-10-07: ten at most, his care for the Orchestrator's own focus),
+each a local worktree from `spawn-prompt.txt`:
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
@@ -39,6 +40,8 @@ lanes, each a local worktree from `spawn-prompt.txt`:
 | `create-wizard-wiring` | the focused styles (Disposable's own screen), the one-line close, a failure held with everything kept | RUNNING | Opus, 3136 | `ac3e135ee3680e27f` |
 | `storage-sums-signal` | the Advisor's condition for 39: the nightly drift sweep, its /admin/jobs card and Rebuild, `remove_my_upload`'s arm (migration `20261007022000_storage_sums_signal.sql`) | RUNNING | Opus, 3137 | `a91b00d18e7060ca2` |
 | `brand-marks-r1` | board, desk 6's first: the wordmark and icon final, the palette's tokens, the status set (tally given), in Aperture | RUNNING | Opus, 3138 | `a8c41c014cb4714e8` |
+| `signature-r1` | board (desk place 8): where the Ring, Seam and Bloom live across app and marketing, at rest and answering | RUNNING (cut at `e6fa3cc8`) | Opus, 3139 | `a1b22d3b2ec761625` |
+| `page-themes-r1` | board (desk place 7): each marketing page dark or light, a section rhythm, one vocabulary for cinema, ink and display; N4, N7, N9 | RUNNING (cut at `e6fa3cc8`) | Opus, 3140 | `a68e1ff5244d74256` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): spawned from `usher/kit/advisor-prompt.txt` at
 the first of this wave's three migrations; read `let_in` and `storage_sums_signal` together (`let_back_in` and
@@ -55,10 +58,11 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    protocol first; at each record: the board's ledger deleted when its picks are all built (event-header with its
    wiring; host-moments and guest-moments once both of each one's wirings merge, by `crumbs-87`), the calls his to
    overrule into `docs/calls.md`, Deferred lines by `record.py`.
-2. **Wave 2, as seats free, by leverage:** desk 6's other boards in Aperture (the signature: where the Ring, Seam and
-   Bloom live across app and marketing, from the ROADMAP's light lines; page themes: each page dark or light, one
-   vocabulary for cinema, ink and display, N4, N7, N9; demo-framing r6, rewording its unclear `stage`; presence r1);
-   then each follow-up board once its wiring merges: **account-moments r2** (follow: a first follow saying once that only
+2. **Wave 2, as seats free, by leverage** (specs drafted in the session scratchpad's `specs/wave2/`; a successor writes
+   them again from this line): desk 6's last two boards in Aperture (demo-framing r6: the three heroes pushed a round
+   with their r5 fallbacks on a knob, one or two new directions, the typed link quieter, from his r5 note; presence r1:
+   the guest row with the newest ringed in light, the hashvatar, the avatar-group hover, inside the guest rules); then
+   each follow-up board once its wiring merges: **account-moments r2** (follow: a first follow saying once that only
    she sees whom she follows, beside a Following state that carries the privacy itself, polished; the invitation redrawn
    beautiful and inviting, never loud, on the wired `/me`), **create-wizard r5** (Create finishing the event as PRD's
    core loop now says: the close as the payoff, its "Get it ready" foot and the hub's checklist included; the styles'
@@ -82,10 +86,13 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    batch kept verbatim first, slotted into the ROADMAP's buckets and areas, a proposed order of rounds on top.
 5. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
    still serves `2634388a8`: refresh it to the tip for his next sitting (never while a red-team walks it).
-6. **★ Vercel's Hobby Active CPU** (3.89 of 4 hours over 30 days at 01:37Z 2026-10-07; the 2026-10-03 peak of 57,400
-   calls rolls off in early November): nothing runs against the alias or partyreel.com but what Will asks for by name.
-7. **Pacing:** a fresh weekly limit on willg97 (resets Sunday 2026-10-11 13:00Z); the Mac's memory is the limit (eight
-   lanes at 86% free when cut).
+6. **★ Vercel stays on Hobby** (Will, 2026-10-07; he offered his personal account for Partyreel, not needed: since the
+   desks and red-teams moved to the Mac the team's calls fell from 20,000 to 57,000 a day to about 2,000, so at ~250 a
+   day the window falls under the REFUSE line around 2026-10-16 and under WARN in early November, when 2026-09-29 to
+   10-04 roll off; qrcdn is 1 to 14% of a day). Until then nothing runs against the alias or partyreel.com but what Will
+   asks for by name; `node usher/kit/vercel-usage.mjs` before any.
+7. **Pacing:** a fresh weekly limit on willg97 (resets Sunday 2026-10-11 13:00Z); ten lanes at most (Will's +2,
+   2026-10-07), the Mac's memory the other limit (86% free with ten cut).
 
 ## Waiting on Will
 
@@ -98,7 +105,6 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
   `events/38290e85-c23c-4d3a-bdbb-c6240e6b5074/photo/c4992e06-1423-4ed7-9ac0-81359b408f7c/original.jpg`: backed up
   2026-06-21, before the 2026-07-03 EXIF backfill stripped their primaries, so they still carry EXIF (GPS where the
   photo had it). Once deleted, the next reconcile copies the stripped originals (backup-reconcile's Q1).
-- **Vercel:** Pro now, or Hobby until the window clears in early November (he said hold, 2026-10-05).
 - **Six retired env names** (`STRIPE_PRICE_PRO_100` to `_2TB_YR`) to delete from both Vercel projects, `.env.local`
   and the cloud environment: unread by any code, their Stripe TEST prices archived.
 - **His six motion links, a note:** libraries.dev is blocked on his home network (the ISP's CUJO filter), so three of
