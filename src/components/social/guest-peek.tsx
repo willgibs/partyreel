@@ -57,6 +57,14 @@ import type { GuestListItem } from "./guest-list";
  * credit), and the look keeps leading with the person; Block is its last,
  * smallest line (`BlockLookAction`), which closes the look and opens the one
  * block screen.
+ *
+ * ★ A NAME IN HER CONNECTIONS OPENS THE SAME LOOK (`account-moments` r1, `tidy=stays`, Will 2026-10-06: "Can guest
+ * names be clicked here to open the mini card on screen for additional actions beyond the row action flip? ... Don't
+ * want to overcrowd the row actions."). A row keeps its one action, and what else a person can be to her, Follow after
+ * an Unblock above all, is one press here. So the surface says what is true NOW through `canFollow` (never while she
+ * blocks them, and not where the row's own action is the Follow), and hands the look the Follow itself through
+ * `follow` where it keeps the relation (`account/page-connections.tsx` holds one answer per person for every control
+ * that shows it, and the look's own Follow would start from "Follow" at every open).
  */
 
 // A profile card carries no `kind`: only a name nobody proved has one (the list's discriminator).
@@ -95,16 +103,20 @@ function nameOf(item: GuestListItem): string {
 function LookActions({
   item,
   canFollow,
+  follow,
 }: {
   item: GuestListItem;
   canFollow: boolean;
+  follow?: ReactNode;
 }) {
   if ("kind" in item || !item.slug) return null;
   return (
     <div className="flex flex-col gap-2 pt-1">
-      {canFollow ? (
-        <FollowButton profileId={item.id} initialFollowing={false} />
-      ) : null}
+      {canFollow
+        ? (follow ?? (
+            <FollowButton profileId={item.id} initialFollowing={false} />
+          ))
+        : null}
       <Button asChild className="w-full">
         <Link href={`/u/${item.slug}`}>Open full profile</Link>
       </Button>
@@ -116,14 +128,20 @@ export function GuestPeek({
   item,
   email,
   canFollow,
+  follow,
   block,
   children,
 }: {
   item: GuestListItem;
   /** HOST-ONLY: the confirmed address the Guests room already shows. */
   email?: string | null;
-  /** A signed-in viewer who is somebody else and does not follow them yet. */
+  /**
+   * A signed-in viewer who is somebody else, may follow them and does not follow them yet. A surface that keeps
+   * the answer live (Connections) says so for as long as it is true.
+   */
   canFollow: boolean;
+  /** The Follow the look offers while `canFollow`, where the surface keeps the relation itself; the look's own otherwise. */
+  follow?: ReactNode;
   /** HOST-ONLY: who Block would put out of this event, as this surface knows them. */
   block?: { target: BlockTarget };
   /** The name that opens it: one button. */
@@ -179,7 +197,7 @@ export function GuestPeek({
                 {email}
               </p>
             ) : null}
-            <LookActions item={item} canFollow={canFollow} />
+            <LookActions item={item} canFollow={canFollow} follow={follow} />
             {blockAct}
           </PopoverContent>
         </Popover>
@@ -208,7 +226,7 @@ export function GuestPeek({
                 {email}
               </p>
             ) : null}
-            <LookActions item={item} canFollow={canFollow} />
+            <LookActions item={item} canFollow={canFollow} follow={follow} />
             {blockAct}
           </PopupBody>
         </PopupContent>

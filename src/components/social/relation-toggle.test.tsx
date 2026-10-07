@@ -146,6 +146,66 @@ describe("the relation contract", () => {
     );
   });
 
+  // ★ A FLIP THAT NEVER ANSWERED (account-moments r1): an offline press rejects, and a rejection inside a transition
+  // goes to the page's error boundary, so she lost the screen over a press she could simply make again. It is a
+  // refusal now. No error boundary stands in this tree, so a rejection that leaked would fail the run itself.
+  it("a Server Function that cannot be reached springs back with one toast, never to an error boundary", async () => {
+    follow.mockRejectedValue(new TypeError("Failed to fetch"));
+    render(<RelationToggle relation="follow" profileId="p2" on={false} />);
+    fireEvent.click(screen.getByRole("button", { name: "Follow" }));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringMatching(/try again/i),
+      ),
+    );
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Follow" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+  });
+
+  it("tells a surface that keeps the relation what landed, and never what was refused", async () => {
+    const onSettle = vi.fn();
+    render(
+      <RelationToggle
+        relation="follow"
+        profileId="p2"
+        on
+        onSettle={onSettle}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Following" }));
+    await waitFor(() => expect(onSettle).toHaveBeenCalledWith(false));
+    // The next press waits for the flip to land (crumbs-48's wait, above).
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Follow" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+
+    follow.mockResolvedValue({ ok: false, message: "Not now." });
+    fireEvent.click(screen.getByRole("button", { name: "Follow" }));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Not now."));
+    expect(onSettle).toHaveBeenCalledTimes(1);
+  });
+
+  // The Connections rows say "Following" down a whole list: the person is in the row's layout, never in the button.
+  it("is heard with the name the layout beside it carries, after the words it shows", () => {
+    render(
+      <RelationToggle
+        relation="follow"
+        profileId="p2"
+        on
+        srLabel="Sam Okafor"
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Following Sam Okafor" }),
+    ).toBeInTheDocument();
+  });
+
   it("Follow is a toggle that reads as pressed; Block is an act and carries no pressed state", () => {
     const { unmount } = render(
       <RelationToggle relation="follow" profileId="p2" on />,
@@ -187,15 +247,26 @@ describe("every face of a relation is on the one control", () => {
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
 
-  it("the profile's Follow, the menu's Block row and the Connections rows run the one hook", () => {
+  // ★ RESHAPED BY account-moments r1 (`tidy=stays`): the Connections rows moved out of the Account page into their own
+  // island (`page-connections.tsx`), one row component drawing both lists, so the page holds none and the island holds
+  // the one `<RelationToggle`. The scar kept is the claim: the rows run the one control, and no second pair of buttons
+  // came back. The blocked well on a profile is a face too.
+  it("the profile's Follow, the menu's Block row, the blocked well and the Connections rows run the one hook", () => {
     expect(read("src/components/social/follow-button.tsx")).toMatch(
       /<RelationToggle\b/,
     );
     expect(read("src/components/social/profile-actions-menu.tsx")).toMatch(
       /useRelation\(\{\s*relation: "block"/,
     );
-    const account = read("src/app/(app)/account/page.tsx");
-    expect(account.match(/<RelationToggle\b/g) ?? []).toHaveLength(2);
+    expect(read("src/app/(guest)/u/[slug]/blocked-well.tsx")).toMatch(
+      /<RelationToggle\b/,
+    );
+    // The rows' button and the look's Follow, which the island hands the look (`GuestPeek`'s `follow`).
+    const rows = read("src/app/(app)/account/page-connections.tsx");
+    expect(rows.match(/<RelationToggle\b/g) ?? []).toHaveLength(2);
+    expect(read("src/app/(app)/account/page.tsx")).not.toMatch(
+      /<RelationToggle\b/,
+    );
     expect(
       existsSync(join(ROOT, "src/components/social/connection-buttons.tsx")),
     ).toBe(false);
