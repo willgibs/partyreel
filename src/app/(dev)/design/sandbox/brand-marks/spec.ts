@@ -6,12 +6,12 @@ import { SCREEN } from "./knobs";
  * THE MARKS, ROUND TWO: THE ICON MADE BESPOKE (the brand-marks-r2 track, cut
  * 2026-10-07 from Will's round one batch, `docs/reviews/brand-marks.json`).
  *
- * Round one's wordmark, plate and status picks are being wired this wave
- * (brand-marks-wiring), so they leave the asks and stand in the opening as
- * settled. His icon pick came with the round's brief: the ember Ring carries
- * as the working version, and he would like it "filling the ring with more
- * design to feel more bespoke to our brand rather than identifying with a
- * circle alone."
+ * Round one's wordmark, plate and status picks are wired (brand-marks-wiring),
+ * so they leave the asks and stand in the opening as settled. His icon pick
+ * came with the round's brief: the ember Ring carries as the working version
+ * (production's now, `src/lib/brand/ring.ts`, drawn here as itself), and he
+ * would like it "filling the ring with more design to feel more bespoke to
+ * our brand rather than identifying with a circle alone."
  *
  * ★ ONE FOCUSED ASK, BECAUSE THE ICON STANDS ALONE: nothing on a page
  * composes with it, so it is decided by itself, its takes drawn where an
@@ -19,10 +19,14 @@ import { SCREEN } from "./knobs";
  *
  * ★ THREE TAKES, PUSHED APART, TODAY'S RING THE REFERENCE: what the ring
  * holds (the party's mirror ball; the reel the name is), and what it is made
- * of (a sparkler's light), so the three answer differently what the icon says:
- * the party, the moment, the name. Each keeps the brand's rules: one light,
- * the house ember, key-lit from the top-left; drawn only as a Ring; the house's,
- * never an event's.
+ * of (one swing of a sparkler's light), so the three answer differently what
+ * the icon says: the party, the moment, the name. Each keeps the brand's
+ * rules: one light, the house ember, key-lit from the top-left; drawn only as
+ * a Ring; the house's, never an event's. A helper drew each take whole, a
+ * creative director's fresh-eyes pass named what each still broke, and one
+ * refinement landed every note (the ball's lit facets one crescent at the
+ * key, never a dotted ring; the sparkler's loop a swing crossing its own
+ * start, never today's ring; the reel's windows one light, never a palette).
  *
  * ★ EVERY OPTION IS ITS ANSWER'S OWN SIZE: an icon is a few files (the
  * favicon, the touch and maskable icons, the press kit's marks), so each take
@@ -54,7 +58,7 @@ export const BRAND_MARKS = defineExploration({
     n: 2,
     date: "2026-10-07",
     changed:
-      "From your round one batch: the wordmark, the plate and the status set are being built, and the ember Ring ships as the working version. The icon asked again: three bespoke takes on that Ring beside it.",
+      "From your round one batch: your wordmark, the plate and the status set are built, and the ember Ring ships everywhere an icon lives. The icon asked again: three bespoke takes on that Ring beside it.",
   },
   history: [
     {
@@ -71,9 +75,9 @@ export const BRAND_MARKS = defineExploration({
       "Round two: the icon made bespoke. Three takes on the ember Ring you picked, each more of Partyreel than a circle, beside it as the reference.",
     settled: [
       "The icon is the Ring: the shutter's dark puck in a ring of light, the album's own Add drawn as a mark, lit by the house ember.",
-      "The ember Ring ships everywhere an icon lives this wave as the working version: the reference here.",
+      "The ember Ring now ships everywhere an icon lives, as the working version: the reference here, drawn as itself.",
       "The icon is the house's, never an event's light; the wordmark stands alone in the bars and the foot.",
-      "Your round one picks are being built: your v1 wordmark finished, the room's own black on paper, a status set with amber.",
+      "Your round one picks are built: your v1 wordmark finished, the room's own black on paper, a status set with amber.",
     ],
     earlier: [
       "Round one, the icon: 'filling the ring with more design to feel more bespoke to our brand rather than identifying with a circle alone.'",
@@ -166,21 +170,21 @@ export const BRAND_MARKS = defineExploration({
           id: "mirrorball",
           label: "The Ring holds a mirror ball",
           means:
-            "The puck becomes the party's mirror ball: dark facets that catch the house ember and hold the ring's light as a ring of lit facets.",
+            "The puck becomes the party's mirror ball: near-black facets, a crescent of them catching the house ember at the key.",
           gains:
-            "The party's own object, lit by the brand's one light: festive, and still calm.",
+            "The party's own object, caught in the brand's one light: the most festive, and rich from 60 up.",
           costs:
-            "The most detail to read at a home screen's size; in one colour it nears a globe.",
+            "In a tab only a few lit pixels say ball; small, in one colour, it nears a button.",
         },
         {
           id: "sparkler",
           label: "The Ring drawn by a sparkler",
           means:
-            "The ring is a sparkler's light swung once round, as a long exposure catches it: white-hot at its core, sparks at its head.",
+            "The ring is one swing of a sparkler, as a long exposure catches it: in thin, once round, and over its own start in a white-hot head.",
           gains:
-            "The party's own light, drawn by hand: the most alive, and its gesture holds at every size.",
+            "The party's own light, the ring drawn by hand: the most alive, a gesture, never a circle alone.",
           costs:
-            "A gesture where today is geometry: less still, and its sparks thin out in a tab.",
+            "Nothing fills the ring; in a tab the swing is a hooked loop, its sparks gone.",
         },
         {
           id: "reel",
@@ -188,17 +192,17 @@ export const BRAND_MARKS = defineExploration({
           means:
             "The puck becomes a reel, five windows round its hub, the house ember shining through them from behind: the name, drawn.",
           gains:
-            "Says Partyreel by itself, crisp from a tab to a poster, and in one colour too.",
+            "Says Partyreel by itself: the boldest from a tab to a poster, and in one colour too.",
           costs:
-            "A reel can read as film or video before photos, and its shape is familiar.",
+            "The stock film-reel glyph: it says video (and Instagram's Reels) before photos or a party.",
         },
       ],
       recommended: "reel",
       today: "ember",
       because:
-        "The reel is the name itself, lit the brand's way: light through what is cut away, and it holds from a tab to a poster.",
+        "The reel fills the ring with the name, lit the brand's one way, and alone holds as one bold group from a tab to a poster.",
       overrule:
-        "If the icon should say party before name, the mirror ball; if it should feel drawn by hand, the sparkler.",
+        "Party before name: the mirror ball; the ring itself the gesture: the sparkler; if a reel reads as video first, today's Ring.",
       configs: [SCREEN],
     },
   ],

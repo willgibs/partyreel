@@ -1,28 +1,19 @@
 "use client";
 
-import {
-  type ReactNode,
-  type RefObject,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { type ReactNode, useState, useSyncExternalStore } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 
 import { SCREENS, type ScreenId } from "./knobs";
 
 /**
- * THE FRAMES EVERY MARK IS READ IN: a real viewport at a real width (the kit's
+ * THE FRAMES EVERY TAKE IS READ IN: a real viewport at a real width (the kit's
  * `Frame`, a same-origin iframe), so a breakpoint, a `vh` and production's own
- * layout all answer the frame's width. A frame either portals a composition of
- * production's pieces (`node`) or loads a real route (`src`), and either way it
- * wears its option as a paste (`css`): a wordmark's drawing, a grade's tokens,
- * a status set's points, which is exactly the size of what each answer lands.
+ * layout (the wordmark beside the icon) all answer the frame's width; each
+ * frame portals a composition (`node`).
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond
- * the stills, the fonts and a routed page's own render.
+ * the stills and the fonts.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER TYPED: a drawing marks what a
  * decision is about (`data-bm-read="<what>"`), production's wordmark is found
@@ -63,49 +54,12 @@ export const readMarks: Probe = (root) => {
   return parts.length ? parts.join("; ") : null;
 };
 
-/**
- * A ROUTED FRAME'S CAPTION, read from the lab's side: a route is a document of
- * its own, so no `Measured` can stand inside it; the scene finds its own
- * iframe and reads the route's document on the same beats a portalled frame
- * reads itself.
- */
-function useRoutedCaption(
-  wrap: RefObject<HTMLDivElement | null>,
-  measure: Probe,
-  on: boolean,
-  key: unknown,
-) {
-  const [caption, setCaption] = useState("measuring");
-  useEffect(() => {
-    if (!on) return;
-    const read = () => {
-      try {
-        const frame = wrap.current?.querySelector("iframe");
-        const doc = frame?.contentDocument;
-        const win = doc?.defaultView;
-        if (!doc?.body || !win) return;
-        const said = measure(doc.body, win);
-        if (said) setCaption(said);
-      } catch {
-        // A frame the reader navigated off-origin: the kit's banner says so.
-      }
-    };
-    const timers = [1200, 2600, 4500, 7000].map((ms) =>
-      window.setTimeout(read, ms),
-    );
-    return () => timers.forEach((t) => window.clearTimeout(t));
-  }, [wrap, measure, on, key]);
-  return caption;
-}
-
 /** One frame. `bare` drops its own fit, for a frame in a row fitted as one canvas. */
 export function Scene({
   id,
   w,
   h,
   title,
-  css,
-  src,
   measure = readMarks,
   bare = false,
   children,
@@ -114,43 +68,16 @@ export function Scene({
   w: number;
   h: number;
   title: string;
-  css?: string;
-  /** A real route instead of a composition. */
-  src?: string;
   measure?: Probe;
   bare?: boolean;
   children?: ReactNode;
 }) {
   const [caption, setCaption] = useState("measuring");
-  const wrap = useRef<HTMLDivElement | null>(null);
-  const routed = useRoutedCaption(wrap, measure, Boolean(src), css);
-  const frame = src ? (
-    <div ref={wrap}>
-      <Frame
-        id={id}
-        src={src}
-        w={w}
-        h={h}
-        css={css}
-        title={title}
-        caption={routed}
-        onApproach
-        settle={900}
-      />
-    </div>
-  ) : (
-    <Frame
-      id={id}
-      w={w}
-      h={h}
-      css={css}
-      title={title}
-      caption={caption}
-      onApproach
-    >
+  const frame = (
+    <Frame id={id} w={w} h={h} title={title} caption={caption} onApproach>
       <Measured
         probe={measure}
-        deps={[id, css]}
+        deps={[id]}
         onMeasure={setCaption}
         timers={[300, 1000, 2400]}
         className="min-h-full"
@@ -168,8 +95,6 @@ export type StoryFrame = {
   /** The frame's own size; a screen's by default. */
   w?: number;
   h?: number;
-  css?: string;
-  src?: string;
   node?: ReactNode;
   measure?: Probe;
 };
@@ -194,15 +119,15 @@ function useOnPhone(): boolean {
 const GAP = 24;
 
 /**
- * AN OPTION'S FRAMES: at a desk the sheet first and whole, then the surfaces
- * wrapping two to a row (each a laptop, so a row is the room beside paper);
- * at a phone every frame side by side in one fitted canvas (one scale, one
- * baseline), and stacked when the lab itself is read on a phone.
+ * AN OPTION'S FRAMES: at a desk the sheet first and whole, then the frames
+ * wrapping in a row; at a phone every frame side by side in one fitted canvas
+ * (one scale, one baseline), and stacked when the lab itself is read on a
+ * phone.
  *
- * ★ NO LINE OF ITS OWN ABOVE THE FRAMES (the creative director's pass): a
- * step draws the whole option inside its zoom, so a lede there stood at five
- * pixels and only repeated the option's label; each frame's own title says
- * what it holds.
+ * ★ NO LINE OF ITS OWN ABOVE THE FRAMES (round one's creative director's
+ * pass): a step draws the whole option inside its zoom, so a lede there stood
+ * at five pixels and only repeated the option's label; each frame's own title
+ * says what it holds.
  */
 export function Story({
   screen,
@@ -210,7 +135,7 @@ export function Story({
   frames,
 }: {
   screen: ScreenId;
-  /** The mark itself, drawn whole before the surfaces it signs. */
+  /** The mark itself, drawn whole before the places it lives. */
   sheet?: StoryFrame;
   frames: readonly StoryFrame[];
 }) {
@@ -224,8 +149,6 @@ export function Story({
       w={f.w ?? size.w}
       h={f.h ?? size.h}
       title={f.title}
-      css={f.css}
-      src={f.src}
       measure={f.measure}
       bare={bare}
     >

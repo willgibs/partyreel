@@ -2,38 +2,30 @@
 
 import { type CSSProperties, type ReactNode, useCallback, useId } from "react";
 
-import type { Appearance } from "./light";
-import { EmberMono, EmberRing, SQUIRCLE, type Take, TILE } from "./parts";
+import { RING_SQUIRCLE, RING_TILE } from "@/lib/brand/ring";
+
+import type { Take } from "./parts";
 import { MIRRORBALL } from "./takes/mirrorball";
 import { REEL } from "./takes/reel";
 import { SPARKLER } from "./takes/sparkler";
+import { TODAY } from "./today";
 
 /**
- * THE RING, DRAWN: the icon's machinery, grown from brand r2's Aperture deck
- * (its `afterglow/marks.tsx`, retired with that board), every number kept
- * unless this board says otherwise.
- *
- * The icon is the shutter: a matte dark puck inside a ring of light on the
- * room's dark tile (a home screen's continuous corner), its light the house
- * ember. Round one picked the ring key-lit from the top-left (`ember`), which
- * ships as the working version; round two draws three bespoke takes on it
- * beside it (`takes/<id>.tsx`), each one file that draws everything over the
- * tile and its bare one-colour symbol (`Take`), so a take is added or retired
- * by its file and its line here.
- *
- * The key-lit ring itself is drawn as solid wedges, each asking the lighting
- * (`lights/ember.tsx`) for its colour at its angle, with a hair of overlap so
- * no seam shows; the corona and the glow are the same wedges blurred.
+ * THE ICON, AND ITS TAKES: the shutter, a matte dark puck inside a ring of
+ * light on the room's dark tile (a home screen's continuous corner), its
+ * light the house ember. Round one picked the ring key-lit from the top-left,
+ * which now ships everywhere an icon lives (`src/lib/brand/ring.ts`, drawn
+ * here as itself, `today.tsx`); round two draws three bespoke takes beside it
+ * (`takes/<id>.tsx`), each one file that draws everything over the tile and
+ * its bare one-colour mark (`Take`), so a take is added or retired by its file
+ * and its line here. Every take stands on production's own tile and corner.
  */
 
 export type IconId = "ember" | "mirrorball" | "sparkler" | "reel";
-export type { Appearance };
 export type { ArtProps, Take } from "./parts";
 
-const EMBER: Take = { Art: EmberRing, Mono: EmberMono };
-
 export const TAKES: Record<IconId, Take> = {
-  ember: EMBER,
+  ember: TODAY,
   mirrorball: MIRRORBALL,
   sparkler: SPARKLER,
   reel: REEL,
@@ -65,7 +57,7 @@ export function RingIcon({
   const uid = `bm${raw.replace(/[^a-zA-Z0-9]/g, "")}`;
   const take = TAKES[id];
   const at = optics ?? size;
-  const [t0, t1] = take.tile ?? TILE;
+  const [t0, t1] = take.tile ?? RING_TILE;
   return (
     <svg
       role="img"
@@ -80,7 +72,7 @@ export function RingIcon({
     >
       <defs>
         <clipPath id={`${uid}c`}>
-          <path d={SQUIRCLE} />
+          <path d={RING_SQUIRCLE} />
         </clipPath>
         <linearGradient id={`${uid}t`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={t0} />

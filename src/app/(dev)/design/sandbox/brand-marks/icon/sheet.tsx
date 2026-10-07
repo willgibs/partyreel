@@ -148,7 +148,7 @@ function Sizes({ id, phone }: { id: IconId; phone: boolean }) {
             <Pixels id={id} size={32} dpr={1} zoom={4} ground="#09090b" />
           </Sized>
         </div>
-        <MiniTabs icon={id} tone="dark" />
+        <MiniTabs icon={id} tone="dark" phone={phone} />
       </div>
       <div
         className="surface-paper flex flex-col bg-background text-foreground"
@@ -165,7 +165,7 @@ function Sizes({ id, phone }: { id: IconId; phone: boolean }) {
             <Pixels id={id} size={16} dpr={1} zoom={8} ground="#ffffff" />
           </Sized>
         </div>
-        <MiniTabs icon={id} tone="light" />
+        <MiniTabs icon={id} tone="light" phone={phone} />
       </div>
     </div>
   );

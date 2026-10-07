@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { Logo } from "@/components/shared/logo";
+import { wordmarkCutFor } from "@/lib/brand/wordmark";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
 import type { ScreenId } from "../knobs";
@@ -15,8 +16,8 @@ import { type IconId, MonoMark, OnPaper, RingIcon } from "./ring";
  * one family, each on its own tile: in the room, on paper, and in one colour
  * over footage, where a reel wears its watermark.
  *
- * ★ THE WORDMARK IS PRODUCTION'S `Logo`: the round-one pick being wired this
- * wave reaches this frame the day it lands, with nothing here to edit.
+ * ★ THE WORDMARK IS PRODUCTION'S `Logo`: round one's pick, his v1 finished,
+ * in the cut each height wears, so this frame can never drift from it.
  */
 
 function Tile({
@@ -47,13 +48,14 @@ function Tile({
   );
 }
 
+/** Production's wordmark at a height, in the cut that height wears (`wordmarkCutFor`). */
 function Word({ height }: { height: number }) {
   return (
     <span
       data-bm-where="the wordmark in the press kit"
       style={{ display: "block", height }}
     >
-      <Logo className="h-full" />
+      <Logo className="h-full" cut={wordmarkCutFor(height).id} />
     </span>
   );
 }

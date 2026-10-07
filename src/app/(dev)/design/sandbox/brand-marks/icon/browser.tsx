@@ -44,13 +44,18 @@ function Fav({ n }: { n: Neighbour }) {
   );
 }
 
-/** Three tabs of a window's strip, dark or light, Partyreel's the open one. */
+/**
+ * Three tabs of a window's strip, dark or light, Partyreel's the open one; two
+ * on a phone's column, where a third ran off the frame's edge.
+ */
 export function MiniTabs({
   icon,
   tone,
+  phone = false,
 }: {
   icon: IconId;
   tone: "dark" | "light";
+  phone?: boolean;
 }) {
   const dark = tone === "dark";
   const strip = dark ? "#1f1f22" : "#dfe1e5";
@@ -68,7 +73,7 @@ export function MiniTabs({
         fontFamily: "system-ui, sans-serif",
       }}
     >
-      {TABS.map((n, i) => {
+      {(phone ? TABS.slice(0, 2) : TABS).map((n, i) => {
         const on = n === null;
         return (
           <span
