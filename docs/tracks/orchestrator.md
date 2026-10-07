@@ -42,7 +42,6 @@ Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../pa
 | `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
 | `brand-marks-wiring` | the wordmark finished, the ember Ring icon, the room-black plate, the status tiers; retires the brand board | running (cut d4da2464) | Opus, 3131 | `a5b5ef7ec4210f810` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
-| `guests-room-wiring` | one calm row a person, the standing card from every name | running (cut d4da2464) | Opus, 3134 | `a1b4c2e7343d06bfc` |
 | `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to

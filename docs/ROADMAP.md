@@ -49,7 +49,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Design system and accessibility
 
-- Design: the Guests room's focus stragglers: "Manage in Guests" wears the browser's outline, the invite field's focus is a 1 px border, and removing an invite by keyboard drops focus to the sheet; each the house halo, focus kept in the list (red-team 57b, NIT).
 - Design: Settings' radio cards are each a Tab stop and ignore the arrow keys; one stop a group, arrows between its cards (red-team 57b, NIT).
 
 ### The lab and the kit
@@ -156,10 +155,9 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Profile: a tap on a link into `/u/<handle>` shows nothing until the page arrives (the route has no `loading.tsx`, on purpose); a pending state on those links through `useLinkStatus`, as `chrome-link.tsx` has, would answer the tap.
 - Profile: deleting a photograph opened at `/u/<handle>?photo=` makes the next Show more jump to the top as the held answer lands (the viewer's same-tick address write before a revalidating action, Next 16.2.6, a row `lib/history-entry.ts` lacks). [unsure: crumbs-83 gave a photo opened at its address its own entry, which may have removed the cause; not re-walked]
 - Account: the reset's Set a new password (`SetInitialPassword`, `auth/password-sign-in.tsx`) has no strength meter while `/account`'s change form and the event password wear `PasswordStrengthMeter`.
-- Profiles: the look (`social/guest-peek.tsx`) sets the face inside the sheet's title, so a screen reader hears "P Priya Shah", and in a hand hangs its line and address under the face; one head grid with the face `aria-hidden` (the guests-room board's `card-parts.tsx`) is the fix any card pick's wiring carries (guests-room r1).
-- Profiles: a look's Follow in the album's guest list reads Follow again on its next open (the look remounts its own button); one answer per person for every face of a relation on a page, as Connections' island keeps for its card (crumbs-87).
 - Account: the "signed you into the account <email> already had" line reads three lines at 375 (its sentence, Not you?, the dismiss); a lighter form would sit quieter (crumbs-88, NIT).
 - Cost, profiles: the invitation plate's Server Function (`readInviteLightAction`) could be saved by passing her six previews from the dashboard's own render (one line in `dashboard/page.tsx`) or by keeping its answer per tab session, keyed by her seed (account-moments-wiring-2).
+- Profiles: the album list's chip Follow (`social/guest-list.tsx`) is a second face of the relation beside a card's own; read the card's kept answer (`guest-peek.tsx`'s `kept`) there too, so a Follow from either reads Following on both (guests-room-wiring).
 
 ### The host app
 
@@ -184,7 +182,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: the door's quick choice (`settings-rows.tsx`'s `doorConsequence`) moves to a password already set while people wait and says nothing of their asks ending there (`events_door_to_password`), where the steps page asks first; say it, and ask, as the page does (host-moments-wiring).
 - Hub: the Reel card shows nothing while its soft navigation is pending (13 s to the curtain on a 120 KB/s line); `useLinkStatus` could dim it (album-moments-wiring; the curtain's ceiling closed the other half).
 - Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
-- Guests room: a guest let in who adds nothing is on no list (guest-flow.md's one definition of a guest), so after Let in she leaves the room until a photo lands; the room's wiring holds her as in with nothing added yet (guests-room r1).
 - Settings' door menu (`settings-rows.tsx`'s `doorConsequence`) says an address gate "Turns An email first on" but not what it asks of the guests in by name, which the door page now says before the move (crumbs-89).
 - Hub: the Live mark (`EventLive`) reads only the realtime connection, so a closed album's hub says LIVE beside its paused code; it gives way to the album's phase (after-party r1's `over` answer) (after-party r1).
 - Host: her dashboard's tile covers and stills (`event_covers`, `event_stills`) and the stage's "in the album" count (`event_card_stats`) are exempt from a disposable album's seal for her own session, so sealed photographs and the full count show there while the hub and the stage's wall cover them; hold the three SQL homes to the guests' view, or say on the cards why they are hers (a migration) (crumbs-88).
@@ -196,6 +193,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - The code's four looks (Bold's coral corners, "Playful dots") predate the room's design; redraw the set so Create's look step offers looks worth choosing.
 - Host: co-hosts (Will's yes to X9, 2026-10-07: "a couple sharing a wedding event rather than both having to log in under one account"): invited by email, acting for the event as the owner does (Review, the door, Settings, Share), while billing, storage, the plan and deleting the event stay the owner's. `events.host_id` is assumed by 121 checks in 39 migrations, so a board for its surfaces and an Advisor-read plan for its RLS come first; a hand-over waits for the Partners board.
 - Host: the guest header's corner says Make one like this on a shut door too, where the album lends nothing and Create opens plain; the shut branch of `e/[token]/page.tsx` could hand the header a word (create-wizard-wiring-2).
+- Host: the Guests room reads the album's approved guest rows twice a read (`getEventGuests` for the list, `readHostGuestFacts` for the counts); one read could answer both (guests-room-wiring).
+- Host: a Decline or a Let in from a card leaves focus on the room's panel once its row leaves; move it to the next row's name, as the row's own act did before (guests-room-wiring).
 
 ### Admin and operations
 
@@ -287,6 +286,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The lab: at 375 a step of three phones stands at about 29%, its bottom third empty and a few pixels' words unreadable; stack or swipe a step's frames at a phone's width (no-signal r1).
 - The kit: a lane's "Calls for Will" handed off as `usher/kit/calls.py` entries (the shape in `cut-lane.py`'s Handoff template), so the record adds them in one `calls.py add` and the door judges them as written (calls-desk).
 - The lab: the desk is long at a phone (the Calls place alone about 10,500 px at 375, the queue above it more): fold an answered section to a line, or walk the calls as steps of the review like the boards' asks (calls-desk).
+- The Library: the "At the door and Invited" specimen's hint says "Let in · Decline, then Undo on its toast"; Decline is a name's card's now (`library/compositions/gallery-demos.tsx`) (guests-room-wiring).
 
 ### Code hygiene
 
@@ -298,6 +298,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `MarketingNotFound`'s `strip` prop has one caller left, which passes `false`, so its strip branch can go (the help palette and the 500 screen import `MissingFrameStrip` themselves) (marketing-crumbs).
 - Code hygiene: React 19.3's canary bundled with Next 16.2.6 drops a ping that answers synchronously while a suspended-with-delay render unwinds (`pingSuspendedRoot`'s render-context branch, React #25851), parking a revalidating Server Action's commit until another update; Settings and the invite list nudge it (`settings-state-unpark.ts`), while the hub's other revalidating acts (the password control, At the door, Blocked) can still meet it: give the nudge one hub-wide home, report upstream, and after any Next upgrade re-read that branch in the bundled `react-dom-client.production.js`, retiring the nudge once it records the lanes (crumbs-89's Q2; the Advisor's Q44).
 - Code hygiene: `event-settings/settings-pages.ts`'s head still lists Create's Get it ready among the links into a Settings page; Create's foot is Go to your event now (create-wizard-wiring-2).
+- Code hygiene: retire `blockedSince`, `blockedLineParts` and `LET_IN_LINE` (`lib/events/event-blocks.ts`), which the Guests room no longer calls (only their own tests do) (guests-room-wiring).
+- Code hygiene: `guest-look.ts`'s `readQuietCards` restates the four public card columns because `social.ts`'s `getProfileCards` is private; export it and read through it (guests-room-wiring).
 
 ## Before launch
 
@@ -475,7 +477,6 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 - **User profiles and social discovery** (not launch-gating; the consent model, a one-way door, is in [`systems/profiles-social.md`](systems/profiles-social.md)):
   - The social feed and discovery, a followed-hosts feed first (nothing reads the events of the hosts you follow), after the Notification system.
   - The guest list sorted by upload count, a nudge to contribute (`getEventGuestList`, `src/lib/db/queries/social.ts`, sorts by name).
-  - The guest look's strip (a name's count and four of its pictures in this album, a page's shown events) under the name in `social/guest-peek.tsx`; it needs a read by guest row or account, presigned and gated like the album.
 
 ### The host app
 
