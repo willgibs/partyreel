@@ -22,8 +22,10 @@
  * the line could not carry stands by in the queue (`waitsForLine`), still on its way, so it stays counted: the count
  * steps down in a dead zone, the roll ends at 0 with its waiting shots on the reel (half-lit and still), its end saying
  * the wait first, and every one of them lands, since the camera never took a shot past the roll. Her roll may be read
- * beside shots that wait (they are counted outside the read until they land: `unread`), and so are her shots on their
- * way that another camera took or her phone kept from an earlier page (`elsewhere`). What the server needs for this is
+ * beside shots that wait (they are counted outside the read until a later read holds them: `unread`), and so are her
+ * shots that another camera took or her phone kept from an earlier page, on their way or landed since the read
+ * (`elsewhere`). A camera first opened in a dead zone counts from the read the album took as it opened (`ahead`,
+ * `useRollAhead`), never from the roll's size over shots an earlier visit spent. What the server needs for this is
  * nothing new: `create_media` counts her live shots at insert, which a phone that never shoots past its roll never
  * overruns; two phones of one account, each counting its own, can (disposable-mode.md says what happens then).
  *
@@ -77,6 +79,7 @@ import {
   readOwnRoll,
   waitsOutOfSight,
   type OwnShot,
+  type RollAhead,
 } from "@/lib/guest/camera/own-shots";
 import { reelMinute } from "@/lib/guest/camera/reel";
 import { HOST_FRESH_FRAMES, rollView } from "@/lib/guest/camera/roll-view";
@@ -168,8 +171,15 @@ export function AlbumCamera({
   uploadsWord,
   onAskUploadsWord,
   heldAtDoor = false,
+  ahead = null,
 }: {
   open: boolean;
+  /**
+   * ★ HER ROLL AS THE ALBUM READ IT AS IT OPENED (`useRollAhead`, no-signal r1's `roll=taken`): counted from at the
+   * camera's first opening until its own read answers, so a camera first opened in a dead zone never offers frames an
+   * earlier visit spent. Absent (the door's camera, a first visit with no ticket), it counts from the roll's size.
+   */
+  ahead?: RollAhead | null;
   /**
    * The album's own word on whether it takes uploads, as the page hears it from the album's sync (`useLiveUploadsWord`,
    * guest-requests): a closed refusal is asked again once a word heard after it says open (the head's note). Absent
@@ -214,11 +224,28 @@ export function AlbumCamera({
     readFrom: number;
     /**
      * This camera's shots that were waiting for the line as the read began (`roll=taken`): taken before it, never landed
-     * before it, so no count of the server's holds them; each is counted here until it lands.
+     * before it, so no count of the server's holds them; each is counted here until a later read holds it.
      */
     unread: ReadonlySet<string>;
-  }>({ server: null, readFrom: 0, unread: new Set() });
-  const [own, setOwn] = useState<readonly OwnShot[]>([]);
+    /**
+     * The page's files that had landed as the read began (the queue's ids), so in its count: any other of her shots in
+     * the queue that has landed did so after it, and is counted here until a later read holds it.
+     */
+    landed: ReadonlySet<string>;
+  }>(() =>
+    // Mounted at the first opening: the album's read ahead of it, while the line was up, until the camera's own answers.
+    ahead
+      ? {
+          server: ahead.read.roll,
+          readFrom: ahead.from,
+          unread: new Set(),
+          landed: ahead.landed,
+        }
+      : { server: null, readFrom: 0, unread: new Set(), landed: new Set() },
+  );
+  const [own, setOwn] = useState<readonly OwnShot[]>(
+    () => ahead?.read.shots ?? [],
+  );
   const [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set());
   const [removing, setRemoving] = useState<
     ReadonlyMap<string, "working" | "failed">
@@ -313,28 +340,38 @@ export function AlbumCamera({
     [raw, gone, held],
   );
   const counted = states.filter(({ state }) => state.status !== "failed");
-  /* ★ HER SHOTS ON THEIR WAY THAT THIS CAMERA DID NOT TAKE (no-signal r1, `roll=taken`): the door's camera's, or what her
-     phone kept from an earlier page and the page sent again as it opened (`unsent/use-keep.ts`). Each is a camera shot
-     (it carries the moment the shutter fired, `takenAt`), on its way and not yet in any read of her roll, so its frame
-     is spent here too: the count she shoots by is the count she has, never one a closed page gave back. */
+  /* ★ HER SHOTS THAT THIS CAMERA DID NOT TAKE (no-signal r1, `roll=taken`): the door's camera's, or what her phone kept
+     from an earlier page and the page sent again as it opened (`unsent/use-keep.ts`). Each is a camera shot (it carries
+     the moment the shutter fired, `takenAt`) that no read of her roll holds, on its way or landed since the read began
+     (one landed before it is in its count: `roll.landed`), so its frame is spent here too: the count she shoots by is
+     the count she has, never one a closed page gave back. */
   const ownFiles = useMemo(
     () => new Set(shots.flatMap((s) => (s.file ? [s.file] : []))),
     [shots],
   );
-  const elsewhere = useMemo(
-    () =>
-      queue.filter(
-        (it) =>
-          isActive(it) && it.takenAt !== undefined && !ownFiles.has(it.file),
-      ).length,
-    [queue, ownFiles],
+  const elsewhere = queue.filter(
+    (it) => it.takenAt !== undefined && !ownFiles.has(it.file),
   );
-  // Her shots that were waiting for the line as the roll was read, and are still on their way: outside that count.
-  const unread = states.filter(
+  const elsewhereOnWay = elsewhere.filter(isActive).length;
+  const elsewhereLanded = elsewhere.filter(
+    (it) =>
+      it.status === "done" && !roll.landed.has(it.id) && !gone(it.mediaId),
+  ).length;
+  // Her shots that were waiting for the line as the roll was read: outside that count on their way, and once landed
+  // until a later read holds them.
+  const unreadOnWay = states.filter(
     ({ shot, state }) => roll.unread.has(shot.key) && inFlight(state),
   ).length;
+  const unreadLanded = states.filter(
+    ({ shot, state }) =>
+      roll.unread.has(shot.key) &&
+      !inFlight(state) &&
+      state.status !== "failed",
+  ).length;
   /** Her shots on their way that no read of her roll holds: from elsewhere, or waiting when it was read. */
-  const outside = elsewhere + unread;
+  const outsideOnWay = elsewhereOnWay + unreadOnWay;
+  /** Every shot of hers no read of her roll holds: on its way, or landed since the read began. */
+  const outside = outsideOnWay + elsewhereLanded + unreadLanded;
   const guest = rollView({
     server: roll.server,
     rollSize: event.roll_size,
@@ -364,8 +401,8 @@ export function AlbumCamera({
     ? 0
     : states.filter(({ state }) => state.waiting).length;
   /* ★ IN THE AIR, NOT WAITING (`roll=taken`): a shot standing by for the line is not going anywhere, so her roll may be
-     read beside it (it is counted outside the read until it lands, `unread`); only what is truly on its way holds the
-     read back, since an older shot is then either counted by it or refused. */
+     read beside it (it is counted outside the read until a later read holds it, `unread`); only what is truly on its way
+     holds the read back, since an older shot is then either counted by it or refused. */
   const busy =
     queue.some((it) => isActive(it) && !waitsForLine(it)) ||
     states.some(({ state }) => inFlight(state) && !state.waiting);
@@ -373,6 +410,11 @@ export function AlbumCamera({
   const waitingKeys = states
     .filter(({ state }) => state.waiting)
     .map(({ shot }) => shot.key)
+    .join("\n");
+  // The page's files landed so far, as ids (a read takes them as its `landed` as it begins: they are in its count).
+  const landedKeys = queue
+    .filter((it) => it.status === "done")
+    .map((it) => it.id)
     .join("\n");
 
   /* ── reading her roll: at the opening, after a removal, after a refusal about the roll ──────── */
@@ -398,13 +440,16 @@ export function AlbumCamera({
     wanted.current = false;
     const id = ++readId.current;
     const from = Date.now();
-    // What waits for the line now is no count of this read's: it is counted outside it until it lands.
+    // What waits for the line now is no count of this read's: it is counted outside it until a later read holds it.
     const waitingNow = new Set(waitingKeys ? waitingKeys.split("\n") : []);
+    // What has landed now is in its count; any of her shots that lands after it is counted on top of it.
+    const landedNow = new Set(landedKeys ? landedKeys.split("\n") : []);
     void readOwnRoll({ qrToken, sessionToken }).then((answer) => {
       if (id !== readId.current) return;
       if (!answer) {
         // ★ A READ THE LINE COULD NOT CARRY IS ASKED AGAIN when it is back (the phone's `online`), never given up: a
-        // camera first opened in a dead zone counts from her roll's size until then.
+        // camera first opened in a dead zone counts from the album's read ahead of it (`ahead`) until then, or from
+        // her roll's size where the album had none (no ticket yet: nothing of hers on a roll).
         wanted.current = true;
         return;
       }
@@ -425,7 +470,12 @@ export function AlbumCamera({
       ) {
         keepPeriod(qrToken, period);
       }
-      setRoll({ server: answer.roll, readFrom: from, unread: waitingNow });
+      setRoll({
+        server: answer.roll,
+        readFrom: from,
+        unread: waitingNow,
+        landed: landedNow,
+      });
       setOwn(answer.shots);
     });
   }, [
@@ -437,6 +487,7 @@ export function AlbumCamera({
     isDemo,
     isOwner,
     waitingKeys,
+    landedKeys,
   ]);
   // A read still wanted (it failed for the line) goes again the moment the phone says it is back.
   useEffect(() => {
@@ -461,15 +512,15 @@ export function AlbumCamera({
   }, [reveal]);
 
   // ★ AND HER SHOTS OUTSIDE THE READ THAT LANDED (or left) are read in the server's own count, once nothing of hers is
-  // in the air: counted here while on their way, they leave that count as they land.
-  const outsideWas = useRef(outside);
+  // in the air: counted here from the press, on their way and once landed, until that read holds them.
+  const outsideWas = useRef(outsideOnWay);
   useEffect(() => {
-    if (outside < outsideWas.current) {
+    if (outsideOnWay < outsideWas.current) {
       wanted.current = true;
       setReadTick((n) => n + 1);
     }
-    outsideWas.current = outside;
-  }, [outside]);
+    outsideWas.current = outsideOnWay;
+  }, [outsideOnWay]);
 
   // The period she holds shots on is kept as her shots land, so a roll that starts again after them is told her once.
   const period = roll.server?.period;

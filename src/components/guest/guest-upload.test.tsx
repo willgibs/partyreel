@@ -130,6 +130,8 @@ vi.mock("@/components/guest/claim-handle-prompt", () => ({
 // What the camera was last handed of the album (its develop time, which the page's live reading decides).
 const camera = vi.hoisted(() => ({
   event: null as Record<string, unknown> | null,
+  /** Her roll as the slot read it ahead of the camera (`useRollAhead`), as the camera was handed it. */
+  ahead: null as { read: { roll: unknown } } | null,
 }));
 vi.mock("@/components/guest/camera/album-camera", () => ({
   AlbumCamera: ({
@@ -137,13 +139,16 @@ vi.mock("@/components/guest/camera/album-camera", () => ({
     onAddFiles,
     onOpenChange,
     event,
+    ahead,
   }: {
     open: boolean;
     onAddFiles: (files: File[]) => void;
     onOpenChange: (open: boolean) => void;
     event: Record<string, unknown>;
+    ahead?: { read: { roll: unknown } } | null;
   }) => {
     camera.event = event;
+    camera.ahead = ahead ?? null;
     return open ? (
       <div data-testid="album-camera">
         <button
@@ -225,6 +230,7 @@ function Harness({
   removedIds?: ReadonlySet<string>;
   capBytes?: number | null;
   uploadsWait?: { waits: boolean; developsAt: string | null };
+  isOwner?: boolean;
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
@@ -271,6 +277,7 @@ function Harness({
       removedIds={rest.removedIds}
       capBytes={rest.capBytes}
       uploadsWait={rest.uploadsWait}
+      isOwner={rest.isOwner}
     />
   );
 }
@@ -1742,6 +1749,103 @@ describe("GuestUpload: the album's camera", () => {
     expect(screen.queryByText(/didn't upload/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Close the camera" }));
     expect(await screen.findByText("1 of 1 didn't upload")).toBeInTheDocument();
+  });
+});
+
+/* ── ★ HER ROLL, READ AS THE ALBUM OPENS (no-signal-wiring's own red-team, Will's `roll=taken`): the camera read her roll
+   only as it opened, so one first opened in a dead zone counted from the roll's size over shots an earlier visit spent,
+   and every shot past her real roll was refused as it landed. The slot reads it as a camera album opens, while the line
+   is up and nothing of hers is in the air, and hands it to the camera (`useRollAhead`). ── */
+
+describe("GuestUpload: her roll, read as a camera album opens", () => {
+  const TICKET = "t".repeat(64);
+  const ROLL = { used: 20, cap: 24, taken: 20, ceiling: 27 };
+  const mineCalls = () =>
+    vi
+      .mocked(global.fetch)
+      .mock.calls.filter(([url]) => String(url) === "/api/guests/mine");
+  beforeEach(() => {
+    localStorage.setItem("pr_session_qr-token-1", TICKET);
+    vi.mocked(global.fetch).mockImplementation(async (input) =>
+      String(input) === "/api/guests/mine"
+        ? Response.json({ ok: true, items: [], roll: ROLL })
+        : (undefined as unknown as Response),
+    );
+  });
+  afterEach(() => {
+    localStorage.removeItem("pr_session_qr-token-1");
+  });
+
+  it("★ reads it once, the ticket in the body and no news spent, and hands it to the camera at its first opening", async () => {
+    const { handleRef } = mount({ event: CAMERA_EVENT });
+    await waitFor(() => expect(mineCalls()).toHaveLength(1));
+    const init = mineCalls()[0]![1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({
+      qr_token: "qr-token-1",
+      session_token: TICKET,
+      statuses: true,
+    });
+    await openCamera(handleRef);
+    await waitFor(() => expect(camera.ahead?.read.roll).toEqual(ROLL));
+    // Answered, it is never asked again: the camera reads for itself from its opening.
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(mineCalls()).toHaveLength(1);
+  });
+
+  it("★ never while a file of hers is in the air: it waits for it to land, so the file is in its count", async () => {
+    let land: (outcome: UploadOutcome) => void = () => {};
+    mockUploadFile.mockReturnValueOnce(
+      new Promise<UploadOutcome>((resolve) => {
+        land = resolve;
+      }),
+    );
+    const handleRef = createRef<GuestUploadHandle>();
+    const queueRef = createRef<QueueApi>();
+    const page = (showSlot: boolean) => (
+      <Harness
+        handleRef={handleRef}
+        queueRef={queueRef}
+        showSlot={showSlot}
+        onSession={vi.fn()}
+        onUploaded={vi.fn()}
+        event={CAMERA_EVENT}
+      />
+    );
+    const view = render(page(false));
+    act(() => queueRef.current!.addFiles([makeFile("shot.jpg")]));
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(1));
+    view.rerender(page(true));
+    await act(async () => {});
+    expect(mineCalls()).toHaveLength(0);
+    await act(async () =>
+      land({ ok: true, status: "approved", mediaId: "m-1", kind: "photo" }),
+    );
+    await waitFor(() => expect(mineCalls()).toHaveLength(1));
+  });
+
+  it("asks again when the phone says the line is back, if the read could not reach the server", async () => {
+    vi.mocked(global.fetch).mockRejectedValueOnce(
+      new TypeError("Failed to fetch"),
+    );
+    mount({ event: CAMERA_EVENT });
+    await waitFor(() => expect(mineCalls()).toHaveLength(1));
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await waitFor(() => expect(mineCalls()).toHaveLength(2));
+  });
+
+  it("asks nothing with no ticket on this device, for the host, in the demo, or on an album with no camera", async () => {
+    localStorage.removeItem("pr_session_qr-token-1");
+    mount({ event: CAMERA_EVENT }).unmount();
+    localStorage.setItem("pr_session_qr-token-1", TICKET);
+    mount({ event: CAMERA_EVENT, isOwner: true }).unmount();
+    mount({ event: CAMERA_EVENT, isDemo: true }).unmount();
+    mount({ event: EVENT }).unmount();
+    await act(async () => {});
+    expect(mineCalls()).toHaveLength(0);
   });
 });
 

@@ -22,11 +22,13 @@ import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { useRollAhead } from "@/lib/guest/camera/own-shots";
 import { waitsForLine } from "@/lib/guest/unsent/standby";
 import {
   uploadsWait as uploadsWaitOf,
   type UploadsWait,
 } from "@/lib/guest/upload-tracker";
+import { useStoredSession } from "@/lib/guest/use-stored-session";
 // The queue MACHINE lives in `event-experience.tsx`; only its types, and the run's own count, are read
 // here.
 import {
@@ -233,6 +235,15 @@ export function GuestUpload({
   useEffect(() => {
     if (camera) void loadCamera();
   }, [camera]);
+  // ★ AND HER ROLL, READ AS THE ALBUM OPENS (no-signal r1, `roll=taken`): a camera first opened in a dead zone counts
+  // from this, never from the roll's size over shots an earlier visit spent (`useRollAhead`'s note).
+  const [sessionToken] = useStoredSession(qrToken);
+  const ahead = useRollAhead({
+    enabled: camera && !isOwner && !isDemo,
+    qrToken,
+    sessionToken,
+    queue: items,
+  });
   // A slot that goes with the camera open (a re-gate) closes it for the page too, so nothing is held for it.
   const cameraOpenNow = useRef({ open: cameraOpen, tell: onCameraOpenChange });
   useEffect(() => {
@@ -383,6 +394,7 @@ export function GuestUpload({
             <AlbumCamera
               open={cameraOpen}
               openedAt={cameraOpenedAt}
+              ahead={ahead}
               onOpenChange={(next) => {
                 setCameraOpen(next);
                 onCameraOpenChange?.(next);

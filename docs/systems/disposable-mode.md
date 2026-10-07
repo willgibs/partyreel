@@ -178,11 +178,14 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   shots wait, and go in once it’s back." with no press, and the roll ends at 0 with its end saying the wait first ("24
   shots; 4 wait for your connection, then develop with everyone’s."); when the line is back all of them land. ★ **The
   server needs nothing new for it**: `create_media` counts her live shots at insert, and a phone that counts every shot
-  it took never takes one past her roll, so each lands. **Two phones of one account can still overrun it**: each counts
-  its own shots off its own last read, so shots both took offline past the roll's end are refused when they land
-  (`roll_spent`, "You've taken all 24 shots on your roll."), said on the album's failure sheet with no Retry, and her
-  camera ends the roll; so is a shot the host's smaller roll no longer has room for. The roll's 3 re-shoots are no
-  shelter there: they are take-backs.
+  it took never takes one past her roll, so each lands. ★ That count needs a read of her roll: the album reads it as it
+  opens, while the line is up and nothing of hers is in the air (`own-shots.ts`'s `useRollAhead`), so a camera first
+  opened in a dead zone counts from it, never from the roll's size over what an earlier visit spent; a shot of hers
+  landed after any read is counted on top of it until a later read holds it. **Two phones (or two open pages) of one
+  account can still overrun it**: each counts its own shots off its own last read, so shots both took offline past the
+  roll's end are refused when they land (`roll_spent`, "You've taken all 24 shots on your roll."), said on the album's
+  failure sheet with no Retry, and her camera ends the roll; so is a shot the host's smaller roll no longer has room
+  for. The roll's 3 re-shoots are no shelter there: they are take-backs.
 - **Two doors take a shot back** (guest-moments r1's `where=reel`): a press on the reel's newest frame (this visit's
   newest shot, on an album that keeps it out of sight) lays it over the picture with Take it back and Keep it
   (`TakeBackPanel`; two keys, since a mis-press on the reel must not delete), waiting for a shot still on its way (one

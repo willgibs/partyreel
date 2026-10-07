@@ -19,6 +19,7 @@ import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import type { RollAhead } from "@/lib/guest/camera/own-shots";
 import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
 
 import { UPLOAD_WORDS } from "@/lib/upload/uploader";
@@ -116,7 +117,10 @@ function Page({
   onAskWord,
   heldAtDoor,
   event: firstEvent = EVENT,
+  ahead,
 }: {
+  /** Her roll as the album read it as it opened (`useRollAhead`): what a camera first opened in a dead zone counts from. */
+  ahead?: RollAhead;
   /** The album as the page first reads it (a later "Set a develop time" moves it, as the album's sync does). */
   event?: GuestEvent;
   onAdd?: (files: File[], extra?: FileExtra) => void;
@@ -206,6 +210,7 @@ function Page({
         isDemo={false}
         isOwner={isOwner}
         heldAtDoor={heldAtDoor}
+        ahead={ahead}
       />
       <button type="button" onClick={() => setQueue([])}>
         Dismiss them
@@ -789,6 +794,89 @@ describe("the album's camera", () => {
     await opened();
     // Her roll is 6 of 24 on the server, so 18 left; the kept shot spends one more.
     await waitFor(() => expect(screen.getByText("17")).toBeInTheDocument());
+  });
+
+  /* ★ A CAMERA FIRST OPENED IN A DEAD ZONE (no-signal-wiring's own red-team): it read her roll only as it opened, so with
+     no line it counted from the roll's size, and a phone that shot 20 of 24 earlier in the night offered 24 again: every
+     shot past her real roll was refused as it landed, the one refusal `roll=taken` rules out. The album reads her roll as
+     it opens (`useRollAhead`), and the camera counts from that until its own read answers. */
+  const offline = () => {
+    global.fetch = vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }) as typeof fetch;
+  };
+  const aheadOf = (used: number, landed: string[] = []): RollAhead => ({
+    read: {
+      roll: { used, cap: 24, taken: used, ceiling: 27 },
+      shots: [],
+    },
+    from: OPENED_AT - 60_000,
+    landed: new Set(landed),
+  });
+  /** What her phone kept from an earlier page, sent again as the page opened, and landed. */
+  const keptLanded = (): QueueItem => ({
+    id: "kept-1",
+    file: new File([new Uint8Array([1])], "shot-20261007-231500.jpg", {
+      type: "image/jpeg",
+    }),
+    kind: "photo",
+    status: "done",
+    progress: 100,
+    mediaId: "m-kept-1",
+    mediaStatus: "sealed",
+    takenAt: OPENED_AT - 120_000,
+  });
+
+  it("★ first opened in a dead zone, it counts from the album's read as it opened, never from the roll's size", async () => {
+    offline();
+    render(<Page ahead={aheadOf(20)} />);
+    await opened();
+    // Its own read could not reach the server: the album's stands, 20 of 24 spent earlier in the night.
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(screen.getByText("Frame 21 of 24")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Lose the line", hidden: true }),
+    );
+    await screen.findByText("Frame 22 of 24 · 1 waiting");
+    expect(screen.getByText("3")).toBeInTheDocument();
+  });
+
+  it("★ counts a shot of hers that landed after a read on top of it, until a later read holds it", async () => {
+    offline();
+    render(<Page ahead={aheadOf(6)} initialQueue={[keptLanded()]} />);
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    // 6 in the read, and the landed shot no read holds yet: 17 left.
+    expect(screen.getByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.getByText("17")).toBeInTheDocument();
+    // The line is back and the camera reads for itself (a fresh stand-in, so its one call is this read): the server
+    // holds the shot now, and it is never counted twice.
+    global.fetch = vi.fn(async () =>
+      Response.json({
+        ok: true,
+        items: [],
+        roll: { used: 7, cap: 24, taken: 7, ceiling: 27 },
+      }),
+    ) as typeof fetch;
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(await screen.findByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.getByText("17")).toBeInTheDocument();
+  });
+
+  it("a shot that had landed as the read began is in its count: never counted twice", async () => {
+    offline();
+    render(
+      <Page ahead={aheadOf(7, ["kept-1"])} initialQueue={[keptLanded()]} />,
+    );
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(screen.getByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.getByText("17")).toBeInTheDocument();
   });
 
   it("★ lets a shot the failure sheet dismissed leave her roll, never sending for ever", async () => {
