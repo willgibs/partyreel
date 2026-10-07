@@ -252,8 +252,8 @@ tag; production READY at the merge SHA, then a verification pass on partyreel.co
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
 by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the same session.
 
-The standing compute budget, at every milestone: `pnpm compute:model --port <yours>` (about 20 minutes with its build;
-local only). Exit 1 is a scenario past `scripts/compute-model/budget.json`: read the scenario before the milestone; lower
+The standing compute budget, at every milestone: `pnpm compute:model --port <a free one of 3131 to 3139>` (about 20
+minutes with its build; local only; its guests upload, and R2's CORS refuses the gate's 3130: exit 2). Exit 1 is a scenario past `scripts/compute-model/budget.json`: read the scenario before the milestone; lower
 a line when a lever lands.
 
 ## Mutate config
