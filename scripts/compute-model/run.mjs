@@ -11,9 +11,9 @@
  *   pnpm compute:model --port 3131 --out <dir>            # where results.json and requests.jsonl go (default: a temp dir)
  *   pnpm compute:model --port 3131 --lab-board <id>       # the lab demo's board (default: the desk's first open one)
  *   pnpm compute:model --port 3131 --event-name "<name>"  # the guest scenarios on an album of your own (default below)
- *   pnpm compute:model --reproject <dir> [--write-budget] # units, projections and levers again from a run's own ledger
+ *   pnpm compute:model --reproject <dir> [--write-budget] # units, projections and levers again from a run's own ledger, held to the budget
  *
- * Exit 0 within budget, 1 when a scenario exceeds it (calls or CPU), 2 when it could not measure. Not in the gate: it
+ * Exit 0 within budget, 1 when a scenario exceeds it (calls, or CPU on the budget's own machine), 2 when it could not measure. Not in the gate: it
  * builds, then drives Chrome for about fifteen minutes. Run it at milestones, and before anything that could multiply
  * calls (a poll, a prefetch, a proxy matcher, a new client fetch).
  *
@@ -615,6 +615,16 @@ function checkBudget(results) {
   }
   let ok = true;
   console.log(`\nbudget (${budgetFile.replace(`${ROOT}/`, "")}):`);
+  // ★ CPU IS HELD ON ITS OWN MACHINE ONLY (Will's rising tide, 2026-10-06: a check that obstructs is upgraded). A CPU
+  // line is one machine's measure (`measured.cpu`), and a 4-core cloud seat read guest-join-upload's first complete
+  // at 1,606 ms of its 1,550 (a cold module load of ~700 ms, the M3 Max's 89): a machine difference, never a
+  // regression. So elsewhere a CPU line is reported and never fails; calls hold everywhere (the same count anywhere).
+  const here = results.meta?.cpu ?? cpus()[0]?.model ?? "?";
+  const holdCpu = !budget.measured?.cpu || budget.measured.cpu === here;
+  if (!holdCpu)
+    console.log(
+      `  (CPU reported, not held: the budget was measured on ${budget.measured.cpu}, this run on ${here})`,
+    );
   for (const [name, b] of Object.entries(budget.scenarios)) {
     const m0 = results.scenarios[name];
     if (!m0 || m0.skipped) {
@@ -629,12 +639,15 @@ function checkBudget(results) {
     };
     const over = [];
     if (m.calls > b.calls) over.push(`calls ${m.calls} > ${b.calls}`);
-    if (b.vercelCpuMs != null && m.vercelCpuMs > b.vercelCpuMs)
+    const cpuOver = b.vercelCpuMs != null && m.vercelCpuMs > b.vercelCpuMs;
+    if (cpuOver && holdCpu)
       over.push(`CPU ${m.vercelCpuMs} ms > ${b.vercelCpuMs} ms`);
     if (over.length) ok = false;
     const unit = per > 1 ? " a step" : "";
+    const cpuNote =
+      cpuOver && !holdCpu ? ", CPU over its line here (not held)" : "";
     console.log(
-      `  ${name.padEnd(20)} ${over.length ? `OVER: ${over.join(", ")}${unit}` : `ok (${m.calls}/${b.calls} calls, ${Math.round(m.vercelCpuMs)}/${b.vercelCpuMs ?? "-"} ms${unit})`}`,
+      `  ${name.padEnd(20)} ${over.length ? `OVER: ${over.join(", ")}${unit}` : `ok (${m.calls}/${b.calls} calls, ${Math.round(m.vercelCpuMs)}/${b.vercelCpuMs ?? "-"} ms${unit}${cpuNote})`}`,
     );
   }
   return ok;
@@ -712,7 +725,9 @@ if (reproject) {
   printTable(results);
   printProjections(project(results));
   if (argv.includes("--write-budget")) writeBudget(results);
-  process.exit(0);
+  // A replay is held to the budget too, so a budget question (a CPU line read on another machine) is judged again
+  // without measuring again.
+  process.exit(checkBudget(results) ? 0 : 1);
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────────────────────────

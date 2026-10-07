@@ -19,7 +19,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Platform, data and cost
 
 - Docs: a prune pass over `PRICING.md`, `systems/billing-caps.md`, `systems/reel.md` and `PRD.md` by CLAUDE.md's "Keeping the docs healthy" (docs-prune counted about 92 history and restatement lines there on 2026-10-04, never applied) (scratch-synthesis).
-- Cost: `pnpm compute:model` holds CPU against the machine its budget was measured on (`budget.json`'s `measured.cpu`, an M3 Max), so a cloud seat reads over on cold module loads (milestone 38: guest-join-upload 1,606 ms of 1,550, its first complete-upload about 700 ms): on another machine hold calls only and report CPU, and re-measure the budget on the Mac (`--write-budget`).
 
 ### Security and abuse
 

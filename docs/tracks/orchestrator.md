@@ -63,14 +63,16 @@ from the highest `gate<N>.log` in `$S`, so a new scratchpad seeds `$S/gate55.log
    storage sums' signal lane** (the Advisor's condition: ROADMAP Immediate, "Jobs: the storage sums' nightly signal"),
    cut and merged; then **red-team 57** on that tip, its walks: halo-last's Tab walk (pricing's sheet, Account's Plan
    card, the Drive picker at 375 and 1440, light and dark, the working words on a throttled network); upload-sums'
-   (willg97's size list against its 21 totals, then an upload, a Remove and a Delete permanently, each total moving by
-   the file, and `storage_sums_drift(null, 1000)` empty after); marketing-crumbs' look-at-first (/how-it-works step 03,
-   the nav's Features pane, /features/curation, a weddings page's table card); crumbs-86's See it as a guest on a far
-   party. Then the FULL gate, `pnpm compute:model` on the Mac, and Will's yes.
+   screen (its data proven on 2026-10-07: willg97's sums equal the walk, 21 of 24 events listed and the heaviest,
+   dc74eb95, at 302,608,403 bytes in 111 items, as the lane read; the size list shows those totals, then an upload, a
+   Remove and a Delete permanently move each by the file, and `storage_sums_drift(null, 1000)` stays empty);
+   marketing-crumbs' look-at-first (/how-it-works step 03, the nav's Features pane, /features/curation, a weddings
+   page's table card); crumbs-86's See it as a guest on a far party. Then the FULL gate, `pnpm compute:model` on the
+   Mac, and Will's yes.
 3. **The next crumbs lane** comes from Immediate (red-team 56b's LOWs and NITs lead it). The ROADMAP is five buckets
-   (`record.py` places each line and refuses an Immediate past 40); one check upgrade waits there, Will's rising tide:
-   `compute:model` holding CPU only on its budget's machine (only a cloud seat misreads it). `pnpm test:rules` is in the
-   board lanes' light gate, and the demo's alarm now reaches node (`5c323439f`).
+   (`record.py` places each line and refuses an Immediate past 40); Will's two check upgrades are in: `pnpm test:rules`
+   in the board lanes' light gate, and `compute:model` holding CPU only on its budget's own machine (a replay with
+   `--reproject` is held to the budget too); the demo's alarm reaches node.
 4. **After his desk batch, with a fresh context** (Will, 2026-10-06): his personal list of 100+ items in batches, each
    committed verbatim first and slotted into the ROADMAP's buckets and areas with a proposed order of rounds on top; and
    a lab triage tool (Keep, Later or Drop with a note beside each `[unsure: …]` line and any bucket he asks for, its
