@@ -211,15 +211,6 @@
       "home": "docs/systems/host-app.md"
     },
     {
-      "id": "AY1",
-      "kind": "call",
-      "theme": "An event's life and timing",
-      "title": "When an album turns.",
-      "body": "After its party an album turns from newest first to the order things happened; the live demo and an album with no date never turn, which is every new album until its host adds a date (Create asks none).",
-      "changeIf": "an undated album should turn too (her own \"In order now\", or Create asking a date).",
-      "home": "docs/systems/guest-flow.md"
-    },
-    {
       "id": "AB5",
       "kind": "call",
       "theme": "An event's life and timing",
@@ -492,6 +483,7 @@
     "AX2",
     "AX3",
     "AX4",
+    "AY1",
     "AY2",
     "AY3",
     "AY4",

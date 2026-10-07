@@ -142,7 +142,8 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
      product principles" and CLAUDE.md hold each with its reason): never dev-tool-ish; a host of 1 to about 10 events
      first, scaling to hundreds; delight where it costs nothing in clarity; nothing depends on a timeline; immediate,
      or a clear state and a way to stop it; no AI managing it; cost designed like the architecture; production the
-     working version. A lab lane's brief stays light on rules, so its creative energy goes to the board.
+     working version. A lab lane's brief stays light on rules, so its creative energy goes to the board, and says
+     whether its board asks the parts or zooms out to the whole (PROGRAM's "Fast, focused rounds"), and why.
    - `board` and `desk`: a board lane owns its folder and its place on the desk; `cut-lane.py` adds the folder to its
      `owns`, writes the board's shape into its brief (the toolbox page, `/design/lab/kit`, is the rest), and refuses a
      spec whose `owns` names a shared list.

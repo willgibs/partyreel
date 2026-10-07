@@ -134,9 +134,17 @@ design's ten. Native mobile apps are a non-goal: guests use the mobile web, whic
 - **Delight where it costs nothing in clarity:** "all work and no play is a boring consumer product", so a moment of
   play (a develop, a photograph landing) is worth building wherever it never clouds what a screen says; and never a
   developer's tool (no terminal or code look, no monospace face). Attention is earned the same way: the one thing that
-  needs her may draw the eye, beautiful and inviting, while nothing on a screen yells or crowds it.
+  needs her may draw the eye, beautiful and inviting, while nothing on a screen yells or crowds it, and words sit in
+  compact groups with room around them, read at a glance, never spread across a screen.
+- **Simple on top, deep underneath:** a screen shows its few big ideas plainly, each the door to the features behind
+  it, so she finds the rest by exploring (a clip is made from inside the reel), never every feature one press away like
+  a cockpit's controls; any surface may be redrawn to this.
+- **One product on both sides:** a host and a guest meet the same interface wherever they can, so someone who hosts one
+  party and joins another never switches products; each side adds its own tools.
 - **Nothing depends on a timeline:** undated, morning-only, daytime and multi-day events all read well, and "night" is
-  never identity language (`constants/marketing-voice.ts`).
+  never identity language (`constants/marketing-voice.ts`). A date never closes, ends or reshapes an album by itself:
+  it works as it did until its host closes adding, which is offered and never assumed (a trip dated one day may run all
+  week), and a moment for the party just past is shown once, then steps aside.
 - **Immediate, or a clear state and a way out:** everything should feel immediate; anything that takes longer says what
   it is doing and can be stopped where stopping means something; and a failure says what happened, that nothing was
   lost, and the one easy way to put it right, so it never feels frustrating or scary.

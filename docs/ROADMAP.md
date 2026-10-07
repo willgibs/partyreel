@@ -22,6 +22,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
 - QA hardening: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
 
+### The guest's album
+
+- Guests: an album's order turns when its host closes adding, never on a date (Will, 2026-10-07, call AY1 changed): today it turns at 9 am the morning after its last day (`lib/shared/album-order.ts`, `lib/event/zone-morning.ts`; guest-flow.md's "The album's order turns"); an undated album turns the same way, reopening turns it back, and a Disposable's develop, her own chosen moment, still turns its album (the Orchestrator's call, his to overrule) (crumbs-91).
+
 ### The host app
 
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
@@ -112,7 +116,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### The guest's album
 
 - Guests: the held door keeps a choice on the device but never the camera's shots (`wait-picks-store.ts` rewrites one record whole), so a reload there loses them ("Keep this tab open." says so); a per-file record would keep them (crumbs-83).
-- Guests: an undated album never turns: a host's "in order now" for it (no column now) (album-order).
 - Guests: what a host lets guests take home (everything, as today; their own photos; just to look), a new export permission (customize r1's carried `take-home`) (settings-wiring).
 - Guests: a password's unlock lasts 12 hours (`UNLOCK_TTL_SECONDS`, `lib/events/unlock-token.ts`), so a weekend's guests re-type it twice a day: the party's days plus a night.
 - Guests: a sharper album cover: a purpose-made cover variant (about 1,280 px) made in the browser at upload beside the preview (`upload/preview.ts`, no transform), carried on the wire for the cover's ids only and drawn as the second `srcset` candidate of `HeadStills` (the phone copy, 2,048 px and about 330 KB, would cost a phone about 2 MB on the first screen).

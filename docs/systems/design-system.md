@@ -169,6 +169,10 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 - **A radial mask's reach is a fraction of the full field** (its transparent stop sits at 78 percent), so a field the
   object's size renders a rounded square: size the field generously (`-inset-32` on the QR plate).
 - **A lamp crossing a chapter cut is clipped at the cut**, on purpose: one lamp, one register.
+- **Every other light fades out on its own, never at a box's edge**: a sheet, a scroller or a card with `overflow`
+  cuts a spill into a hard line where it overflows, so a light leaking from a source is drawn as a sibling outside the
+  clip, or finishes inside it; and a lit edge keeps its object's corners ("Rounding": a glow at offset N takes the
+  radius plus N). A glow with unpaired corners, or a spill cut short, reads as unfinished.
 
 ### The Aurora, and its three forms
 

@@ -105,7 +105,7 @@ thinking. A bug found at the desk is fixed then. Wiring lanes keep the whole gat
   `pnpm new-board <id> "<title>" --surface <s> --desk <n>` writes its folder, the newest board on the desk is the
   worked example, and `registry.test.ts` and `lab:demo` name whatever a board still owes.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
-  beat one wide one.
+  beat one wide one, except where the parts are better decided together ("Fast, focused rounds").
 - Options are real contenders for one decision, as far apart as the real answers are: pushed apart for the
   exploration's sake, each turns into a caricature nobody would ship, and two that land on the same answer are a
   finding. Ask nothing an open ask on another standing board already asks (your brief names the nearest).
@@ -129,7 +129,11 @@ to the atoms, and the identity is the sum of the parts, never each borrowed comp
 ### Fast, focused rounds
 
 Fast iterative rounds beat slow meticulous ones: focused per-dimension rounds rather than mega-plans, and iterate
-rather than perfect.
+rather than perfect. Small questions serve iterative improvement and a choice that stands alone; but a surface
+improved piece by piece, each new part slotted into what stands, grows into features added as they came, so where a
+ground-up redesign would land the better whole sooner, zoom out (Will, 2026-10-07): one round asks the whole, its
+options whole designs whose parts work together from what the final product holds, and the rounds after it settle
+the assumptions it swept in. Which kind a board is, is judged per board, and its brief says why.
 
 ### Before launch there are no real users
 
