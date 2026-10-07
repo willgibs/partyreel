@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Fragment } from "react";
 
 import { AlertTriangle } from "lucide-react";
@@ -33,6 +34,10 @@ import {
   type JobSignals,
   type JobState,
 } from "@/lib/db/queries/jobs";
+import {
+  readHostLabels,
+  readLatestStorageSumsCounts,
+} from "@/lib/db/queries/storage-sums";
 import { readLatestLimits } from "@/lib/jobs/limits-watch-run";
 import { readLatestWatchRun } from "@/lib/jobs/spend-watch-run";
 import { readSwitches } from "@/lib/jobs/spend-watch-switches";
@@ -69,6 +74,12 @@ import {
   SpendWatchSwitches,
   type LatestWatchRun,
 } from "./spend-watch-card";
+import { StorageSumsRebuild } from "./storage-sums-control";
+import {
+  storageSumsView,
+  type StorageSumsLine,
+  type StorageSumsView,
+} from "./storage-sums-view";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Jobs" };
@@ -176,7 +187,7 @@ const LEAD_COUNT_KEYS = ["remaining", "sweeps_stopped_early"];
  * One line of a job's words (the restore's pass, the reconcile's): what waits on a person in the band's attention voice,
  * a quiet fact muted, work done plain.
  */
-function viewLine(line: RestoreLine | ReconcileLine) {
+function viewLine(line: RestoreLine | ReconcileLine | StorageSumsLine) {
   return line.tone === "attention" ? (
     <AttentionLine key={line.text}>{line.text}</AttentionLine>
   ) : (
@@ -297,6 +308,33 @@ async function loadLimitsData(): Promise<{
 }
 
 /**
+ * The storage sums' card reads the check's record (the newest run that wrote one, a Rebuild's included: the row the
+ * Rebuild itself checks against), and the names of the hosts it lists. A record that cannot be read says so on the
+ * card in words; names that cannot be read leave each host her id.
+ */
+async function loadStorageSums(): Promise<{
+  view: StorageSumsView;
+  names: Map<string, string>;
+  error: string | null;
+}> {
+  let view: StorageSumsView;
+  try {
+    view = storageSumsView(await readLatestStorageSumsCounts());
+  } catch (e) {
+    return {
+      view: null,
+      names: new Map(),
+      error: e instanceof Error ? e.message : String(e),
+    };
+  }
+  const ids = view?.hosts.map((h) => h.hostId) ?? [];
+  const names = await readHostLabels(ids).catch(
+    () => new Map<string, string>(),
+  );
+  return { view, names, error: null };
+}
+
+/**
  * The backup prune's hold, for its card: its last report from a run that ran and the last release pressed. A hold
  * read that fails draws no control rather than a wrong one; a stamp that cannot be read reads as none, so a hold
  * still offers its release (pressing again only stamps again).
@@ -322,11 +360,13 @@ export default async function JobsPage() {
     watch,
     limits,
     pruneHold,
+    storageSums,
   ] = await Promise.all([
     loadPageData(),
     loadWatchData(),
     loadLimitsData(),
     loadPruneHold(),
+    loadStorageSums(),
   ]);
   // Restore now asks the backup Worker's own door: drawn wired only where the app knows where it is.
   const restoreWired = restoreNowWired();
@@ -437,6 +477,8 @@ export default async function JobsPage() {
           def.id === "backup_reconcile"
             ? reconcileView(last?.counts ?? null)
             : null;
+        // And the storage sums': its pass, its last whole pass and each drifted host with her Rebuild, from its record.
+        const sums = def.id === "storage_sums" ? storageSums : null;
 
         return (
           <Fragment key={def.id}>
@@ -635,11 +677,43 @@ export default async function JobsPage() {
                     </>
                   ) : null}
 
+                  {sums ? (
+                    sums.view ? (
+                      <>
+                        <div className="flex gap-2 sm:col-span-2">
+                          <dt className="text-muted-foreground">Pass</dt>
+                          <dd className="min-w-0 flex-1">
+                            {viewLine(sums.view.pass)}
+                          </dd>
+                        </div>
+                        <div className="flex gap-2 sm:col-span-2">
+                          <dt className="text-muted-foreground">
+                            Last full pass
+                          </dt>
+                          <dd className="min-w-0 flex-1">
+                            {viewLine(sums.view.lastPass)}
+                          </dd>
+                        </div>
+                      </>
+                    ) : sums.error ? (
+                      <div className="flex gap-2 sm:col-span-2">
+                        <dt className="text-muted-foreground">Record</dt>
+                        <dd className="min-w-0 flex-1">
+                          <AttentionLine>
+                            No reading: its record could not be read (
+                            {sums.error}).
+                          </AttentionLine>
+                        </dd>
+                      </div>
+                    ) : null
+                  ) : null}
+
                   {counts &&
                   def.kind === "scheduled" &&
                   def.id !== "spend_watch" &&
                   def.id !== "backup_restore" &&
-                  !reconcile ? (
+                  !reconcile &&
+                  !sums?.view ? (
                     <div className="flex gap-2 sm:col-span-2">
                       <dt className="text-muted-foreground">Reported</dt>
                       <dd className="text-muted-foreground">{counts}</dd>
@@ -672,6 +746,59 @@ export default async function JobsPage() {
                   <div className="border-t border-border pt-3">
                     <PruneHoldControl view={pruneHold} />
                   </div>
+                ) : null}
+
+                {sums?.view && sums.view.hosts.length > 0 ? (
+                  // Each drifted host the check names, what parts her sums from her walk, and her Rebuild.
+                  <section
+                    aria-label="Hosts whose storage sums drifted"
+                    className="space-y-3 border-t border-border pt-3"
+                  >
+                    <p className="text-caption text-muted-foreground">
+                      Rebuild makes a host&rsquo;s sums again from her items,
+                      under her lock, and checks her at once; the check never
+                      mends on its own.
+                    </p>
+                    <ul className="space-y-3">
+                      {sums.view.hosts.map((host) => {
+                        const name = sums.names.get(host.hostId) ?? host.hostId;
+                        return (
+                          <li
+                            key={host.hostId}
+                            className="flex flex-wrap items-start justify-between gap-3"
+                          >
+                            <div className="min-w-0 flex-1 space-y-1 text-sm">
+                              <p className="font-medium break-all">
+                                <Link
+                                  href={`/admin/accounts/${host.hostId}`}
+                                  prefetch={false}
+                                  className="underline-offset-4 hover:underline"
+                                >
+                                  {name}
+                                </Link>{" "}
+                                <span className="font-normal text-muted-foreground">
+                                  since {formatAdminTimestamp(host.since)}
+                                </span>
+                              </p>
+                              {host.differs.map((line) => (
+                                <AttentionLine key={line}>{line}</AttentionLine>
+                              ))}
+                            </div>
+                            <StorageSumsRebuild
+                              hostId={host.hostId}
+                              name={name}
+                            />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {sums.view.more > 0 ? (
+                      <AttentionLine>
+                        {/* The count and its words one string: SWC drops the space a text node opens with. */}
+                        {`${formatCount(sums.view.more)} more drifted, not listed: a drift this wide is the sums’ trigger missing a writer, not theirs. Find the writer, then rebuild these; the next pass names the rest.`}
+                      </AttentionLine>
+                    ) : null}
+                  </section>
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">

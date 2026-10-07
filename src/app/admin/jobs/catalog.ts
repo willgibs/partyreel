@@ -15,7 +15,7 @@
  *
  *   scheduled — fires on a clock and writes its own `job_runs` rows. The cadence + the missed-run
  *               rule apply. The purge cron, the backup Worker's three jobs and the export Worker's
- *               heartbeat, the DB-backup Action, and the six purge SUB-SWEEPS, each of which opens
+ *               heartbeat, the DB-backup Action, and the seven purge SUB-SWEEPS, each of which opens
  *               and closes a row of its own.
  *   signal    — no clock. Something else does the work (a transactional email, a rate-limiter read)
  *               and the only question is "did any of it fail in the last 24 hours?". `job_runs`
@@ -50,6 +50,9 @@ export type JobId =
   | "purge_album_log"
   // The develop (20261002200000): it reveals photographs, so it keeps its own switch and card.
   | "develop_rolls"
+  // The storage sums' nightly proof (storage-sums-signal): read-only, but its finding is a figure a host is capped and
+  // billed by, so it keeps its own row, card and Rebuild.
+  | "storage_sums"
   // The Cloudflare queue's backlog + its dead letters, read by the Worker, reported on its runs.
   | "backup_queue"
   | "backup_dead_letters"
@@ -328,6 +331,24 @@ export const JOBS: JobDef[] = [
     cadence: "Daily, inside the purge sweep",
     expectedEveryMs: DAY_MS,
     flagKey: "develop_rolls_enabled",
+    canRunNow: false,
+  },
+  // A seventh that writes nothing at all: the storage sums' proof (storage-sums-signal, the Advisor's condition on
+  // upload_sums), last of the budgeted sweeps so it reads what the night's own writes left. Its own card because its
+  // finding waits on a person: each drifted host's figures and her Rebuild. Its switch stops the check alone (a pass
+  // walks every host's items, the one cost an operator might want to stop for a night), and a paused check reads
+  // Paused, never Healthy.
+  {
+    id: "storage_sums",
+    label: "Storage sums",
+    description:
+      "Proves every night that what each host stores, as the database sums it (her albums, her Deleted, the system's share), still equals her items walked one by one: the figures her plan's meter, every upload's cap check and her size list read. A host that drifted fails the run with both figures and a Rebuild; stopping silently would let a wrong figure refuse an upload or let one past her plan.",
+    kind: "scheduled",
+    host: "purge_sweep",
+    cron: "0 4 * * *",
+    cadence: "Daily, inside the purge sweep",
+    expectedEveryMs: DAY_MS,
+    flagKey: "storage_sums_enabled",
     canRunNow: false,
   },
   // --- our own spend guards ----------------------------------------------------------------------
