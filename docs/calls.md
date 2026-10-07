@@ -27,6 +27,69 @@ Every call about how something looks or moves has moved to the lab (your word, 2
 - **Recommended:** when you set or move the date, an untouched develop time that falls before the party ends moves to the morning after (9 am, your zone). A time you chose yourself never moves.
 - Or: ask the date in Create, or put a "morning after" shortcut beside the row.
 
+The nine below came from the walk of the whole app on 2026-10-07 (`app-gaps-r1`): product decisions only you can make,
+each cheapest now, since every lane that ships adds to today's answer. Ordered by what they would reshape decided late.
+
+**X9. Who can act for an event?** Today one account owns and runs each event: no co-host, no helper for the night, no
+hand-over (`events.host_id` is the only owner, assumed by 121 checks in 39 migrations, and the planners post says so in
+public). Nearly every wedding has two hosts, and Pro's sizes are sold as a planner's year and a venue's year.
+- **Recommended:** co-hosts invited by email, acting for the event as the owner does (Review, the door, Settings,
+  Share), while billing, storage, the plan and deleting the event stay the owner's; handing an event to another account
+  waits for X14.
+- Or: one owner for good, with a read-only link for a partner; roles per event (owner, co-host, a night helper who runs
+  only Review and the door); hand-over now.
+
+**X10. What is inside an event, and what does one pass buy?** An event is one stream with one reel, one folder and one
+roll, so a wedding weekend is either one undivided album or several paid events (a competitor sells sub-albums).
+- **Recommended:** day dividers drawn from the dates and the capture times, display only (no schema, no price change),
+  now; named chapters or linked events only when hosts ask.
+- Or: chapters she names, each with its own reel and folder; a weekend grouping several events under one link and one
+  pass.
+
+**X11. Who may Partyreel contact, and for what?** Account says "Your guests never hear from us" and help promises no
+"album is ready" mail, yet the ROADMAP plans a guest's develop and let-in mails; and a host hears nothing when her
+event goes live, when someone waits at her door while she is away, or when the album develops.
+- **Recommended:** a host's email for her event's moments (a receipt with the code and the print link, a quiet alert
+  for the door and Review while she is away, a morning-after recap); a guest hears from us only when she asks at the door
+  ("Email me when it develops"), once, never marketing: "never" becomes "only when you ask".
+- Or: hosts only, guests never; web push for hosts through an installed app; messages the host writes, sent once.
+
+**X12. Does the album hold words?** It holds photographs and videos alone: no caption, no note, no guestbook, though the
+guestbook is a wedding staple and competitors include one.
+- **Recommended:** a guestbook as its own kind (a short note, a voice memo or a video message to the hosts), in a room of
+  its own and at the reel's end, moderated in Review like any upload; no captions or comments on photographs, so the
+  album stays the pictures.
+- Or: never, as part of the identity; an optional one-line caption at send; comments and reactions.
+
+**X13. Will a guest ever see Partyreel in her own language?** Everything is US English, written inline in about 260
+files, and the cost of translating grows with every string.
+- **Recommended:** English at launch, with the guest's journey (the door, the album, the camera, the reel) made
+  translation-ready now (a string catalog, dates and plurals by her locale); the host's app later.
+- Or: English only for good, said plainly; three to five languages at launch, by the phone's setting; the host picks
+  the album's language.
+
+**X14. Is the professional host (a planner, a venue, a photographer) a launch target?** Pro's sizes are sold for them,
+but nothing exists for them: no hand-over, no partner mark, no templates.
+- **Recommended:** not at launch: Pro's sizes say what they hold instead, and the professional is decided with X9's
+  hand-over after launch.
+- Or: the minimum now (roles, hand-over, templates); a partner's mark on the guest page, the prints and the reel as a
+  paid lever; a host theme.
+
+**X15. Will Partyreel ever find a guest's photos by her face?** Selfie search is becoming a premium default among
+competitors, but it is biometric data (Illinois' BIPA, the GDPR's special category).
+- **Recommended:** never, said as a privacy feature, with ways to find a photograph that need no face (by day, by who
+  sent it, videos, likes).
+- Or: opt-in selfie search per album through a vendor, deleted with the event; tagging yourself; decide later, promising
+  nothing meanwhile.
+
+**X16. Prints or a book?** Export is the only way out today; a competitor sells photobooks.
+- **Recommended:** not before launch; after it, a print partner built on the host's picks.
+
+**X17. What does a follow do before the feed exists?** Nothing reads follows until the after-launch feed
+(account-moments r2 asks how a follow feels; this asks what it is for).
+- **Recommended:** keep Follow as a private list (whom she follows, on her page) and say so; its payoff is the feed.
+- Or: hide Follow until the feed ships.
+
 ---
 
 ## F. Create

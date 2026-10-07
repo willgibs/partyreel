@@ -41,13 +41,15 @@ of the app's gaps:
 | `account-moments-wiring` | block's quiet well, Connections' rows staying turned back with names opening `GuestPeek`, `/me` private | MERGED at `1fdeca5e0` (gate 56 green); calls in the lab's BZ; account-moments r2 (follow, the invitation) next when a seat frees; pruned | Sonnet, 3135 | `a88d304f53085a3af` |
 | `create-wizard-wiring` | the focused styles (Disposable's own screen), the one-line close, a failure held with everything kept | MERGED at `0617cac99` (gate 57 green); calls in the lab's CA; create-wizard r5 next when a seat frees; test events to delete through Settings: willg97's `ea9115da-60ab-48f4-9349-56a2653fa333` and `3e997ec3-913f-4b0c-86ab-e421289d5867`; pruned | Opus, 3136 | `ac3e135ee3680e27f` |
 | `storage-sums-signal` | the Advisor's condition for 39: the nightly drift sweep, its /admin/jobs card and Rebuild, `remove_my_upload`'s arm (migration `20261007022000_storage_sums_signal.sql`) | RUNNING | Opus, 3137 | `a91b00d18e7060ca2` |
-| `brand-marks-r1` | board, desk 6's first: the wordmark and icon final, the palette's tokens, the status set (tally given), in Aperture | RUNNING | Opus, 3138 | `a8c41c014cb4714e8` |
-| `signature-r1` | board (desk place 8): where the Ring, Seam and Bloom live across the APP, at rest and answering (narrowed by message 2026-10-07: marketing's light waits for the marketing foundation round; the lane records it under its brief) | RUNNING (cut at `e6fa3cc8`) | Opus, 3139 | `a1b22d3b2ec761625` |
-| `app-gaps-r1` | an experience audit, no manifest (a walk, as a red-team is): the whole app as hosts and guests across a party's arc, the gaps ranked by what they would reshape decided late, the top six to eight as board briefs, bugs in passing; ledger `../partyreel-wt/_scratch/app-gaps-r1/ledger.md`; its report becomes boards and ROADMAP lines | RUNNING (from `f4becf84`, a detached worktree) | Opus, 3140 | `a53af3259c7e25b2e` |
+| `brand-marks-r1` | board, desk 6's first: the wordmark and icon final, the palette's tokens, the status set (tally given), in Aperture | PAUSED 03:56Z for the 5-hour window (asked to push its WIP and stop at a checkpoint); resume by message after 06:10Z | Opus, 3138 | `a8c41c014cb4714e8` |
+| `signature-r1` | board (desk place 8): where the Ring, Seam and Bloom live across the APP, at rest and answering (narrowed 2026-10-07; event-header-wiring-2's Seam passed to it as production's) | PAUSED 03:56Z for the 5-hour window (asked to push its WIP and stop at a checkpoint); resume by message after 06:10Z | Opus, 3139 | `a1b22d3b2ec761625` |
+| `app-gaps-r1` | an experience audit of the whole app (no manifest) | DONE 2026-10-07: 16 gaps ranked by what they would reshape decided late; its nine product decisions are the calls lab's X9 to X17 (co-hosts, an event's inner shape, who Partyreel may contact, words in the album, languages, the professional host, face search, prints, what a follow is for), its design gaps ROADMAP lab lines (the album after its party first, then no signal, turned-away demand, the host's picks, duplicates, video playback; Create's kind step rides create-wizard r5), its seven bugs Immediate lines for crumbs-87 (the door's email gate MEDIUM first); its four events moved to Deleted; ★ its cleanup's `pkill -f redteam/drv.mjs` killed album-moments-wiring's driver (that lane told), and port 3140 sits outside R2's CORS (lanes stay on 3131 to 3139); ledger `../partyreel-wt/_scratch/app-gaps-r1/ledger.md` | Opus, 3140 | `a53af3259c7e25b2e` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): spawned from `usher/kit/advisor-prompt.txt` at
-the first of this wave's three migrations; read `let_in` and `storage_sums_signal` together (`let_back_in` and
-`remove_my_upload` share the lock order the sums' trigger set).
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session,
+spawned 2026-10-07 for Q40 (camera-wiring's `reshoots`: three CREATE OR REPLACE, the ceiling the roll plus 3, the
+gate's `period`), its answer pending; next `let_in` and `storage_sums_signal` together (`let_back_in` and
+`remove_my_upload` share the lock order the sums' trigger set). Queued to integrate: `camera-wiring` (head `40be63698`,
+its message in the session scratchpad) after Q40 and the apply.
 
 **Seats.** A local `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its
 merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). A successor in another session
@@ -60,16 +62,17 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    protocol first; at each record: the board's ledger deleted when its picks are all built (event-header with its
    wiring; host-moments and guest-moments once both of each one's wirings merge, by `crumbs-87`), the calls his to
    overrule into `docs/calls.md`, Deferred lines by `record.py`.
-2. **Wave 2, as seats free, by leverage** (specs drafted in the session scratchpad's `specs/wave2/`; a successor writes
-   them again from this line): first the boards `app-gaps-r1`'s report ranks highest (the app is phase 1); presence r1
-   (the guest row with the newest ringed in light, the hashvatar, the avatar-group hover, inside the guest rules); then
-   each follow-up board once its wiring merges: **account-moments r2** (follow: a first follow saying once that only
-   she sees whom she follows, beside a Following state that carries the privacy itself, polished; the invitation redrawn
-   beautiful and inviting, never loud, on the wired `/me`), **create-wizard r5** (Create finishing the event as PRD's
-   core loop now says: the close as the payoff, its "Get it ready" foot and the hub's checklist included; the styles'
-   previews, one playing and the rest still, and wider ideas), **guests-room r1** (the Guests room's person rows and
-   `GuestPeek`, polished: his let-back note); **crumbs-87** from Immediate (red-team 56b's LOWs and NITs first); the
-   lab's triage tool (Keep, Later or Drop beside each `[unsure: …]` line, its answers a paste back). The desk's old
+2. **Wave 2, after the 06:10Z reset, six to eight at once, by leverage:** resume `brand-marks-r1` and `signature-r1` by
+   message; `crumbs-87` on Immediate's app lines (the audit's door gate MEDIUM first, its share-card title, the
+   dashboard's tally, the hub's two clocks, the Guests room's INVITED list; then red-team 56b's and the lanes' lines);
+   then boards from the gap audit's design gaps (the album after its party first, then a party with no signal); presence
+   r1; and each follow-up board once its wiring merges: **account-moments r2** (its spec written: follow, a first follow
+   saying once that only she sees it beside a Following state that carries the privacy itself, polished; the invitation
+   redrawn beautiful and inviting, never loud), **create-wizard r5** (Create finishing the event as PRD's core loop says:
+   the close as the payoff, its "Get it ready" foot and the hub's checklist; the styles' previews, one playing and the
+   rest still; Create's kind step from the audit), **guests-room r1** (the Guests room's person rows and `GuestPeek`,
+   polished: his let-back note). The audit's nine decisions wait on Will (the calls lab's X9 to X17); a board draws a
+   decision's surfaces once he picks its model. Lanes take ports 3131 to 3139 only (R2's CORS). The desk's old
    leftovers: drive-export's unclear `exit` and `naming`, reworded or retired.
 3. **Milestone 39 carries both waves** (Will, 2026-10-07: one walk): red-team 57 on the desk build (`desk-refresh.sh`)
    once `storage-sums-signal` and wave 1's six wirings merge. Its walks: halo-last's Tab walk (pricing's sheet,

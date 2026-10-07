@@ -26,10 +26,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
 - QA hardening: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
 
-### Billing and pricing
-
-- Pricing: `/pricing` opens on paper but the cinema layout pins `themeColor: #020202` (`(cinema)/layout.tsx`), so a phone's browser chrome is dark over a white first screen; the fix is group-level, since the layout keeps `viewport` off every page.
-
 ### Uploads, media and exports
 
 - Uploads: a complete sent the instant a dropped line came back hung about 2 minutes before its retry (red-team 56b, NIT).
@@ -44,6 +40,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: a returning guest's hard `?reel` on a slow link paints the album's head before the reel's black, since the curtain (`data-reel-curtain` in `event-experience.tsx`) streams about 25 KB after the head; placed before the head, as the door is, it stands from the first byte.
 - Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
 - Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
+- Share: an album's link always unfurls as "Add photos to <name>" and "Add yours." (`e/[token]/page.tsx`'s metadata), even with uploads closed, help's own keepsake step (app-gaps-r1).
 
 ### Accounts and profiles
 
@@ -59,6 +56,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
 - Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
+- Settings: a host's names-only door is undone by an email gate: with "An email first" off, Private > You let each person in, then Public, leaves `require_verified_email` on (`settings-state.tsx`'s `saveDoor` keeps `requireVerifiedEmail: true` and nothing restores her choice), so a name-only guest already in meets "Confirm your email to see everything"; the row had said "On while you let each person in" (app-gaps-r1, MEDIUM).
+- Dashboard: at 1440 "THIS WEEK · Nothing needs you" sits under a stage whose live event reads 105 to review; the week's tally leaves the stage's own event out (app-gaps-r1).
+- Hub: a Disposable's hub read outside the party's zone says the develop in the party's ("9 am in Los Angeles") right above the held card's "tomorrow at 12 pm" in the reader's clock, unlabelled (crumbs-86's line covers only the guest cover) (app-gaps-r1).
+- Guests: on a Public album the room shows the INVITED list and its paste box, which let nobody in and send nothing there, beside an Invite that only opens Share (app-gaps-r1).
 
 ### Admin and operations
 
@@ -70,14 +71,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
 - Design: the dashboard's waiting marks (`dashboard/marks.tsx`, `events-row-list.tsx`, `event-card.tsx`) and Review's own section count (`event-feed/review-section.tsx`) still wear the waiting amber; a count that waits on her wears `--needs-you` now (event-header-wiring-2).
 
-### Marketing and content
-
-- Nav: tabbing into the hidden header scrolls the page about 482 px (Chrome scrolls focus into view against the sticky bar, `chrome/header-shell.tsx`); revealing the bar on a Tab keydown, before focus moves, would pre-empt it.
-- Nav: `ui/navigation-menu.tsx`'s content spells its cross-slide inline (`data-[motion=…]`); move it onto `floatingCrossSlide` (`ui/floating-layer.ts`), the same slide, which also holds it to `motion-safe`.
-
 ### The lab and the kit
 
-- The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
 - The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 182.8 calls and 707 ms of CPU a step against its budget of 9 and 210 (2026-10-05, after desk 3's boards merged): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
 - The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
 - The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
@@ -125,6 +120,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
 - Pricing: rename the uploads meter's wire names to window-neutral ones (`at_monthly_cap`, the presign meter's `'monthly'` reason).
 - Pricing: the plans' sheet opened by an event limit (Create's held Upgrade, the cap door's See Pro) leads "You are out of room", the storage trigger's words (`pricing-sheet.tsx`, `kind: "room"`); give the event limit words of its own (create-wizard-wiring).
+- Pricing: `/pricing` opens on paper but the cinema layout pins `themeColor: #020202` (`(cinema)/layout.tsx`), so a phone's browser chrome is dark over a white first screen; the fix is group-level, since the layout keeps `viewport` off every page.
 
 ### Uploads, media and exports
 
@@ -139,6 +135,9 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Media: carry Apple's MakerNote HDR headroom (tags 0x0021 and 0x0030) into the minimal Exif `strip-metadata.ts` rebuilds, on JPEG and HEIC, so a pre-iOS-18 HDR photo keeps its exact HDR rendering.
 - Media: `event_covers` picks only approved photos, so an album of videos alone shows no cover on any card (dashboard, picker, profile); fall back to the newest previewed video's frame, photos first, in one migration.
 - Clips: a guest's Add to event reads Added the moment it hands the clip to the page's upload queue (`clip-creator.tsx`'s `add`); it could follow its queue item instead (sending, held for review, failed).
+- Lab exploration: a party with no signal: nothing waits on the device (no service worker; a closed tab loses an unsent photo, and iOS kills background tabs); unsent originals kept in IndexedDB and resumed on the next open with a "3 waiting to send" chip, Background Sync where it exists; whether a camera shot spends the roll when taken or when it lands is Will's (app-gaps-r1).
+- Uploads: the same photo sent twice lands twice (re-picked to be sure, AirDropped around a party), spending storage and the uploads allowance and repeating in the zip, Drive and the reel; skip a byte-identical file per album (a hash of the stripped bytes before presign) and say it is already in (app-gaps-r1).
+- Video: the album's viewer plays the original (up to 10 GB, HEVC by default on iPhones) with no fallback where the reel falls back to its poster (`lib/reel/engine/video/ladder.ts`); measure on real phones, then a light copy made in the uploading browser or a server transcode costed in the atlas (app-gaps-r1).
 
 ### The guest's album
 
@@ -159,6 +158,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guest: the door (`guest/door/`, `entry-modal.tsx`) and the report dialog (`guest/report-dialog.tsx`) carry no link to `/help`; the album reaches it through the guest's menu and the upload sheets.
 - Guest, the demo: the guest export (`api/export/guest/route.ts`) and the per-tile Save and Share serve the demo album in full with no server-side demo check (the UI only hides them); decide whether the demo's token carries a read-only claim.
 - Guests: the cover's eyebrow ("Disposable · develops Thursday at 2 AM", `coverEyebrow`) says only the reader's clock where the sheet under it says both; a far party's wants the party's clock too, on the guest page and See it as a guest (crumbs-86).
+- Door: a camera-only Disposable's welcome says "Add your photos and videos in seconds." where its guests only use the album's camera; and the door page's hidden summaries (Private, Only people already in) say uploads are paused while they are open, a screen-reader check (app-gaps-r1).
+- Lab exploration: the album after its party, the gap audit's highest design gap: a phase-aware album (live, then keepsake: its title, a card carrying its photographs, Add receding), the host's morning-after recap (Share, Make a clip, Download), a guest-to-host bridge into Create carrying this album's style, an anniversary; one card family for every shared link (`/e/[token]/card` draws the name alone) (app-gaps-r1).
 
 ### Accounts and profiles
 
@@ -184,6 +185,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: no setting links to its help article (only the user menu, the 404 and the error screen reach `/help`); deep-link Settings' pages (`event-settings/*-page.tsx`) through `lib/content/help-links.ts`.
 - Create: Upgrade from Create's held limit or the cap door leaves through Checkout to `/dashboard` (`returnTo`), so the name, style and look she chose are gone; bring her back to `/dashboard/new` with the draft kept (create-wizard-wiring).
 - Lab exploration: the hub's head as event-header's boards drew it since r2 (the when as one quiet line over the name, the link under the code) where production keeps date, guests, views and Live under the title with the link under it; whether that drawing should be wired (event-header-wiring-2's board idea).
+- Lab exploration: turned-away demand: a host never learns guests were refused (a Free album's video, a full or closed album; `video_blocked` answers at presign and nothing records it), though PRICING's upgrade triggers turn on it; a count and where she meets it (the hub, the bell, the morning-after recap) (app-gaps-r1).
+- Lab exploration: the host's picks: one mark of hers feeding the cover (dealt from the stills today), the reel's opening, the share card, the keepsake and a best-of download, where "Use as the cover", host pins and a featured clip sit in three buckets (app-gaps-r1).
 
 ### Admin and operations
 
@@ -233,6 +236,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The reel's contained player on a landscape phone `[eng]`: 812x375 draws it 325 wide and scrolling (`sections/shared/reel-player.tsx`); a posture that fills the glass, once the films land.
 - The support-automation arc: as-you-type answers on /contact: the page already ships the help search index (the palette's), so the subject and message could rank help articles live beside a topic's fixed links, with no model and no new service, before the help chat exists.
 - Help: `help/step-screens/desk-screens.tsx`'s `ReelCardPicture` still draws the retired tile and the living reel card (`mock-parity.test.ts` and `step-screens.test.ts` pin its "Live for guests" against `room-card.ts`, while the picture still types the line; redrawn, it takes `reelCardFace`); redraw it as the cards' reel card once the polish pick lands, then drop `ROOM_CARD_BASE` and `ROOM_CARD_QUIET` from `room-card.ts` (kept only for it) (event-header-wiring).
+- Nav: tabbing into the hidden header scrolls the page about 482 px (Chrome scrolls focus into view against the sticky bar, `chrome/header-shell.tsx`); revealing the bar on a Tab keydown, before focus moves, would pre-empt it.
+- Nav: `ui/navigation-menu.tsx`'s content spells its cross-slide inline (`data-[motion=…]`); move it onto `floatingCrossSlide` (`ui/floating-layer.ts`), the same slide, which also holds it to `motion-safe`.
 
 ### The lab and the kit
 
@@ -261,6 +266,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: the aurora that answers, for desk 6's aurora board: light answering a real signal rather than looping: the Add's ring with libraries.dev's voice-glow envelope (quick to rise, slow to settle, an idle breath), a glow under the album camera's frame while a clip rolls (its mic is open, and a refused mic films silence), transitions.dev's gradient word re-keyed to the five lamps as the aurora's ink on paper, never on small badges.
 - Library: Create's room specimen never fails (its stand-in always makes the event), so the held beat is pressed nowhere in the lab; a stand-in that fails once (`create-room-demo.tsx`) draws it (create-wizard-wiring).
 - Library: the hub-cover specimen (`HubCoverDemo`) draws the cover without its row, so the foot's clearance for the cards reads as an empty band; draw it with the row, as `HubBandDemo` does (event-header-wiring-2).
+- The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
 
 ### Code hygiene
 
@@ -363,19 +369,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - Finding one photograph in a thousand (sort, date, person, kind), in the guest album, the host gallery and a person's own uploads across every album (the profile's Uploads, `get_my_uploads`, a like-count sort among them).
   - The product with a keyboard and a screen reader, end to end.
   - Which surfaces have a dark mode, who can switch, and what a guest gets.
-  - One card family for every shared link (the OG routes), and what a shared album's card shows.
-  - What a like is here: who sees it, who is told, why the counts are the host's.
-  - A failed card, a lapsed pass and a cancelled subscription, as surfaces.
-  - The in-app notifications' design (the bell, its panel, a state signal versus one that clears), beside the Notification system bucket.
-  - The marketing reading surfaces, one board each: a feature page's shape and `/features` as an index; the blog's index and article; Privacy and Terms made scannable; `/about`; applying, from the role page to the operator's inbox; what an AI reader is handed (`llms.txt`).
-  - The phone's Add sheet (`responsive-menu.tsx`'s scrim) blurs the cover, so her own Add and the glass rounds go soft as she presses; a sheet that dims without blurring keeps the album she is adding to in view.
-  - `/features/album`'s getting-in section (`getting-in-stage.tsx`), with the marketing reading surfaces: wider than its two tight columns at a desk, a line where its paragraph stands, three new visuals, its 3.2 s cycle kept.
-  - The voice past the guest journey: the host app's lines, then marketing's main lines, each won one line at a time in its real place.
-  - The feature pages after the album one, one ground-up board each in nav order (QR, curation, sharing, guests, then privacy, whose hero has had its round), the album page as the model.
-  - Glass across marketing and the app: the header's `GlassLayer`, the set-pieces over photographs (about 20 `backdrop-blur`s in `components/marketing`) and the floating panels; meanwhile the clear header's muted nav labels fade over a bright hero.
-  - A partners page for planners and venues (reached directly, with free Event Passes for upcoming couples), apart from `/about`'s press band; today a planner reads the site as a host.
-  - Moments in motion, from Will's six links of 2026-10-04 (transitions.dev's smoky dissolve and image-open tilt, libraries.dev's image): the product's verbs as one family on real photographs: take back (a smoky dissolve on the camera's Your shots and the bin's Delete permanently, never a soft Remove), set aside, open (today's grow, a weighted dismiss, the full tilt only for rare launches such as the Reel card), arrive, develop (a cell-by-cell reveal); ★ a canvas over a presigned `<img>` taints, so only object URLs and the camera's frames can feed one.
-  - The code develops: Create's sample code flipping only the modules that differ into hers (the QR version pinned so both share a grid, its finders still; canvas, no three.js), the disposable develop's first-visit reveal cell by cell, darkest first, and "Developing" as a breathing achromatic grain in the status set.
 
 ## Launch
 
@@ -456,10 +449,6 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 
 - **The reel:** ideas that cost no storage, since a reel is a recipe:
   - A host featuring one clip on the album, and a shareable clip link.
-  - Host pins that open each loop.
-  - The uploader's own window on her video for the reel (new columns: the dormant `clip_start_seconds` and `clip_end_seconds` were dropped).
-  - A screen link that skips the host sign-in, a capability of its own (a venue screen signs in as the host today).
-  - A counted client event for clips made per event (the reel and clips carry no telemetry, and no server write exists, by design).
 
 ### Accounts and profiles
 
@@ -478,7 +467,6 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 ### The lab and the kit
 
 - Lab exploration: the privacy hero's two runners-up: the sweep (tiles clearing in one pass of light) as a generic hero's foundation, and the aperture (a blurred photograph breathing in a hairline ring), polished, as a minimalist CTA card's background (their code: `git show cdc979a6:"src/app/(dev)/design/sandbox/privacy-hero/concepts-layer.tsx"`, `SweepConcept` and `ApertureConcept`, with `concepts.ts` and `concepts.css` beside it).
-- Lab exploration: what an album becomes weeks after the party, since events never end (a keepsake, an anniversary, a nudge to export).
 - Lab exploration: what a host learns about their own event (views, contributors, the photograph everyone liked).
 - Lab exploration: whether an album installs to a phone, and who is ever asked to (`src/app/manifest.ts` installs the site's root, with no service worker).
 
