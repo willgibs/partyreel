@@ -1,0 +1,156 @@
+/* THE WINDOW TAKE'S SHEET (`invite-window.tsx`), redrawn from the creative
+   director's fresh-eyes pass: ONE piece of the room on her paper page (a
+   plate), her two events' covers as small prints inside its dark, and ONE
+   light falling from them. Every selector here is `.amw-…`; the light itself
+   is the plate take's Seam (`invite-plate.css`'s `.ip-…`), worn read-only.
+
+   ★ THE LAYOUT LIVES HERE, NOT IN `sm:` UTILITIES: a lab `sm:` utility sits in
+   `utilities.lab` and loses to production's base utility on the same property
+   (design.css; the plate's sheet says the same), which is how the first cut's
+   desk gaps drew at the phone's sizes. This sheet is unlayered and wins.
+
+   ★ ON PAPER THE PLATE IS THE ROOM ITSELF (it wears `dark`, as the plate
+   take's and the hub's strip of the room do): its ground is the room's
+   near-black, so her photographs' light reads as light, and nothing of it
+   ever touches the page (the plate clips it). */
+
+.amw-plate {
+  /* The light's fall under the prints, a hand's, spent before the captions,
+     which stand exactly where it ends. Longer than the hub's paper strip
+     (30px), which drew a lit ledge the prints stood on rather than light
+     falling from them; still short of the plate take's 96px, since the
+     captions are under it. */
+  --amw-reach: 42px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: var(--background);
+  /* One pixel of light on the bevel: a surface lit from above, never a shadow
+     under it (the plate take's own edge). */
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 6%);
+}
+
+/* In the room the plate is a card of the room, its tone alone, and the light
+   lives inside it as on paper (the plate take's own answer). */
+.dark .amw-plate {
+  background: var(--card);
+}
+
+/* ★ THE PRINTS, THEIR LIGHT AND THEIR CAPTIONS ON ONE GRID: the photographs
+   in the first row, the light in the second (its whole reach, under both),
+   the captions in the third, so the light is born exactly where the
+   photographs end and is spent exactly where the words begin. Each event is
+   one figure spanning all three rows on the grid's own rows (subgrid), so a
+   photograph and its caption stay one object to a reader. */
+.amw-events {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto var(--amw-reach) auto;
+  column-gap: 10px;
+}
+
+.amw-event {
+  grid-row: 1 / span 3;
+  display: grid;
+  grid-template-rows: subgrid;
+  min-width: 0;
+}
+/* ★ EACH FIGURE NAMES ITS COLUMN: the light holds row 2 across every column,
+   so an auto-placed figure (rows 1 to 3) found no column free of it and the
+   grid made new ones (the first draw: three columns, the light alone in the
+   first). Placed items may overlap, so naming the column is the whole fix. */
+.amw-event:nth-child(odd) {
+  grid-column: 1;
+}
+.amw-event:nth-child(even) {
+  grid-column: 2;
+}
+
+.amw-photo {
+  grid-row: 1;
+  align-self: start;
+  position: relative;
+  /* The photograph's own 3:2: a cover is the album's photograph, never a
+     crop of it. */
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+}
+
+.amw-caption {
+  grid-row: 3;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The light's row: the Seam is born at its top edge (the photographs' foot)
+   and falls its reach. Its own stacking context, so the Seam's `z-index: -1`
+   lands on the plate's dark and never behind it. */
+.amw-light {
+  --ip-reach: var(--amw-reach);
+  grid-column: 1 / -1;
+  grid-row: 2;
+  position: relative;
+  isolation: isolate;
+  pointer-events: none;
+  /* Its two ends fade inside the prints' own width, so the light is never
+     cut straight at their outer edges. (Widened past the prints instead, its
+     top ran on where no photograph stood and the prints stood on a lit
+     shelf: the light must be theirs, edge to edge.) */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+}
+
+.amw-key {
+  margin-top: 18px;
+  align-self: flex-start;
+}
+
+/* A desk: the words and the key in the column her name stands in, the prints
+   beside them, the group centred on the prints. */
+@media (width >= 40rem) {
+  .amw-plate {
+    --amw-reach: 48px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
+    grid-template-rows: auto auto;
+    column-gap: 40px;
+    align-items: center;
+    padding: 28px 32px;
+  }
+  .amw-words {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+  .amw-key {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    margin-top: 20px;
+  }
+  .amw-events {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+    column-gap: 14px;
+  }
+}

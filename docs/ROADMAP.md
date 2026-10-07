@@ -39,26 +39,20 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts).
 - Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
 - Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
-- Share: an album's link always unfurls as "Add photos to <name>" and "Add yours." (`e/[token]/page.tsx`'s metadata), even with uploads closed, help's own keepsake step (app-gaps-r1).
 
 ### Accounts and profiles
 
 - Account: a magic link that signs Create account into an existing address says nothing, where the code says so (`auth/account-door.tsx`); a one-line banner on `/dashboard` from `(auth)/auth/callback/route.ts`, on `checkExistingAccount`'s test.
-- Profiles: Connections' look offers Follow after an Unblock where they blocked her back (`followUser` is block-silent: ok, nothing written), so a wrong Following row stands until she leaves; the profile page's `isBlockedEitherWay` read per Blocked row (`lib/db/queries/social.ts`) would hide it (account-moments-wiring).
-- Profiles: the album's guest list offers Follow on a chip of someone she blocked or who blocked her (the same silent no-op, then the chip reads Following), and a look's Follow reads Follow again on its next open; `GuestList` needs `blockedIds` beside `followingIds`, or better one answer per person that every face of a relation on a page shares, as Connections' island is for its card (account-moments-wiring).
 
 ### The host app
 
-- Settings: the sheet's overflow-hidden box clips the focus halo on the door switches, the Max size select, the Cinematic card and "3 seconds", at 375 and 1440 (`?room=settings&setting=door`) (red-team 56b, LOW).
 - Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
 - Host: the dashboard's stage wall shows a disposable album's sealed photographs (`getStagePhotos` in `lib/db/queries/dashboard.ts`) while the hub covers them until the develop; hold the wall to what guests see (`hubCovered`, `host-cover.ts`).
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
 - Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
-- Settings: a host's names-only door is undone by an email gate: with "An email first" off, Private > You let each person in, then Public, leaves `require_verified_email` on (`settings-state.tsx`'s `saveDoor` keeps `requireVerifiedEmail: true` and nothing restores her choice), so a name-only guest already in meets "Confirm your email to see everything"; the row had said "On while you let each person in" (app-gaps-r1, MEDIUM).
-- Dashboard: at 1440 "THIS WEEK · Nothing needs you" sits under a stage whose live event reads 105 to review; the week's tally leaves the stage's own event out (app-gaps-r1).
-- Hub: a Disposable's hub read outside the party's zone says the develop in the party's ("9 am in Los Angeles") right above the held card's "tomorrow at 12 pm" in the reader's clock, unlabelled (crumbs-86's line covers only the guest cover) (app-gaps-r1).
-- Guests: on a Public album the room shows the INVITED list and its paste box, which let nobody in and send nothing there, beside an Invite that only opens Share (app-gaps-r1).
+- Host: on the hub, once the band folds, the Review pill's 99+ badge sits over its icon (event-header-wiring-2's shoulder badge): at 375, where the pill shows no word, it reads only "99+", and at 1440 the word stays but the badge still covers the icon; anchor the badge at the glyph's shoulder so it grows outward (red-team 57, LOW).
+- Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
@@ -67,11 +61,11 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
 - Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
-- Design: the dashboard's waiting marks (`dashboard/marks.tsx`, `events-row-list.tsx`, `event-card.tsx`) and Review's own section count (`event-feed/review-section.tsx`) still wear the waiting amber; a count that waits on her wears `--needs-you` now (event-header-wiring-2).
+- Design: the hub cover's address link wears the browser's own focus outline, the one stop there without the house ring (red-team 57, NIT).
 
 ### The lab and the kit
 
-- The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 182.8 calls and 707 ms of CPU a step against its budget of 9 and 210 (2026-10-05, after desk 3's boards merged): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
+- The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 24.5 calls a step against its budget of 9 (milestone 39's run, 2026-10-07; 182.8 on 2026-10-05): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
 - The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
 - The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
 
@@ -83,7 +77,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
 - Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
-- Code hygiene: drop the typed seams the regenerated types made needless, drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`, `cloud_export_ready`'s `p_found`) and upload-sums' `sumsDb` (`src/lib/db/queries/storage-list.ts`, `event_storage_sums`); and `row-cap-sql.test.ts`'s `SINGLE_ROW` reason for `host_storage_summary`, which still says "host_active_bytes beside two SUMs over host_deleted_media" (now her sums, her deleted events' rows and the aged removals, no GROUP BY).
 
 ## Upcoming
 
@@ -188,6 +181,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: the storage meter's door to the size list (`dashboard/storage-meter.tsx`) leaves her plan's name off its fit goal, so its list says "Fits your plan once these go" where the banner's says "Fits Pro 50 GB once these go"; pass `plan: planWithCap(tier, storageCap)` (`grace-banner.tsx`) there too (host-moments-wiring).
 - Host: the door's quick choice (`settings-rows.tsx`'s `doorConsequence`) moves to a password already set while people wait and says nothing of their asks ending there (`events_door_to_password`), where the steps page asks first; say it, and ask, as the page does (host-moments-wiring).
 - Hub: the Reel card shows nothing while its soft navigation is pending (13 s to the curtain on a 120 KB/s line); `useLinkStatus` could dim it (album-moments-wiring; the curtain's ceiling closed the other half).
+- Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
 
 ### Admin and operations
 
@@ -268,6 +262,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Library: Create's room specimen never fails (its stand-in always makes the event), so the held beat is pressed nowhere in the lab; a stand-in that fails once (`create-room-demo.tsx`) draws it (create-wizard-wiring).
 - Library: the hub-cover specimen (`HubCoverDemo`) draws the cover without its row, so the foot's clearance for the cards reads as an empty band; draw it with the row, as `HubBandDemo` does (event-header-wiring-2).
 - The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
+- The lab: a portalled frame's `IntersectionObserver` (the hub's cards row) watches the lab's viewport rather than the frame's, so the row reads stuck whenever its frame leaves the lab's screen (a beyond-viewport capture flips it); a `FrameWindow` observer shim, or a line in `traps.ts` (create-wizard r5).
 
 ### Code hygiene
 

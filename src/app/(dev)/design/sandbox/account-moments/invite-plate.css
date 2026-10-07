@@ -1,0 +1,222 @@
+/* THE PLATE'S SHEET (`invite-plate.tsx`): a piece of the room on her paper
+   page, and her photographs' light inside it. Every selector is `.ip-…`, every
+   keyframe `ip-…`, so nothing here can reach another take's drawing.
+
+   ★ ON PAPER THE PLATE IS THE ROOM ITSELF, NOT THE SLAB (Aperture: "light reads
+   as light only against the darkest thing round it"). It wears `dark`, as the
+   hub's strip of the room and every head on a photograph do, so its ground is
+   the room's near-black and every word and key in it reads the room's tokens.
+   On the slab's graphite the light's fall read as brown, not light.
+
+   ★ THE LIGHT IS THE HUB'S SEAM, BORN AT THE PLATE'S TOP EDGE (production's own
+   construction, `event-hub-head-seam.css`), redrawn for a plate with sides:
+   its pools stand inside the plate, so it is hot at the edge it is born at and
+   black by the plate's other edges, and the plate keeps its silhouette on
+   paper. Three layers, as light is: the body (the Bloom's register, falling
+   through the key's deeper neighbour), the glow at the edge (the Seam's own
+   register), and the edge itself, lit. */
+
+/* ★ THE LAYOUT LIVES HERE, NOT IN `sm:` UTILITIES: the lab's responsive
+   utilities sit in `utilities.lab` and lose to production's base ones on the
+   same property (`design.css`'s own note), so `px-5 sm:px-8` drew the phone's
+   padding at 1440. This sheet is unlayered and wins.
+
+   ★ A COMPACT OBJECT, NEVER A BANNER (the creative director's pass): the
+   light is a short band at the top, the plate only as tall as its words, and
+   at a desk it keeps its phone's proportion instead of stretching across the
+   column. Round one of this take let the words wait below the light's whole
+   reach (96px in a hand, 120 at a desk): a ~200px black slab on her phone, the
+   heaviest thing on her page, and at 1440 a dark upsell banner (a dark
+   gradient and a white pill). */
+.ip-plate {
+  /* The light's whole fall: short, a lit edge more than a sky. */
+  --ip-reach: 56px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* The words start where the light is spent. */
+  padding: calc(var(--ip-reach) - 12px) 20px 20px;
+  background: var(--background);
+  /* One pixel of light on the bevel: a surface lit from above, never a shadow
+     under it (a card lies flat). */
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 6%);
+}
+.ip-key {
+  margin-top: 16px;
+}
+@media (width >= 40rem) {
+  /* A desk: the same object as her phone's, a touch roomier, never wider than
+     its words want (26rem holds the title on one line at the desk's 20px).
+     The width is the wrapper's, so the room's spill above the edge (`.ip-spill`)
+     measures the plate it stands on, never the column. */
+  .ip-wrap {
+    max-width: 26rem;
+  }
+  .ip-plate {
+    --ip-reach: 64px;
+    padding: calc(var(--ip-reach) - 14px) 24px 24px;
+  }
+  .ip-key {
+    margin-top: 18px;
+  }
+}
+
+/* ★ THE SEAM STANDS ON ITS OWN (the `window` take may wear it too): it fills
+   the top of its parent behind its words, so the parent is positioned,
+   isolated and clips (as `.ip-plate` is); its reach is the parent's
+   `--ip-reach`, 56px where none is set. */
+.ip-light {
+  /* The right-hand pool's strength: 1 where it is the key's own, less where it
+     is the answer (a fill is softer than its key). Set from the light. */
+  --ip-fill: 1;
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: -1;
+  height: var(--ip-reach, 56px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ip-lit,
+.ip-body,
+.ip-glow {
+  position: absolute;
+  inset: 0;
+}
+
+/* The body: broad, the light's own colour deepening as it falls, spent before
+   the words and black by the plate's sides. */
+.ip-body {
+  --ip-mask:
+    radial-gradient(
+      ellipse 74% 96% at 26% 0%,
+      rgb(0 0 0 / 0.6) 0%,
+      rgb(0 0 0 / 0.29) 24%,
+      rgb(0 0 0 / 0.065) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 56% 78% at 52% 0%,
+      rgb(0 0 0 / 0.32) 0%,
+      rgb(0 0 0 / 0.15) 24%,
+      rgb(0 0 0 / 0.035) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 54% 92% at 79% 0%,
+      rgb(0 0 0 / calc(0.56 * var(--ip-fill))) 0%,
+      rgb(0 0 0 / calc(0.27 * var(--ip-fill))) 24%,
+      rgb(0 0 0 / calc(0.06 * var(--ip-fill))) 58%,
+      transparent 100%
+    );
+  -webkit-mask-image: var(--ip-mask);
+  mask-image: var(--ip-mask);
+}
+
+/* The glow: hot where the light enters, short. */
+.ip-glow {
+  --ip-mask:
+    radial-gradient(
+      ellipse 48% 58% at 26% 0%,
+      rgb(0 0 0 / 0.94) 0%,
+      rgb(0 0 0 / 0.38) 14%,
+      rgb(0 0 0 / 0.06) 36%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 46% at 52% 0%,
+      rgb(0 0 0 / 0.6) 0%,
+      rgb(0 0 0 / 0.22) 14%,
+      rgb(0 0 0 / 0.03) 36%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 52% at 79% 0%,
+      rgb(0 0 0 / calc(0.86 * var(--ip-fill))) 0%,
+      rgb(0 0 0 / calc(0.33 * var(--ip-fill))) 14%,
+      rgb(0 0 0 / calc(0.05 * var(--ip-fill))) 36%,
+      transparent 70%
+    );
+  -webkit-mask-image: var(--ip-mask);
+  mask-image: var(--ip-mask);
+}
+
+/* The source: the edge itself, lit, faded well before the corners. */
+.ip-line {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1.5px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 4%,
+    #000 24%,
+    #000 76%,
+    transparent 96%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 4%,
+    #000 24%,
+    #000 76%,
+    transparent 96%
+  );
+}
+
+/* ★ IN THE ROOM THE PLATE IS A CARD OF THE ROOM: the page is already the
+   room's near-black, so the plate takes the room's own card, its tone alone
+   (a card lies flat), and the light lives inside it as on paper. */
+.dark .ip-plate {
+  background: var(--card);
+}
+
+/* The spill above the lit edge: the room's alone. On paper the plate is the
+   only dark there is, so nothing outside it may be lit. */
+.ip-wrap {
+  position: relative;
+}
+.ip-spill {
+  display: none;
+}
+.dark .ip-spill {
+  position: absolute;
+  top: -14px;
+  right: 14%;
+  left: 14%;
+  display: block;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0.32;
+  -webkit-mask-image:
+    linear-gradient(0deg, #000 0%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(0deg, #000 0%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* ★ STILL AT REST (bible 5): the light arrives once, as soon as her
+   photographs are read, and rests lit; under reduced motion it is simply
+   lit. */
+@media (prefers-reduced-motion: no-preference) {
+  .ip-lit,
+  .dark .ip-spill {
+    animation: ip-ignite 1100ms var(--ease-emphasis) both;
+  }
+}
+
+@keyframes ip-ignite {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Forced colours: the light is decoration; the words and the key carry
+   everything. */
+@media (forced-colors: active) {
+  .ip-light,
+  .dark .ip-spill {
+    display: none;
+  }
+}

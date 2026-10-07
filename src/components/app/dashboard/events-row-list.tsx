@@ -114,8 +114,9 @@ function Row({ row, action }: { row: EventListRow; action?: React.ReactNode }) {
               )}
             </span>
           ) : state?.tone === "waiting" ? (
-            <span className="flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
-              <StateDot tone="waiting" className="size-1.5" />
+            // ★ A COUNT THAT WAITS ON HER wears the one status, solid and hard-edged, as the hub's badges do
+            // (`--needs-you`, globals.css): the pill is the status, so it carries no dot of its own.
+            <span className="rounded-full bg-(--needs-you) px-2.5 py-1 text-xs font-medium text-(color:--needs-you-foreground)">
               {state.text}
             </span>
           ) : (

@@ -504,13 +504,11 @@ export async function markReady(
   folderId: string,
   found = false,
 ): Promise<boolean> {
-  // ★ A TYPED SEAM until 20261006130000 is applied and the types regenerated (`p_found`): drop the cast then.
-  const args = {
+  const r = await rpc("cloud_export_ready", {
     p_job: jobId,
     p_folder_id: folderId,
     p_found: found,
-  } as Functions["cloud_export_ready"]["Args"];
-  const r = await rpc("cloud_export_ready", args);
+  });
   return bool(r.ok);
 }
 

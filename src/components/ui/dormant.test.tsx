@@ -33,6 +33,30 @@ describe("the dormant setting", () => {
     expect(screen.getByText("Its look and its hold.").closest("[aria-hidden='true']")).not.toBeNull()
   })
 
+  /**
+   * ★ A HALO NEEDS ROOM (crumbs-87, red-team 56b's LOW). The fold clips with `overflow: hidden`, and a focus halo is drawn
+   * outside its control, so a control that touched the box (the door's two switches at the card's edge, the size select, the
+   * first look and the first hold: measured at 0px) lost the side of its halo that touched it. Layout has no size in
+   * jsdom, so what is pinned is the construction the measurement was fixed with: each clip box padded by a step and
+   * pulled back by the same (it moves nothing), taking no press of its own, with the content keeping its.
+   */
+  it("★ clips a halo's reach outside its content, not at its edge, and moves nothing for it", () => {
+    mount(true)
+    const clips = [...document.querySelectorAll("[data-dormant-clip]")]
+    // The line's box and the controls' box.
+    expect(clips).toHaveLength(2)
+    for (const clip of clips) {
+      const classes = clip.className.split(/\s+/)
+      expect(classes).toContain("overflow-hidden")
+      const pad = classes.find((c) => /^p-\d+$/.test(c))?.slice(2)
+      expect(pad, "a padded clip box").toBeDefined()
+      expect(classes).toContain(`-m-${pad}`)
+      expect(classes).toContain("pointer-events-none")
+    }
+    expect(screen.getByRole("button", { name: "Noir" }).parentElement?.className).toContain("pointer-events-auto")
+    expect(screen.getByText("Its look and its hold.").className).toContain("pointer-events-auto")
+  })
+
   it("moves only where motion is welcome", () => {
     mount(false)
     const folds = document.querySelectorAll("[data-slot='dormant'] > div")

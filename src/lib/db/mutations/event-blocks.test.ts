@@ -83,13 +83,15 @@ describe("what each act sends", () => {
       p_user_id: "u-1",
       p_require_verified_email: true,
     });
-    // ★ A lift that is no Let in names today's two alone, so it runs on either side of 20261007020000.
+    // A lift that is no Let in says so. (Its expired reason, naming the two older arguments alone so it ran on either
+    // side of 20261007020000, ended when that migration was applied on 2026-10-07.)
     await letBackIn("b-1", { restore: false, letIn: false });
     expect(rpc).toHaveBeenLastCalledWith("let_back_in", {
       p_block_id: "b-1",
       p_restore: false,
+      p_let_in: false,
     });
-    // The Let in rides the same lift (host-moments r1), naming the one argument that migration adds.
+    // The Let in rides the same lift (host-moments r1).
     await letBackIn("b-1", { restore: true, letIn: true });
     expect(rpc).toHaveBeenLastCalledWith("let_back_in", {
       p_block_id: "b-1",

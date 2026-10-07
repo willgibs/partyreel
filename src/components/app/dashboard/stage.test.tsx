@@ -267,6 +267,31 @@ describe("on its day", () => {
     expect(doorbell.enabled).toBe(true);
   });
 
+  it("★ marks what waits on her with the needs-you status beside its label, and leaves every figure the stage's white", () => {
+    render(
+      <Stage
+        event={{ ...tonight, pending: 105, waiting: 2 }}
+        ctx={homeContext(FRIDAY, { evening: true })}
+        guests={23}
+        photos={photos(9)}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    const numbers = document.querySelector("[data-stage-numbers]");
+    const term = (label: string) =>
+      [...(numbers?.querySelectorAll("dt") ?? [])].find(
+        (dt) => dt.textContent === label,
+      );
+    // The one status a count that waits on her wears everywhere (`--needs-you`), never the amber it wore before.
+    expect(term("at the door")?.innerHTML).toContain("bg-(--needs-you)");
+    expect(term("to review")?.innerHTML).toContain("bg-(--needs-you)");
+    expect(term("in the album")?.innerHTML).not.toContain("needs-you");
+    expect(numbers?.innerHTML).not.toContain("warning");
+    for (const figure of numbers?.querySelectorAll("dd") ?? [])
+      expect(figure.className).toContain("text-white");
+  });
+
   it("stands calm until a wall's worth has landed", () => {
     render(
       <Stage

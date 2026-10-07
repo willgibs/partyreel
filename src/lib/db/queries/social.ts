@@ -84,7 +84,15 @@ export type SocialProfileCard = {
 };
 
 export type FollowEntry = SocialProfileCard & { followedAt: string };
-export type BlockEntry = SocialProfileCard & { blockedAt: string };
+export type BlockEntry = SocialProfileCard & {
+  blockedAt: string;
+  /**
+   * A Follow of this person would only no-op once she lifts her own block, because they have blocked her too
+   * (`followUser` is block-silent: ok, nothing written). Said as a bare yes or no, never which side blocked first: the
+   * block stays private, and the page uses it solely to offer a Follow or not (`isBlockedEitherWay`'s rule).
+   */
+  followBarred: boolean;
+};
 
 /**
  * Hydrate profile cards for an id list via the ADMIN client. WHY admin:
@@ -233,10 +241,97 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
   );
 
   const cards = await getProfileCards(rows.map((r) => r.blocked_id));
+  // ★ WHO ALSO BLOCKED HER, for the Follow her look offers after an Unblock (`BlockEntry.followBarred`): the one half of
+  // "either way" her own RLS never shows, read on the admin client for her own id and nothing else, only when she holds
+  // a block at all.
+  const barred =
+    rows.length > 0 ? await readBlockerIds(user.id) : new Set<string>();
   return rows.flatMap((r) => {
     const card = cards.get(r.blocked_id);
-    return card ? [{ ...card, blockedAt: r.created_at }] : [];
+    return card
+      ? [
+          {
+            ...card,
+            blockedAt: r.created_at,
+            followBarred: barred.has(r.blocked_id),
+          },
+        ]
+      : [];
   });
+}
+
+/**
+ * Who has blocked this viewer, as ids: the half of a block "either way" that her own RLS never shows her (`user_blocks`
+ * answers the blocker alone, by design). The admin client, for the viewer's id the caller proved with `getUser()`, read
+ * whole on a keyset (the people who blocked one person are few, but a list read here is a list read whole).
+ */
+async function readBlockerIds(viewerId: string): Promise<Set<string>> {
+  const { rows } = await readAllPages(
+    "social: blockers",
+    (after: NewestFirst, limit) => {
+      let q = createAdminClient()
+        .from("user_blocks")
+        .select("blocker_id, created_at")
+        .eq("blocked_id", viewerId)
+        .order("created_at", { ascending: false })
+        .order("blocker_id", { ascending: false })
+        .limit(limit);
+      if (after) {
+        q = q.or(
+          `created_at.lt.${after.at},and(created_at.eq.${after.at},blocker_id.lt.${after.id})`,
+        );
+      }
+      return q;
+    },
+    (row) => ({ at: row.created_at, id: row.blocker_id }),
+  );
+  return new Set(rows.map((r) => r.blocker_id));
+}
+
+/** Who this viewer has blocked, as ids (her own half of a block either way), on the same terms as `readBlockerIds`. */
+async function readBlockedIds(viewerId: string): Promise<Set<string>> {
+  const { rows } = await readAllPages(
+    "social: blocked",
+    (after: NewestFirst, limit) => {
+      let q = createAdminClient()
+        .from("user_blocks")
+        .select("blocked_id, created_at")
+        .eq("blocker_id", viewerId)
+        .order("created_at", { ascending: false })
+        .order("blocked_id", { ascending: false })
+        .limit(limit);
+      if (after) {
+        q = q.or(
+          `created_at.lt.${after.at},and(created_at.eq.${after.at},blocked_id.lt.${after.id})`,
+        );
+      }
+      return q;
+    },
+    (row) => ({ at: row.created_at, id: row.blocked_id }),
+  );
+  return new Set(rows.map((r) => r.blocked_id));
+}
+
+/**
+ * ★ WHICH OF THESE PEOPLE A FOLLOW COULD ONLY NO-OP ON: the ids, of the ones asked about, that have a block with this
+ * viewer in either direction (crumbs-87). The album's guest list and Connections offer a Follow beside a name, and
+ * `followUser` is block-silent (ok, nothing written), so a Follow offered across a block reads Following over nothing.
+ * The batch form of `isBlockedEitherWay`, for a list of two hundred chips: two reads of the viewer's own relations (her
+ * blocks and the people who blocked her, both indexed, almost always empty), never an `.in()` of the list, and
+ * ★ NEVER AN ID THAT WAS NOT ASKED ABOUT: the answer is the asked ids' own subset, so what reaches a browser is a yes or
+ * no for people it already holds, never the id of anyone else she has a block with. Used solely to offer a Follow or
+ * not, as the profile page does (the block stays private, which side is never said).
+ */
+export async function getBlockedAmong(
+  viewerId: string,
+  ids: readonly string[],
+): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const [mine, theirs] = await Promise.all([
+    readBlockedIds(viewerId),
+    readBlockerIds(viewerId),
+  ]);
+  return new Set(ids.filter((id) => mine.has(id) || theirs.has(id)));
 }
 
 /**

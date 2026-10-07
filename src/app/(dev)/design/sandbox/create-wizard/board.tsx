@@ -12,33 +12,23 @@ import {
   type PreviewsFor,
 } from "@/components/lab";
 
+import type { ArrivalWay } from "./arrival";
 import type { CloseWay } from "./close";
-import {
-  CreateRun,
-  type FailWay,
-  type RunProps,
-  TODAY,
-  type WaitWay,
-  type Ways,
-} from "./create";
-import { SLOW_MS } from "./fixtures";
+import { CreateRun, type RunProps, type Ways } from "./create";
 import { screenOf, type ScreenId } from "./knobs";
+import type { Moment } from "./pictures";
+import type { PreviewsWay } from "./previews";
 import { readRoom, Scene, Story } from "./scene";
 import { CREATE_WIZARD } from "./spec";
-import type { StylesWay } from "./styles";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every frame is Create itself, in
- * production's room, for Maya & Jay's wedding, at a phone or a laptop on the
- * Screen knob, wearing production as built on every axis but the one asked
- * (`TODAY`), and the wait he picked where the failure waits on it. Every
- * frame is titled with its option's own name, read off the spec, and every
- * caption is read off the frame.
+ * THE PREVIEWS, AND NOTHING ELSE: every frame is Create itself in production's room, or her event's own page as she
+ * lands in it, for Maya & Jay's wedding, at a phone or a laptop on the Screen knob, wearing on every axis but the one
+ * asked the answer the board holds (his pick once he has made it; else the recommendation, or the styles as built).
+ * Every frame is titled with its option's own name, read off the spec, and every caption is read off the frame.
  *
- * Each option opens on Try it (Create running from the moment asked), then
- * the frame a reviewer reads still: the Disposable picked (and the focused
- * screen after it, where there is one), the beat made, the wait held, the
- * failure at rest.
+ * Each option stands at rest first (the beat made, her event as she lands, a style picked), then Try it, Create
+ * running from the moment asked.
  */
 
 /** An option's own name, off the spec, so the frame's title and the tile agree. */
@@ -97,103 +87,117 @@ function Frames({
   );
 }
 
-const wearing = (patch: Partial<Ways>): Ways => ({ ...TODAY, ...patch });
+const closeOf = (v: unknown): CloseWay =>
+  v === "invite" || v === "photos" ? v : "enter";
+const arrivalOf = (v: unknown): ArrivalWay =>
+  v === "list" || v === "share" ? v : "done";
+const previewsOf = (v: unknown): PreviewsWay =>
+  v === "one" || v === "open" || v === "still" ? v : "built";
 
-function stylesPreview(s: BoardState, way: StylesWay) {
-  const ways = wearing({ styles: way });
-  const frames = [
-    {
-      key: "try",
-      title: "Try it, as the step opens",
-      run: { ways, opens: "add", outcome: "made" } as RunProps,
-    },
-    {
-      key: "disposable",
-      title: "Disposable picked",
-      run: { ways, opens: "add", outcome: "made", style: "disposable" } as RunProps,
-    },
-  ];
-  if (way === "focused")
-    frames.push({
-      key: "develop",
-      title: "then the develop time's own screen",
-      run: {
-        ways,
-        opens: "develop",
-        outcome: "made",
-        style: "disposable",
-      } as RunProps,
-    });
-  return <Frames s={s} ask="styles" option={way} frames={frames} />;
-}
+/** The answers a frame wears: the board's on every axis, the one asked replaced by the option drawn. */
+const wearing = (s: BoardState, patch: Partial<Ways>): Ways => ({
+  close: closeOf(s.close),
+  arrival: arrivalOf(s.arrival),
+  previews: previewsOf(s.previews),
+  ...patch,
+});
 
 function closePreview(s: BoardState, way: CloseWay) {
-  const ways = wearing({ close: way });
+  const ways = wearing(s, { close: way });
+  const frames: { key: string; title: string; run: RunProps }[] = [
+    { key: "made", title: "the beat, made", run: { ways, opens: "beat" } },
+  ];
+  if (way === "invite")
+    frames.push({
+      key: "invite",
+      title: "its button: the invite screen",
+      run: { ways, opens: "invite" },
+    });
+  if (way === "photos")
+    frames.push({
+      key: "going",
+      title: "its button: her photos going up",
+      run: { ways, opens: "beat", photos: "going" },
+    });
+  frames.push(
+    {
+      key: "lands",
+      title: "her event, as she lands",
+      run: {
+        ways,
+        opens: "hub",
+        photos: way === "photos" ? "in" : undefined,
+      },
+    },
+    {
+      key: "try",
+      title: "Try it from the code's look",
+      run: { ways, opens: "look" },
+    },
+  );
+  return <Frames s={s} ask="close" option={way} frames={frames} />;
+}
+
+function arrivalPreview(s: BoardState, way: ArrivalWay) {
+  const ways = wearing(s, { arrival: way });
   return (
     <Frames
       s={s}
-      ask="close"
+      ask="arrival"
       option={way}
       frames={[
         {
-          key: "made",
-          title: "the beat, made",
-          run: { ways, opens: "look", outcome: "made", pressed: true },
+          key: "lands",
+          title: "her event, as she lands",
+          run: {
+            ways,
+            opens: "hub",
+            photos: ways.close === "photos" ? "in" : undefined,
+          },
         },
         {
           key: "try",
-          title: "Try it from the look",
-          run: { ways, opens: "look", outcome: "made" },
+          title: "Try it from the beat",
+          run: { ways, opens: "beat" },
         },
       ]}
     />
   );
 }
 
-function waitPreview(s: BoardState, way: WaitWay) {
-  const ways = wearing({ wait: way });
+/**
+ * Where a story plays, its still is pinned where the Disposable looks least like Live (next morning, every album
+ * whole, would draw it as Live's): `one` as its story starts (the camera holding the whole roll), `open` at the party
+ * (dark but hers), the moment it rests on.
+ */
+const PINS: Partial<Record<PreviewsWay, { pin: Moment; title: string }>> = {
+  one: { pin: "arrive", title: "Disposable picked, as its story starts" },
+  open: { pin: "party", title: "Disposable picked, open at the party" },
+};
+
+function previewsPreview(s: BoardState, way: PreviewsWay) {
+  const ways = wearing(s, { previews: way });
+  const pinned = PINS[way];
   return (
     <Frames
       s={s}
-      ask="wait"
+      ask="previews"
       option={way}
       frames={[
         {
-          key: "held",
-          title: "the wait, held",
-          run: { ways, opens: "look", outcome: "hangs", pressed: true },
-        },
-        {
           key: "try",
-          title: "Try it from the look, a slow line",
-          run: { ways, opens: "look", outcome: "made", ms: SLOW_MS },
-        },
-      ]}
-    />
-  );
-}
-
-/** The wait the failure is drawn in: his pick once he has made it, production's until then. */
-const waitOf = (s: BoardState): WaitWay =>
-  s.wait === "tray" || s.wait === "inplace" ? s.wait : "breath";
-
-function failedPreview(s: BoardState, way: FailWay) {
-  const ways = wearing({ failed: way, wait: waitOf(s) });
-  return (
-    <Frames
-      s={s}
-      ask="failed"
-      option={way}
-      frames={[
-        {
-          key: "rest",
-          title: "the failure, at rest",
-          run: { ways, opens: "look", outcome: "fails", pressed: true },
+          title: "Try it, as the step opens",
+          run: { ways, opens: "add" },
         },
         {
-          key: "try",
-          title: "Try it: fails, then makes it",
-          run: { ways, opens: "look", outcome: "fails-once", ms: SLOW_MS },
+          key: "disposable",
+          title: pinned?.title ?? "Disposable picked",
+          run: {
+            ways,
+            opens: "add",
+            style: "disposable",
+            pin: pinned?.pin,
+          },
         },
       ]}
     />
@@ -201,19 +205,16 @@ function failedPreview(s: BoardState, way: FailWay) {
 }
 
 const PREVIEWS: PreviewsFor<typeof CREATE_WIZARD> = {
-  "styles.built": (s) => stylesPreview(s, "built"),
-  "styles.focused": (s) => stylesPreview(s, "focused"),
-  "styles.quiet": (s) => stylesPreview(s, "quiet"),
-  "close.marks": (s) => closePreview(s, "marks"),
-  "close.next": (s) => closePreview(s, "next"),
-  "close.named": (s) => closePreview(s, "named"),
-  "close.none": (s) => closePreview(s, "none"),
-  "wait.breath": (s) => waitPreview(s, "breath"),
-  "wait.tray": (s) => waitPreview(s, "tray"),
-  "wait.inplace": (s) => waitPreview(s, "inplace"),
-  "failed.back": (s) => failedPreview(s, "back"),
-  "failed.held": (s) => failedPreview(s, "held"),
-  "failed.line": (s) => failedPreview(s, "line"),
+  "close.enter": (s) => closePreview(s, "enter"),
+  "close.invite": (s) => closePreview(s, "invite"),
+  "close.photos": (s) => closePreview(s, "photos"),
+  "arrival.list": (s) => arrivalPreview(s, "list"),
+  "arrival.share": (s) => arrivalPreview(s, "share"),
+  "arrival.done": (s) => arrivalPreview(s, "done"),
+  "previews.built": (s) => previewsPreview(s, "built"),
+  "previews.one": (s) => previewsPreview(s, "one"),
+  "previews.open": (s) => previewsPreview(s, "open"),
+  "previews.still": (s) => previewsPreview(s, "still"),
 };
 
 export function CreateWizardBoard() {

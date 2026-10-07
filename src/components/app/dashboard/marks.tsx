@@ -25,7 +25,10 @@ export function LiveDot({ small = false }: { small?: boolean }) {
   );
 }
 
-/** A status dot off a photograph: someone waits (amber), or something to set up (an open ring). */
+/**
+ * A status dot off a photograph: someone waits (the needs-you status, `--needs-you`: the one red a count that waits
+ * on her wears on every surface, the hub's badges and the code's corner too), or something to set up (an open ring).
+ */
 export function StateDot({
   tone,
   className,
@@ -38,7 +41,7 @@ export function StateDot({
       aria-hidden
       className={cn(
         "inline-block size-2 shrink-0 rounded-full",
-        tone === "waiting" ? "bg-warning" : "border border-current",
+        tone === "waiting" ? "bg-(--needs-you)" : "border border-current",
         className,
       )}
     />
@@ -47,8 +50,8 @@ export function StateDot({
 
 /**
  * A MARK: one state on a cover, on the product's one glass over a photograph, or the page's own chip on
- * a cover that is still its date. Live carries the dot, a count waiting is amber, a step to set up is
- * plain with an open ring.
+ * a cover that is still its date. Live carries the dot, a count waiting wears the needs-you status, a step to set up
+ * is plain with an open ring.
  */
 export function Mark({
   tone,

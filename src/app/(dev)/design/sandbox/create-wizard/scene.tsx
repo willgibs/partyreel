@@ -10,17 +10,18 @@ import { SCREENS, type ScreenId } from "./knobs";
  * THE ONE FRAME EVERY OPTION DRAWS IN.
  *
  * ★ A REAL VIEWPORT AT A DEVICE'S OWN SIZE (375 by 812, 1440 by 900): the
- * type ladder is a `vw` clamp and the room is laid out against the screen's
- * height, so only a same-origin frame at the true size shows what a host
- * meets. The lab's front door draws it (`Frame`, fitted by `Fit`, captioned
- * by `Measured`), and the frame's own window carries the Aurora's filter host,
- * so the room's light is production's field, never a stand-in.
+ * type ladder is a `vw` clamp, the room is laid out against the screen's
+ * height and her event's page against its width, so only a same-origin frame
+ * at the true size shows what a host meets. The lab's front door draws it
+ * (`Frame`, fitted by `Fit`, captioned by `Measured`), and the frame's own
+ * window carries the Aurora's filter host, so the room's light is
+ * production's field, never a stand-in.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: the words a host
- * reads on the screen (the pictures' own type aside), each picture's size,
- * where the question and the one action sit, what is picked, the night's
- * moment. If a caption and the words above a frame disagree, the caption is
- * the truth.
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: the screen standing,
+ * the words a host reads on it (the pictures' own type aside), what the beat
+ * says and its one button, what her event's checklist says, each picture's
+ * size and what it is doing. If a caption and the words above a frame
+ * disagree, the caption is the truth.
  */
 
 export type Reader = (root: HTMLElement, win: Window) => string | null;
@@ -53,7 +54,7 @@ export function Scene({
           probe={measure}
           deps={[id, screen]}
           onMeasure={setMeasured}
-          timers={[300, 1200, 2800]}
+          timers={[300, 1200, 2800, 6000]}
           className="min-h-full"
         >
           {children}
@@ -89,7 +90,7 @@ export function Story({
 
 /** Text a host never reads: a picture's own type, a flight, a hidden or a reader-only line. */
 const UNREAD =
-  "[data-style-picture], [data-room-ghosts], [data-room-flyers], [aria-hidden], .sr-only, [inert]";
+  "[data-style-picture], [data-room-ghosts], [data-room-flyers], [data-cw-flyer], [aria-hidden], .sr-only, [inert], [role='img']";
 
 /**
  * THE WORDS A HOST READS ON THE SCREEN, the pictures' own type aside: every
@@ -106,6 +107,8 @@ export function wordsIn(root: Element): number {
     if (!el || el.closest(UNREAD)) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.top >= height || r.bottom <= 0) continue;
+    if (Number(el.ownerDocument.defaultView?.getComputedStyle(el).opacity) < 0.05)
+      continue;
     for (const token of (t.textContent ?? "").split(/\s+/))
       if (/[\p{L}\p{N}]/u.test(token)) n++;
   }
@@ -122,9 +125,11 @@ function sizeOf(el: Element | null): string | null {
   return `${px(r.width)} by ${px(r.height)} px`;
 }
 
-/** The room on the screen: production's own ground. */
-const roomOf = (root: HTMLElement) =>
-  root.ownerDocument.querySelector<HTMLElement>("[data-room]");
+/** An element's visible words, trimmed to one line. */
+const said = (el: Element | null | undefined): string =>
+  ((el as HTMLElement | null)?.innerText ?? el?.textContent ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 /** Where the question stands, from the screen's top: the place it never leaves. */
 function questionAt(room: HTMLElement): string | null {
@@ -140,7 +145,7 @@ function reachOf(room: HTMLElement, win: Window): string | null {
   const r = go.getBoundingClientRect();
   if (r.height < 2) return null;
   const down = Math.round(((r.top + r.height / 2) / win.innerHeight) * 100);
-  return `${(go.innerText || "the action").trim()} ${px(r.height)} px tall, ${down}% down`;
+  return `"${said(go) || "the action"}" ${px(r.height)} px tall, ${down}% down`;
 }
 
 /** Whether the room's body holds what it is given; said only when it does not. */
@@ -161,115 +166,95 @@ const NAMES: Record<string, string> = {
 const SCREEN_NAMES: Record<string, string> = {
   name: "the name",
   add: "the album style step",
-  develop: "the develop time's own screen",
+  develop: "Disposable's own screen",
   look: "the code's look",
   beat: "the beat",
+  invite: "the invite screen",
+};
+
+const MOMENT_NAMES: Record<string, string> = {
+  arrive: "arriving",
+  party: "the party",
+  morning: "next morning",
 };
 
 /**
- * The album style step: what is picked, the pictures and their sizes, where
- * Disposable's develop time stands (in view, or under the fold), the steppers.
+ * The album style step: what is picked, the pictures and their sizes, which one is moving and where in its story,
+ * and whether the slider stands under them.
  */
-function readStyles(room: HTMLElement, win: Window, parts: string[]): boolean {
+function readPreviews(room: HTMLElement, parts: string[]): boolean {
   const cards = [...room.querySelectorAll<HTMLElement>("[data-album-style]")];
   const on = cards.find((c) => c.dataset.state === "checked");
   if (!on) return false;
-  const pics = [...room.querySelectorAll("[data-style-picture]")].map(sizeOf);
-  if (pics.some((p) => !p)) return false;
+  const pics = [
+    ...room.querySelectorAll<HTMLElement>("[data-style-picture]"),
+  ].filter((p) => p.getBoundingClientRect().height >= 2);
+  if (pics.length === 0) return false;
   parts.push(`${NAMES[on.dataset.albumStyle ?? ""] ?? "?"} picked`);
+  const sizes = pics.map(sizeOf);
   parts.push(
     pics.length === 1
-      ? `one picture, ${pics[0]}`
-      : `${pics.length} pictures, each ${pics[0]}`,
+      ? `one picture, ${sizes[0]}`
+      : `${pics.length} pictures, each ${sizes[0]}`,
   );
-  const slot = room.querySelector<HTMLElement>("[data-develop-slot][data-open]");
-  const row = slot?.querySelector<HTMLElement>("[data-develop-row]");
-  if (row && getComputedStyle(slot!).display !== "none") {
-    const r = row.getBoundingClientRect();
-    const foot = room.querySelector("[data-room-foot]")?.getBoundingClientRect();
-    const fold = foot ? foot.top : win.innerHeight;
+  const moving = pics.filter(
+    (p) => p.dataset.moment && p.dataset.moment !== "rest",
+  );
+  if (moving.length)
     parts.push(
-      r.height < 2
-        ? "the develop time opening"
-        : r.bottom <= fold
-          ? `the develop time in view, ${px(r.top)} px down`
-          : `the develop time UNDER THE FOLD, ${px(r.top - fold)} px past the foot`,
+      `${moving.length === 1 ? "one picture" : `${moving.length} pictures`} at ${MOMENT_NAMES[moving[0]!.dataset.moment!] ?? moving[0]!.dataset.moment}`,
     );
-  } else if (on.dataset.albumStyle === "disposable") {
-    parts.push("no develop time on this screen");
-  }
+  parts.push(
+    room.querySelector("[data-night]") ? "the slider under them" : "no slider",
+  );
   return true;
 }
 
-/** The beat: what the code is, what stands under it, what the close carries. */
-function readBeat(room: HTMLElement, parts: string[]) {
+/** The beat: her code made or making, its sub, what stands under the code, the head's close. */
+function readBeat(room: HTMLElement, win: Window, parts: string[]) {
   const beat = room.querySelector<HTMLElement>("[data-beat]");
   if (!beat) return;
-  const state = beat.dataset.beat;
-  const sample = beat.querySelector<HTMLElement>("[data-beat-sample]");
-  const real = beat.querySelector("[data-beat-real]");
-  const sampleSeen =
-    sample &&
-    Number(getComputedStyle(sample.firstElementChild ?? sample).opacity) > 0.05;
-  parts.push(
-    state === "arrived"
-      ? "her own code, made"
-      : state === "failed"
-        ? "the failure, held on the beat"
-        : real
-          ? "her code developing"
-          : sampleSeen
-            ? "the sample, waiting"
-            : "a blank print, waiting",
-  );
-  const close = beat.querySelector<HTMLElement>(
-    "[data-beat-steps], [data-cw-close]",
-  );
-  if (state === "arrived")
+  const made = beat.dataset.beat === "arrived";
+  parts.push(made ? "her own code, made" : "the sample, developing");
+  if (!made) return;
+  const sub = room.querySelector("[data-cw-sub]");
+  if (sub) parts.push(`the sub says "${said(sub)}"`);
+  const rounds = room.querySelectorAll("[data-beat-rounds] .cr-act").length;
+  if (rounds) parts.push(`${rounds} rounds under the code`);
+  const starts = room.querySelector("[data-cw-starts]");
+  if (starts) parts.push(`then "${said(starts)}"`);
+  const tiles = [...room.querySelectorAll<HTMLElement>(".cw-tile")];
+  if (tiles.length)
     parts.push(
-      close
-        ? close.matches("[data-beat-steps]")
-          ? `closes on ${close.querySelectorAll("li").length} marks`
-          : close.dataset.cwClose === "named"
-            ? `closes on ${close.querySelectorAll("li").length} named steps`
-            : "closes on one line"
-        : "closes on nothing of Settings",
+      `${tiles.filter((t) => t.dataset.state === "up").length} of ${tiles.length} photos up`,
     );
+  const close = room.querySelector<HTMLElement>("[data-room-close]");
+  const shown =
+    close &&
+    Number(win.getComputedStyle(close).opacity) > 0.05 &&
+    win.getComputedStyle(close).visibility !== "hidden";
+  parts.push(shown ? "the head's close standing" : "no close in the head");
 }
 
-/** Where a failure is said, if one is. */
-function readFailure(room: HTMLElement, parts: string[]) {
-  const doc = room.ownerDocument;
-  const toastEl = doc.querySelector("[data-sonner-toast]");
-  if (toastEl) parts.push("a toast says it failed");
-  const said = room.querySelector<HTMLElement>("[data-cw-failed]");
-  if (said)
-    parts.push(
-      said.dataset.cwFailed === "line"
-        ? "said under the question"
-        : "said where she was looking",
-    );
+/** The invite screen: the message's size and its ways out. */
+function readInvite(room: HTMLElement, parts: string[]) {
+  const msg = room.querySelector(".cw-message");
+  const size = sizeOf(msg);
+  if (size) parts.push(`the message ${size}`);
+  const acts = [...room.querySelectorAll("[data-cw-invite-acts] .cr-act")];
+  if (acts.length)
+    parts.push(`its ways out: ${acts.map((a) => said(a)).join(", ")}`);
 }
 
-/**
- * ONE READER FOR EVERY FRAME: the screen standing, the steppers, the step's
- * own facts (the styles, or the beat and a failure), the words a host reads,
- * where the question and the one action stand, and whether the room scrolls.
- */
-export const readRoom: Reader = (root, win) => {
-  const room = roomOf(root);
-  if (!room) return null;
+/** The room's screens: the steppers, the step's own facts, the words, the question and the one action. */
+function readTheRoom(room: HTMLElement, win: Window): string | null {
   const screen = room.dataset.room ?? "";
   const parts = [`${SCREEN_NAMES[screen] ?? screen}`];
   const hairlines = room.querySelectorAll("[data-room-step]").length;
   if (hairlines) parts.push(`${hairlines} steps`);
-  if (screen === "add" && !readStyles(room, win, parts)) return null;
-  if (screen === "develop") {
-    const row = room.querySelector("[data-develop-row]");
-    if (row) parts.push(`the develop time ${px(row.getBoundingClientRect().top)} px down`);
-  }
-  readBeat(room, parts);
-  readFailure(room, parts);
+  if (screen === "add" && !readPreviews(room, parts)) return null;
+  if (screen === "beat") readBeat(room, win, parts);
+  if (screen === "invite") readInvite(room, parts);
   if (room.getAttribute("aria-busy") === "true") parts.push("working");
   parts.push(`${wordsIn(room)} words to read`);
   const q = questionAt(room);
@@ -279,4 +264,63 @@ export const readRoom: Reader = (root, win) => {
   const over = overflowOf(room);
   if (over) parts.push(over);
   return parts.join("; ");
+}
+
+/**
+ * Her event, as she lands: what the checklist says (its shape and its first words), the Settings card's word, the
+ * album's (its photos, or its empty place's title), and how far down the first screen the checklist and the album start.
+ */
+function readHub(hub: HTMLElement, win: Window): string | null {
+  const parts = ["her event"];
+  const list = hub.querySelector<HTMLElement>("[data-checklist]");
+  if (list) {
+    const rows = list.querySelectorAll("[data-checklist-item]").length;
+    const head = said(
+      list.querySelector("[data-checklist-head]") ?? list.querySelector("p"),
+    );
+    parts.push(
+      list.dataset.checklistFolded !== undefined
+        ? `the checklist one line: "${said(list).replace(/\s*Show$/, "")}"`
+        : rows
+          ? `the checklist ${rows} rows under "${head}"`
+          : `the checklist one line: "${said(list.querySelector("p"))}"`,
+    );
+    parts.push(`checklist ${px(list.getBoundingClientRect().top)} px down`);
+  } else parts.push("no checklist");
+  const settings = [...hub.querySelectorAll<HTMLElement>("a, button")].find(
+    (el) => /^Settings\b/.test(el.getAttribute("aria-label") ?? said(el)),
+  );
+  if (settings)
+    parts.push(
+      `Settings card "${(settings.getAttribute("aria-label") ?? said(settings)).replace(/^Settings:?\s*/, "")}"`,
+    );
+  const tiles = hub.querySelectorAll("[data-cw-tile]").length;
+  const empty = hub.querySelector("[data-album-empty]");
+  if (tiles) parts.push(`${tiles} photos in the album`);
+  else if (empty)
+    parts.push(
+      `the album empty: "${said(empty.querySelector("[data-slot='empty-title']") ?? empty)}"`,
+    );
+  const album = hub.querySelector("[data-cw-album]");
+  if (album) {
+    const top = px(album.getBoundingClientRect().top);
+    parts.push(
+      top < win.innerHeight
+        ? `the album ${top} px down`
+        : `the album UNDER THE FOLD, ${top - win.innerHeight} px past it`,
+    );
+  }
+  return parts.join("; ");
+}
+
+/**
+ * ONE READER FOR EVERY FRAME: the room's screen when the room stands, her event's page once she is in it.
+ */
+export const readRoom: Reader = (root, win) => {
+  const doc = root.ownerDocument;
+  const room = doc.querySelector<HTMLElement>("[data-room]");
+  if (room) return readTheRoom(room, win);
+  const hub = doc.querySelector<HTMLElement>("[data-cw-hub]");
+  if (hub) return readHub(hub, win);
+  return null;
 };
