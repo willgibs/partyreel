@@ -37,9 +37,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - The lab: a Clear on the desk (Will, 2026-10-07): "Copy everything" carried desk 8's board answers into his calls paste, since the desk still served a build older than their transcription; one press empties the sitting's held answers, and the Orchestrator refreshes the desk after each transcription so recorded answers never ride again.
 
-### Code hygiene
-- Code hygiene: `server-pipeline.ts:544`'s comment says "The host's route takes none" of `captured_wall`, stale (no-signal-wiring takes it; the other four stale comments went with crumbs-91).
-
 ## Upcoming
 
 ### Platform, data and cost
@@ -85,7 +82,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Drive: a check page throttled before its folder's duplicate listing skips the count, and once its cursor has moved no later page counts it (`first` is "cursor null"); count once a walk on the first page that answers (drive-crumbs).
 - Drive: the closing check asks a non-rate `unknown` again every 90 s with no growth for the hour before a send reads Stuck; the Worker's cadence could back off on a repeated unknown (the Advisor; drive-crumbs).
 - Downloads: Download all's zip names its entries `slug-id.ext` (`buildDownloadFilename`); name them when, then who, like a Drive copy, so an unzipped album sorts as the night happened (capture-time).
-- Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring).
 - Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
 - Camera: a host chooses her camera's clip length beside its roll (10, 20 or 30 s), on the customize board's pattern (`CAMERA_VIDEO_SECONDS` is one constant with its SQL mirror, so a per-event length is a column read by the two SQL constants, bounded by the 30 s ceiling); and the camera's first hint says how long a hold may run, since only the ring teaches it today.
 - Uploads: two narrow races at a switch from Review to a develop time: an upload that read the old event row stays pending on an album that no longer reviews, and a second tab's approve at the save's instant shows before the develop; the proposed heal is a nightly pass approving any pending row on a live album.
@@ -93,10 +89,11 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Media: carry Apple's MakerNote HDR headroom (tags 0x0021 and 0x0030) into the minimal Exif `strip-metadata.ts` rebuilds, on JPEG and HEIC, so a pre-iOS-18 HDR photo keeps its exact HDR rendering.
 - Media: `event_covers` picks only approved photos, so an album of videos alone shows no cover on any card (dashboard, picker, profile); fall back to the newest previewed video's frame, photos first, in one migration.
 - Clips: a guest's Add to event reads Added the moment it hands the clip to the page's upload queue (`clip-creator.tsx`'s `add`); it could follow its queue item instead (sending, held for review, failed).
-- Lab exploration: a party with no signal: nothing waits on the device (no service worker; a closed tab loses an unsent photo, and iOS kills background tabs); unsent originals kept in IndexedDB and resumed on the next open with a "3 waiting to send" chip, Background Sync where it exists; whether a camera shot spends the roll when taken or when it lands is Will's (app-gaps-r1).
 - Uploads: the same photo sent twice lands twice (re-picked to be sure, AirDropped around a party), spending storage and the uploads allowance and repeating in the zip, Drive and the reel; skip a byte-identical file per album (a hash of the stripped bytes before presign) and say it is already in (app-gaps-r1).
 - Video: the album's viewer plays the original (up to 10 GB, HEVC by default on iPhones) with no fallback where the reel falls back to its poster (`lib/reel/engine/video/ladder.ts`); measure on real phones, then a light copy made in the uploading browser or a server transcode costed in the atlas (app-gaps-r1).
 - Uploads: a HEIC the uploading browser cannot decode gets no preview, phone copy or measures; decode it there with a WASM decoder fetched only then ($0, in-house; libheif and libde265 are LGPL, Will's call before it is built) (crumbs-90).
+- Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `roll.ts`'s `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring, crumbs-90; one line since no-signal-wiring).
+- Uploads: a file whose bytes went up but whose complete lost its answer waits in its page alone, so a reload there loses it ("Keep this page open" says so): the uploader's kept complete (`UNANSWERED`, by File) lives in memory; kept beside the copy, the next open could ask that complete again instead of sending the file whole (no-signal-wiring).
 
 ### The guest's album
 
@@ -121,11 +118,12 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: a guest's own "what happened to my photos" across albums (her sends, what landed, what waits, what was refused and why), after no-signal's carry is wired; and the install board's new reason (a home-screen album is exempt from Safari's 7-day eviction and can be granted `persist()`) (no-signal r1).
 - Lab exploration: after-party r2, the album's later moments once Will picks where the recap lives: the anniversary a year on, and the keepsake's premiere (the reel opening by itself on a guest's return, with Skip: motion r1's stills could not judge) (after-party r1).
 - Album: the viewer draws nothing for a photograph its browser cannot decode (a HEIC with no preview in Chrome); say it as the tile's stand-in does, beside Save (crumbs-90).
-- Camera: at a roll of 1 the refusal says "You've taken all 1 shots on your roll." (`roll.ts`'s `rollSpentMessage` and `create_media`'s mirror, a migration) (crumbs-90).
 - Lab exploration: the album's controls (Will's own answer to X10, 2026-10-07): one gallery for every kind of event, with deeper optional filters, sort and views (smart views, perhaps), never a divided default: no day dividers or chapters drawn for her, since "our albums are built to be used dynamically across nearly any sort of event type or duration".
 - Lab exploration: the guestbook (Will's yes to X12, 2026-10-07): a short note, a voice memo or a video message to the hosts, moderated in Review like any upload, at the reel's end and in a place of its own; no captions or comments on photographs; "very natural, and likely a more underlying feature", never forced (the event-page board leaves its door).
 - Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event"; the card's wiring loads its face (after-party r1; its placeholder tile is the wordmark since brand-marks-wiring).
 - Guests: an album open across her close turns its order at the sync's word (AY1) but keeps its Add and its open words until a reload (`event-experience.tsx`'s `canUpload` reads the render's `accepting_uploads`, the camera alone the live word); say the close from the live word too (crumbs-91).
+- Uploads: on an album that waits (her host's yes, a develop) a photograph waiting for the line stands in her uploads with no stop (the stack's x is a live album's), so one she no longer wants still goes when the line is back; a Stop on that row would take it back first (no-signal-wiring).
+- Album: the photo viewer's chunk (`media-lightbox.lazy.tsx`) is fetched on a tile's first touch, so a first tap in a dead zone cannot load it; fetched once the album is idle, as the camera's is as it mounts, it would open with no line (no-signal-wiring).
 
 ### Accounts and profiles
 
@@ -453,6 +451,7 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 
 - Drive: live sync as the second version on the same queue, its decisions per `systems/drive-export.md`'s "The next versions" (only approved, visible items after a grace window; a `trash` act with its own audit; no lane held while idle; the guest-facing privacy text).
 - Drive: Dropbox through `save_url`, the lease carrying a presigned GET (`systems/drive-export.md`, "The next versions").
+- Uploads: Android's Background Sync (a service worker) could send what waits with the album closed; iPhones have none, so her phone's keep sends at her next open (no-signal r1's carried call, "not yet") (no-signal-wiring).
 
 ### The guest's album
 

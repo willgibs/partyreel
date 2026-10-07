@@ -71,6 +71,15 @@
       "home": "docs/systems/host-app.md"
     },
     {
+      "id": "CJ1",
+      "kind": "call",
+      "theme": "Deletion, retention and privacy",
+      "title": "What waits to send stays on her phone up to 14 days.",
+      "body": "A photo she sent with no line is kept in her browser for that album until it lands, then put down; past 14 days it is put down unread at her next open (Safari may clear it sooner), and on a shared phone what was kept for another account is deleted unsent.",
+      "changeIf": "it should wait longer, or a shared phone should keep it for its owner's next visit.",
+      "home": "docs/systems/guest-flow.md"
+    },
+    {
       "id": "J2",
       "kind": "call",
       "theme": "Safety, and the product acting on its own",
