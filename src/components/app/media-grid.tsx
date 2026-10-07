@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ImageOff, VideoOff } from "lucide-react";
 
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -184,6 +185,60 @@ function sameObject(a: string, b: string): boolean {
   return a.split("?")[0] === b.split("?")[0];
 }
 
+/** The words a tile that cannot draw its photograph says (`TileStandIn`), in one place. */
+export const TILE_STAND_IN = "Can’t show here";
+
+/**
+ * THE FORMATS A BROWSER MAY NOT DRAW, NAMED UNDER A STAND-IN, by the stored key's own extension (`original.<ext>`,
+ * built server-side from the type, so it is the format and never a filename): a HEIC from an iPhone in Chrome or
+ * Firefox, a QuickTime clip some browsers cannot play. A format every browser draws is never the reason, so it is
+ * not named.
+ */
+const UNDRAWN_FORMAT: Record<string, string> = {
+  heic: "HEIC",
+  heif: "HEIF",
+  avif: "AVIF",
+  mov: "MOV",
+  webm: "WebM",
+};
+
+/** The format a stand-in names for this address, or null. */
+export function standInFormat(src: string): string | null {
+  const ext = src.split(/[?#]/)[0]!.match(/\.([a-z0-9]+)$/i)?.[1];
+  return ext ? (UNDRAWN_FORMAT[ext.toLowerCase()] ?? null) : null;
+}
+
+/**
+ * ★ A PHOTOGRAPH THIS BROWSER CANNOT DRAW IS NAMED, NEVER BLANK (crumbs-90). Previews are made by the uploading
+ * browser, so a HEIC sent from desktop Chrome, which cannot decode it, has none, and its tile serves the original:
+ * wherever that cannot draw either (Chrome, Firefox, an Android phone) the tile was a shimmer for ever, a photograph
+ * that read as still loading. Once nothing is left to try (no rolled link, no preview to fall back from) the tile says
+ * so in the box it keeps, quietly: a mark, the words, and the format where it is the reason. Its words show only where
+ * the box has room (a storage row's 44px thumbnail keeps the mark alone).
+ */
+function TileStandIn({ kind, src }: { kind: GridMedia["type"]; src: string }) {
+  const Mark = kind === "video" ? VideoOff : ImageOff;
+  const format = standInFormat(src);
+  return (
+    <span
+      data-tile-stand-in={kind}
+      className="@container relative flex size-full items-center justify-center bg-muted text-muted-foreground"
+    >
+      <span className="flex flex-col items-center gap-1 p-2 text-center">
+        <Mark className="size-4 shrink-0" aria-hidden />
+        <span className="hidden text-micro text-foreground @min-[5.5rem]:block">
+          {TILE_STAND_IN}
+        </span>
+        {format && (
+          <span className="hidden text-micro @min-[5.5rem]:block">
+            {format}
+          </span>
+        )}
+      </span>
+    </span>
+  );
+}
+
 /**
  * Where a tile's photograph is. `pending`: on its way, the shimmer holds its place. `fade`: it landed after
  * its <img> mounted, and faded in. `instant`: it was complete when its <img> mounted, so it is simply there.
@@ -263,6 +318,14 @@ export function MediaTile({
       setLanding((now) => (now === "pending" ? "instant" : now));
   }, []);
 
+  /*
+   * ★ NOTHING LEFT TO TRY IS SAID, NEVER LEFT TO SHIMMER (`TileStandIn`): the address that failed with no rolled link
+   * and no preview to fall back from. Held by that address, so a different photograph under the tile (a new object)
+   * draws afresh; the same object's next link is not asked again (a format this browser cannot decode fails alike,
+   * and its original is the whole file), so the stand-in stays until the tile mounts again.
+   */
+  const [undrawable, setUndrawable] = useState<string | null>(null);
+
   const onTileImgError = () => {
     const now = latest.current;
     // A rolled link: the fresh one for the same photograph.
@@ -279,7 +342,9 @@ export function MediaTile({
         setSrc(now.url);
         setLanding("pending");
       }
+      return;
     }
+    setUndrawable(src);
   };
 
   /*
@@ -310,6 +375,9 @@ export function MediaTile({
   if (!src) {
     return <span className="relative block size-full">{shimmer}</span>;
   }
+
+  // Its own mark says what it is (a centred play badge would stand on it).
+  if (undrawable === src) return <TileStandIn kind={item.type} src={src} />;
 
   const imgProps = {
     ref: imgRef,

@@ -79,6 +79,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const { POST } = await import("@/app/api/r2/presign-upload/route");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 
 const TOKEN = "a".repeat(64);
 const EVENT = "33333333-3333-4333-8333-333333333333";
@@ -127,19 +130,14 @@ async function presign() {
     new Request("https://partyreel.com/api/r2/presign-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         session_token: TOKEN,
         content_type: "image/jpeg",
         size_bytes: 1000,
       }),
     }),
   );
-  const body = (await res.json()) as {
-    ok: boolean;
-    code?: string;
-    message?: string;
-  };
-  return { status: res.status, body };
+  return answerOfOne<{ ok: boolean; code?: string; message?: string }>(res);
 }
 
 beforeEach(() => {
@@ -304,7 +302,7 @@ describe("the album's camera", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "video/mp4",
           size_bytes: bytes,
@@ -312,10 +310,7 @@ describe("the album's camera", () => {
         }),
       }),
     );
-    return {
-      status: res.status,
-      body: (await res.json()) as { code?: string; message?: string },
-    };
+    return answerOfOne<{ code?: string; message?: string }>(res);
   }
   const ROLL = { used: 3, cap: 24, taken: 3, ceiling: 72 };
 
@@ -423,7 +418,7 @@ describe("the meter", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "image/jpeg",
           size_bytes: 1000,
@@ -431,17 +426,14 @@ describe("the meter", () => {
         }),
       }),
     );
-    return {
-      status: res.status,
-      retryAfter: res.headers.get("Retry-After"),
-      body: (await res.json()) as {
-        ok: boolean;
-        code?: string;
-        message?: string;
-        preview?: unknown;
-        preview_refused?: string;
-      },
-    };
+    const { status, body } = await answerOfOne<{
+      ok: boolean;
+      code?: string;
+      message?: string;
+      preview?: unknown;
+      preview_refused?: string;
+    }>(res);
+    return { status, retryAfter: res.headers.get("Retry-After"), body };
   }
 
   it("★ asks the meter once, with the declared bytes, for the event the ticket resolved, before any URL is minted", async () => {
@@ -538,22 +530,19 @@ describe("the preview", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "image/jpeg",
           ...over,
         }),
       }),
     );
-    return {
-      status: res.status,
-      body: (await res.json()) as {
-        ok: boolean;
-        url?: string;
-        preview?: { key: string };
-        preview_refused?: string;
-      },
-    };
+    return answerOfOne<{
+      ok: boolean;
+      url?: string;
+      preview?: { key: string };
+      preview_refused?: string;
+    }>(res);
   }
   const MB = 1024 * 1024;
 
@@ -639,24 +628,21 @@ describe("staging", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "image/jpeg",
           ...over,
         }),
       }),
     );
-    return {
-      status: res.status,
-      body: (await res.json()) as {
-        ok: boolean;
-        strategy?: string;
-        media_id?: string;
-        key?: string;
-        preview?: { key: string; url: string };
-        phone?: { key: string; url: string };
-      },
-    };
+    return answerOfOne<{
+      ok: boolean;
+      strategy?: string;
+      media_id?: string;
+      key?: string;
+      preview?: { key: string; url: string };
+      phone?: { key: string; url: string };
+    }>(res);
   }
   const MB = 1024 * 1024;
   const stagedTwin = (key: string) => key.replace(/^events\//, "staging/");

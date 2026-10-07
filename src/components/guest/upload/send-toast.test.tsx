@@ -198,7 +198,11 @@ describe("when the toast is said", () => {
     expect(h.toast).toHaveBeenCalledTimes(1);
   });
 
-  it("★ counts only what landed: a refused file is the failure sheet's", () => {
+  /* ★ RESHAPED ON PURPOSE (crumbs-90, no-signal r1's drop helper). Scar kept: a refused file is the failure sheet's,
+     never the toast's. Reason expired: "the toast counts the rest". The sheet that opens on the refusal already says
+     what joined ("Everything else is in Maya's album."), and the toast's "Your 2 photos joined Maya's album." stood
+     beside its "1 of 3 didn't upload": two voices at one moment, the one that leaves by itself first. */
+  it("★ a refused file is the failure sheet's, and so is the send it ended: the sheet says what joined", () => {
     const view = mount([]);
     view.rerender(
       base([item("a", "uploading"), item("b", "queued"), item("c", "queued")]),
@@ -210,7 +214,25 @@ describe("when the toast is said", () => {
         item("c", "done"),
       ]),
     );
-    expect(h.toast.mock.calls[0][0]).toBe("Your 2 photos joined Maya’s album.");
+    expect(h.toast).not.toHaveBeenCalled();
+  });
+
+  it("★ a send that ends under a standing sheet (a row's Retry, a heal of one of its rows) is the sheet's too", () => {
+    const listed = item("b", "error", { error: "Your connection dropped" });
+    const standing = { sheetStands: () => true };
+    const view = mount([item("a", "error"), listed], standing);
+    view.rerender(base([item("a", "queued"), listed], standing));
+    view.rerender(base([item("a", "done"), listed], standing));
+    expect(h.toast).not.toHaveBeenCalled();
+  });
+
+  it("a failure the queue held from before the send, which no sheet stands over, never silences it", () => {
+    // A failure the door's step reported and nobody dismissed (`carriedFailures`): no sheet lists it.
+    const old = item("x", "error", { error: "This album is full right now" });
+    const view = mount([old]);
+    view.rerender(base([old, item("a", "uploading")]));
+    view.rerender(base([old, item("a", "done")]));
+    expect(h.toast.mock.calls[0][0]).toBe("Your photo joined Maya’s album.");
   });
 
   it("says nothing for a send that landed nothing (all refused, or all stopped)", () => {

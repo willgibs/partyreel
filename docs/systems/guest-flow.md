@@ -216,8 +216,11 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     may already show it) is asked again for her by the queue (`use-upload-queue.heal.ts`: 5, 20 and 60 s on, the moment
     the browser says the line is back and when the page is looked at again, none while it says it is offline and none
     spent on it; three asks a File, never a loop; a Retry's own runner, so the two never race), so the sheet lets its row go when the server answers instead of saying "didn't
-    upload" over a photograph in the album. A refusal of the file itself (`retryCanPass`: a type nobody takes, a file over the ceiling, a video where the
-    album takes none) lists with no Retry, and where every line is one the sheet says the way on
+    upload" over a photograph in the album. A refusal no retry could pass (`retryCanPass`) lists with no Retry, and so
+    does a shot the album's spent roll refused (`roll_spent`, its own class on the ladder), whose way on is the
+    camera's: the sheet offers no other file over it and closes on Done. A refusal of the file itself (a type nobody
+    takes, a file over the ceiling, a video where the album takes none) lists the same way, and where every line is one
+    the sheet says the way on
     (`uploadFailureChooseAgain`, which the door's step says too, and whose failure view lists each file and its reason
     whatever the verdict, with no Retry on a refusal and "Choose other photos" the way on). The uploader refuses a wrong type or a file over its
     ceiling itself, before any request, so those carry no server code: the queue gives them one from the file
@@ -230,10 +233,12 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     runs), one short toast says what of the run landed, in the keep's words (`keepSentLine`: hers "joined Maya's
     album", or how they develop, as the host lets them in or with everyone's), with Show yours: the album's Yours view
     and the album brought into view (`live-gallery-lens.ts`), or her uploads where they wait. Heard at the page, whose
-    queue outlives the slot, so a run's own files are counted (a Retry's included, an earlier run's never). A refused
-    file stays the failure sheet's (the toast counts the rest); a run that landed nothing says nothing; and it is
-    spent, never said later, where another surface says the landing: the keep, the door's upload step, the camera
-    (`quiet`), or the reel's view. The demo's has no press (its photographs are nobody's).
+    queue outlives the slot, so a run's own files are counted (a Retry's included, an earlier run's never). A run that
+    ends with a file of its own refused, or under a failure sheet still standing (`failureSheetStands`: a row's Retry,
+    a heal of one of its rows), is the sheet's alone, which says what joined ("Everything else is in Maya's album.");
+    a run that landed nothing says nothing; and it is spent, never said later, where another surface says the landing:
+    the keep, the door's upload step, the camera (`quiet`), or the reel's view. The demo's has no press (its
+    photographs are nobody's).
   - **The flip, mid-run**: a host turning An email first on answers 403 `verification_required`, one of the refusals
     the queue reads as the session's, never one file's (its header names them). A confirmed viewer re-joins silently
     once (the queue reads its ticket per file); a name-only guest's queued files fail in place with the server's
@@ -411,10 +416,12 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   card says "See the photos & videos on Partyreel", true of every album, and only an open album's page that takes photos
   right now names the inviting one ("Add your photos & videos"), which the route honours only where an album's name is
   public, so the edge's hour never keeps inviting after the host closes uploads. `/e/<token>?photo=<id>` (read with the
-  viewer's own `readPhotoParam`) unfurls as that photograph (a preview or the original, presigned server-side; a video as its
-  poster), but only on an album anyone may open (`resolveGalleryDecision` for an identity-less visitor is `full`) and
-  only for an approved item of this event (`getOpenAlbumItemForCard`): a gated album, any other id, a video with no
-  poster and a failed presign all keep the event card, with no sign the id exists. It is a route, not an
+  viewer's own `readPhotoParam`) unfurls as that photograph (a preview or the original, presigned server-side; a video
+  as its poster), declaring the size it serves (a preview's is `previewTargetSize` of the item's measures, the rule
+  that made it), but only on an album anyone may open (`resolveGalleryDecision` for an identity-less visitor is `full`)
+  and only for an approved item of this event (`getOpenAlbumItemForCard`): a gated album, any other id, a video with no
+  poster, a photograph whose only image is an original no unfurler draws (a HEIC with no preview: `CARD_DRAWS`) and a
+  failed presign all keep the event card, with no sign the id exists. It is a route, not an
   `opengraph-image` file, because a file-based image outranks `generateMetadata` and the image depends on the query.
 - **`accepting_uploads=false`** = the view-only state of the one page: the upload panel is removed ("The host has
   closed uploads. You can still browse the album."), leaving the action row and the gallery.
@@ -573,7 +580,7 @@ The steps are `welcome | password | chooser | name | identify | signin | upload 
 due; names mode opens on the chooser (Continue as guest → `name`, Create account → `identify`, Log in → `signin`),
 verified mode on the email alone (`identify`, "Joining + identity"), and the demo asks no name.
 The order per mode is `entry-steps.ts`'s, pinned by its tests. The one FREE surface is the name door over the album,
-from the menu's "Change name" (`openToName("edit")`): it stands over an album the guest already reached and posts
+from the menu's "Change name" (`openToName()`): it stands over an album the guest already reached and posts
 nothing when it closes. The teaser's "See all N" re-asserts the sheet (`openToGate`, a no-op mid-hold).
 
 One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders the one product Sheet

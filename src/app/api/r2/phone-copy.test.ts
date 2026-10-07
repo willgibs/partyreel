@@ -82,6 +82,9 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
 
 const presignRoute = await import("@/app/api/r2/presign-upload/route");
 const completeRoute = await import("@/app/api/r2/complete-upload/route");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 
 const MB = 1024 * 1024;
 const TOKEN = "a".repeat(64);
@@ -127,10 +130,10 @@ async function presign(body: Record<string, unknown>) {
     new Request("https://partyreel.com/api/r2/presign-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_token: TOKEN, ...body }),
+      body: burstOfOne({ session_token: TOKEN, ...body }),
     }),
   );
-  return { status: res.status, body: (await res.json()) as PresignBody };
+  return answerOfOne<PresignBody>(res);
 }
 
 async function complete(extra: Record<string, unknown> = {}) {
@@ -138,7 +141,7 @@ async function complete(extra: Record<string, unknown> = {}) {
     new Request("https://partyreel.com/api/r2/complete-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         session_token: TOKEN,
         media_id: MEDIA,
         key: ORIGINAL,
@@ -150,10 +153,7 @@ async function complete(extra: Record<string, unknown> = {}) {
       }),
     }),
   );
-  return {
-    status: res.status,
-    body: (await res.json()) as { ok: boolean; code?: string },
-  };
+  return answerOfOne<{ ok: boolean; code?: string }>(res);
 }
 
 /** What `createMedia` was asked to record. */

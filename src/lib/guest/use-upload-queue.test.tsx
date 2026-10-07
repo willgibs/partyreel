@@ -725,6 +725,50 @@ describe("★ a lost answer heals itself", () => {
     expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
   });
 
+  it("★ a Retry pressed as the line comes back, for a file the heal took, sends nothing beside it: in the air or landed (crumbs-90)", async () => {
+    // The sheet's Retry all as the line returns: its words are latched while it slides away, so a press names files
+    // the heal already took on `online`. It re-queued them: one in the air fell back to nothing, and one landed went
+    // up again as a second upload of the same photograph (a second complete beside the heal's, and a second row).
+    const { q, file } = await lostOnce();
+    const id = q.items()[0]!.id;
+    let answerHeal: (outcome: UploadOutcome) => void = () => {};
+    mockUploadFile.mockImplementationOnce(
+      () =>
+        new Promise<UploadOutcome>((resolve) => {
+          answerHeal = resolve;
+        }),
+    );
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(mockUploadFile.mock.calls[1]![0].file).toBe(file);
+    // In the air: her press moves nothing.
+    await act(async () => {
+      q.result.current.retry(id);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      answerHeal(landed("med-1"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(q.items()).toEqual([
+      expect.objectContaining({ status: "done", mediaId: "med-1" }),
+    ]);
+    // Landed: still nothing, and the photograph stays the one row it is.
+    await act(async () => {
+      q.result.current.retry(id);
+      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[2]);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items()).toEqual([
+      expect.objectContaining({ status: "done", mediaId: "med-1" }),
+    ]);
+    expect(q.onUploaded).toHaveBeenCalledTimes(1);
+  });
+
   it("is the file's complete asked again and no more: no join is made and no ticket is touched", async () => {
     // Not her Retry in one thing: it never gives the silent join back (the head note), so a ticket that keeps being
     // refused can never turn it into a row factory.

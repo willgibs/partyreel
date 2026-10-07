@@ -1403,6 +1403,13 @@ export function useUploadQueue({
    * run is asked ONCE, after the tick's calls are all in (`runSoon`), and the files go back as the one burst they were.
    * A single Retry is the same act a tick on. The sheet still closes in that tick, and its `dismiss` finds every file
    * it retried already `queued` (its status gate).
+   *
+   * ★ ONLY A FILE THAT IS STILL FAILED GOES AGAIN (crumbs-90, the heal's race; `dismiss`'s own status gate): a Retry
+   * names what a surface drew a moment ago, and the heal may have taken that file since (on `online`, the moment the
+   * line comes back). A press on the sheet's words as it slides away (they are latched for its exit), or a camera's
+   * handler from the render before, then named a file already in the air, whose bar fell back to nothing, or one
+   * already landed, which went up again as a second upload of the same photograph: a presign, its bytes and a
+   * complete beside the heal's, and a second row. A file that is not failed is not hers to retry, and nothing moves.
    */
   const runSoonRef = useRef(false);
   const runSoon = useCallback(() => {
@@ -1415,6 +1422,9 @@ export function useUploadQueue({
   }, []);
   const retry = useCallback(
     (id: string) => {
+      if (itemsRef.current.find((it) => it.id === id)?.status !== "error") {
+        return;
+      }
       silentJoinSpentRef.current = false;
       patch(id, {
         status: "queued",

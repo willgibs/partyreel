@@ -27,9 +27,11 @@
  * ★ RETRY ONLY WHERE A RETRY COULD PASS (build 23's NIT-2): a refusal of the file
  * itself ("This event accepts photos only", a file too large) stands with its
  * sentence and no Retry, since sending the same file again is refused again
- * (`retryCanPass`, the refusal ladder the door's step reads too).
+ * (`retryCanPass`, the refusal ladder the door's step reads too), and so does a
+ * shot the album's spent roll refused (crumbs-90, no-signal r1: "Retry both" stood
+ * over two shots the roll refused again, under a Not now that promised a later go).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
 
 import { DoorHeading } from "@/components/guest/door/heading";
@@ -44,7 +46,7 @@ import {
 } from "@/components/ui/sheet";
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
-import { retryCanPass } from "@/lib/guest/upload-refusal";
+import { classifyRefusal, retryCanPass } from "@/lib/guest/upload-refusal";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { usePartyZone } from "@/components/guest/party-zone";
 import { restWaitLine, waitWords } from "@/lib/disposable/wait-words";
@@ -105,6 +107,19 @@ export function uploadFailureElsewhere(input: {
  */
 export function uploadFailureChooseAgain(camera = false): string {
   return camera ? "Take another to add one." : "Pick something else to add.";
+}
+
+/**
+ * ★ WHETHER A FAILURE SHEET STANDS NOW (crumbs-90): the send's toast reads it as a send ends (`send-toast.ts`), so a
+ * send that ends under a sheet (a row's Retry, a heal of one of its rows) is said by the sheet alone, which already
+ * says what joined. A count of the sheets open this moment, written by each while it is open and never during its
+ * exit (its `open` is the page's decision; the latch below only draws the words it closes on). A module's, as the
+ * name door's channel is, because the toast is heard at the page and the sheet stands in the album's slot.
+ */
+let openSheets = 0;
+
+export function failureSheetStands(): boolean {
+  return openSheets > 0;
 }
 
 /** The list's one retry-everything button, in one place (`UploadFailureList` below). */
@@ -274,6 +289,14 @@ export function UploadFailureSheet({
     open && failures.length > 0 ? { failures, sent, landed } : latched;
   const nowMs = useWaitClock();
   const zone = usePartyZone();
+  // Standing while open (`failureSheetStands`).
+  useEffect(() => {
+    if (!open) return;
+    openSheets += 1;
+    return () => {
+      openSheets -= 1;
+    };
+  }, [open]);
   const heading = uploadFailureHeading(shown.failures.length, shown.sent);
   /* ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76): "1 of 1 didn't upload" under "Everything
      else is in Maya's album" spoke of a rest that does not exist. The line is said only where the run sent more than
@@ -286,10 +309,17 @@ export function UploadFailureSheet({
     others > 0 && (shown.landed ?? others) === others
       ? uploadFailureElsewhere({ hostName, waits, nowMs, zone })
       : null;
-  // Nothing a retry could pass: every line is a refusal of the file itself, so the way on is another file.
+  // Nothing a retry could pass: every line is a refusal of the file itself or of the spent roll.
   const nothingToRetry = !shown.failures.some((f) => retryCanPass(f.code));
+  /* ★ ANOTHER FILE IS THE WAY ON ONLY WHERE EVERY LINE IS THE FILE'S OWN (crumbs-90, no-signal r1): a shot the spent
+     roll refused says "You've taken all 24 shots on your roll.", and "Take another to add one." under it would send
+     her to a shutter that refuses the next one alike. The roll's end is the camera's to say (it stopped her there),
+     so a sheet with a roll refusal says the rest and nothing more, and closes on Done. */
+  const chooseAgain =
+    nothingToRetry &&
+    shown.failures.every((f) => classifyRefusal(f.code) === "choose");
   const reason =
-    [rest, nothingToRetry ? uploadFailureChooseAgain(camera) : null]
+    [rest, chooseAgain ? uploadFailureChooseAgain(camera) : null]
       .filter(Boolean)
       .join(" ") || null;
 

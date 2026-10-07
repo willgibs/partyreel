@@ -28,10 +28,11 @@ shapes.
   between its files (`Burst.memo`: the switch, the ticket's context, its owner, the lock, read once) and tells each file
   what its earlier siblings took: the meter judges it with their declared bytes added (held to one upload's ceiling)
   and the roll counts their shots, as one-at-a-time presigns saw them already landed; each file is metered once. A
-  presign refusal of WHO is sending (`scope: "burst"`) refuses the whole request in the one-file words, and the client
-  gives it to every file not yet asked for; a complete names an upload once a request. The guest's clip budget is the
-  strategy's `budget` hook, met one clip after another. The one-file body still answers as it did, for a tab loaded
-  before bursts (until the next milestone); a rollback past bursts refuses a newer tab's bodies until it reloads.
+  presign refusal of WHO is sending (`scope: "burst"`: the ticket, the album's door and switches, and the hour's
+  breaker, which counts the host's uploads across her albums) refuses the whole request in the words each file would
+  have met, the breaker's with `Retry-After`, and the client gives it to every file not yet asked for; a complete
+  names an upload once a request. The guest's clip budget is the strategy's `budget` hook, met one clip after another.
+  A burst is the only body: one file is a burst of one, and a body with no `files` is malformed (400).
 - ★ **In the browser a byte never waits for batching** (`uploadBurst`): preparing (the strip, the preview, the phone
   copy) runs ahead of the network, the network's next file always and the rest within 64 MB; presigning asks for every
   prepared file at once, the first file alone, then the rest once the file in the air hands off its last byte (the
@@ -80,16 +81,18 @@ shapes.
 - ★ **A cancel and a dropped connection are told apart, and a dropped one is never hidden** (E6): the failure sheet and
   the host's rows print each message as it is, so a transport's words are the uploader's (`UPLOAD_WORDS`). A
   request that never reached the network (presign, complete or the byte PUT), a presign or complete past its ceiling,
-  and a PUT whose bytes stop moving for `UPLOAD_STALL_MS` (45 s, restarting on every byte and when the page comes back
-  to the screen; 90 s for R2's answer after the last byte), all say "Your connection dropped. Check your signal, then
-  try again." with `cause: "dropped"`; an error answer says it "didn't go through" (the status goes to the console,
-  never the guest); an abort `signal` says cancelled (`cause: "cancelled"`). A cancel is one file's or the burst's:
+  and a PUT whose bytes stop moving for `UPLOAD_STALL_MS` (45 s, restarting on every byte; 90 s for R2's answer after
+  the last byte), all say "Your connection dropped. Check your signal, then try again." with `cause: "dropped"`; an
+  error answer says it "didn't go through" (the status goes to the console, never the guest); an abort `signal` says
+  cancelled (`cause: "cancelled"`). A cancel is one file's or the burst's:
   `BurstFile.signal` stops that file alone (the guest's tile and the host's row each stop the one file she means),
   settling it `cancelled` at once while its siblings go on and are recorded together, wherever it stands short of its
   complete (a PUT in the air is aborted, a presign in the air lets its entry go, a landed file waiting for its
   siblings is simply not recorded), and a burst's own `signal` ends everything not recorded. ★ Presign and complete
-  each end past a ceiling (30 s and 60 s, `PRESIGN_CEILING_MS`, `COMPLETE_CEILING_MS`, their clocks restarting when
-  the page is looked at again) as a dropped connection, never a spinner. A presign out past 8 s
+  each end past a ceiling (30 s and 60 s, `PRESIGN_CEILING_MS`, `COMPLETE_CEILING_MS`) as a dropped connection, never
+  a spinner. ★ A page looked at again gets a grace on each of these clocks, never a new one (`RETURN_GRACE_MS`, 10 s
+  where less is left: a hidden page's timers freeze, so what arrived meanwhile is read first, and a restart whole held
+  a dead request a fresh minute at every glance back). A presign out past 8 s
   (`PRESIGN_REASK_MS`) with a prepared file waiting behind it is taken back and its files asked again as one request
   with the waiting ones, once a file (the second ask has the ceiling to itself, so a line that is truly down ends the
   burst a presign later; one nobody waits behind keeps the whole ceiling; a phantom presign stores nothing), so a hung
@@ -100,7 +103,8 @@ shapes.
   file's next try starts afresh. The guest's queue makes that try itself for a file that failed as a dropped connection
   (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20 and 60 s on, on the browser's `online` and when the page is
   looked at again, none while it says it is offline, three asks a File, through the queue's own runner so her Retry
-  never races it), so a row the server wrote is told as landed and the sheet that listed it lets it go; the host
+  never races it, and her Retry re-queues only a file still failed, so a press on words the heal has overtaken sends
+  nothing), so a row the server wrote is told as landed and the sheet that listed it lets it go; the host
   panel's rows (`host-upload.tsx`) read the same hook, and a row that said dropped reads "Added to the album".
   `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a file going again on its kept
   complete, is ignored (the file lands as it would have). Nothing is counted for a
@@ -266,7 +270,9 @@ it.
   as the reserved `preview` variant, beside a photograph's phone copy (above): $0 and predictable, with no transform
   fee to meter against a storage-billed plan. Tiles serve `previewUrl ?? url`; the viewer draws the original, and Save
   and Share send it (below); a row with no preview serves the original, which the viewer then draws from the tile's
-  cached copy rather than holding it twice.
+  cached copy rather than holding it twice. A HEIC sent from a browser that cannot decode it (desktop Chrome) has no
+  preview, and wherever its original cannot draw either, its tile names it (`MediaTile`'s stand-in, its format from
+  the key: "Can't show here", HEIC), never a shimmer for ever.
 - **`videoPosterSrc()` appends `#t=0.1`:** iOS Safari paints a paused `<video>` black unless the src asks it to seek
   and render a frame (a video tile draws its preview, and the poster `<video>` only without one). Grid video tiles
   carry no controls, since a `<video controls>` inside the tile's `<button>` is invalid HTML; playback is the viewer's.

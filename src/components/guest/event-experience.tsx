@@ -796,10 +796,7 @@ function EventExperienceBody({
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
   // module-singleton shape the stored session uses for the same reason).
-  useEffect(
-    () => onNameDoorRequest((mode) => entryRef.current?.openToName(mode)),
-    [],
-  );
+  useEffect(() => onNameDoorRequest(() => entryRef.current?.openToName()), []);
   /* ★ THE COVER'S ADD IS THE ONE ADD (`event-header` r1, `guest=cover`). The album's empty state draws
      its river and its words and no button of its own: the cover's white Add asks for the first photo
      on an album with nothing in it yet, in the first screen, and says its ordinary words once anything is (her own

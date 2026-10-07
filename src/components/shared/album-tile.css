@@ -94,3 +94,12 @@
     }
   }
 }
+
+/* ── THE OPEN BUTTON'S HALO WHERE COLOURS ARE FORCED (crumbs-90, `TileHalo`). Forced colours drop every shadow, so
+   the halo is an outline there (`focus-halo`'s own rule), and its 2px offset stands outside the layer, where the
+   tile's own corner clips it to nothing: drawn inside the edge, as the inset halo is. ── */
+@media (forced-colors: active) {
+  [data-tile-halo][data-halo] {
+    outline-offset: -4px;
+  }
+}

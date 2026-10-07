@@ -98,6 +98,9 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
 }));
 
 const { POST } = await import("@/app/api/r2/complete-upload/route");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 
 const TOKEN = "a".repeat(64);
 const EVENT = "33333333-3333-4333-8333-333333333333";
@@ -144,7 +147,7 @@ async function complete(extra: Record<string, unknown> = {}) {
     new Request("https://partyreel.com/api/r2/complete-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         session_token: TOKEN,
         media_id: MEDIA,
         key: `events/${EVENT}/photo/${MEDIA}/original.jpg`,
@@ -156,12 +159,12 @@ async function complete(extra: Record<string, unknown> = {}) {
       }),
     }),
   );
-  const body = (await res.json()) as {
+  const { status, body } = await answerOfOne<{
     ok: boolean;
     code?: string;
     status?: string;
-  };
-  return { status: res.status, body, setCookie: res.headers.get("set-cookie") };
+  }>(res);
+  return { status, body, setCookie: res.headers.get("set-cookie") };
 }
 
 beforeEach(() => {
@@ -457,10 +460,15 @@ describe("the staging landing", () => {
     expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL, PREVIEW]);
   });
 
-  it("a record that throws takes them back out too, and the throw still surfaces", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-90: the one-file body is gone). Scar kept: a record that throws takes its copies
+  // back out of events/. Reason expired: "the throw still surfaces", a one-file request's 500 from the route; a burst's
+  // file answers its own throw as a completion that did not finish (`complete_failed`), which the phone keeps.
+  it("a record that throws takes them back out too, and answers as a completion that did not finish", async () => {
     headObject.mockResolvedValue({ size: 1000, lastModified: null });
     createMedia.mockRejectedValue(new Error("database down"));
-    await expect(complete()).rejects.toThrow("database down");
+    const { status, body } = await complete();
+    expect(status).toBe(502);
+    expect(body).toMatchObject({ ok: false, code: "complete_failed" });
     expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL]);
   });
 
