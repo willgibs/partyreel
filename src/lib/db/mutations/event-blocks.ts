@@ -7,7 +7,7 @@
  */
 import "server-only";
 
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 import {
   blockTargetParams,
@@ -143,14 +143,6 @@ export async function blockFromEvent(
 }
 
 /**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `p_let_in` arrives with migration 20261007020000, and the generated
- * Args refuse a name they do not list, so the lift's call goes through this untyped client (drop the cast then).
- */
-function liftDb(supabase: Awaited<ReturnType<typeof createClient>>) {
-  return supabase as unknown as SupabaseClient;
-}
-
-/**
  * Lift a block; with `restore`, bring back what the block itself removed (Will's switch, off by default); with
  * `letIn`, answer the ask the block held yes in the same press (host-moments r1, `let-back=straight`). `admitted` is
  * everyone the lift let in, the door's own arms (Public, the list) and her answer together, so a Let in that let
@@ -172,13 +164,10 @@ export async function letBackIn(
   | BlockFailure
 > {
   const result = await hostRpc((supabase) =>
-    liftDb(supabase).rpc("let_back_in", {
+    supabase.rpc("let_back_in", {
       p_block_id: blockId,
       p_restore: options.restore,
-      // ★ NAMED ONLY FOR A LET IN: a call that leaves it out means today's lift on either side of the migration
-      // (PostgREST finds the function by the names it is sent), so every other lift keeps working whichever lands
-      // first, and only a Let in waits on 20261007020000 (its header: apply it before this build deploys).
-      ...(options.letIn ? { p_let_in: true } : {}),
+      p_let_in: options.letIn,
     }),
   );
   if (!result.ok) return result;

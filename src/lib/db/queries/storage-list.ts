@@ -161,14 +161,6 @@ export async function readStoragePage(
   };
 }
 
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `event_storage_sums` arrives with migration 20261006180000, so its
- * read goes through this untyped client (drop the cast then).
- */
-function sumsDb(supabase: Client) {
-  return supabase as unknown as SupabaseClient;
-}
-
 type SumRow = {
   event_id: string;
   live_bytes: number | string;
@@ -204,7 +196,7 @@ export async function readStorageEvents(
     readAllPages(
       "storage list: sums",
       (after: string | null, pageLimit) => {
-        let q = sumsDb(supabase)
+        let q = supabase
           .from("event_storage_sums")
           .select("event_id, live_bytes, live_count")
           .eq("host_id", hostId)
@@ -214,7 +206,7 @@ export async function readStorageEvents(
         if (after !== null) q = q.gt("event_id", after);
         return q;
       },
-      (row) => (row as SumRow).event_id,
+      (row) => row.event_id,
     ),
   ]);
 

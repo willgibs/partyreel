@@ -74,7 +74,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
 - Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
-- Code hygiene: drop the typed seams the regenerated types made needless, drive-crumbs' `markReady` cast (`src/lib/db/queries/drive.ts`, `cloud_export_ready`'s `p_found`) and upload-sums' `sumsDb` (`src/lib/db/queries/storage-list.ts`, `event_storage_sums`); and `row-cap-sql.test.ts`'s `SINGLE_ROW` reason for `host_storage_summary`, which still says "host_active_bytes beside two SUMs over host_deleted_media" (now her sums, her deleted events' rows and the aged removals, no GROUP BY).
 
 ## Upcoming
 

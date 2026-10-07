@@ -2634,7 +2634,7 @@ export type Database = {
         Returns: Record<string, unknown>
       }
       let_back_in: {
-        Args: { p_block_id: string; p_restore?: boolean }
+        Args: { p_block_id: string; p_let_in?: boolean; p_restore?: boolean }
         Returns: Json
       }
       let_in_at_door: {
