@@ -29,7 +29,11 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   the room first when her setting is on and the file fits beside her albums (`leave_deleted`, oldest first, exactly
   what the file needs, under the profiles lock), and the UPLOADS ALLOWANCE: her plan's own published number
   (`upload_allowance()`: Free's and one pass's from `tier_limits()`, a stack's one pass's for each pass her room holds,
-  Pro's by its size, the smallest Ladder A size holding her cap) against what its window has used (`uploads_used()`).
+  Pro's by its size, the smallest Ladder A size holding her cap) against what its window has used (`uploads_used()`:
+  the window's gross count, `uploads_gross()`, less an operator's live credit, `uploads_credit()`; the line itself,
+  `uploads_refused()`, compares the gross count with the allowance plus the credit). A credit is a row beside the ledger
+  (admin-observability.md's audited credit), never an edit of a count, and ends with the window it was made in; one made
+  on a pass that she then leaves for Free lifts her Free month until that window ends, bounded and logged.
   `host_storage_summary` is the one read every cap check makes.
 - ★ **The allowance's window is a calendar month, or a pass's own year.** Free and Pro read this month's
   `storage_ledger.cumulative_bytes` (UTC, `YYYY-MM`, never decremented). A pass holder reads her live passes'

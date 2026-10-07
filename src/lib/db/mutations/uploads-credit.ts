@@ -11,8 +11,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import {
   isCreditWhy,
   type CreditFacts,
@@ -20,15 +18,6 @@ import {
 } from "@/app/admin/accounts/uploads-credit";
 import { mustQuery } from "@/lib/db/must-query";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `grant_uploads_credit` arrives with migration 20261008060000, which the
- * Orchestrator applies after the handoff, so this call goes through the untyped client (drop the cast then, as
- * `queries/uploads-credits.ts` does for its tables).
- */
-function creditDb(): SupabaseClient {
-  return createAdminClient() as unknown as SupabaseClient;
-}
 
 export type UploadsCreditGranted = {
   ok: true;
@@ -107,7 +96,7 @@ export async function grantUploadsCredit(input: {
   requestId: string;
 }): Promise<UploadsCreditGranted | UploadsCreditRefused> {
   const answer = await mustQuery(
-    creditDb().rpc("grant_uploads_credit", {
+    createAdminClient().rpc("grant_uploads_credit", {
       p_operator_id: input.operatorId,
       p_host_id: input.hostId,
       p_bytes: input.bytes,

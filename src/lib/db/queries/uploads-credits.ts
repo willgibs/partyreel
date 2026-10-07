@@ -14,8 +14,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import {
   UPLOADS_CREDIT_MAX_LIVE,
   type UploadsCredit,
@@ -24,15 +22,6 @@ import { mustQuery } from "@/lib/db/must-query";
 import type { Reading } from "@/lib/db/queries/accounts";
 import { inChunks, MAX_ROWS } from "@/lib/db/read-all";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `uploads_credits` and `admin_actions` arrive with migration
- * 20261008060000, which the Orchestrator applies after the handoff, so these reads go through this untyped client
- * (drop the cast then; `creditDb` in `mutations/uploads-credit.ts` is its twin).
- */
-function creditDb(): SupabaseClient {
-  return createAdminClient() as unknown as SupabaseClient;
-}
 
 function failure(error: unknown): { ok: false; message: string } {
   const message =
@@ -65,7 +54,7 @@ export async function readAccountUploadsCredits(
   now: Date = new Date(),
 ): Promise<Reading<UploadsCredit[]>> {
   try {
-    const db = creditDb();
+    const db = createAdminClient();
     const credits = await mustQuery(
       db
         .from("uploads_credits")
@@ -167,7 +156,7 @@ export async function readLiveCreditBytes(
       hostIds,
       (chunk) =>
         mustQuery(
-          creditDb()
+          createAdminClient()
             .from("uploads_credits")
             .select("host_id, bytes")
             .in("host_id", chunk)
