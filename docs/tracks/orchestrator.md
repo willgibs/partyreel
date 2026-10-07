@@ -44,6 +44,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
 | `presence-r1` | board (desk place 10): the guest row of faces (the newest ringed in light) and the hashvatar wherever they earn a place, in Aperture, inside the guest rules | RUNNING (cut at `3569b33b`) | Opus, 3134 | `a90f8538ce0861d2b` |
+| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale; integrates after 39 is on `main` | RUNNING (cut at `5cf32baf`) | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q42 answered (each APPLY, each applied); the next migration's read goes to it.
