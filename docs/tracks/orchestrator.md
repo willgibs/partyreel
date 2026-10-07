@@ -25,8 +25,8 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 Desk 8's wave runs (2026-10-07; this session's context about 73% at 22:58Z). Merged since its cut, each recorded and
 pruned: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring (80), brand-marks-wiring
-(81), crumbs-91 (82, AY1 built; its migration `20261008030000_crumbs_91.sql` waits on the Advisor's Q45, then the
-protocol). Running: the two boards (event-page-r1, brand-marks-r2: told to sync for brand-marks-wiring's and
+(81), crumbs-91 (82, AY1 built; its migration `20261008030000_crumbs_91.sql` applied on the Advisor's Q45 APPLY as
+20261007230050: md5 equal, hashes as its header, advisors 27/4/36, no type moved). Running: the two boards (event-page-r1, brand-marks-r2: told to sync for brand-marks-wiring's and
 crumbs-91's lines in its folder), no-signal-wiring, and the two cut at 22:00Z (cdn-version, crumbs-92). Will's calls
 paste's first sections are routed (`docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`); his Deletion and Safety
 sections are still to come. Both plan-limit tokens are minted and set (the ROADMAP's two readers ready). Milestone 40
@@ -41,7 +41,7 @@ forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk and every merge above. 
 | `crumbs-92` | K5 two years idle, X6 the audited uploads credit, the desk's Clear | running (cut 5ed23311) | Sonnet, 3132 | `a321cec9d5fec5e15` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
-Q44 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
+Q45 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
 
 **Seats.** A successor in another session respawns a lane from its transcript
 (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`).
