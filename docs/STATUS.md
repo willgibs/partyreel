@@ -72,8 +72,8 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 
 ## Waiting on Will
 
-- His Drive walk on partyreel.com (P3's consent; drive-crumbs' Handoff lists what to press); the calls lab's open
-  questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the
-  CDN-cached album, X6 the operator's uploads credit, X9 to X17 the gap audit's product decisions) and its 16 built
-  calls he cannot see by using the product; the two backup copies with old EXIF to delete and the six retired Stripe
-  price names to drop; the walks only he can drive (`tracks/orchestrator.md`).
+- His Drive walk on partyreel.com (P3's consent; drive-crumbs' Handoff lists what to press); the calls lab's (the
+  desk's Calls place) open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare
+  analytics token, X5 the CDN-cached album, X6 the operator's uploads credit, X9 to X17 the gap audit's product
+  decisions) and its 16 built calls he cannot see by using the product; the two backup copies with old EXIF to delete
+  and the six retired Stripe price names to drop; the walks only he can drive (`tracks/orchestrator.md`).

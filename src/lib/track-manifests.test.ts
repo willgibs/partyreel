@@ -33,8 +33,8 @@ const NEVER_OWNED = [
   "docs/tracks/",
   // The review ledgers: the Orchestrator writes them from Will's verdicts.
   "docs/reviews/",
-  // The calls lab: Will's review queue, written by the Orchestrator at each record.
-  "docs/calls.md",
+  // The calls lab: Will's review queue at the desk's Calls place, written only through usher/kit/calls.py.
+  "docs/calls.json",
 ];
 
 type Manifest = {

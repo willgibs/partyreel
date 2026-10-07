@@ -26,7 +26,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 Round 15 goes on from a local seat on Will's Mac (session `ce3ea37b-9032-4189-8a20-a57d78adb657`, willg97@gmail.com,
 from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on build `bbfcc54` is kept verbatim
 (`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed, his three program-wide notes folded into PRD.md.
-Merged since, gates 56 to 66, each recorded and pruned, each one's calls his to overrule in `docs/calls.md` (BZ to CF):
+Merged since, gates 56 to 66, each recorded and pruned, each one's calls his to overrule in the calls lab (BZ to CF):
 the six wirings (`account-moments-wiring` `1fdeca5e0`, `create-wizard-wiring` `0617cac99`, `event-header-wiring-2`
 `273a911ac`, `camera-wiring` `770efb29d`, `host-moments-wiring` `a78930d9c`, `album-moments-wiring` `3eace21ad`),
 `storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and six boards for the next desk (`brand-marks-r1`
@@ -51,7 +51,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
 | `crumbs-90` | the guest's send and album: Immediate's upload and album lines | MERGED at `38e51ae9c` (gate 76 green, FULL), for milestone 40; its ten Immediate lines retired, its four Deferred placed; pruned | Opus, 3132 | `a792a2c5719fc2ca0` |
 | `redteam-57c` | the re-walk that closes milestone 39, on the desk build `bea40689d` | DONE 15:15Z: no MEDIUM or worse; every path 57b named restores (its strand path 5 of 5); two LOWs (two of her own pages undo her own step under a hold; a slow stream outlasts the save's nudge) and three NITs to the ROADMAP; its two RT57c events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57c/ledger.txt` | Opus | `a93c1b646bf62a281` |
-| `calls-desk` | the calls lab moved into the lab's desk (Will, 2026-10-07): `docs/calls.json`, a Calls place answered in a press, its answers in the desk's one message, `usher/kit/calls.py` the record's door (the test, the cap of 30) | RUNNING (from 15:41Z) | Opus, 3133 | `aec94a11c372a3ed5` |
+| `calls-desk` | the calls lab moved into the lab's desk (Will, 2026-10-07) | MERGED at `ed704a2f8` (gate 77 green): `docs/calls.json` (`docs/calls.md` retired at its record), the Calls place at `/design/lab#calls`, the `calls:` line in the desk's one message, `usher/kit/calls.py` the only writer; its three questions relayed to Will in chat; pruned | Opus, 3133 | `aec94a11c372a3ed5` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q43 answered (each APPLY, each applied); the next migration's read goes to it.
@@ -100,9 +100,9 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 ## Waiting on Will
 
 - **His Drive walk** on partyreel.com, now Drive is live (P3's consent; drive-crumbs' Handoff lists what to press).
-- **The calls lab** (`docs/calls.md`, reshaped 2026-10-07 at his word: only what he cannot see by using the product):
-  the open questions X1, X2, X3, X5, X6 and X9 to X17, then 16 built calls by theme; X8 settled by the Orchestrator.
-  He asks direct questions in chat; answer in chat, never only in a file.
+- **The calls lab** (the desk's Calls place, `docs/calls.json`, reshaped 2026-10-07 at his word: only what he cannot
+  see by using the product): the open questions X1, X2, X3, X5, X6 and X9 to X17, then 16 built calls by theme; X8
+  settled by the Orchestrator. He asks direct questions in chat; answer in chat, never only in a file.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,

@@ -261,6 +261,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The lab: at 375, once an option is picked, a step's dock wraps "Not clear to me" onto a row of its own under the note field, on every board (presence r1).
 - The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
 - The lab: at 375 a step of three phones stands at about 29%, its bottom third empty and a few pixels' words unreadable; stack or swipe a step's frames at a phone's width (no-signal r1).
+- The kit: a lane's "Calls for Will" handed off as `usher/kit/calls.py` entries (the shape in `cut-lane.py`'s Handoff template), so the record adds them in one `calls.py add` and the door judges them as written (calls-desk).
+- The lab: the desk is long at a phone (the Calls place alone about 10,500 px at 375, the queue above it more): fold an answered section to a line, or walk the calls as steps of the review like the boards' asks (calls-desk).
 
 ### Code hygiene
 

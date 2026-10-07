@@ -106,3 +106,9 @@ rounds: the Library is not explored in rounds, so there is one verdict per entry
 overwrites. An `<entry-id>` is a catalog entry's id, the last segment
 of its `/design/library` URL. The desk reads the `redesign` and `retire` ones as "Redesigns you asked
 for", which is the queue the Orchestrator cuts tracks from.
+`calls: <id>=<answer> "a note"; ...` carries the answers at the desk's Calls place (`docs/calls.json`), with
+no round, since an id is never used again. A call takes `keep`, or `change` with its note saying what instead;
+a question takes `recommended`, `alt<n>` (its n-th alternative) or `own` with his words as the note. `pnpm
+lab:review` checks each against the file and writes nothing: it prints where each goes and the
+`usher/kit/calls.py retire` to run once each is routed; an id already retired is a re-send, printed and never
+refused.
