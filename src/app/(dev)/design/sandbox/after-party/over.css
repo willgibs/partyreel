@@ -1,0 +1,18 @@
+/* THE `over` QUESTION'S OWN SHEET (`over.tsx`): only the hub cover's room at a
+   hand while a row stands on its foot. Production's sheets draw everything
+   else (`event-hub-head-seam.css` the cover's foot, `room-card.css` the doors).
+
+   ★ UNLAYERED, SO IT OUTRANKS THE COVER'S OWN UTILITIES (Tailwind's, in a
+   layer), as the lab's traps say a board must. */
+
+/* ★ AT A HAND THE ROW TAKES ITS OWN ROOM, NEVER THE PHOTOGRAPH'S. The cover is
+   bottom-aligned on a 20.5rem floor, which leaves about 4.5rem of photograph
+   above the name; a row of words and keys on its foot (an offer, its receipt)
+   grew the cover from the top down, so the name met the app's bar and the
+   code's corner mark was cut by the cover's edge. While a row stands, the
+   cover keeps that 4.5rem above the name and grows by the row instead. */
+@media (width < 40rem) {
+  [data-ap-hub-head]:has([data-ap-foot]) [data-event-head] {
+    padding-top: 4.5rem;
+  }
+}

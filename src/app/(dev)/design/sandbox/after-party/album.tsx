@@ -116,12 +116,18 @@ function planRows(tiles: readonly Tile[], width: number) {
 export function Rows({
   width,
   stills = ALBUM,
+  repeat = 6,
+  mark,
 }: {
   width: number;
   /** The album's photographs, newest first (her own, under the Yours lens). */
   stills?: readonly Still[];
+  /** How many of the first stand again at the end, so the album runs past a screen; 0 for a lens's exact set. */
+  repeat?: number;
+  /** What a tile wears over its photograph (select mode's marks), by its key (`<still>-<place in the album>`). */
+  mark?: (key: string) => ReactNode;
 }) {
-  const { placed, height } = planRows(tilesOf(stills), width);
+  const { placed, height } = planRows(tilesOf(stills, repeat), width);
   return (
     <div className="relative" style={{ height }} data-ap-rows="">
       {placed.map((p) => (
@@ -138,6 +144,7 @@ export function Rows({
             className="absolute inset-0 size-full object-cover"
             style={{ objectPosition: p.tile.still.focus }}
           />
+          {mark?.(p.tile.key)}
         </div>
       ))}
     </div>
@@ -552,9 +559,14 @@ export function GuestAlbum({
   cover,
   under,
   barLead,
+  bar,
+  lens,
   stills,
+  repeat,
+  mark,
   end,
   dock,
+  foot,
   scroll = "top",
   offset = 120,
 }: {
@@ -568,12 +580,22 @@ export function GuestAlbum({
   under?: ReactNode;
   /** The bar's slot after the count. */
   barLead?: ReactNode;
+  /** The album's row turned over (select mode's bar), in the bar's place; it carries `data-ap-bar`, so a scroll finds it. */
+  bar?: ReactNode;
+  /** A line under the bar: the View menu's lens ("Showing yours"). */
+  lens?: ReactNode;
   /** The album's photographs, newest first, where an option shows other than the album's own. */
   stills?: readonly Still[];
+  /** How many of the first stand again at the end (`Rows`): 0 for a lens's exact set. */
+  repeat?: number;
+  /** What a tile wears over its photograph (`Rows`): select mode's marks. */
+  mark?: (key: string) => ReactNode;
   /** What stands at the album's end, above Report. */
   end?: ReactNode;
   /** The foot's shutter in a scrolled frame: with Add, without it, or none. */
   dock?: "add" | "look" | null;
+  /** A foot of the option's own in a scrolled frame, in the dock's place (select mode's Save). */
+  foot?: ReactNode;
   scroll?: Scroll;
   /** Scrolled into the album: how far under the frame's top its bar stands. */
   offset?: number;
@@ -592,8 +614,14 @@ export function GuestAlbum({
         <div className="w-full max-w-2xl px-5">{under}</div>
       </div>
       <div className="mt-5 px-3 sm:px-5" data-ap-album-box="">
-        <AlbumBar moment={moment} lead={barLead} />
-        <Rows width={albumWidth(w)} stills={stills} />
+        {bar ?? <AlbumBar moment={moment} lead={barLead} />}
+        {lens}
+        <Rows
+          width={albumWidth(w)}
+          stills={stills}
+          repeat={repeat}
+          mark={mark}
+        />
       </div>
       <div className="flex justify-center">
         <div className="w-full max-w-2xl px-5">
@@ -607,7 +635,9 @@ export function GuestAlbum({
       </div>
       <Report />
       {/* The dock rises once the cover's actions have gone: never beside the cover. */}
-      {scroll !== "top" && dock ? <Dock add={dock === "add"} /> : null}
+      {scroll === "top"
+        ? null
+        : (foot ?? (dock ? <Dock add={dock === "add"} /> : null))}
     </div>
   );
 }

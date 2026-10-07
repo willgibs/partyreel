@@ -122,6 +122,7 @@ export function HubHead({
   status,
   line,
   offer,
+  foot,
   corner,
   still = false,
 }: {
@@ -134,6 +135,8 @@ export function HubHead({
   line?: ReactNode;
   /** A line under her link. */
   offer?: ReactNode;
+  /** A row across the cover's foot, under the name and the code, over the strip (the whole width, a phone's too). */
+  foot?: ReactNode;
   /** The code's corner: her code on its mat where absent. */
   corner?: ReactNode;
   /** The cover held on its first photograph. */
@@ -200,6 +203,7 @@ export function HubHead({
               />
             )}
           </div>
+          {foot ? <div data-ap-foot="">{foot}</div> : null}
           <HubFactsStrip
             served={moment.album}
             arrivals={arrivalsOf(
