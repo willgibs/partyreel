@@ -1237,6 +1237,45 @@ describe("the view's own stylesheet", () => {
       expect(sheet, name).toContain(`.${name}`);
     }
   });
+
+  /**
+   * ★ THE KEYBOARD'S WRAP FINDS ITS EDGES BY WHAT IS HIDDEN (red-team 56b's LOW: Tab stopped moving at "Make your own"). The
+   * view is a Radix dialog, whose focus scope wraps Tab from its last tabbable to its first and finds the last by
+   * `visibility` and `display`, never by `inert`; the bar stands after the dock's controls, so while the dock was up the
+   * bar (inert, still visible) was the scope's last, Tab on "Make your own" was no edge, and the scope put focus back.
+   * jsdom draws no stylesheet, so what is held is the rule: the content that is away is `visibility: hidden` (after its
+   * fade, so nothing pops), and the keys' real walk is walked in a browser.
+   */
+  it("★ hides the dock's controls at rest and the bar while the dock is up, so the focus scope's last tabbable is one she can reach", () => {
+    const sheet = read("live-reel.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const rule = (selector: string) =>
+      sheet.match(
+        new RegExp(`${selector.replace(/[[\]".]/g, "\\$&")}\\s*\\{([^}]*)\\}`),
+      )?.[1] ?? "";
+    for (const selector of [
+      '.lr-pane[data-state="rest"] .lr-dock-content',
+      '.lr-pane[data-state="up"] .lr-bar-content',
+    ]) {
+      const body = rule(selector);
+      expect(body, `${selector} was not found`).not.toBe("");
+      expect(body, selector).toMatch(/visibility:\s*hidden/);
+      // Hidden once its fade has run (the transition's fourth property, `visibility`, waits the opacity's 160ms).
+      expect(body, selector).toMatch(
+        /transition-delay:\s*0s,\s*0s,\s*0s,\s*160ms/,
+      );
+    }
+    // And visible again at once when it returns: the base rule says `visibility` takes no time.
+    expect(rule(".lr-bar-content,\n.lr-dock-content")).toMatch(
+      /visibility 0s linear 0s/,
+    );
+  });
+
+  it("★ gives the timeline's Hide the controls the house's halo, like every other control in the dock", () => {
+    renderView();
+    const hide = screen.getByRole("button", { name: "Hide the controls" });
+    expect(hide).toHaveClass("focus-halo");
+    expect(hide).toHaveClass("outline-none");
+  });
 });
 
 /**

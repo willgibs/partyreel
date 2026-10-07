@@ -71,6 +71,17 @@ export type AsGuestEvent = Pick<
   | "develops_at"
 >;
 
+/**
+ * The cover's counts, as a guest's are counted (the album's approved total, THE ONE COUNT of guests), and what the album
+ * holds by kind where the server could say it (`getGalleryStats`'s `kinds`, the guest page's own `stats.kinds`): the cover's
+ * count says "12 photos" from the first byte instead of "12 photos & videos" until the live album has told (crumbs-74).
+ */
+export type AsGuestStats = {
+  approvedTotal: number;
+  guestCount: number;
+  kinds?: { photos: number; videos: number } | null;
+};
+
 const noop = () => {};
 
 /**
@@ -111,7 +122,7 @@ export function AsGuestView({
   galleryPromise: Promise<GalleryPayload>;
   /** The order a guest's album opens in (`readAsGuest`'s, the guest page's own answer); absent, newest first. */
   albumOrder?: GuestAlbumOrder;
-  stats: { approvedTotal: number; guestCount: number };
+  stats: AsGuestStats;
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
   shut: boolean;
@@ -196,7 +207,7 @@ function AlbumAsGuest({
   joinUrl: string;
   galleryPromise: Promise<GalleryPayload>;
   albumOrder: GuestAlbumOrder | undefined;
-  stats: { approvedTotal: number; guestCount: number };
+  stats: AsGuestStats;
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
   waitingOnArrival: boolean;
@@ -211,6 +222,10 @@ function AlbumAsGuest({
   const [bridge] = useState(createHeadBridge);
   // The header's numbers, live off the guests' own source as the guest page keeps them.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
+  // ★ WHAT THAT COUNT SAYS IT HOLDS (`albumCountWords`, crumbs-61 and crumbs-74): the live source tells it with each count
+  // ("12 photos"), and until it has the cover says it from the server's own count of the kinds (`stats.kinds`) through the
+  // same function, as the guest page's cover does, so the first paint and the live album agree.
+  const [mediaWords, setMediaWords] = useState<string | null>(null);
   const [guestCount, setGuestCount] = useState(stats.guestCount);
   const { sentinelRef, inView: rowInView } =
     useInViewSentinel<HTMLDivElement>();
@@ -298,6 +313,10 @@ function AlbumAsGuest({
           endDate={event.event_end_date}
           description={event.description}
           mediaCount={mediaCount}
+          mediaWords={mediaWords ?? undefined}
+          // Named from the first byte, where this view's album is a full one (always: it reads as a guest past every
+          // step of the door), so the first paint's words and the live album's never flash.
+          mediaKinds={stats.kinds ?? null}
           guestCount={guestCount}
           actionsRef={sentinelRef}
           actions={
@@ -363,6 +382,7 @@ function AlbumAsGuest({
               sessionToken={null}
               approvedTotal={stats.approvedTotal}
               onCountChange={setMediaCount}
+              onCountWordsChange={setMediaWords}
               onGuestCountChange={setGuestCount}
             >
               <AlbumWaitSource

@@ -18,6 +18,7 @@ import { DoorHeading, type DoorHead } from "@/components/guest/door/heading";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { withCreateIntent } from "@/app/(auth)/auth/callback/existing-account";
 import { doorFailure, type DoorFailureKind } from "@/lib/auth/door-failure";
 import {
   forgetRememberedDoor,
@@ -238,6 +239,13 @@ export function AccountDoor({
   children?: React.ReactNode;
 }) {
   const copy = DOOR_WEAR[wear];
+  // ★ THE CREATE DOOR'S LINK SAYS SO (crumbs-88): the code's "already had" line is said in this page, and a tapped link or
+  // Google's round trip leaves it, so the Create account door marks the address they return to and the callback asks the
+  // server's test there (`existing-account.ts`). The host's `/login` door alone: the guests' doors return to an album.
+  const redirectTo =
+    intent === "create" && wear === "login"
+      ? withCreateIntent(emailRedirectTo)
+      : emailRedirectTo;
   const [step, setStep] = useState<Step>({ k: "methods" });
   const [failure, setFailure] = useState<DoorFailureKind | null>(
     initialFailure,
@@ -353,7 +361,7 @@ export function AccountDoor({
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: emailRedirectTo,
+        redirectTo,
         // ★ NEVER AN AUTO SIGN-IN. A hinted press names the account and still
         // goes through Google's chooser, so a shared laptop cannot be signed in
         // by one press from someone else's session (his `return=tap`, flagged).
@@ -398,10 +406,7 @@ export function AccountDoor({
     <EarlyPressButton
       type="button"
       variant={variant}
-      className={cn(
-        "w-full",
-        buttonClassName,
-      )}
+      className={cn("w-full", buttonClassName)}
       onClick={() => void signInWithGoogle(loginHint)}
       disabled={busy}
     >
@@ -525,10 +530,7 @@ export function AccountDoor({
             <Button
               type="button"
               size="lg"
-              className={cn(
-                "w-full",
-                buttonClassName,
-              )}
+              className={cn("w-full", buttonClassName)}
               onClick={() => void signInWithPasskey()}
               disabled={busy}
             >
@@ -543,7 +545,7 @@ export function AccountDoor({
           </>
         )}
         <EmailSignIn
-          emailRedirectTo={emailRedirectTo}
+          emailRedirectTo={redirectTo}
           hintEmail={hint}
           inputClassName={inputClassName}
           buttonClassName={buttonClassName}

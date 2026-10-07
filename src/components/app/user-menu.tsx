@@ -213,10 +213,16 @@ export function UserMenu({
               banner. #plan is the id on /account's Plan card, which is billing's
               home (his `doors` note: no dedicated page unless it earns one). */}
           <DropdownMenuItem asChild>
-            <Link href="/account#plan">
+            {/* ★ ONE LINE AT EVERY WIDTH (crumbs-88): the menu is 224px by a phone's measurement (above), and "Plan and
+                storage" beside "Event Pass", the longest of the plans' names, was five pixels over what its 200px row holds,
+                so the row shrank both and wrapped them to two lines each (at the 14px menu text and the 12px caption's
+                62px for the name). Nothing wraps now, and the plan's name is one step smaller (11px, the site's own small
+                label) so the row fits (a pixel to spare for the plan's longest name): a row that fits is the row, where a
+                wider menu would cost the theme picker its room at 375. */}
+            <Link href="/account#plan" className="whitespace-nowrap">
               <CreditCard /> Plan and storage
               {planName ? (
-                <span className="ml-auto text-xs font-normal text-muted-foreground">
+                <span className="ml-auto shrink-0 text-[11px] font-normal text-muted-foreground">
                   {planName}
                 </span>
               ) : null}

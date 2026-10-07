@@ -8,8 +8,13 @@ import {
 } from "@/lib/guest/album-return";
 import type { ClaimResult } from "@/lib/guest/claim-uploads";
 import {
+  TOLD_NAME_COOKIE,
+  toldNameValue,
+} from "@/app/(auth)/adopt-door-name-told";
+import {
   lastClaimPlayedMoment,
   onConfirmBeat,
+  recordMomentPlayed,
   type ConfirmBeat,
 } from "@/lib/guest/confirm-beat";
 
@@ -48,11 +53,20 @@ function hear(result: ClaimResult) {
 const beats: ConfirmBeat[] = [];
 let stopBeats: () => void = () => {};
 
+/** The cookie the callback leaves for the album a tapped link lands on (`adopt-door-name-told.ts`). */
+const leaveToldName = (album: string, name: string) => {
+  document.cookie = `${TOLD_NAME_COOKIE}=${encodeURIComponent(toldNameValue(album, name))}; Path=/`;
+};
+const heldToldName = () => document.cookie.includes(`${TOLD_NAME_COOKIE}=`);
+
 beforeEach(() => {
   vi.clearAllMocks();
   claim.mockImplementation(async () => null);
   listeners.clear();
   localStorage.clear();
+  document.cookie = `${TOLD_NAME_COOKIE}=; Max-Age=0; Path=/`;
+  // The module remembers, per album, whether the last claim played the moment: a page load starts it clean.
+  for (const album of ["album-1", "album-2"]) recordMomentPlayed(album, false);
   beats.length = 0;
   stopBeats();
   stopBeats = onConfirmBeat((beat) => beats.push(beat));
@@ -167,6 +181,72 @@ describe("useConfirmReturn", () => {
       await Promise.resolve();
     });
     expect(beats).toEqual([]);
+  });
+
+  /**
+   * ★ A CONFIRMATION BY THE EMAILED LINK IS TOLD THE NAME ITS CALLBACK ADOPTED (crumbs-88): the link leaves the page, so the
+   * name typed at the door was adopted on the server and the album is a fresh load; the callback leaves it in a cookie bound
+   * to this album, and the mount's beat carries it (the page then says "You're on as ..." with its Change, as the in-page
+   * confirm does). It is the link's word, not the claim's: a link opened on another device holds no ticket, so its claim is null.
+   */
+  it("★ tells the name the link adopted even where the claim carried nothing (another device holds no ticket), once", async () => {
+    leaveToldName("album-1", "Priya");
+    renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() =>
+      expect(beats).toEqual([
+        { album: "album-1", name: "Priya", elsewhere: 0 },
+      ]),
+    );
+    // Spent by the read: a reload of the album says nothing more.
+    expect(heldToldName()).toBe(false);
+  });
+
+  it("tells the name with what the claim carried elsewhere, as one beat", async () => {
+    leaveToldName("album-1", "Priya");
+    claim.mockImplementation(async () => {
+      const result = { album: "album-1", here: 0, elsewhere: 3 };
+      for (const listener of listeners) listener(result);
+      return result;
+    });
+    renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() =>
+      expect(beats).toEqual([
+        { album: "album-1", name: "Priya", elsewhere: 3 },
+      ]),
+    );
+  });
+
+  it("★ says nothing where the follow moment plays (its card tells the name), and still spends the cookie", async () => {
+    leaveToldName("album-1", "Priya");
+    markPendingOffer("album-1");
+    claim.mockImplementation(async () => {
+      const result = { album: "album-1", here: 2, elsewhere: 0 };
+      for (const listener of listeners) listener(result);
+      return result;
+    });
+    const { result } = renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() => expect(result.current.moment).toBe(true));
+    expect(beats).toEqual([]);
+    expect(heldToldName()).toBe(false);
+  });
+
+  it("★ tells nothing for a name left for another album, and leaves that cookie to its own two minutes", async () => {
+    leaveToldName("album-2", "Priya");
+    renderHook(() => useConfirmReturn("album-1", true));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(beats).toEqual([]);
+    expect(heldToldName()).toBe(true);
+  });
+
+  it("tells a remount's name once: only the live mount takes it", async () => {
+    leaveToldName("album-1", "Priya");
+    const first = renderHook(() => useConfirmReturn("album-1", true));
+    first.unmount();
+    renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() => expect(beats).toHaveLength(1));
+    expect(beats[0]).toMatchObject({ name: "Priya" });
   });
 
   it("ignores a claim made for another album", () => {

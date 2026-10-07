@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  TOLD_NAME_COOKIE,
+  toldNameFrom,
+} from "@/app/(auth)/adopt-door-name-told";
 import { formatCount } from "@/lib/format/count";
 import { CLAIMED_TOAST } from "@/lib/guest/claim-uploads";
 import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
@@ -27,6 +31,12 @@ import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
  *     name here, then another address confirmed: `claimLeftForAnotherAddress`), the toast says where
  *     they are and how to keep them, and tells no name: the told name waits for a claim that moves
  *     her photos here (crumbs-24, shared-claims' second Question).
+ *
+ * ★ A CONFIRMATION BY THE EMAILED LINK IS THE SAME BEAT (crumbs-88): the link leaves the page, so the callback adopts the
+ * name typed at the door on the server (`adopt-door-name.ts`) and the album she lands on is a fresh load that heard none of
+ * it. The callback leaves the name her photographs now carry in a short-lived cookie bound to that album
+ * (`adopt-door-name-told.ts`), `takeToldName` spends it on the album's mount, and the mount reports the beat with it
+ * (`use-confirm-return.ts`), so she is told the name and offered its Change, as the in-page confirm does.
  *
  * The page (`event-experience.tsx`) is the one place the toast is said: every door reports its
  * beat here and the page decides when (the door's own `pending`) and whether (the moment already
@@ -201,6 +211,27 @@ export function mergeConfirmBeats(
     elsewhere: Math.max(a.elsewhere, b.elsewhere),
     settle: Boolean(a.settle || b.settle) || undefined,
   };
+}
+
+/**
+ * ★ THE NAME A TAPPED LINK ADOPTED FOR THIS ALBUM, TAKEN ONCE (crumbs-88): what the callback left in its cookie for the
+ * album it landed on, or null (no cookie, one left for another album, one that fails the name's own check). The read spends
+ * it, so a reload says nothing more; a cookie for another album is left to its own two minutes. Storage that throws is no name.
+ */
+export function takeToldName(qrToken: string): string | null {
+  try {
+    const raw = document.cookie
+      .split("; ")
+      .find((part) => part.startsWith(`${TOLD_NAME_COOKIE}=`))
+      ?.slice(TOLD_NAME_COOKIE.length + 1);
+    const name = toldNameFrom(raw, qrToken);
+    if (name) {
+      document.cookie = `${TOLD_NAME_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`;
+    }
+    return name;
+  } catch {
+    return null;
+  }
 }
 
 /** The name this device typed at this album, read once (the per-event key a join wrote). */

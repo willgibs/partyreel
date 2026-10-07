@@ -45,8 +45,9 @@
 -- partial index builds over zero rows (every key is NULL) under a SHARE lock for no time at all.
 --
 -- APPLY PROTOCOL (database-security.md -> Workflow):
---   (0) ★ APPLY BEFORE THE ALIAS BUILD THAT CARRIES THE LANE: its Create reads the column to ask for the key's event and
---       inserts it (PostgREST refuses an unknown column on either, 42703 and PGRST204: Create down without it). The build
+--   (0) APPLY BEFORE THE ALIAS BUILD THAT CARRIES THE LANE, so its retry is protected from its first Create. The order is not
+--       load-bearing: a build that arrives first reads the key's column, is answered 42703, and makes the event keyless
+--       (said once a Create in Sentry, "events.create_key is missing"), never down (`eventUnderKey`'s `missing`). The build
 --       before it needs nothing and is never harmed.
 --   (1) drift, read-only: no `create_key` column on events, and no index named `events_host_create_key_unique`.
 --   (2) the rolled-back check at the foot: red on today's schema (0 fixtures green; 1 to 9 red, the column missing; 10 holds
@@ -54,8 +55,9 @@
 --       block (all eleven rows ok); then apply verbatim.
 --   (3) get_advisors, EXPECTED DELTA: none (no function, table or policy).
 --   (4) regenerate src/lib/db/types.ts (events.create_key), then retire the typed seam the lane names in its handoff
---       (src/lib/db/mutations/events.ts: `CREATE_KEY`, the filter's name spelled as a column the types know, and the
---       `Object.assign` that puts the key on the insert; both become the plain column).
+--       (src/lib/db/mutations/events.ts: `CREATE_KEY`, the filter's name spelled as a column the types know, the
+--       `Object.assign` that puts the key on the insert, and `eventUnderKey`'s 42703 branch: the first two become the plain
+--       column, the last goes, since the column then always exists).
 -- =============================================================================================
 
 -- =============================================================================================

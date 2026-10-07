@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,6 +19,8 @@ const live = vi.hoisted(() => ({
   provider: [] as unknown[],
   gallery: [] as unknown[],
   wait: [] as unknown[],
+  /** What the cover was handed, each render. */
+  cover: [] as Record<string, unknown>[],
   /** What the guests' live source says is waiting in the album (`GuestFullSync.waiting`), or null before it has a word. */
   waiting: null as { count: number } | null,
 }));
@@ -43,21 +45,21 @@ vi.mock("@/components/guest/gallery-empty-state-wait", () => ({
   AlbumWait: () => <div data-testid="wait" />,
 }));
 vi.mock("@/components/guest/event-experience-head", () => ({
-  AlbumCover: ({
-    name,
-    actions,
-    eyebrow,
-  }: {
+  AlbumCover: (props: {
     name: string;
     actions: ReactNode;
     eyebrow?: ReactNode;
-  }) => (
-    <section data-testid="cover">
-      {eyebrow ? <p data-testid="eyebrow">{eyebrow}</p> : null}
-      <h1>{name}</h1>
-      {actions}
-    </section>
-  ),
+  }) => {
+    live.cover.push(props);
+    const { name, actions, eyebrow } = props;
+    return (
+      <section data-testid="cover">
+        {eyebrow ? <p data-testid="eyebrow">{eyebrow}</p> : null}
+        <h1>{name}</h1>
+        {actions}
+      </section>
+    );
+  },
   CoverGround: () => null,
   createHeadBridge: () => ({
     get: () => null,
@@ -142,6 +144,7 @@ beforeEach(() => {
   live.provider.length = 0;
   live.gallery.length = 0;
   live.wait.length = 0;
+  live.cover.length = 0;
   live.waiting = null;
 });
 
@@ -240,6 +243,51 @@ describe("what a guest meets, as it stands", () => {
     ).toBeInTheDocument();
     expect(screen.queryByTestId("album")).toBeNull();
     expect(live.provider).toHaveLength(0);
+  });
+});
+
+/* THE COUNT NAMES WHAT THE ALBUM HOLDS, AS THE GUEST'S FIRST PAINT DOES (crumbs-74 on the guest page, crumbs-88 here): the
+   cover's count is "12 photos" from the first byte, from the server's own count of the kinds (`stats.kinds`), and the live
+   album's own words once it has told, both through the one function (`albumCountWords`, the cover's); this view never
+   handed the cover either, so its count read "12 photos & videos" over twelve photographs. */
+describe("★ the cover's count names its kinds, as the guest page's does", () => {
+  const cover = () => live.cover.at(-1)!;
+  const provider = () =>
+    live.provider.at(-1) as { onCountWordsChange: (words: string) => void };
+
+  it("hands the cover the server's own count of the kinds from the first render", () => {
+    view({
+      stats: {
+        approvedTotal: 12,
+        guestCount: 4,
+        kinds: { photos: 12, videos: 0 },
+      },
+    });
+    expect(cover()).toMatchObject({
+      mediaCount: 12,
+      mediaKinds: { photos: 12, videos: 0 },
+    });
+    // The live album has told nothing yet: the words are the kinds', not a told string.
+    expect(cover().mediaWords).toBeUndefined();
+  });
+
+  it("names none where the server could not count them (the cover then says both nouns, as it always did)", () => {
+    view({ stats: { approvedTotal: 12, guestCount: 4 } });
+    expect(cover().mediaKinds).toBeNull();
+    view({ stats: { approvedTotal: 12, guestCount: 4, kinds: null } });
+    expect(cover().mediaKinds).toBeNull();
+  });
+
+  it("★ takes the live album's own words once it has told, so the first paint and the live source never disagree", () => {
+    view({
+      stats: {
+        approvedTotal: 12,
+        guestCount: 4,
+        kinds: { photos: 12, videos: 0 },
+      },
+    });
+    act(() => provider().onCountWordsChange("13 photos & videos"));
+    expect(cover().mediaWords).toBe("13 photos & videos");
   });
 });
 

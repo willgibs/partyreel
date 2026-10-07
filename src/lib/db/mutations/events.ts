@@ -158,16 +158,26 @@ const CREATE_KEY = "create_key" as "id";
 
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
+// Postgres undefined_column: what a filter on a column the schema does not hold yet answers.
+const UNDEFINED_COLUMN = "42703";
+
 /**
  * THE EVENT A CREATE'S KEY ALREADY NAMES, HERS ALONE (`events_host_create_key_unique`: at most one a host). The filter on
  * `host_id` is her own id beside RLS's, for the index's own sake. A read that fails is `read: false`, never "no event":
  * a Create that cannot tell whether its first try landed must not make a second.
+ *
+ * ★ EXCEPT A BUILD AHEAD OF ITS MIGRATION (`missing`): the column not being in the schema yet is the one failure that
+ * says the first try could not have been keyed, so Create must not go down with it (it is the host's whole product, and
+ * the apply is the Orchestrator's, after a deploy that may come first). It makes the event it always made, keyless, and says
+ * so where failures are read; THE TYPED SEAM's other half, retired with the apply.
  */
 async function eventUnderKey(
   supabase: ServerClient,
   hostId: string,
   key: string,
-): Promise<{ read: true; event: EventRow | null } | { read: false }> {
+): Promise<
+  { read: true; event: EventRow | null } | { read: false; missing: boolean }
+> {
   const { data, error } = await supabase
     .from("events")
     .select("*")
@@ -175,8 +185,16 @@ async function eventUnderKey(
     .eq(CREATE_KEY, key)
     .maybeSingle();
   if (error) {
+    if (error.code === UNDEFINED_COLUMN) {
+      captureWarning(
+        "db",
+        "events.create_key is missing: a Create ran without its key (the migration is not applied)",
+        { seam: "create_key_read" },
+      );
+      return { read: false, missing: true };
+    }
     captureError("db", error, { seam: "create_key_read" });
-    return { read: false };
+    return { read: false, missing: false };
   }
   return { read: true, event: data };
 }
@@ -213,8 +231,11 @@ export async function createEvent(
   let key = attempt;
   if (key) {
     const prior = await eventUnderKey(supabase, user.id, key);
-    if (!prior.read) return CREATE_FAILED;
-    if (prior.event) {
+    if (!prior.read) {
+      // Not knowing is a failure (a second event is worse), but a schema with no key's column says it could not have one.
+      if (!prior.missing) return CREATE_FAILED;
+      key = undefined;
+    } else if (prior.event) {
       if (prior.event.deleted_at === null)
         return { ok: true, data: prior.event };
       key = undefined;

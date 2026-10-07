@@ -19,9 +19,10 @@ import { createEventSchema } from "@/lib/validation/event";
 
 vi.mock("server-only", () => ({}));
 const captureError = vi.hoisted(() => vi.fn());
+const captureWarning = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observability/sentry", () => ({
   captureError,
-  captureWarning: vi.fn(),
+  captureWarning,
 }));
 
 type Row = Record<string, unknown>;
@@ -123,6 +124,7 @@ beforeEach(() => {
   db.readError = null;
   db.onInsert = null;
   captureError.mockClear();
+  captureWarning.mockClear();
 });
 
 describe("a retry whose first try landed", () => {
@@ -242,6 +244,26 @@ describe("a read that fails", () => {
     expect(captureError).toHaveBeenCalledWith("db", expect.anything(), {
       seam: "create_key_read",
     });
+  });
+});
+
+describe("a build ahead of its migration (the key's column is not in the schema yet)", () => {
+  it("★ makes the event it always made, keyless, and says so where failures are read: Create is never down for want of the column", async () => {
+    db.readError = {
+      at: 1,
+      code: "42703",
+      message: "column events.create_key does not exist",
+    };
+    const result = await createEvent(VALUES, KEY);
+    expect(result).toMatchObject({ ok: true, data: { id: "evt-new" } });
+    expect(db.inserts).toHaveLength(1);
+    // The column is unknown to the database: the insert must not name it either.
+    expect(db.inserts[0]).not.toHaveProperty("create_key");
+    expect(captureWarning).toHaveBeenCalledWith(
+      "db",
+      expect.stringContaining("create_key is missing"),
+      expect.anything(),
+    );
   });
 });
 

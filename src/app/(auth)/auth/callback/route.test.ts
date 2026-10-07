@@ -20,7 +20,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   exchange: vi.fn(),
-  adoptDoorName: vi.fn(async () => undefined),
+  adoptDoorName: vi.fn(async (): Promise<string | null> => null),
+  checkExistingAccount: vi.fn(async () => ({ existing: false, email: "" })),
+  captureError: vi.fn(),
   syncBillingEmail: vi.fn(async () => ({ status: "updated" })),
   afterCallbacks: [] as (() => unknown)[],
   adminHost: false,
@@ -39,6 +41,12 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/app/(auth)/adopt-door-name", () => ({
   adoptDoorName: state.adoptDoorName,
+}));
+vi.mock("@/app/(auth)/actions", () => ({
+  checkExistingAccount: state.checkExistingAccount,
+}));
+vi.mock("@/lib/observability/sentry", () => ({
+  captureError: state.captureError,
 }));
 vi.mock("@/lib/stripe/customer-email", () => ({
   syncBillingEmail: state.syncBillingEmail,
@@ -92,7 +100,11 @@ const DEAD = {
 
 beforeEach(() => {
   state.exchange.mockReset();
-  state.adoptDoorName.mockClear();
+  state.adoptDoorName.mockReset();
+  state.adoptDoorName.mockResolvedValue(null);
+  state.checkExistingAccount.mockReset();
+  state.checkExistingAccount.mockResolvedValue({ existing: false, email: "" });
+  state.captureError.mockClear();
   state.syncBillingEmail.mockClear();
   state.afterCallbacks = [];
   state.adminHost = false;
@@ -184,6 +196,141 @@ describe("a sign-in link", () => {
       "/login?error=google_failed",
     );
     expect(landing(await get(``))).toBe("/login?error=expired_link");
+  });
+});
+
+/**
+ * ★ A LINK THAT SIGNS CREATE ACCOUNT INTO AN ADDRESS THAT ALREADY HAD ONE SAYS SO (crumbs-88; Will's `existing=tell`): the code
+ * says it in the door, and a tapped link (or Google) leaves the page, so the Create door marks the address it returns to
+ * (`intent=create`, the door's own word and never an answer) and the callback asks the server's test AFTER the exchange, about
+ * the caller's own row, and lands the dashboard marked. What fails silently: a mark that makes the callback ask for a link that
+ * is not Create's (a profile read for every sign-in), an answer before the address is proven (an enumeration oracle), a line
+ * on a landing that cannot draw it, and a sign-in that fails because the line's own test did.
+ */
+describe("a Create account link into an address that already had an account", () => {
+  const yes = { existing: true, email: "host@example.com" };
+
+  it("★ lands the dashboard marked, so the one line is drawn where the code would have said it", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.checkExistingAccount.mockResolvedValue(yes);
+    expect(landing(await get(`?intent=create&code=abc`))).toBe(
+      "/dashboard?signed_in=existing",
+    );
+    expect(state.checkExistingAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it("lands a new account's Create link on the plain dashboard, as it always did", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    expect(landing(await get(`?intent=create&code=abc`))).toBe("/dashboard");
+    expect(state.checkExistingAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ asks nothing of a link that did not come from the Create door: no mark, another mark, or a mark in other words", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.checkExistingAccount.mockResolvedValue(yes);
+    for (const query of [
+      `?code=abc`,
+      `?intent=signin&code=abc`,
+      `?intent=CREATE&code=abc`,
+      `?intent=&code=abc`,
+      `?create=1&code=abc`,
+    ]) {
+      expect(landing(await get(query)), query).toBe("/dashboard");
+    }
+    expect(state.checkExistingAccount).not.toHaveBeenCalled();
+  });
+
+  it("★ never draws the line on a landing that cannot: a page a gate sent her back to, or an album", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.checkExistingAccount.mockResolvedValue(yes);
+    expect(landing(await get(`?intent=create&next=/account&code=abc`))).toBe(
+      "/account",
+    );
+    expect(landing(await get(`?intent=create&next=/e/qr-token&code=abc`))).toBe(
+      "/e/qr-token",
+    );
+    expect(
+      landing(await get(`?intent=create&next=/dashboard/new&code=abc`)),
+    ).toBe("/dashboard/new");
+    expect(state.checkExistingAccount).not.toHaveBeenCalled();
+  });
+
+  it("★ is never said before the address is proven: a failed exchange asks nothing and is the expired link", async () => {
+    state.exchange.mockResolvedValue(DEAD);
+    state.checkExistingAccount.mockResolvedValue(yes);
+    expect(landing(await get(`?intent=create&code=abc`))).toBe(
+      "/login?error=expired_link",
+    );
+    // And no code at all asks nothing either: there is no session whose row could be read.
+    expect(landing(await get(`?intent=create`))).toBe(
+      "/login?error=expired_link",
+    );
+    expect(state.checkExistingAccount).not.toHaveBeenCalled();
+  });
+
+  it("★ is never the reason a sign-in fails: a test that throws is silence, and says so where failures are read", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.checkExistingAccount.mockRejectedValue(new Error("db down"));
+    expect(landing(await get(`?intent=create&code=abc`))).toBe("/dashboard");
+    expect(state.captureError).toHaveBeenCalledWith(
+      "account",
+      expect.any(Error),
+      { step: "existing_account" },
+    );
+  });
+
+  it("never draws it for the portal: the admin host lands in /admin whatever the mark says", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.checkExistingAccount.mockResolvedValue(yes);
+    state.adminHost = true;
+    expect(landing(await get(`?intent=create&code=abc`))).toBe("/admin");
+    expect(state.checkExistingAccount).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ A GUEST'S LINK LEAVES THE NAME HER PHOTOGRAPHS CARRY FOR THE ALBUM TO TELL (crumbs-88): the page the link lands on is a
+ * fresh load, so the callback leaves what `adoptDoorName` returned in a short-lived cookie bound to that album (never a query:
+ * a name is a person's own), and the album's mount takes it (`confirm-beat.ts`). What fails silently: a cookie for a landing
+ * that is no album, a name left for the wrong album, one that lives for ever, and a name said when none was adopted.
+ */
+describe("a guest's link tells the album the name it adopted", () => {
+  const toldCookie = (res: Response) =>
+    res.headers.getSetCookie().find((line) => line.startsWith("pr_told_name="));
+  const valueOf = (line: string) =>
+    JSON.parse(decodeURIComponent(line.split(";")[0]!.split("=")[1]!)) as {
+      a: string;
+      n: string;
+    };
+
+  it("★ leaves the adopted name for the album it lands on, for two minutes, on the whole site", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.adoptDoorName.mockResolvedValue("Priya");
+    const res = await get(`?next=/e/qr-token&code=abc`);
+    expect(landing(res)).toBe("/e/qr-token");
+    const line = toldCookie(res)!;
+    expect(valueOf(line)).toEqual({ a: "qr-token", n: "Priya" });
+    expect(line).toMatch(/Max-Age=120/i);
+    expect(line).toMatch(/Path=\//);
+    expect(line).toMatch(/SameSite=lax/i);
+    // https here, so the cookie is secure; it is never httpOnly, since the album's page is what reads it.
+    expect(line).toMatch(/Secure/i);
+    expect(line).not.toMatch(/HttpOnly/i);
+  });
+
+  it("leaves nothing where no name was adopted (none typed, none fit, a failure)", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.adoptDoorName.mockResolvedValue(null);
+    expect(toldCookie(await get(`?next=/e/qr-token&code=abc`))).toBeUndefined();
+  });
+
+  it("leaves nothing for a landing that is no album, and nothing when the exchange failed", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.adoptDoorName.mockResolvedValue("Priya");
+    expect(toldCookie(await get(`?code=abc`))).toBeUndefined();
+    expect(toldCookie(await get(`?next=/u/maya&code=abc`))).toBeUndefined();
+    state.exchange.mockResolvedValue(DEAD);
+    expect(toldCookie(await get(`?next=/e/qr-token&code=abc`))).toBeUndefined();
   });
 });
 
