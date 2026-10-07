@@ -469,7 +469,9 @@ export function LookPanel({
         <PopupHeader
           title={name}
           description={
-            pages.added ? `${addedWords(pages.added)} in this album` : " "
+            pages.added
+              ? `${addedWords(pages.added)} in this album`
+              : "In this album"
           }
         />
         <PopupBody className="space-y-3">

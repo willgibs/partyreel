@@ -404,7 +404,8 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   let her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks
   leave At the door, the dashboard and the bell.
 - ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists are
-  the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it whenever
+  the service role's, and a confirmed guest's address and what each person added re-prove the host inside their own
+  reads, `guest-addresses.ts` and `guest-look.ts`). The hub's render reads it whenever
   the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place; the panel
   draws the newer of the two, and a read that fails says so with Try again, never an empty room. ★ A sealed album's list
   is empty while its roll is shot (a guest joins it at the develop), so the read carries `waiting`, the shots the seal
@@ -413,10 +414,21 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   who waits at the door first, then "N shots developing" while the list is empty only for the seal, else the guests),
   from `countWaitingGuestShots`, which the hub reads only while a develop time is ahead (`hubCovered`), after
   `getEvent`, and never worth the page (a failed read leaves the guests' count, captured).
-- **The Guests room's At the door** heads it: Let in (`let_in_at_door`) opens her door on every device, and her held
-  door opens by itself at its next check-in (at Only me the toast says she meets the album closed instead). ★ Decline
-  is a block (the account where there is one, else the row), so a declined newcomer meets the one shut screen and
-  cannot keep re-asking. Her ask stands under the block, so the way back answers it: Let in, on the decline's own
+- **Every person in the room is one calm row** (guests-room r1, `rows=list`: a face, the name, one line of how they
+  stand, at most one act at its end; `guests/room-rows.tsx`), and every name opens the person's card (`card=standing`,
+  [profiles-social.md](profiles-social.md)), which for the host adds how they stand tonight and its act. The guests who
+  added lead with what they added as a column, who added most first (the one count heads them, GUESTS), eight then a
+  page of 24; the read's `added` is each listed person's approved, visible uploads by kind and since when, counted on
+  her own RLS read with the tickets grouped as the one count groups them. ★ Someone past the door with nothing the
+  album shows (let in at the door, or joined and added nothing) is no guest by the one count, so the head leaves them
+  out, but the room holds them in a quiet fold at the guests' foot (`quiet`) until a photograph of theirs lands. The
+  room reads the host's own relations among the people it lists (`readHostRelations`) for the card's Follow.
+- **The Guests room's At the door** heads it, its count in the tally (`--needs-you`, the hub's Guests card's light):
+  each row's one act is Let in (`let_in_at_door`), which opens her door on every device, and her held door opens by
+  itself at its next check-in (at Only me the toast says she meets the album closed instead). ★ Decline lives in her
+  card (the name opens it, Decline beside Let in and what a decline is), so each row keeps one act; Decline is a block
+  (the account where there is one, else the row), so a declined newcomer meets the one shut screen and cannot keep
+  re-asking. Her ask stands under the block, so the way back answers it: Let in, on the decline's own
   toast and on her Blocked row, lifts the block and lets her in on every device she asked from in one call
   (`let_back_in`'s `p_let_in`, 20261007020000; one press on the row unless a restore can be chosen or the album is Only
   me, whose confirm says so first). A newcomer whose ask ended (a password) gets Let back in, and its words say where she
@@ -433,7 +445,8 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   room's main action while it is empty: the event's code card, sending nothing. ★ A list nobody is on, under a door
   that is not the list, sleeps: one quiet line says what the list does and what wakes it (`ui/dormant.tsx`, no field,
   the door's page one link away), and a list that holds addresses stays awake under any door, since they are hers to
-  see and to remove.
+  see and to remove. Its rows lead with who has not joined, each beside an empty seat, and the joined fold into one
+  row that opens them with the face the room holds for each.
 
 ## Moderation and curation (host side)
 
