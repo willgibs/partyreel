@@ -1,6 +1,12 @@
 "use client";
 
-import { useOptimistic, useState, useTransition, type ReactNode } from "react";
+import {
+  useEffect,
+  useOptimistic,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import {
   ShieldOff,
   UserCheck,
@@ -17,6 +23,11 @@ import {
   unfollowProfileAction,
   type ProfileActionResult,
 } from "@/app/(guest)/u/[slug]/actions";
+import {
+  FirstFollowLine,
+  useFirstFollowScope,
+} from "@/components/social/first-follow-line";
+import { followWords } from "@/components/social/private-line";
 import { Button } from "@/components/ui/button";
 import {
   Popup,
@@ -54,7 +65,12 @@ import { cn } from "@/lib/utils";
  *   - ★ A FLIP THAT NEVER ANSWERED SPRINGS BACK TOO. A Server Function that cannot be reached (offline,
  *     a dropped connection) rejects, and a rejection inside a transition goes to the page's error
  *     boundary: she lost the screen she was on over a press that can simply be made again. It is a
- *     refusal like any other now, one toast, the control back where it was.
+ *     refusal like any other now, one toast, the control back where it was;
+ *   - ★ HER FIRST FOLLOW SAYS, ONCE, THAT ONLY SHE SEES WHO SHE FOLLOWS (`account-moments` r2, `follow=once`). The
+ *     Server Function answers `first` when her list was empty before the press (it reads that itself, so every device
+ *     and every seat alike); the control then draws the private line beside the button, announces it, and takes it away
+ *     the moment she unfollows or presses again. Every follow after is the button alone, so the thousandth is quiet.
+ *     A surface that already says it (Connections stands the line on its list) turns it off with `privateLine={false}`.
  *
  * The faces: `RelationToggle` is the button (the profile's Follow, the quieter Follow beside an
  * album, the blocked well's Unblock, the Connections card's rows), and the profile menu's Block row
@@ -112,6 +128,8 @@ export type RelationState = {
   press: () => void;
   /** The ask for a block, bound to this relation: render it where it outlives a menu. Null for a follow. */
   ask: ReactNode;
+  /** A follow just landed that was her first (the Server Function says so), and it still stands: the private line's cue. */
+  first: boolean;
 };
 
 /**
@@ -149,8 +167,11 @@ export function useRelation({
   }
   const [shown, setShown] = useOptimistic(settled);
   const [asking, setAsking] = useState(false);
+  // The follow that landed was her first. Cleared by the next press, so a re-follow never shows the last one's line.
+  const [first, setFirst] = useState(false);
 
   function flip(next: boolean) {
+    setFirst(false);
     startTransition(async () => {
       setShown(next);
       let result: RelationResult;
@@ -164,6 +185,7 @@ export function useRelation({
         return;
       }
       setSettled(next);
+      setFirst(next && result.first === true);
       onSettle?.(next);
     });
   }
@@ -182,6 +204,7 @@ export function useRelation({
     on: shown,
     pending,
     press,
+    first: first && shown,
     ask:
       relation === "block" ? (
         <BlockConfirm
@@ -261,11 +284,12 @@ export function RelationToggle({
   size,
   act,
   onSettle,
+  privateLine = true,
 }: {
   relation: Relation;
   profileId: string;
   on: boolean;
-  /** Their name, for a block's ask. */
+  /** Their name: for a block's ask, and for the line a first follow says ("Maya just sees one more follower"). */
   person?: string | null;
   /** Whom the button names, where nothing beside it does ("Follow Tom"). */
   label?: string;
@@ -281,6 +305,11 @@ export function RelationToggle({
   act?: RelationAct;
   /** A flip landed: the answer, for a surface that keeps the relation itself (`useRelation`). */
   onSettle?: (on: boolean) => void;
+  /**
+   * Whether her first follow says, once, that only she sees who she follows. A surface that stands the line itself
+   * (Connections, on the list it is about) turns it off; Block never says it.
+   */
+  privateLine?: boolean;
 }) {
   const state = useRelation({
     relation,
@@ -290,9 +319,20 @@ export function RelationToggle({
     act,
     onSettle,
   });
+  const scope = useFirstFollowScope();
+  // The line stands while her first follow does. Its words name the person where this seat or its page knows them.
+  const standing = relation === "follow" && privateLine && state.first;
+  const words = standing ? followWords(scope?.name ?? person ?? label) : "";
+  // A page that draws the line under its head (the scope) is told when it stands; every other seat draws it here.
+  const say = scope?.say;
+  useEffect(() => {
+    if (!say) return;
+    say(standing);
+    return () => say(false);
+  }, [say, standing]);
   const face = RELATION_FACE[relation][state.on ? "on" : "off"];
   const Icon = face.icon;
-  const words = label ? `${face.label} ${label}` : face.label;
+  const faceWords = label ? `${face.label} ${label}` : face.label;
   const variant = quiet
     ? "ghost"
     : relation === "follow"
@@ -311,16 +351,25 @@ export function RelationToggle({
         size={size ?? (quiet ? "sm" : "default")}
         onClick={state.press}
         aria-pressed={relation === "follow" ? state.on : undefined}
-        aria-label={srLabel ? `${words} ${srLabel}` : undefined}
+        aria-label={srLabel ? `${faceWords} ${srLabel}` : undefined}
         aria-busy={state.pending || undefined}
         data-relation={relation}
         data-on={state.on}
         className={cn(quiet && "text-muted-foreground")}
       >
         <Icon />
-        {words}
+        {faceWords}
       </Button>
       {state.ask}
+      {relation === "follow" && privateLine ? (
+        // ★ THE ANNOUNCEMENT STANDS BEFORE ITS WORDS: a live region added with its text is announced unreliably, so this
+        // one is always here, out of the layout (it takes no gap, no cell, no flex item), and holds the words once they
+        // are true. The line the eye sees (`aria-hidden`) is not read twice.
+        <span role="status" className="sr-only">
+          {words}
+        </span>
+      ) : null}
+      {standing && !scope ? <FirstFollowLine words={words} /> : null}
     </>
   );
 }
