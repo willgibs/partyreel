@@ -17,10 +17,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ## Immediate
 
-### Platform, data and cost
-
-- Docs: a prune pass over `PRICING.md`, `systems/billing-caps.md`, `systems/reel.md` and `PRD.md` by CLAUDE.md's "Keeping the docs healthy" (docs-prune counted about 92 history and restatement lines there on 2026-10-04, never applied) (scratch-synthesis).
-
 ### Security and abuse
 
 - Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
@@ -41,6 +37,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
 - Album: an album tile shows no keyboard focus: its open button's `focus-halo halo-inset` is an inset shadow painted under the button's own photograph (`shared/album-tile.tsx`); carry the halo on an overlay that wears `data-halo` while the button holds the keyboard's focus, as the guests-room board's strip `Tile` does (guests-room r1).
 - Share: a photo link's `og:image:width` and `og:image:height` declare the original's dimensions, not the 480x640 preview it serves (red-team 57b, NIT).
+- Album: the failure sheet offers Retry on a roll refusal (`upload-refusal.ts` has no `roll_spent` case, so `retryCanPass` is true): Retry both and each row's Retry over shots the roll refuses again, under a Not now that promises a later go; class it as the file's own (no Retry, "Take another to add one."), as the camera already does (`shots.ts:121`) (no-signal r1).
+- Album: the send's toast ("Your photo joined Maya's album.") fires beside the failure sheet at one run's end (`useSendToast`'s `quiet` leaves the sheet out), a "joined" over "2 of 3 didn't upload"; quiet it while the sheet stands, or let the sheet say what joined (no-signal r1).
 
 ### Accounts and profiles
 
@@ -73,7 +71,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### The lab and the kit
 
 - The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 24.5 calls a step against its budget of 9 (milestone 39's run, 2026-10-07; 182.8 on 2026-10-05): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
-- The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
 - The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
 
 ### Code hygiene
@@ -105,6 +102,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - Legal-hold evidence under `preservation/` has no backup copy (the Worker copies `events/` only, `MEDIA_PREFIX`); decide whether a year of held evidence needs a second one.
 - Vercel / Next.js optimization: one `getUser()` a request: a route handler misses React's `cache()`, so a signed-in album request asks Auth twice (`events/album-viewer.server.ts:74,99`; PRICING.md lever 3).
 - Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`; since `upload_sums` the rename carries `host_storage_walk`'s OUT column, `storage_sums_drift`'s comparison and the `standby_bytes` keys of its answer, and `rebuild_storage_sums`' before and after (with whatever reads them, the storage sums' signal lane included).
+- Docs: a prune pass over `PRICING.md`, `systems/billing-caps.md`, `systems/reel.md` and `PRD.md` by CLAUDE.md's "Keeping the docs healthy" (docs-prune counted about 92 history and restatement lines there on 2026-10-04, never applied) (scratch-synthesis).
 
 ### Security and abuse
 
@@ -159,6 +157,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Door: a camera-only Disposable's welcome says "Add your photos and videos in seconds." where its guests only use the album's camera; and the door page's hidden summaries (Private, Only people already in) say uploads are paused while they are open, a screen-reader check (app-gaps-r1).
 - Lab exploration: the album after its party, the gap audit's highest design gap: a phase-aware album (live, then keepsake: its title, a card carrying its photographs, Add receding), the host's morning-after recap (Share, Make a clip, Download), a guest-to-host bridge into Create carrying this album's style, an anniversary; one card family for every shared link (`/e/[token]/card` draws the name alone) (app-gaps-r1).
 - Lab exploration: presence r2, the guest row where r1 did not reach (a photograph's credit in the viewer, the reel's closing credits, the host's dashboard stage on the party's day), and a person's seed as the light of her own page before her first photograph, after account-moments r2's invitation (presence r1).
+- Lab exploration: a guest's own "what happened to my photos" across albums (her sends, what landed, what waits, what was refused and why), after no-signal's carry is wired; and the install board's new reason (a home-screen album is exempt from Safari's 7-day eviction and can be granted `persist()`) (no-signal r1).
 
 ### Accounts and profiles
 
@@ -277,6 +276,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
 - The lab: a portalled frame's `IntersectionObserver` (the hub's cards row) watches the lab's viewport rather than the frame's, so the row reads stuck whenever its frame leaves the lab's screen (a beyond-viewport capture flips it); a `FrameWindow` observer shim, or a line in `traps.ts` (create-wizard r5).
 - The lab: at 375, once an option is picked, a step's dock wraps "Not clear to me" onto a row of its own under the note field, on every board (presence r1).
+- The lab: retire `/design/lab/proposals` and its `status.ts`; the `docs/specs` it renders is gone (a board's argument lives in its `spec.ts`).
+- The lab: at 375 a step of three phones stands at about 29%, its bottom third empty and a few pixels' words unreadable; stack or swipe a step's frames at a phone's width (no-signal r1).
 
 ### Code hygiene
 
