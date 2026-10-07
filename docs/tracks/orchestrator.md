@@ -49,6 +49,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | `crumbs-89` | milestone 39's last MEDIUM at its source (the database remembering her names-only door, its migration `20261007140000_email_first_memory.sql`), the door page's consequence line, Settings' rows after a load, dormant's tap band; then red-team 57c re-walks exactly these | RUNNING (from 11:58Z) | Opus, 3131 | `a02926c18b226cb2f` |
 | `after-party-r1` | board (desk place 12), the gap audit's highest design gap: what an album becomes once its party is over, for a returning guest, a shared link and the host the morning after | RUNNING (from 11:05Z) | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
+| `crumbs-90` | the guest's send and album: Immediate's upload and album lines (a hung complete, the heal beside a Retry, a HEIC with no preview, the failure sheet beside the toast and a roll's refusal, a tile's focus, a photo link's image size, two dead arms); merges after 39 and crumbs-88 | RUNNING (from 13:40Z) | Opus, 3132 | `a792a2c5719fc2ca0` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q43 answered (each APPLY, each applied); the next migration's read goes to it.
@@ -96,9 +97,10 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
    asks for by name; `node usher/kit/vercel-usage.mjs` before any.
 8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, `get_usage`
    read at every cut, and nothing new started when the window would run out before its reset, so the account rolls
-   into about 99% at the reset and the session goes on in context. At 07:59Z the window read 48% (it resets 11:10Z)
-   with three boards running, so a new lane waits for a board's handoff or the reset; weekly 33% (resets 2026-10-13
-   21:00Z). Who does the work: the runbook's "Working with Will" (a lane for focus; small in-context work the
+   into about 99% at the reset and the session goes on in context. At 13:36Z the window read 34% (it resets 16:10Z)
+   with three lanes; ★ weekly 52% only 16 hours into this account's week (it resets 2026-10-13 21:00Z), so at this
+   pace it runs out around 2026-10-08 06:00Z: keep the handoff block current for the next account's seat, and tell
+   Will. Who does the work: the runbook's "Working with Will" (a lane for focus; small in-context work the
    Orchestrator's own).
 
 ## Waiting on Will
