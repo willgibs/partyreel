@@ -48,6 +48,7 @@ of the app's gaps:
 | `account-moments-r2` | board round 2: what a follow says when it lands (first time and steady state), the invitation on her page redrawn beautiful and inviting | RUNNING (cut at `3dde5801`) | Opus, 3135 | `a7f3f3204bbc5d747` |
 | `create-wizard-r5` | board round 5: Create's close as the payoff of a made event (the code's share as the one next step, the hub's first arrival), the styles' previews, perhaps a kind of event | RUNNING (cut at `6d216dd9`) | Opus, 3133 | `a6a93a37363af5099` |
 | `redteam-57` | the walk before milestone 39 on the desk build `b1e219f26` (refreshed 06:46Z, DESK READY): both waves since milestone 38 and the storage sums' signal; its brief `../partyreel-wt/_scratch/redteam-57/brief.md`; it also moves the lanes' seven disposable test events to Deleted | RUNNING (from 06:47Z) | Opus, its own headless Chrome (never Will's) | `a4ff00e0ff54750d0` |
+| `guests-room-r1` | board (desk place 42): the Guests room's person rows and a person's card, polished from Will's let-back note, on the room as wired | RUNNING (cut at `2dd9fe79`) | Opus, 3132 | `a89956235b6492e91` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session,
 spawned 2026-10-07 for Q40 (camera-wiring's `reshoots`: three CREATE OR REPLACE, the ceiling the roll plus 3, the
