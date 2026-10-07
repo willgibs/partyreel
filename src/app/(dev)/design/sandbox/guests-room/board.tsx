@@ -1,7 +1,5 @@
 "use client";
 
-import "./guests-room.css";
-
 import {
   type BoardState,
   ExplorationBoard,
