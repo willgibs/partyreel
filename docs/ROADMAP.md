@@ -68,6 +68,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
 - Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
+- Design: the dashboard's waiting marks (`dashboard/marks.tsx`, `events-row-list.tsx`, `event-card.tsx`) and Review's own section count (`event-feed/review-section.tsx`) still wear the waiting amber; a count that waits on her wears `--needs-you` now (event-header-wiring-2).
 
 ### Marketing and content
 
@@ -182,6 +183,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: an album's Deleted (`recently-deleted-grid.tsx`) restores and purges one item at a time; give it a Restore all and an Empty for that album (the storage chart's Empty Deleted takes every album's at once).
 - Host: no setting links to its help article (only the user menu, the 404 and the error screen reach `/help`); deep-link Settings' pages (`event-settings/*-page.tsx`) through `lib/content/help-links.ts`.
 - Create: Upgrade from Create's held limit or the cap door leaves through Checkout to `/dashboard` (`returnTo`), so the name, style and look she chose are gone; bring her back to `/dashboard/new` with the draft kept (create-wizard-wiring).
+- Lab exploration: the hub's head as event-header's boards drew it since r2 (the when as one quiet line over the name, the link under the code) where production keeps date, guests, views and Live under the title with the link under it; whether that drawing should be wired (event-header-wiring-2's board idea).
 
 ### Admin and operations
 
@@ -196,9 +198,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Design: the room display's caption step reads `--faint` at 3.88:1 on a held row (AA wants L 0.722, against `--display-muted`'s 0.77, so a third step would stop being one): a fourth grey, or a caption that never stands on the step (a11y-halo).
 - Design: red-team 56's "Select shrinks over 150 ms" did not reproduce on the atom (an outline key reads `scale: 0.96` in a press's first frame); walk the album toolbar's own Select (`event-feed/gallery-actions.tsx`) (identity-r5-wiring). [unsure: not re-walked on the toolbar's own Select since identity-r5-wiring]
-- Design: the Seam's edge sampler as production code (each still's bottom edge read at upload, at the cover's crop per width, stored with the still), once Will's event-header r6 pick is wired; the board's runtime read (`sandbox/event-header/edge.ts`) is its reference (event-header-r6).
 - Design: production's footer (`.surface-ink`) already is Aperture's black footer; lighting its top edge from the page's photographs is the cheapest first wiring, whichever take wins (brand-r2).
-- Design: the hub code's corner count (`EventCodeDoor`) still wears the retired waiting amber; Afterglow's standby point and its word would replace it (brand r2 or its wiring) (event-header-r5).
 - Design: a press on the stage's chooser moves the old lead into This week or the list with no sign of where it went; a short shared-element move would say it (crumbs-82).
 - Design: Crystal's lip and hairline compose through Tailwind's inset slots, so a glass round keeps them under the halo (the halo replaces its `box-shadow` while it holds focus, as the old ring did) (identity-wiring).
 - Design: a quick layer that scrolls itself (the Display menu's popover, a long dropdown) scrolls an inner body, so its light stays whole when scrolled (identity-wiring).
@@ -217,6 +217,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design system: 120 `text-[10px]` sites (78 outside the lab) spell the micro size by hand; move them onto the `text-micro` token (`app/theme.css`), which also carries its own line height and tracking.
 - Design system: about 30 `bg-muted/N` set-apart grounds in marketing (`git grep 'bg-muted/' src/components/marketing 'src/app/(marketing)'`) become sections wearing `.surface-mat`, which `globals.css` declares and nothing wears yet.
 - Design: the help center's pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; draw them on `floatingDisplayPanel`, the display the real menus wear.
+- Design: the hub's folded band brings its code pill in without the fold when the cover's code leaves the screen after the band has stuck (its sentinel reports a beat later), so it pops in; fold it in on its own arrival (event-header-wiring-2).
 
 ### Marketing and content
 
@@ -259,6 +260,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: marketing-themes (desk 6, the brand applied): N4 the privacy page's lens (its clear spots a touch stronger than drawn, the moving pane slipping under the words between rests; its photograph is ASSETS 38), N7 the FAQ (bold headings a screen reader can list; the footer's FAQ link staying on the page only on pricing), N9 the album page's hero (two photo streams handing over in turn, a photograph every 1.9 s).
 - Lab exploration: the aurora that answers, for desk 6's aurora board: light answering a real signal rather than looping: the Add's ring with libraries.dev's voice-glow envelope (quick to rise, slow to settle, an idle breath), a glow under the album camera's frame while a clip rolls (its mic is open, and a refused mic films silence), transitions.dev's gradient word re-keyed to the five lamps as the aurora's ink on paper, never on small badges.
 - Library: Create's room specimen never fails (its stand-in always makes the event), so the held beat is pressed nowhere in the lab; a stand-in that fails once (`create-room-demo.tsx`) draws it (create-wizard-wiring).
+- Library: the hub-cover specimen (`HubCoverDemo`) draws the cover without its row, so the foot's clearance for the cards reads as an empty band; draw it with the row, as `HubBandDemo` does (event-header-wiring-2).
 
 ### Code hygiene
 

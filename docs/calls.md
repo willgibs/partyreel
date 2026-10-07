@@ -1180,3 +1180,28 @@ to the question.
 
 **CA5. The code holds still across the wait, the hold and the arrival,** where the board's held frame let it drop.
 - *Push back if* the plate should make room for the words.
+
+## CB. The hub's cards, the light made right (event-header-wiring-2)
+
+Your event-header r6 picks are in production: the Seam as Afterglow draws it, each count a badge on its glyph's
+shoulder where it needs you, and one "needs you" colour (the camera's red) on the badges, the pills and the code's
+corner. These are the calls built into them, yours to overrule.
+
+**CB1. The light's colours are read in the browser, off the cover's previews,** never stored at upload: the cover's
+crop changes with its width, so a stored colour would be one crop's guess (at most six small reads a hub view, no
+server cost).
+- *Push back if* the colour should be computed once at upload instead.
+
+**CB2. Before a photograph is read the Seam stays unlit,** then the light arrives once; a cover with no photograph
+wears the house's dusk.
+- *Push back if* the light should show a guess at once.
+
+**CB3. From 640 to 800 px a folded pill is its glyph and its badge,** its word joining from 800, since the board's
+pills would run an upright iPad's band off its edges.
+- *Push back if* the pills should keep their words and scroll.
+
+**CB4. No light follows the pointer and no card lifts on hover,** since the Seam is the screen's one light.
+- *Push back if* a card should answer the pointer.
+
+**CB5. A tablet's tile line truncates from 640 to 739 px,** the whole line kept in the card's name.
+- *Push back if* the tile should wrap instead.

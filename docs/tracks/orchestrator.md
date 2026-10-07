@@ -34,7 +34,7 @@ of the app's gaps:
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `event-header-wiring-2` | event-header r6 wired: the Seam as corrected, shoulder badges, one "needs you" token (tally) for badges, pills and the code's corner; retires the board | RUNNING | Opus, 3131 | `a7804ee4f7918a72c` |
+| `event-header-wiring-2` | event-header r6 wired: the Seam as corrected (its colours read at runtime off the cover previews), shoulder badges, `--needs-you` (tally) for badges, pills and the code's corner | MERGED at `273a911ac` (gate 58 green); the board and its ledger retired; calls in the lab's CB; test event to delete through Settings: willg97's `6ab7f2fa-9600-4256-90c6-32a2ad9b7e6f`; its Seam idea for the guest cover passed to signature-r1; pruned | Opus, 3131 | `a7804ee4f7918a72c` |
 | `host-moments-wiring` | password's two groups at the field, Let in for a declined newcomer (migration `20261007020000_let_in.sql`), the banner's number and one key, the plan's line on the size list | RUNNING | Opus, 3132 | `a8058c7c922d55e9a` |
 | `camera-wiring` | tell's consequence line, the fresh-roll panel, a flat 3 re-shoots (migration `20261007021000_reshoots.sql`, `create_media`'s ceiling), the reel's take-back | RUNNING | Opus, 3133 | `a23d9b0f7dc57c8d5` |
 | `album-moments-wiring` | her photo glows as everyone's, the send's done toast (the Orchestrator's call), a batch settling whole, the reel opening on its still | RUNNING | Opus, 3134 | `ab30d4c8edd82e500` |
