@@ -76,6 +76,8 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   abuseHashes: () => ({ ipHash: "ip", scopeHash: "scope" }),
+  // The guest's own presign budget (crumbs-91), keyed on her ticket: under its line here, so the presign is today's.
+  sessionAbuseHashes: () => ({ ipHash: "session", scopeHash: "scope" }),
   checkAbuseRate: vi.fn(async () => ({ allowed: true })),
   recordAbuseEvent: vi.fn(async () => undefined),
 }));

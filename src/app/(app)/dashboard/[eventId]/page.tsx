@@ -302,7 +302,7 @@ export default async function EventDetailPage({
   ]);
   const seed = seedFrom(event.id, plan, links);
   // The album's density step, painted from the cookie (`album-columns` r2: one
-  // index shared by host and guest, a legacy width mapped across), and the
+  // index shared by host and guest, anything else the default), and the
   // visit's seed for the rows' rhythm, dealt here so the first paint holds it.
   const rowStep = resolveRowStep(jar.get(TILE_SIZE_COOKIE)?.value);
   const rhythmSeed = dealVisitSeed();
@@ -553,6 +553,7 @@ export default async function EventDetailPage({
                   initialStep={rowStep}
                   tier={tier}
                   develop={develop}
+                  acceptingUploads={event.accepting_uploads}
                 >
                   <EventUploads
                     eventId={event.id}

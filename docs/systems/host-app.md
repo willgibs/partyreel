@@ -34,17 +34,16 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   returns the event the host already made under it (`events.create_key`: unique per host, written at birth and never
   after, read by no RPC and no guest), so a Try again after a lost answer is never a second event spending a Free host's
   one. The match is read before the insert and again when the insert is refused; a deleted match (its key stays taken)
-  and a database without the column each make a keyless event, the second said to Sentry. Only the name is required;
-  everything else is edited in Settings (below). The look step's codes are samples and say so on the code: they encode
-  `previewJoinUrl`'s stand-in link, as long as a real one so the look is true, and it names nobody's album, so a
-  test-scan meets a 404.
+  makes a keyless event. Only the name is required; everything else is edited in Settings (below). The look step's
+  codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in link, as long as a real one so the
+  look is true, and it names nobody's album, so a test-scan meets a 404.
 - ★ **The party keeps its own time zone, captured, never asked** (`events.time_zone`, `lib/event/zone.ts`): Create sends
   her browser's zone (`captured_zone`, every style), and the server stores it only where its runtime reads it (an
   unreadable one is stored as none and reported, never a refused Create); a Settings save of a time (the dates, the
   develop) carries hers to an event with none, written only under `time_zone is null`, so a date saved from anywhere
-  never moves a party's zone. Only her chosen city moves it (`time_zone`, refused in words if unreadable). Its album's
-  turn and its develop's 9 am read it ([guest-flow.md](guest-flow.md), [disposable-mode.md](disposable-mode.md)); a
-  host who never travels never sees it.
+  never moves a party's zone. Only her chosen city moves it (`time_zone`, refused in words if unreadable). Its develop's
+  9 am and a far party's times read it, never its album's order ([guest-flow.md](guest-flow.md),
+  [disposable-mode.md](disposable-mode.md)); a host who never travels never sees it.
 - **The room is `fixed` over the (app) shell, whose bar steps aside in CSS** (`data-app-room` on the room, read by the
   header's `group-has-[[data-app-room]]/shell:hidden`, since a page cannot hand its layout a prop), so nothing of the
   app waits in the tab order behind Create.
@@ -84,12 +83,13 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   the one primitive for a consequential switch. ★ Letting each person in and the invite list hold it on
   (`events_gate_needs_email`), because both key on a confirmed address, and the switch says why. ★ **A gate that lets
   go gives her names-only back, on every path:** the event remembers a hold (`events.email_held`, written only by the
-  `events_email_held` trigger on a change of `gate`: an address gate that turns the step on from off sets it, any
-  other gate gives names-only back and clears it), so every door move, the password's first set and every device give
-  it back, said from the save's own answer (`set_event_door`'s `email_restored`), never from a later read of the hub;
-  a move from one address gate to the other keeps the first hold's memory, and her own step on before any gate is
-  never touched. The door page says what an address gate asks of the guests in by name before the move. What each side
-  means for a guest, and its enforcement, is [guest-flow.md](guest-flow.md)'s.
+  `events_email_held` trigger on a write of `gate` or of the step: an address gate that turns the step on from off
+  sets it, any other gate gives names-only back and clears it, and her own write of the step clears it, so her word
+  from a page loaded before the hold stands when the gate goes), so every door move, the password's first set and
+  every device give it back, said from the save's own answer (`set_event_door`'s `email_restored`), never from a later
+  read of the hub; a move from one address gate to the other keeps the first hold's memory, and her own step on before
+  any gate is never touched. The door page says what an address gate asks of the guests in by name before the move.
+  What each side means for a guest, and its enforcement, is [guest-flow.md](guest-flow.md)'s.
 - **"A photo first"** (`require_upload_to_view`, off by default, free on every tier) holds the full album until one of
   the guest's own uploads completes, and confirms on its ON edge (`confirmWhen`), the direction that asks something of
   guests. What counts and why it fails open are [guest-flow.md](guest-flow.md)'s; its one read is the service-role-only

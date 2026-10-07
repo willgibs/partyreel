@@ -4,7 +4,15 @@
  * nothing else asks; Develop now while a time waits; a develop time picked in her own zone, within reach, and saved only
  * when it is plainly meant (crumbs-60: the last describe).
  */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PICK_SETTLE_MS } from "@/components/app/event-settings/camera-settings-finish";
@@ -1070,7 +1078,7 @@ describe("★ a party far from home: its clock, its place named", () => {
     });
   });
 
-  it("★ a develop offered is the party's 9 am the morning after, the morning its album turns", () => {
+  it("★ a develop offered is the party's 9 am the morning after, one morning for every guest", () => {
     hostIn("America/Los_Angeles");
     const onSave = mountFar({ capture: "upload" }, MX);
     fireEvent.click(radio("At a develop time"));
@@ -1088,5 +1096,145 @@ describe("★ a party far from home: its clock, its place named", () => {
       screen.getByText(`Develops ${developTimeWords(MX_MORNING)}.`),
     ).toBeInTheDocument();
     expect(screen.queryByText(/in Mexico City/)).toBeNull();
+  });
+});
+
+/* ★ THE CARDS FROM THE KEYBOARD (crumbs-91, red-team 57b's NIT: every card was a Tab stop of its own and the arrows did
+   nothing). The album styles and Customize's two answers are each one radio group (`radio-cards.tsx`): one stop for its
+   cards, the arrows between them choosing as a press does, so a change that asks first only asks; while a save is on its
+   way the cards not chosen wait and the arrows pass them; and the develop time's keys stay the field's. */
+describe("★ the cards from the keyboard: one stop a group, the arrows between its cards", () => {
+  /**
+   * An arrow held down, as a finger holds a key (`add-step.test.tsx`'s): the group moves focus a tick after the keydown,
+   * and a card is chosen by a focus that arrives while an arrow is down.
+   */
+  async function arrow(user: UserEvent, key: string, lands: () => HTMLElement) {
+    await user.keyboard(`{${key}>}`);
+    await waitFor(() => expect(lands()).toHaveFocus());
+    await user.keyboard(`{/${key}}`);
+  }
+
+  /** An arrow where it must move nothing: held past the tick a group would move on, then let go. */
+  async function arrowStays(user: UserEvent, key: string) {
+    await user.keyboard(`{${key}>}`);
+    await new Promise((r) => setTimeout(r, 30));
+    await user.keyboard(`{/${key}}`);
+  }
+
+  it("★ the album styles are one stop: Tab reaches the album's own, and the next leaves them", async () => {
+    const user = userEvent.setup();
+    mountStyles({ capture: "camera", developsAt: AHEAD });
+    await user.tab();
+    expect(style(/^Disposable\./)).toHaveFocus();
+    // Past the styles: the develop time, the first stop of the album's card.
+    await user.tab();
+    expect(developField()).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(style(/^Disposable\./)).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(document.body).toHaveFocus();
+  });
+
+  it("★ an arrow chooses a style as a press does: one save of all three columns", async () => {
+    const user = userEvent.setup();
+    const onSave = mountStyles();
+    act(() => style(/^Live\./).focus());
+    await arrow(user, "ArrowDown", () => style(/^Review\./));
+    expect(onSave).toHaveBeenLastCalledWith({
+      capture: "upload",
+      review: true,
+      developsAt: null,
+    });
+  });
+
+  it("★ an arrow onto a style that asks first only asks: leaving a develop still ahead", async () => {
+    const user = userEvent.setup();
+    const onSave = mountStyles({ capture: "camera", developsAt: AHEAD });
+    act(() => style(/^Disposable\./).focus());
+    // Round from the last style to the first.
+    await arrow(user, "ArrowDown", () => style(/^Live\./));
+    expect(
+      screen.getByText("Every photo added so far shows now, to every guest."),
+    ).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+    expect(style(/^Live\./)).toHaveAttribute("aria-checked", "false");
+    expect(style(/^Disposable\./)).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("while a save is on its way the styles not chosen wait: the arrows pass them, staying on the album's own", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    render(
+      <AlbumStyles
+        value={{ capture: "upload", review: false, developsAt: null }}
+        rollSize={null}
+        eventDate={null}
+        heldCount={0}
+        savingCapture
+        savingReveal={false}
+        onSave={onSave}
+      />,
+    );
+    expect(style(/^Review\./)).toBeDisabled();
+    expect(style(/^Disposable\./)).toBeDisabled();
+    act(() => style(/^Live\./).focus());
+    for (const key of ["ArrowDown", "ArrowUp"]) {
+      await arrowStays(user, key);
+      expect(style(/^Live\./)).toHaveFocus();
+    }
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("★ Customize's two answers are one stop each, and an arrow chooses as a press does", async () => {
+    const user = userEvent.setup();
+    const onSave = mount();
+    await user.tab();
+    expect(radio("Free uploads")).toHaveFocus();
+    await user.tab();
+    expect(radio("Right away")).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(radio("Free uploads")).toHaveFocus();
+    await arrow(user, "ArrowDown", () => radio("The album's camera"));
+    expect(onSave).toHaveBeenLastCalledWith({ capture: "camera" });
+    act(() => radio("Right away").focus());
+    await arrow(user, "ArrowDown", () => radio("Once you approve each"));
+    expect(onSave).toHaveBeenLastCalledWith({ review: true, developsAt: null });
+  });
+
+  it("★ an arrow onto an answer that asks first only asks: leaving approval with photos held", async () => {
+    const user = userEvent.setup();
+    const onSave = mount({ review: true }, 2);
+    act(() => radio("Once you approve each").focus());
+    await arrow(user, "ArrowUp", () => radio("Right away"));
+    expect(
+      screen.getByText(
+        "2 photos under review are approved and show to everyone now.",
+      ),
+    ).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+    expect(radio("Right away")).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("★ the develop time's own keys stay the field's: its arrows never move the answers", async () => {
+    const user = userEvent.setup();
+    const onSave = mount({ developsAt: AHEAD });
+    const field = developField();
+    const developNow = screen.getByRole("button", { name: "Develop now" });
+    // The card's own controls follow its radio, each a stop of its own.
+    act(() => radio("At a develop time").focus());
+    await user.tab();
+    expect(field).toHaveFocus();
+    await user.tab();
+    expect(developNow).toHaveFocus();
+    for (const control of [field, developNow]) {
+      act(() => control.focus());
+      for (const key of ["ArrowDown", "ArrowUp"]) {
+        await arrowStays(user, key);
+        expect(control).toHaveFocus();
+      }
+    }
+    expect(onSave).not.toHaveBeenCalled();
+    expect(radio("At a develop time")).toHaveAttribute("aria-checked", "true");
+    expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
   });
 });

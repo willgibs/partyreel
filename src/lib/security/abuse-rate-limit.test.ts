@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { liveFunction } from "@/lib/db/testing/migrations";
+import { MAX_BURST_FILES } from "@/lib/upload/burst";
+
 import { ABUSE_LIMITS, abuseRateDecision } from "./abuse-rate-limit";
 
 describe("abuseRateDecision", () => {
@@ -86,6 +89,38 @@ describe("abuseRateDecision", () => {
         ABUSE_LIMITS.reel_clip_add.scopeMax - 1,
       ).allowed,
     ).toBe(true);
+  });
+
+  it("★ presign: a guest's own hour of files, its line at the edge, breadth disabled", () => {
+    // A week's trip roll sent at once is a few hundred: it never meets the line.
+    expect(abuseRateDecision("presign", 1, 500).allowed).toBe(true);
+    // The edge: under the line a burst goes (counted whole as it asks); at it, the next is refused, the hour quoted.
+    expect(abuseRateDecision("presign", 1, 999).allowed).toBe(true);
+    expect(abuseRateDecision("presign", 1, 1_000)).toEqual({
+      allowed: false,
+      retryAfterSec: 3600,
+    });
+    expect(ABUSE_LIMITS.presign.scopeWindowMin).toBe(60);
+    // One ticket is one album, and a venue's guests share one address: breadth is never the signal here.
+    expect(ABUSE_LIMITS.presign.breadthMax).toBe(Infinity);
+    expect(abuseRateDecision("presign", 9999, 0).allowed).toBe(true);
+  });
+
+  it("★ presign: its line is at most a twentieth of the host's hourly breaker, so spending it takes twenty tickets", () => {
+    // The breaker this kind exists for, read from its one home: the winning `meter_upload`, an account's uploads a
+    // clock hour across every album of the host's. Lower it, or raise the line, and one ticket spends a bigger share
+    // of every other guest's hour: this fails and says so.
+    const breaker = Number(
+      liveFunction("meter_upload").code.match(
+        /c_uploads_an_hour constant integer := (\d+);/,
+      )?.[1],
+    );
+    expect(breaker).toBeGreaterThan(0);
+    expect(ABUSE_LIMITS.presign.scopeMax * 20).toBeLessThanOrEqual(breaker);
+    // A burst counted whole at the line takes one ticket at most a burst past it, still nowhere near the breaker.
+    expect(ABUSE_LIMITS.presign.scopeMax + MAX_BURST_FILES - 1).toBeLessThan(
+      breaker / 10,
+    );
   });
 
   it("contact + careers: per-IP only, and tight enough to protect the email quota", () => {

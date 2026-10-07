@@ -37,9 +37,9 @@ function browserZones(): readonly string[] {
 
 /**
  * THE PARTY'S TIME ZONE, ONE QUIET CHOICE (event-zone, a party far from home): the party keeps its own zone, captured
- * from its host's browser, so every guest's album turns at 9 am the morning after in it and a develop defaults to that
- * same 9 am. A host planning a destination party from home names its city here, under its dates, and nowhere else
- * (never in Create).
+ * from its host's browser, so a develop defaults to 9 am the morning after in it, one morning for every guest, and a
+ * far party's develop time is said on its own clock. A host planning a destination party from home names its city
+ * here, under its dates, and nowhere else (never in Create).
  *
  * ★ A HOST WHO NEVER TRAVELS NEVER SEES A ZONE: where the party's zone is her own, the row offers one quiet question and
  * names no zone; only a party on another clock says whose ("On Mexico City time"), with the clock there now.

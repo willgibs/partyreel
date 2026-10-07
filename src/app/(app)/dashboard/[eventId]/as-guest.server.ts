@@ -59,8 +59,9 @@ export type AsGuestRead = {
   /** The album's first paint, streamed: the guests' own seed, laid in the order a guest's album opens in. */
   galleryPromise: Promise<GallerySeed>;
   /**
-   * The order a guest's album opens in (album-order, event-zone): the guest page's own answer, its turn read in the
-   * party's zone and handed on as an instant, so the view lays the album as a guest who never chose meets it.
+   * The order a guest's album opens in (album-order, AY1): the guest page's own answer, read off the album's state (in
+   * order once she closes adding or its develop has come), so the view lays the album as a guest who never chose meets
+   * it.
    */
   albumOrder: GuestAlbumOrder;
   /**
@@ -135,17 +136,15 @@ export async function readAsGuest(
   // ★ ONLY ME SHUTS EVERYONE BUT HER: no guest is let in to read, so a guest's view is the shut door.
   const shut = event.door === "private";
   const decision = letInGuestDecision(event);
-  // ★ THE ORDER A GUEST'S ALBUM OPENS IN (album-order, event-zone; the ROADMAP's "hands LiveGallery no order"): the
-  // guest page's own answer, its turn at 9 am the morning after in the party's zone (her row's own, read through RLS
-  // above), so after the turn she sees the night in order as every guest does. Nobody here chose an order, so the
-  // turn's own is the one shown, and the seed links the first paint of it.
+  // ★ THE ORDER A GUEST'S ALBUM OPENS IN (album-order, AY1; the ROADMAP's "hands LiveGallery no order"): the guest
+  // page's own answer, read off the album's state as the door's re-read gives it, so once she closes adding (or its
+  // develop has come) she sees the night in order as every guest does. Nobody here chose an order, so the album's own
+  // is the one shown, and the seed links the first paint of it.
   const albumOrder = guestAlbumOrder({
     facts: {
-      eventDate: event.event_date,
-      eventEndDate: event.event_end_date ?? null,
+      acceptingUploads: event.accepting_uploads,
       developsAt: event.develops_at ?? null,
     },
-    zone: hosted.time_zone,
     chosen: null,
   });
   const galleryPromise = shut

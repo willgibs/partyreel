@@ -2,9 +2,9 @@
  * Server-only store for the abuse rate-limiter. Reads/writes the deny-all `action_attempts` table via the
  * service-role admin client; the breadth COUNT(DISTINCT) runs in the `action_rate` SECURITY DEFINER RPC
  * (PostgREST can't COUNT DISTINCT). Privacy: stores ONLY HMAC hashes keyed by UNLOCK_COOKIE_SECRET (the
- * existing rate-limit hashing secret) — never a raw IP, qr_token or user id. See `abuse-rate-limit.ts` for
- * the design + the per-kind thresholds; the guest routes wire it (and fail OPEN on any error), and the
- * account kinds go through `checkAccountAbuseRate` below (which fails CLOSED).
+ * existing rate-limit hashing secret) — never a raw IP, qr_token, session token or user id. See
+ * `abuse-rate-limit.ts` for the design + the per-kind thresholds; the guest routes wire it (and fail OPEN on
+ * any error), and the account kinds go through `checkAccountAbuseRate` below (which fails CLOSED).
  */
 import "server-only";
 
@@ -19,6 +19,7 @@ import {
   abuseRateDecision,
   type AbuseKind,
   type AccountAbuseKind,
+  type SessionAbuseKind,
 } from "@/lib/security/abuse-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -59,6 +60,26 @@ export function accountAbuseHashes(
   if (!secret) throw new Error("UNLOCK_COOKIE_SECRET unset");
   return {
     ipHash: hmac(secret, `a-acct:${userId}`),
+    scopeHash: hmac(secret, `a-scope:${kind}:`),
+  };
+}
+
+/**
+ * The per-SESSION key pair for a guest's own budget (`presign`), shaped as an account kind's: the requester column
+ * holds an HMAC of her ticket under its own `a-sess:` prefix, never equal to an IP's or an account's hash, and the
+ * scope is the kind's constant, so the per-scope count IS her ticket's count, whatever network it arrives from.
+ * ★ It also keeps the snapshot to her own rows: `action_rate` counts the requester's distinct scopes on every ask, and
+ * keyed on a venue's address that would read every file of every guest behind it this hour, on each burst. Never the
+ * raw token. Throws if the secret is unset (the route catches, and fails OPEN).
+ */
+export function sessionAbuseHashes(
+  kind: SessionAbuseKind,
+  sessionToken: string,
+): { ipHash: string; scopeHash: string } {
+  const secret = serverEnv.UNLOCK_COOKIE_SECRET;
+  if (!secret) throw new Error("UNLOCK_COOKIE_SECRET unset");
+  return {
+    ipHash: hmac(secret, `a-sess:${sessionToken}`),
     scopeHash: hmac(secret, `a-scope:${kind}:`),
   };
 }
@@ -165,7 +186,9 @@ export async function checkAbuseRate(
 }
 
 /**
- * Record ONE action event (best-effort; callers ignore errors).
+ * Record `count` action events, one unless told otherwise, in ONE insert (best-effort; callers ignore errors). A
+ * guest's presign counts a burst's files together as it asks (`presign`), so a burst of twenty is one write, never
+ * twenty. A count under one writes nothing.
  *
  * ★ THE SILENT HALF OF QA #19, and the worse one. Every call site wraps this in `.catch(() => {})`,
  * so a failing INSERT means the counters never accumulate, which means every later decision reads
@@ -177,11 +200,17 @@ export async function recordAbuseEvent(
   kind: AbuseKind,
   ipHash: string,
   scopeHash: string,
+  count = 1,
 ): Promise<void> {
+  if (count < 1) return;
   const admin = createAdminClient();
-  const { error } = await admin
-    .from("action_attempts")
-    .insert({ kind, ip_hash: ipHash, scope_hash: scopeHash });
+  const { error } = await admin.from("action_attempts").insert(
+    Array.from({ length: count }, () => ({
+      kind,
+      ip_hash: ipHash,
+      scope_hash: scopeHash,
+    })),
+  );
   if (error) {
     await recordSignalFailure({
       job: "abuse_limiter",

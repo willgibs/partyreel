@@ -433,7 +433,7 @@ describe("the turn under a reader", () => {
       20_000,
     );
 
-    // 9 am the morning after: the album turns to the night in order, laid from its start.
+    // Her close (or a develop's moment): the album turns to the night in order, laid from its start.
     const night = inOrder(live);
     const top = scrollY;
     scrollBy.mockClear();

@@ -51,6 +51,9 @@ vi.mock("@/lib/r2/presign", () => ({
 vi.mock("@/lib/disposable/develop.server", () => ({
   developIfDue: async () => {},
 }));
+// Whether anything waits in an album empty to the eye: asked only under the guest page's guard (crumbs-86).
+const waits = vi.hoisted(() => ({ albumWaits: vi.fn(async () => true) }));
+vi.mock("@/lib/disposable/waiting.server", () => waits);
 vi.mock("@/lib/site-url", () => ({
   getSiteUrl: async () => "https://partyreel.test",
 }));
@@ -185,6 +188,7 @@ beforeEach(() => {
   seeds.calls.length = 0;
   decided.ctx.length = 0;
   owner.isRequestOwner.mockClear();
+  waits.albumWaits.mockClear();
   getEvent.mockReset().mockResolvedValue({ id: EVENT, qr_token: TOKEN });
   pageDoor.mockReset().mockImplementation(async () => ({
     decision: { kind: "through", admitted: true },
@@ -361,57 +365,134 @@ describe("★ it writes nothing and mints nothing", () => {
   });
 });
 
-/* ★ THE GUESTS' ORDER (event-zone; the ROADMAP's "See it as a guest lays the album newest first after the turn"): the
-   view is handed the guest page's own answer, its turn read in the party's zone off her own row (RLS-proved), so after
-   the party's morning she sees the night in order as every guest does, and the seed links the first paint of it. */
+/* ★ THE GUESTS' ORDER (album-order, AY1; the ROADMAP's "See it as a guest lays the album newest first after the turn"):
+   the view is handed the guest page's own answer, read off the album's state as the door's re-read gives it, so once
+   she closes adding (or its develop has come) she sees the night in order as every guest does, and the seed links the
+   first paint of it. RESHAPED ON PURPOSE (crumbs-91; scar kept: the guests' order, and the seed linking it). The
+   expired reason: the party's morning after, read in its zone, as the turn. */
 describe("★ it lays the album in the order every guest meets", () => {
-  // The door's event is dated Saturday 3 October 2026: 9 am in Auckland on the 4th is 20:00 UTC on the 3rd.
-  const AUCKLAND_MORNING = Date.parse("2026-10-03T20:00:00Z");
-
-  it("after the party's morning, in its own zone: the night in order, and the seed links that first paint", async () => {
-    getEvent.mockResolvedValue({
-      id: EVENT,
-      qr_token: TOKEN,
-      time_zone: "Pacific/Auckland",
-    });
+  const door = (over: Record<string, unknown>) =>
     pageDoor.mockResolvedValue({
       decision: { kind: "through", admitted: true },
       standing: { host: true },
-      event: { ...doorEvent("approve"), develops_at: null },
+      event: { ...doorEvent("approve"), ...over },
     });
+
+  it("an album she has closed to adding: the night in order, and the seed links that first paint", async () => {
+    door({ accepting_uploads: false, develops_at: null });
     const read = await readAsGuest(EVENT, FIRST_PAINT);
-    expect(read!.albumOrder).toEqual({
-      morningAfter: AUCKLAND_MORNING,
-      own: "oldest",
-      chosen: null,
-    });
+    expect(read!.albumOrder).toEqual({ own: "oldest", chosen: null });
     expect(seeds.calls[0]![2]).toEqual({ ...FIRST_PAINT, sort: "oldest" });
   });
 
-  it("a develop ahead holds it newest first, the party's morning kept beside it for when the develop goes", async () => {
+  it("★ an open album is newest first whatever its date says, a develop ahead included", async () => {
+    // The door's event is dated Saturday 3 October 2026, long gone by any reader's clock, and its develop is ahead.
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.albumOrder).toEqual({ own: "newest", chosen: null });
+    expect(seeds.calls[0]![2]).toEqual({ ...FIRST_PAINT, sort: "newest" });
+  });
+
+  it("a develop reached turns an open album, as every guest's", async () => {
+    door({ develops_at: new Date(Date.now() - 60_000).toISOString() });
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.albumOrder.own).toBe("oldest");
+  });
+});
+
+/* ★ SEE IT AS A GUEST'S TWO FACTS OF THE GUEST PAGE (crumbs-86, pinned here by crumbs-91): what waits in an album empty
+   to the eye is asked exactly where the guest page asks it, and the party's zone rides for words, never past Only me. */
+describe("★ what waits is asked only under the guest page's own guard", () => {
+  /** An album nothing visible is in yet: a held upload and a sealed shot, no open photograph. */
+  const emptyToTheEye = () => {
+    fake = createFakePostgrest({
+      tables: {
+        media: [
+          row(2, { sealed_until: new Date(Date.now() + DAY).toISOString() }),
+          row(3, { status: "pending" }),
+        ],
+        events: [{ id: EVENT, host_id: "host-1" }],
+        profiles: [{ id: "host-1", display_name: "Maya" }],
+        ops_flags: [{ key: "live_reel_enabled", enabled: true }],
+      },
+      rpc: {},
+    });
+  };
+  const door = (over: Record<string, unknown>) =>
+    pageDoor.mockResolvedValue({
+      decision: { kind: "through", admitted: true },
+      standing: { host: true },
+      event: { ...doorEvent("approve"), ...over },
+    });
+
+  it("asked of an open album whose uploads wait with nothing visible yet, and its answer is the first byte's", async () => {
+    emptyToTheEye();
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.stats.approvedTotal).toBe(0);
+    expect(waits.albumWaits).toHaveBeenCalledTimes(1);
+    expect(waits.albumWaits).toHaveBeenCalledWith(EVENT);
+    expect(read!.waitingOnArrival).toBe(true);
+  });
+
+  it.each([
+    ["uploads closed", { accepting_uploads: false }],
+    [
+      "nothing she adds waits (no approval, no develop ahead)",
+      { moderation_mode: "live", develops_at: null },
+    ],
+  ])("never asked where %s", async (_why, over) => {
+    emptyToTheEye();
+    door(over);
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(waits.albumWaits).not.toHaveBeenCalled();
+    expect(read!.waitingOnArrival).toBe(false);
+  });
+
+  it("never asked over an album with something in it already", async () => {
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.stats.approvedTotal).toBe(1);
+    expect(waits.albumWaits).not.toHaveBeenCalled();
+    expect(read!.waitingOnArrival).toBe(false);
+  });
+
+  it("never asked behind Only me, where no guest is let in", async () => {
+    emptyToTheEye();
+    door({ door: "private" });
+    const read = await readAsGuest(EVENT, FIRST_PAINT);
+    expect(read!.shut).toBe(true);
+    expect(waits.albumWaits).not.toHaveBeenCalled();
+    expect(read!.waitingOnArrival).toBe(false);
+  });
+});
+
+describe("★ the party's zone rides for words, and never when shut", () => {
+  it("her row's own zone, read through RLS, for a far party's develop time in both clocks", async () => {
     getEvent.mockResolvedValue({
       id: EVENT,
       qr_token: TOKEN,
       time_zone: "Pacific/Auckland",
     });
-    const read = await readAsGuest(EVENT, FIRST_PAINT);
-    expect(read!.albumOrder).toEqual({
-      morningAfter: AUCKLAND_MORNING,
-      own: "newest",
-      chosen: null,
-    });
-    expect(seeds.calls[0]![2]).toEqual({ ...FIRST_PAINT, sort: "newest" });
+    expect((await readAsGuest(EVENT, FIRST_PAINT))!.partyZone).toBe(
+      "Pacific/Auckland",
+    );
   });
 
-  it("a party with no zone turns in the one fallback (UTC), as every guest's does", async () => {
+  it("none where her row keeps none: every time is the reader's own clock", async () => {
+    expect((await readAsGuest(EVENT, FIRST_PAINT))!.partyZone).toBeNull();
+  });
+
+  it("★ Only me shows no time at all, so it hands no zone", async () => {
+    getEvent.mockResolvedValue({
+      id: EVENT,
+      qr_token: TOKEN,
+      time_zone: "Pacific/Auckland",
+    });
     pageDoor.mockResolvedValue({
       decision: { kind: "through", admitted: true },
       standing: { host: true },
-      event: { ...doorEvent("approve"), develops_at: null },
+      event: doorEvent("private"),
     });
     const read = await readAsGuest(EVENT, FIRST_PAINT);
-    expect(read!.albumOrder.morningAfter).toBe(
-      Date.parse("2026-10-04T09:00:00Z"),
-    );
+    expect(read!.shut).toBe(true);
+    expect(read!.partyZone).toBeNull();
   });
 });

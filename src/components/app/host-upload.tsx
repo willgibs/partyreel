@@ -11,8 +11,8 @@ import {
   X,
 } from "lucide-react";
 
+import { FileDropzone } from "@/components/app/file-dropzone";
 import { useHostAdd } from "@/components/app/host-add-provider";
-import { FileDropzone } from "@/components/guest/file-dropzone";
 import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
