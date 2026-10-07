@@ -44,7 +44,8 @@ its pre-check and doc lines are done; the storage sums' signal lane is Next 2). 
 **Seats.** The runbook's "Seat in" covers a local seat and a cloud one (a cloud seat's SQL through the scoped
 `Superbase_Custom` connector, its exports re-appended to the shell snapshot after every worker restart). A local
 `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its merge message and
-its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`).
+its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). Gate numbers continue at 56: `integrate.sh` numbers
+from the highest `gate<N>.log` in `$S`, so a new scratchpad seeds `$S/gate55.log` first.
 
 ## Next, in order
 

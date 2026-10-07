@@ -184,15 +184,17 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    and `git commit -F $S/msg-<track>.txt`. The gate follows:
    `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`, read by its `SCOPE` and `EXIT[...]` lines.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
-   code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
-   their ROADMAP bucket and area (placed, never appended; Immediate holds at most 40, so a line moves down first); its
-   asset asks into `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones opened as boards; a
-   one-way-door answer of Will's into the invariant it made; a change to the brand (tokens, the logo, type, or the hero,
-   demo and pricing pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs` from
-   partyreel.com; STATUS rewritten by hand where the lane changed what is true now; a new board's `desk` line moved to
-   its leverage place; `sandbox/registry.test.ts` and `(shell)/lab/_desk/queue.test.ts` when the record touched the desk
-   (a spec's `desk` line or `docs/reviews/`: nothing else a record edits reaches them); stage by name; commit `record:
-   <track> ... [skip ci]`; push.
+   code, and `grep -rn` over `docs/` for each file, function or name the lane retired or renamed (a stale line its
+   Handoff missed is refined in place: marketing-crumbs' cinema 404); `python3 usher/kit/record.py
+   $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into their ROADMAP bucket and area
+   (placed, never appended; Immediate holds at most 40, so a line moves down first); its asset asks into
+   `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones opened as boards; a one-way-door answer of
+   Will's into the invariant it made; a change to the brand (tokens, the logo, type, or the hero, demo and pricing
+   pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs` from partyreel.com;
+   STATUS rewritten by hand where the lane changed what is true now; a new board's `desk` line moved to its leverage
+   place; `sandbox/registry.test.ts` and `(shell)/lab/_desk/queue.test.ts` when the record touched the desk (a spec's
+   `desk` line or `docs/reviews/`: nothing else a record edits reaches them); stage by name; commit `record: <track> ...
+   [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):
    `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`,
    `rm -rf ../partyreel-wt/_scratch/<track>`; kill its port.

@@ -109,7 +109,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - Replay a dead letter from `/admin/jobs`: the backup's dead-letter queue has no consumer (`workers/backup/wrangler.jsonc`), and adding one changes delivery semantics.
   - Legal-hold evidence under `preservation/` has no backup copy (the Worker copies `events/` only, `MEDIA_PREFIX`); decide whether a year of held evidence needs a second one.
 - Vercel / Next.js optimization: one `getUser()` a request: a route handler misses React's `cache()`, so a signed-in album request asks Auth twice (`events/album-viewer.server.ts:74,99`; PRICING.md lever 3).
-- Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`.
+- Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`; since `upload_sums` the rename carries `host_storage_walk`'s OUT column, `storage_sums_drift`'s comparison and the `standby_bytes` keys of its answer, and `rebuild_storage_sums`' before and after (with whatever reads them, the storage sums' signal lane included).
 
 ### Security and abuse
 

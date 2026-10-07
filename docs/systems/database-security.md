@@ -214,7 +214,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
 - ★ **A write that bypasses triggers leaves the storage sums behind** (`session_replication_role = replica`, a
   data-only restore of `media` with its triggers off). A whole-database restore carries `event_storage_sums` and
   `host_storage_sums` in the same snapshot and stays exact; a partial restore of media rows runs
-  `rebuild_storage_sums` for each host it touched, and `storage_sums_drift` names any it missed.
+  `rebuild_storage_sums` for each host it touched, and `storage_sums_drift` names any it missed. Undoing
+  `upload_sums` whole, if ever (the Advisor): drop its three triggers, its two tables and its two indexes on `media`
+  and `events`, and point `host_storage_summary` back at `host_storage_walk`'s body.
 - ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`). Every move
   of the door writes that row (`set_event_door` locks it `for no key update`, `set_event_password`'s update takes the
   same lock), and the triggers that end or admit the asks read only what has committed, so a join minted unlocked in

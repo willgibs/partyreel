@@ -92,14 +92,16 @@ PostgREST fake.
   only the media rows it can take at once (`FOR UPDATE SKIP LOCKED`), since `purge_media_rows` locks media before
   profiles.
 - **Making room from Deleted** (`profiles.make_room_from_deleted`, on by default and hers to write): when an upload's
-  complete would pass the cap and its 10% and the file fits beside her albums, `create_media*` call `leave_deleted`
-  for exactly what the file needs, under the lock they already hold; a refusal rolls the eviction back with it. Never
-  at the presign, whose size is the client's word: a phantom presign would empty her Deleted for nothing.
-  **Empty Deleted** (`empty_deleted(p_limit)`, her own act on `auth.uid()`) takes a batch a call, the system's
-  removals included, and the action calls again while `more`, within a time budget; every deleted event inside its
-  window leaves with the last batch, never before what is still in it. A row back in her album (`restore_media`, Let
-  back in) loses the reduce's flag (`removed_by_system`), and Deleted reads that flag on a removed row alone, so a
-  later removal of hers reads as hers.
+  complete would pass the cap and its 10% and the file fits beside her albums, `create_media*` call `leave_deleted` for
+  exactly what the file needs, under the lock they already hold; a refusal rolls the eviction back with it. Never at the
+  presign, whose size is the client's word: a phantom presign would empty her Deleted for nothing. **Empty Deleted**
+  (`empty_deleted(p_limit)`, her own act on `auth.uid()`) takes a batch a call, the system's removals included
+  (`EMPTY_DELETED_BATCH`, 2,000, each item one statement: the storage sums' trigger costs 1.46 ms a statement warm,
+  live, 5.9 ms for a connection's first, so about 3 s a batch inside the 8 s timeout; past ~2 ms a statement the batch
+  halves to 1,000, the Advisor's line, 2026-10-06), and the action calls again while `more`, within a time budget; every
+  deleted event inside its window leaves with the last batch, never before what is still in it. A row back in her album
+  (`restore_media`, Let back in) loses the reduce's flag (`removed_by_system`), and Deleted reads that flag on a removed
+  row alone, so a later removal of hers reads as hers.
 - ★ **A guest's own delete is final, for the host too.** Deleting an upload to someone else's event sets
   `media.removed_by_uploader = true`: `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate keeps it
   out of the host's bin (RLS does NOT filter it, so dropping that line shows the host a Restore the RPC always
