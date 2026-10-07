@@ -45,13 +45,12 @@ import { FooterGlow } from "./footer-glow";
  * forced light), and the root 404 (.surface-paper, and OUTSIDE (marketing) so
  * marketing.css never loads). It must look identical in all three.
  *
- * ★ THE SLAB IS NO LONGER THE MEDIA WELL (the palette's round eight, Graphite,
+ * ★ THE SLAB IS NOT THE MEDIA WELL (the palette's round eight, Graphite,
  * 2026-09-17). Both jobs used to ride --gallery* at one value; the ruling splits
- * them, the well down to 0.065 so a photograph is the only light on it and this
- * leaf up to 0.165 so it reads as a step below a paper page rather than a hole
- * in it. So the class writes the slab's values out and `bg-background` inside it
- * is the slab. A `bg-gallery` here would now paint the WELL, which is a
- * different, much deeper colour: do not reach for it.
+ * them, the well down to 0.065 so a photograph is the only light on it, and this
+ * leaf is the room's own black (0.085, brand-marks r1's `plate=room`). So the
+ * class writes the slab's values out and `bg-background` inside it is the slab.
+ * A `bg-gallery` here would paint the WELL, a register deeper: do not reach for it.
  *
  * A .dark wrapper is still forbidden. globals.css states the rule outright:
  * "never nest .dark inside .surface-paper (always-dark media surfaces use

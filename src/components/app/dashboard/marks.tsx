@@ -7,21 +7,22 @@ import { cn } from "@/lib/utils";
  * THE DASHBOARD'S SMALL STATES (host-dashboard r1, the carried `tile` call): a dot that says live, and a
  * mark, one state on a cover, at most one in each top corner.
  *
- * ★ LIVE IS THE PRODUCT'S OWN DOT: the success colour with its ping, the one moving thing on a page
- * that is otherwise still (the waiting door and the home's live demo draw it the same way), and still
- * under reduced motion, where the dot alone is the state.
+ * ★ LIVE IS THE RECORDING RED, THE ONE POINT THAT BREATHES (brand-marks r1's status set: a fault, a count that
+ * needs her and live share the one red, `--signal`), the one moving thing on a page that is otherwise still: the
+ * point dims and comes back (theme.css's `live-signal`), never a ring of light rung out from it, since a glow is
+ * the light's and live is a point. Still under reduced motion, where the point alone is the state. It was the
+ * success green with a ping, which read as done rather than happening.
  */
 export function LiveDot({ small = false }: { small?: boolean }) {
-  const size = small ? "size-1.5" : "size-2";
   return (
     <span
       aria-hidden
       data-live-dot=""
-      className={cn("relative flex shrink-0", size)}
-    >
-      <span className="absolute inset-0 rounded-full bg-success/60 motion-safe:animate-ping" />
-      <span className={cn("relative rounded-full bg-success", size)} />
-    </span>
+      className={cn(
+        "inline-block shrink-0 rounded-full bg-(--signal) motion-safe:animate-live-signal",
+        small ? "size-1.5" : "size-2",
+      )}
+    />
   );
 }
 

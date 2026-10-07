@@ -8,6 +8,14 @@
 // dependency (Safari has no ctx.filter) and near-zero per-frame cost, because the blur is built ONCE
 // per clip at asset load and per-frame work is just a scaled draw.
 
+import {
+  RING_DISC,
+  RING_MONO,
+  RING_SQUIRCLE,
+  RING_TILE,
+  ringArt,
+} from "@/lib/brand/ring";
+
 export type CanvasImage = ImageBitmap | HTMLImageElement | HTMLCanvasElement;
 
 export type Rect = { x: number; y: number; w: number; h: number };
@@ -335,13 +343,13 @@ const FONT_STACK =
  * - "scrim": the ghost lockup over a whisper of radial corner darkening, so it stays
  *   legible even on blown-out white footage without any visible container shape.
  * - "ghost": lockup + shadow only, the most invisible treatment (TikTok-corner style).
- * - "badge": the in-app logo chip (logo.tsx's rounded square, in its on-footage
- *   white flavor) with an ink aperture, the strongest brand read.
+ * - "badge": the icon itself, the Ring on its dark tile in its own colours, the strongest
+ *   brand read.
  *
  * T2 grading (Will, 2026-07-08, on-device): scrim and ghost read indistinguishable
  * and BOTH beat badge; scrim stays the shipped default. Keep all three behind the
- * parity-page switch: the set gets re-graded when the real logo asset arrives
- * (badge is the most logo-dependent treatment, so its loss may not survive a real mark).
+ * parity-page switch: the real mark has arrived (the Ring, brand-marks r1), so the set
+ * is Will's to re-grade on a device whenever he looks again.
  */
 export const WATERMARK_VARIANTS = ["scrim", "ghost", "badge"] as const;
 export type WatermarkVariant = (typeof WATERMARK_VARIANTS)[number];
@@ -387,44 +395,102 @@ export function watermarkLayout(args: {
   };
 }
 
-// lucide "Aperture" geometry, replicated from the icon's 24x24 path data so the
-// canvas mark is pixel-faithful to the in-app logomark (src/components/shared/logo.tsx
-// renders <Aperture/>): a circle r=10 at (12,12) plus six blade lines whose endpoints
-// sit on that circle, stroke 2, round caps.
-// >>> REAL-LOGO SEAM: Will supplies the final logo asset later. When it lands, replace
-// drawApertureMark with a drawImage of the preloaded asset (load it alongside the clip
-// assets in assets.ts) and keep watermarkLayout + the variant treatments unchanged. <<<
-const APERTURE_LINES: [number, number, number, number][] = [
-  [14.31, 8, 20.05, 17.94],
-  [9.69, 8, 21.17, 8],
-  [7.38, 12, 13.12, 2.06],
-  [9.69, 16, 3.95, 6.06],
-  [14.31, 16, 2.83, 16],
-  [16.62, 12, 10.88, 21.94],
-];
-
-function drawApertureMark(
+/**
+ * THE MARK ON FOOTAGE: the Ring (brand-marks r1, `src/lib/brand/ring.ts`, the icon's one home),
+ * drawn here from its own geometry so a reel's corner and a phone's home screen sign with the
+ * same object, synchronously and per frame (no image to load, no taint).
+ *
+ * ★ ON FOOTAGE IT IS THE MONO RING (scrim, ghost): the puck and its ring in the lockup's
+ * white, the gap between them the footage, in the tab's bold proportions so it holds at a
+ * reel's 30 pixels (a third of that on a phone). One ink beside the words, never the colour
+ * icon floating on a photograph: the icon's ember lives on its own dark tile, which is the
+ * badge (below).
+ */
+function drawRingMono(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   size: number,
   color: string,
 ): void {
+  const r = size / 2;
+  const cx = x + r;
+  const cy = y + r;
+  ctx.save();
+  ctx.beginPath();
+  for (const k of [1, RING_MONO.inner, RING_MONO.disc]) {
+    ctx.moveTo(cx + r * k, cy);
+    ctx.arc(cx, cy, r * k, 0, Math.PI * 2);
+  }
+  ctx.fillStyle = color;
+  // Three concentric circles, even-odd: the ring, the gap the footage shows through, the puck.
+  ctx.fill("evenodd");
+  ctx.restore();
+}
+
+/**
+ * THE ICON ON FOOTAGE (badge): the Ring on its dark tile in its own colours, every piece the
+ * icon file's own (its tile's gradient in a home screen's corner, the glow at the key where
+ * the canvas can blur, the band's wedges, the matte puck). The caller's shadow lands under
+ * the tile alone, so the tile reads as an object set on the footage.
+ */
+function drawRingIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
+  const art = ringArt(size);
+  const o = art.cut;
+  const squircle = new Path2D(RING_SQUIRCLE);
   ctx.save();
   ctx.translate(x, y);
-  ctx.scale(size / 24, size / 24);
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = color;
-  ctx.beginPath();
-  ctx.arc(12, 12, 10, 0, Math.PI * 2);
-  ctx.stroke();
-  for (const [x1, y1, x2, y2] of APERTURE_LINES) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
+  ctx.scale(size / 1024, size / 1024);
+  const tile = ctx.createLinearGradient(0, 0, 0, 1024);
+  tile.addColorStop(0, RING_TILE[0]);
+  tile.addColorStop(1, RING_TILE[1]);
+  ctx.fillStyle = tile;
+  ctx.fill(squircle);
+  ctx.shadowColor = "rgba(0,0,0,0)";
+  ctx.clip(squircle);
+  // The glow and the corona are the band's light blurred; a canvas without ctx.filter
+  // (Safari) draws the ring and the puck alone, which is still the whole mark.
+  const blurred = (wedges: typeof art.glow, blur: number, alpha: number) => {
+    if (!wedges.length || !detectCtxFilter()) return;
+    ctx.save();
+    // ctx.filter blurs in the canvas's own pixels, under no transform: the box's units scaled down.
+    ctx.filter = `blur(${(blur * size).toFixed(2)}px)`;
+    ctx.globalAlpha = alpha;
+    for (const w of wedges) {
+      ctx.fillStyle = w.fill;
+      ctx.globalAlpha = alpha * (w.opacity ?? 1);
+      ctx.fill(new Path2D(w.d));
+    }
+    ctx.restore();
+  };
+  blurred(art.corona, o.corona, o.coronaOp);
+  blurred(art.glow, o.glowBlur, o.glow);
+  for (const w of art.band) {
+    ctx.fillStyle = w.fill;
+    ctx.fill(new Path2D(w.d));
   }
+  // The puck: the SVG's radial gradient in its own box (centre at 42% and 22%, radius 95%).
+  const rD = art.rDisc;
+  const box = 512 - rD;
+  const puck = ctx.createRadialGradient(
+    box + 0.42 * 2 * rD,
+    box + 0.22 * 2 * rD,
+    0,
+    box + 0.42 * 2 * rD,
+    box + 0.22 * 2 * rD,
+    0.95 * 2 * rD,
+  );
+  puck.addColorStop(0, RING_DISC[0]);
+  puck.addColorStop(0.7, RING_DISC[1]);
+  ctx.fillStyle = puck;
+  ctx.beginPath();
+  ctx.arc(512, 512, rD, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -447,8 +513,8 @@ export function drawWatermark(
   const lineAscent = metrics.fontBoundingBoxAscent || ascent + 4;
   const lineDescent = metrics.fontBoundingBoxDescent || descent + 4;
 
-  // Badge sizes derive from logo.tsx's ratios (28px chip, 6px radius, 16px icon,
-  // 8px gap) scaled to a 38px chip so the lockup stays balanced against 30px type.
+  // The badge is the icon at 38px (a home screen's tile beside 30px type); the mono Ring
+  // is the type's own 30px.
   const badge = variant === "badge";
   const markSize = badge ? 38 : 30;
   const gap = badge ? 11 : 12;
@@ -478,28 +544,16 @@ export function drawWatermark(
     ctx.restore();
   }
 
-  // The logomark. Ghost/scrim draw the bare aperture glyph in white (the mono
-  // identity: no color chip on footage); badge draws the app chip in its
-  // on-footage white flavor with an ink glyph.
+  // The mark: the Ring. Ghost and scrim draw the mono Ring in the lockup's white (one ink on
+  // footage, beside the words); badge draws the icon itself, the Ring on its tile.
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.45)";
   ctx.shadowBlur = 8;
   ctx.shadowOffsetY = 1;
   if (badge) {
-    ctx.beginPath();
-    ctx.roundRect(x, centerY - markSize / 2, markSize, markSize, 8);
-    ctx.fillStyle = "rgba(255,255,255,0.94)";
-    ctx.fill();
-    ctx.shadowColor = "rgba(0,0,0,0)";
-    drawApertureMark(
-      ctx,
-      x + (markSize - 22) / 2,
-      centerY - 11,
-      22,
-      "rgba(18,18,18,0.92)",
-    );
+    drawRingIcon(ctx, x, centerY - markSize / 2, markSize);
   } else {
-    drawApertureMark(
+    drawRingMono(
       ctx,
       x,
       centerY - markSize / 2,

@@ -33,9 +33,14 @@ view) is plain to anyone already.
 - **Five grounds, five classes**, each a whole token set in globals.css: the page `:root, .surface-paper` (paper), the
   room `.dark` (the app and every cinema chapter), the slab `.surface-ink` (an always-dark leaf on paper, such as the
   footer), the mat `.surface-mat` (declared, worn nowhere yet) and the display `.surface-display` (the quick layers'
-  screen: near-black on paper, lit graphite in the room). `--gallery*` is the media well, always dark and the deepest
-  ground. A ground re-declares every token a part inside it reads, in whole pairs (`--signal` beside `--destructive`),
-  because a pair left out resolves to the ground beneath (`ui/display.test.ts` holds the display's).
+  screen: the room's own black on paper, lit graphite in the room). `--gallery*` is the media well, always dark and the
+  deepest ground. A ground re-declares every token a part inside it reads, in whole pairs (`--signal` beside
+  `--destructive`, a state beside its words), because a pair left out resolves to the ground beneath
+  (`ui/display.test.ts` holds the display's and the states').
+- **A piece of the room on paper is the room's own black** (brand-marks r1, `plate=room`: "the contrast feels a lot
+  richer, almost vibrant"): the slab is `.dark`'s ladder value for value, its states the room's lights and its lamps the
+  house ember, and paper's display stands on the room's body with its held row on the room's dialog, so light on paper
+  reads as bright as in the room. The well (`--gallery`) stays a register deeper, so a slab never derives from it.
 - ★ **The display's `--display*` set is declared per ground**, in whole, on paper's block and on `.dark`, never on
   `:root` alone: the layer reads whichever ground it stands in, a paper subtree inside the room takes paper's again by
   wearing `.surface-paper`, and a value the layer needs on only one ground still gets a token on both (a literal typed
@@ -43,8 +48,25 @@ view) is plain to anyone already.
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each a solid grey per ground rather than an
   alpha, so it reads the same over whatever is behind it. `--faint` is under 4.5:1 on every ground, so it is for
   captions and hints, never a sentence, a control's only label or under a further alpha (`faint-copy-policy.test.tsx`).
-- **Status is light**: a state is a light and its word, and "nothing here yet" is one atom, `ui/empty.tsx` (the shared
-  `EmptyState` and the feed's section empty are it).
+- **Status is light, in four tiers** (brand-marks r1, `status=amber`, for "a clearer hierarchy of states rather than
+  simply red or not red"): a state is a point and its word, the point solid and hard-edged (the glow is the light's),
+  and "nothing here yet" is one atom, `ui/empty.tsx` (the shared `EmptyState` and the feed's section empty are it). The
+  tokens keep their names, so every reader moved with its value; the Badge draws each point (8px, Standby's half-lit):
+  - **Standby** (`--info`, the Badge's `info`): waiting on us or the line, nothing for her to do. Half-lit, no hue: the
+    ground's muted ink. Drive's Starting, Sending and Checking (`drive/moments.ts`, the admin's Making folders), a
+    download under way, a job running (`lib/admin/tone.ts`), the export toast's between-parts and downloading.
+  - **Ready** (`--success`): done, a clear green. Approved, sent, in her Drive, connected, copied, a step set up, all
+    caught up, a job healthy, a check passed; `text-success` reads `--success-ink`, the green at AA on paper.
+  - **A warning** (`--warning`): look soon, nothing lost. Amber in the room, deepening toward orange on paper so it
+    stands as a point (3:1); `text-warning` reads `--warning-ink`. Near or over a cap inside its grace (the storage
+    meter and chart), at a limit, a pause (Drive full, a reconnect, Google's day), partly done, a job overdue or needing
+    a look, the caution before a step guests will see (`ui/consequence-line.tsx`).
+  - **A fault** (`--destructive`): failed, refused, stopped, unreadable, and every error in words. The one red, which
+    also means a count that needs her (`--needs-you`, below) and live (`--signal`, the only point that breathes, the
+    dashboard's `LiveDot` and the Badge's `live`).
+  - Not states, so never a tier: an action's own hue (approve green, hide amber, delete red), a selection's tick, an
+    operator's label (the Badge's unlit `secondary`, `outline`, `ghost`). A state drawn in another tier's token is its
+    surface's to move (ROADMAP's Design line names those left).
 - ★ **A count that needs her is one token, `--needs-you`** (event-header r6, Will's `attention=tally`), with
   `--needs-you-foreground` for its figures: the camera's tally, the red the palette already holds (paper's is
   `--signal` itself; the room's a step deeper than its bright signal, so white figures hold 4.6:1). It is worn solid
@@ -53,9 +75,18 @@ view) is plain to anyone already.
   rows (`StateDot`, the row's pill); the stage's figures stay white beside its dot, since a deep red as type thins over
   a photograph. No utility maps it, so a part reads it by name (`bg-(--needs-you)`). A count hers that waits on
   nobody (steps left, a pause) is never it.
-- **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` is the one home of its path (its comment says how
-  to replace it), drawn by `Logo` and the social card alike; the mark (`markOnly`) is a stand-in mounted nowhere until
-  the icon lands. `--brand` is an alias of `--primary` (ink).
+- **The brand is the wordmark alone**, in the bars, the foot and every card: `src/lib/brand/wordmark.ts` is the one
+  home of Will's v1 path and its two cuts, each his letters only moved apart (the small cut under 48px, the display cut
+  from 48px up, `Logo`'s `cut`), drawn by `Logo`, the social and event cards and the kit. ★ His rule for every cut and
+  every later redraw: a bit bold, so it "packs a bit of a punch" at any size without being large, and it "should present
+  as a singular group to present clearly, rather than feel spaced out and spread focus": part only what touches, by the
+  least that keeps a seam, never track it out. `--brand` is an alias of `--primary` (ink).
+- **The icon is the Ring** (brand-marks r1, `icon=ember`; a bespoke take is brand-marks r2's): the shutter's puck in its
+  ring, key-lit from the top-left by the house ember on the room's dark tile, a whole ring at every size (each size its
+  cut, never a moon). `src/lib/brand/ring.ts` is its one home, drawn by `Logo markOnly`, the reel's watermark (the mono
+  Ring on footage, the icon as the badge) and `scripts/build-press-kit.mjs`, which writes every file it lives in (the
+  favicon, the app and manifest icons, `kit/logo/`, the press kit); `src/lib/brand/marks.test.ts` fails on a file not
+  redrawn. It is the house's, never an event's light, and never stands beside the wordmark as a lockup.
 - **One colour per action**, so an act reads the same on guest and host surfaces: like rose (`--like`), save and
   download blue (`--save`), hide and show amber, approve green, delete red. Violet (`--reel`) marks the highlight reel
   itself (its own calls to action, the style rail's active thumb), never a verb on a photograph, since the live reel
@@ -135,6 +166,12 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   border-beam's `partyreel` palette, derived from the five by `glow-contrast.ts` (it cannot be a `var()`: that file
   regex-parses `rgb()` strings). The ambient block stays out of `@theme`, so no `bg-lamp-*` or `text-lamp-*` utility
   can exist.
+- **The house ember is the light where there is no photograph** (brand-marks r1): one gradient from one key light,
+  amber to coral to a deep ember, its four stops `--ember-1..4` (the Ring's own, `ring.ts`, held by `ring.test.ts`),
+  and five points along them, `--ember-lamp-1..5`, relighting what read the five lamps there: the foot's seam
+  (`.surface-ink` redeclares `--lamp-*` as them, so every unsampled lamp inside a piece of the room is the ember) and
+  the confetti (`--mkt-confetti-*`). A photo-less event's lamp on the dashboard keeps its own five hues, since the
+  house ember on every event would read as one.
 - **Pick the sampler by where the media comes from** (`src/lib/shared/sampled-palette.ts`): the URL form samples
   presigned R2 media when handed `previewUrl`, never the original; the DOM form suits same-origin media already
   painted (zero requests), and over a presigned tile it taints the canvas and silently returns the fallback five. The
@@ -603,8 +640,9 @@ to `[data-mkt]`, a sibling scope.
   Undo would close the panel at a desk and go through to the control beneath in a hand. The band takes pointer events
   back itself and is a Radix `DismissableLayer.Branch`, in `ui/sonner.tsx` alone (`sonner.test.tsx` pins both halves).
   A keyboard still cannot reach a toast while a modal holds focus.
-- **Every toast is the display, and its state is a light**: a success, a warning or a failure is its glyph lit in the
-  state's colour, and a destructive act that succeeded is a success. `ui/sonner.tsx` hands sonner the display's colours
+- **Every toast is the display, and its state is a light**: its glyph lit in its tier's colour (a success Ready's green,
+  a warning the amber, a failure the red, an info Standby's muted grey), and a destructive act that succeeded is a
+  success. `ui/sonner.tsx` hands sonner the display's colours
   and runs its dark theme, and globals.css's toast rules say why they sit three attributes deep (sonner appends its
   sheet after ours at runtime), so a check reads the computed colour, not that the rule loaded. The toast's edge light
   and the halo on it and on its buttons are composed there past sonner's own rules for the same reason.
