@@ -160,10 +160,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Profile: a tap on a link into `/u/<handle>` shows nothing until the page arrives (the route has no `loading.tsx`, on purpose); a pending state on those links through `useLinkStatus`, as `chrome-link.tsx` has, would answer the tap.
 - Profile: deleting a photograph opened at `/u/<handle>?photo=` makes the next Show more jump to the top as the held answer lands (the viewer's same-tick address write before a revalidating action, Next 16.2.6, a row `lib/history-entry.ts` lacks). [unsure: crumbs-83 gave a photo opened at its address its own entry, which may have removed the cause; not re-walked]
 - Account: the reset's Set a new password (`SetInitialPassword`, `auth/password-sign-in.tsx`) has no strength meter while `/account`'s change form and the event password wear `PasswordStrengthMeter`.
-- Profiles: the owner mode's Connections chips (`/me`, `/u/<handle>`) link to pages where Account's names now open the look; the same look could serve them (account-moments-wiring).
 - Profiles: the look (`social/guest-peek.tsx`) sets the face inside the sheet's title, so a screen reader hears "P Priya Shah", and in a hand hangs its line and address under the face; one head grid with the face `aria-hidden` (the guests-room board's `card-parts.tsx`) is the fix any card pick's wiring carries (guests-room r1).
 - Profiles: a look's Follow in the album's guest list reads Follow again on its next open (the look remounts its own button); one answer per person for every face of a relation on a page, as Connections' island keeps for its card (crumbs-87).
 - Account: the "signed you into the account <email> already had" line reads three lines at 375 (its sentence, Not you?, the dismiss); a lighter form would sit quieter (crumbs-88, NIT).
+- Cost, profiles: the invitation plate's Server Function (`readInviteLightAction`) could be saved by passing her six previews from the dashboard's own render (one line in `dashboard/page.tsx`) or by keeping its answer per tab session, keyed by her seed (account-moments-wiring-2).
 
 ### The host app
 
@@ -236,6 +236,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: one face size and caption rule for the guest faces presence r1 and guests-room r1 both draw, set when either wires (guests-room r1).
 - Settings' door page: at 375 the restore toast covers step 1 while it stands; her own step under a gate reads "On while you let each person in"; after Ask or Keep by keyboard focus falls to the sheet (red-team 57c, NITs).
 - Design: `halo-inset`'s forced-colours outline stands 2px outside its control, where a clipping box hides it; draw it inside, as the album tile's halo now does (crumbs-90).
+- Design, Library: RelationToggle's catalog entry could show her first follow (a specimen whose write answers `first: true`), the one state production shows only to an account that follows nobody (`library/components/gallery-demos.tsx` and `interactive-demos.tsx`, then `collect-specimens.mjs`'s `specimens.generated.json`) (account-moments-wiring-2).
 
 ### Marketing and content
 
