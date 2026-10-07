@@ -94,6 +94,15 @@ describe("the Ring's cuts", () => {
     }
   });
 
+  it("draws a size that is no size as a tab's icon, never a broken path", () => {
+    for (const bad of [0, -5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const art = ringArt(bad);
+      expect(art.cut.id, String(bad)).toBe("tab");
+      for (const w of art.band)
+        expect(w.d, String(bad)).not.toMatch(/NaN|Infinity/);
+    }
+  });
+
   it("stands inside the 80% circle a launcher's mask always keeps", () => {
     // The maskable icon is drawn full bleed at the home screen's cut: its
     // band's outer edge must sit inside a radius of 0.4 of the tile.

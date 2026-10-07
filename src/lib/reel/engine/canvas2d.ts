@@ -431,27 +431,23 @@ function drawRingMono(
 /**
  * THE ICON ON FOOTAGE (badge): the Ring on its dark tile in its own colours, every piece the
  * icon file's own (its tile's gradient in a home screen's corner, the glow at the key where
- * the canvas can blur, the band's wedges, the matte puck). The caller's shadow lands under
- * the tile alone, so the tile reads as an object set on the footage.
+ * the canvas can blur, the band's wedges, the matte puck), drawn in the 1024 box under the
+ * caller's transform.
  */
-function drawRingIcon(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
+function paintRingIcon(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   size: number,
 ): void {
   const art = ringArt(size);
   const o = art.cut;
   const squircle = new Path2D(RING_SQUIRCLE);
   ctx.save();
-  ctx.translate(x, y);
   ctx.scale(size / 1024, size / 1024);
   const tile = ctx.createLinearGradient(0, 0, 0, 1024);
   tile.addColorStop(0, RING_TILE[0]);
   tile.addColorStop(1, RING_TILE[1]);
   ctx.fillStyle = tile;
   ctx.fill(squircle);
-  ctx.shadowColor = "rgba(0,0,0,0)";
   ctx.clip(squircle);
   // The glow and the corona are the band's light blurred; a canvas without ctx.filter
   // (Safari) draws the ring and the puck alone, which is still the whole mark.
@@ -460,7 +456,6 @@ function drawRingIcon(
     ctx.save();
     // ctx.filter blurs in the canvas's own pixels, under no transform: the box's units scaled down.
     ctx.filter = `blur(${(blur * size).toFixed(2)}px)`;
-    ctx.globalAlpha = alpha;
     for (const w of wedges) {
       ctx.fillStyle = w.fill;
       ctx.globalAlpha = alpha * (w.opacity ?? 1);
@@ -492,6 +487,50 @@ function drawRingIcon(
   ctx.arc(512, 512, rD, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+/**
+ * ★ PAINTED ONCE PER SIZE, STAMPED EVERY FRAME: the icon is a hundred wedges and two blurs,
+ * which a reel would pay at every frame of an encode, so it is drawn once onto a canvas of its
+ * own and stamped with `drawImage` (the caller's shadow then falls under its tile alone, as
+ * an object set on the footage). Where no canvas of its own can be made, it paints in place.
+ */
+const RING_ICONS = new Map<number, HTMLCanvasElement | OffscreenCanvas>();
+
+function drawRingIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
+  let icon = RING_ICONS.get(size);
+  if (!icon) {
+    const px = Math.max(1, Math.round(size));
+    const canvas =
+      typeof OffscreenCanvas !== "undefined"
+        ? new OffscreenCanvas(px, px)
+        : typeof document !== "undefined"
+          ? Object.assign(document.createElement("canvas"), {
+              width: px,
+              height: px,
+            })
+          : null;
+    const own = canvas?.getContext("2d") as
+      | CanvasRenderingContext2D
+      | OffscreenCanvasRenderingContext2D
+      | null;
+    if (!canvas || !own) {
+      ctx.save();
+      ctx.translate(x, y);
+      paintRingIcon(ctx, size);
+      ctx.restore();
+      return;
+    }
+    paintRingIcon(own, size);
+    icon = canvas;
+    RING_ICONS.set(size, icon);
+  }
+  ctx.drawImage(icon, x, y, size, size);
 }
 
 export function drawWatermark(

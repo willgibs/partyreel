@@ -344,7 +344,11 @@ const ARTS = new Map<string, RingArt>();
  * device pixels: it sets the seams' overlap), `cutAt` the size whose cut it
  * wears (a favicon drawn at 32 device pixels still wears the tab's cut).
  */
-export function ringArt(size: number, cutAt = size): RingArt {
+export function ringArt(drawn: number, cutFor = drawn): RingArt {
+  // A size that is no size (zero, negative, NaN, a typo's Infinity) would
+  // stretch every seam's overlap to nothing: it draws as a tab's icon instead.
+  const size = drawn > 0 && Number.isFinite(drawn) ? drawn : 16;
+  const cutAt = cutFor > 0 && Number.isFinite(cutFor) ? cutFor : size;
   const key = `${size}:${cutAt}`;
   const hit = ARTS.get(key);
   if (hit) return hit;
