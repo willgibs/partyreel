@@ -1,6 +1,6 @@
 ---
 track: calls-desk
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "3ec66b8f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -46,25 +46,94 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Does a call he leaves untouched count as kept?** Built: no. Keep is the default outcome (the call stays as built and
+  nothing is sent for it), but only a press says "kept" and lets it leave the list; an untouched call waits for his
+  next sitting, and one press, "Keep the other N", keeps every call still unanswered. Silence that counted as a keep
+  would let calls he never read leave unseen, the one thing the list exists to prevent. Or: silence keeps (the
+  transcript would list every call a paste does not change as free to leave).
+- **The questions' themes.** `docs/calls.md` gave its questions none; each now wears the nearest of the calls' four,
+  and a fifth, "What Partyreel is", holds the app-gaps walk's questions about the product's shape (X9 roles, X12 words,
+  X13 language, X16 prints, X17 follows). Built: the five, listed in the file, and the door refuses any other. Or: the
+  four only (those five forced into the nearest), or no theme on a question.
+- **An entry's words never change under its id.** Built: `calls.py` has add and retire and no edit, so an answer he
+  gives is always to the words he saw; an entry that must change is retired and added again under a new id. Or: an
+  edit that keeps the id (easier for a typo, but an answer already in a paste would land on new words).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/testing-verification.md`, "The desk's answers live in Will's Chrome": the store it names now holds his
+  call answers too.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- `upcoming` · The lab and the kit: a lane's "Calls for Will" handed off as `usher/kit/calls.py` entries (the shape in
+  `cut-lane.py`'s Handoff template), so the record adds them in one `calls.py add` and the door judges them as written.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
+- **Commits**, pushed on `lp/calls-desk`: `6dc943faf` (the work), `0a0143196` (the walk's fixes); no sync:
+  launch-prep moved only by crumbs-88's merge and records, none touching this lane's paths, and `git merge-tree` of the
+  head against `origin/launch-prep` and against `origin/lp/crumbs-90` (which edits four files this lane comments in)
+  is clean.
+- **Gates on `0a0143196`**, each its own exit code (logs `../partyreel-wt/_scratch/calls-desk/gate-*.log`): typecheck 0;
+  lint 0 (no warnings); test 0 (1,085 files, 13,731 tests); `build-lock.sh pnpm build` 0; `lab:smoke --base
+  http://localhost:3133` 0 (scope all, for `lab-review.mjs`: 228 checks, 0 failing).
+- **Lane check**: owned paths + this file, and `docs/systems/testing-verification.md` (the system-doc edit), and item
+  5's pointers, comments and test titles only (one board string): `sandbox/create-wizard/spec.ts`;
+  `api/host/r2/complete-upload/route.ts` and `.test.ts`; `api/r2/complete-upload/route.ts`, `.test.ts`,
+  `.burst.test.ts`; `components/guest/camera/camera-panels.tsx`; `lib/content-policy.test.ts`;
+  `lib/db/mutations/guest.ts`, `host-media.ts`; `lib/drive/lease-capture.test.ts`, `root-folder.test.ts`;
+  `lib/events/album-sync.ts`, `.test.ts`, `album-wire.ts`, `.test.ts`; `lib/export/drive-names.ts`;
+  `lib/guest/camera/words.ts`; `lib/media/capture-time.ts`, `.test.ts`, `strip-metadata-capture.test.ts`;
+  `lib/shared/album-order.ts`, `.test.ts`, `use-live-poll.ts`, `.test.tsx`; `lib/upload/capture-time-migration.test.ts`,
+  `server-pipeline.ts`, `uploader.capture.test.ts`, `uploader.ts`.
+- **1. `docs/calls.json`**: `docs/calls.md` at `3ec66b8fe` word for word (a script checked every field against it): 14
+  questions in its order, 16 calls by its themes, each call's `home` (the system doc that holds its fact), a question's
+  "Or:" line split at its own semicolons into `alternatives` (X1 at its ", or"; X2's two ways kept as one, since both
+  begin "keep Vercel out of the app"); `retired` holds the 327 ids ever used in the doc's history, never used again.
+  Its rules (`src/lib/calls/calls.ts`, read at import): the cap of 30, unique ids, none retired, every field present,
+  a line of 120 characters (a title and a "Change it if" one, a body and a recommendation three, an alternative two,
+  at most four alternatives), questions first and then calls in the themes' order. `calls.test.ts` holds the file to
+  them and checks every home exists.
+- **2. The Calls place** (`/design/lab#calls`, `lab/calls/calls-place.tsx`), second on the desk after the boards'
+  queue: open questions (each its recommendation, its alternatives, one press each, or his own words in its field),
+  then calls by theme (Keep or Change, a Change's field taking his words and the focus); "Keep the other N" at the
+  foot. A held answer is quiet (a muted fill and a check); a paste's mark reads "sent on <build>". Walked at 1440 and
+  375, light and dark, by keyboard (the house halo on every control) in a headless Chrome of the lane's own.
+- **3. One message a sitting**: the answers ride every composer as one `calls:` line (`composeSoFar`, so the desk's and
+  each board spine's "Copy so far"; the end of the walk, never the dry run); `pnpm lab:review` checks each against the
+  file (line and column; all or nothing with the boards' lines), writes nothing, and prints the routing list (each
+  pick to build, his own words to weigh, a change to a ROADMAP line or a lane, a kept call free to leave with its home)
+  and the one `python3 usher/kit/calls.py retire <ids>` once routed; a retired id is a re-send, printed and never
+  refused; `--json` carries the list. `lab-review.test.ts` round-trips it.
+- **4. `usher/kit/calls.py`** (`add <entry.json>`, `retire <id>...`, `check`; `--root`): the file's only writer. It
+  refuses, writing nothing, a field missing, unknown or empty, a field past its lines, a theme not listed, a home that
+  is not an existing `docs/systems/*.md`, an id malformed, open or used before, and the 31st entry; it places a new
+  entry (a question after the questions, a call at the end of its theme) and writes what prettier writes.
+  `calls.test.ts` runs it: each refusal, and its verdict equal to the desk's reader's on fourteen files.
+- **5. Retired ids cited**: H1 (create-wizard's spec: the comment points at host-app.md's "The sole create path", the
+  board's own line at "your calls' X1"), BE3 (drive-export.md, "Sending again never duplicates and never lies"), X7
+  (twenty-four places; `capture-time.ts` at uploads-and-r2.md, "The capture time stays, never the place or the
+  device"), X4 (guest-flow.md, "The conditional poll"), X8 (marketing-content.md's "No app required" line), BM1
+  (disposable-mode.md, "Two doors take a shot back"). Left: `supabase/migrations/20261005200000_capture_time.sql`
+  cites X7 (an applied migration is never edited: its md5 is the proof); Q5, E6, G4, H2, the reel engine's T1 and the
+  mutations' "Server-mediated (H1)" are other lists' ids, never the calls'. Three open calls cite retired ids in their
+  own words (L2 "AJ1, AR5", J2 "J4", M1 "M2"), kept word for word: they leave with the calls.
+- **At the record** (yours): delete `docs/calls.md`; `track-manifests.test.ts`'s NEVER_OWNED `docs/calls.md` becomes
+  `docs/calls.json` (written only through `usher/kit/calls.py`); point the runbook's "The calls lab"
+  (`usher/kit/README.md`), the pickup (`orchestrator.md`'s two `docs/calls.md` lines) and STATUS's "calls lab's open
+  questions" at the desk's Calls place; and place this in `docs/reviews/README.md`'s grammar, after `review library:`:
+  `calls: <id>=<answer> "a note"; ...`: the answers at the desk's Calls place (`docs/calls.json`), no round, since an
+  id is never used again. A call takes `keep`, or `change` with its note saying what instead; a question takes
+  `recommended`, `alt<n>` (its n-th alternative) or `own` with his words as the note. `pnpm lab:review` checks each
+  against the file and writes nothing: it prints where each goes and the `usher/kit/calls.py retire` to run once each
+  is routed; an id already retired is a re-send, printed and never refused. (The glossary's "The desk" may name the
+  calls too: `_data/glossary.ts`, one line.)
+- Assets requested from Will: none
+- Board ideas: the desk is long at a phone (the Calls place alone runs about 10,500 px at 375, the queue above it more):
+  a desk whose answered sections fold to a line, or the calls walked as steps of the review like the boards' asks.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- Calls for Will: none
+- Test data: none (no account, event or row; the walk's browser profile is in the lane's scratch).
+- Look at first: `/design/lab#calls` at 375 and 1440: keep a call, change one in your words, pick a question's
+  alternative and answer one in your own words, press "Copy so far", then run the paste through `pnpm lab:review --dry`.
