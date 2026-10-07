@@ -49,7 +49,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | `crumbs-89` | milestone 39's last MEDIUM at its source, the door page's consequence line, Settings' rows after a load (a React canary bug, nudged), dormant's tap band | MERGED at `cab0dc0ac` (gate 72 green); migration `email_first_memory` APPLIED (20261007135056, md5 4836beb3 = the file's; the Advisor's Q44: APPLY, the nudge SHIP; hashes as the proof's; advisors 27/4/36); types regenerated with `create_key` and its `heldOf` seam dropped; its stale `host-app.md` lines refined at crumbs-88's record; PREMISE: guests-room's asks name `invited-section.tsx`, touched only by the save's nudge, so they stand; pruned | Opus, 3131 | `a02926c18b226cb2f` |
 | `after-party-r1` | board (desk place 12): the album after its party (over, recap, keepsake, card, bridge) | MERGED at `8e55608e6` (gate 73 green), for the desk after next with no-signal r1; its Deferred and board ideas placed, its lab line retired; pruned | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
-| `crumbs-90` | the guest's send and album: Immediate's upload and album lines | SYNCING (asked 16:35Z: its `guest-flow.md` conflicts with crumbs-88's; it merges launch-prep, keeps both sides' facts, re-checks and hands off again); then its merge for milestone 40; its test events in Deleted | Opus, 3132 | `a792a2c5719fc2ca0` |
+| `crumbs-90` | the guest's send and album: Immediate's upload and album lines | MERGED at `38e51ae9c` (gate 76 green, FULL), for milestone 40; its ten Immediate lines retired, its four Deferred placed; pruned | Opus, 3132 | `a792a2c5719fc2ca0` |
 | `redteam-57c` | the re-walk that closes milestone 39, on the desk build `bea40689d` | DONE 15:15Z: no MEDIUM or worse; every path 57b named restores (its strand path 5 of 5); two LOWs (two of her own pages undo her own step under a hold; a slow stream outlasts the save's nudge) and three NITs to the ROADMAP; its two RT57c events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57c/ledger.txt` | Opus | `a93c1b646bf62a281` |
 | `calls-desk` | the calls lab moved into the lab's desk (Will, 2026-10-07): `docs/calls.json`, a Calls place answered in a press, its answers in the desk's one message, `usher/kit/calls.py` the record's door (the test, the cap of 30) | RUNNING (from 15:41Z) | Opus, 3133 | `aec94a11c372a3ed5` |
 
@@ -69,8 +69,9 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 2. **Milestone 39 is live** (Will's yes, 2026-10-07): `main` at `0333cd705`, tagged `milestone-39`, both projects
    READY at 16:15Z, partyreel.com verified (200s, the login page serving the build); Drive's Worker deployed first
    (`partyreel-drive` version `96513f29`, its two queues made, its secret from `.env.local`, `DRIVE_APP_URL`
-   partyreel.com) and `DRIVE_WORKER_URL` set on production. Next: `crumbs-90`'s integration (crumbs-88 merged at
-   `7224261b3`, gate 75); his Drive walk on partyreel.com (P3's consent; drive-crumbs' Handoff lists what to press).
+   partyreel.com) and `DRIVE_WORKER_URL` set on production. crumbs-88 (`7224261b3`, gate 75) and crumbs-90
+   (`38e51ae9c`, gate 76) merged after it, for milestone 40; his Drive walk on partyreel.com (P3's consent;
+   drive-crumbs' Handoff lists what to press).
 3. **Wave 2's open seats, paced by the 5-hour window and the week** (six to eight agents, `get_usage` at every cut):
    `calls-desk` RUNNING; the gap audit's other design gaps (turned-away demand, the host's picks, duplicates, video
    playback) wait for room on a desk; a crumbs lane on Immediate (40 of 40) once crumbs-88 and crumbs-90 retire their

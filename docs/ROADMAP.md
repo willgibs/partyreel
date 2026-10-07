@@ -22,22 +22,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
 - QA hardening: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
 
-### Uploads, media and exports
-
-- Uploads: a complete sent the instant a dropped line came back hung about 2 minutes before its retry (red-team 56b, NIT).
-- Uploads: the heal re-asks a kept complete on the browser's `online` event at once, so a Retry all pressed as the line comes back is a second complete beside the heal's; `healLost` could ride the queue's `runSoon`, or wait a tick for a press (uploads-bursts).
-- Uploads: a HEIC from a browser that cannot decode it (desktop Chrome) gets no preview, since the uploading browser makes previews, so its tile is blank wherever the original cannot draw; derive it server-side, or give `MediaTile` (`media-grid.tsx`) a named stand-in.
-
-### The guest's album
-
-- Guests: in a 45-photo send the in-flight recorder counted the album's direct tiles dipping (21, then 18, then 21) mid-run, on the builds before and after uploads-bursts alike: a red-team look (uploads-bursts). [unsure: red-team 56b's burst walk counted 92 rows, each once, but named no tile dip]
-- Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts).
-- Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
-- Album: an album tile shows no keyboard focus: its open button's `focus-halo halo-inset` is an inset shadow painted under the button's own photograph (`shared/album-tile.tsx`); carry the halo on an overlay that wears `data-halo` while the button holds the keyboard's focus, as the guests-room board's strip `Tile` does (guests-room r1).
-- Share: a photo link's `og:image:width` and `og:image:height` declare the original's dimensions, not the 480x640 preview it serves (red-team 57b, NIT).
-- Album: the failure sheet offers Retry on a roll refusal (`upload-refusal.ts` has no `roll_spent` case, so `retryCanPass` is true): Retry both and each row's Retry over shots the roll refuses again, under a Not now that promises a later go; class it as the file's own (no Retry, "Take another to add one."), as the camera already does (`shots.ts:121`) (no-signal r1).
-- Album: the send's toast ("Your photo joined Maya's album.") fires beside the failure sheet at one run's end (`useSendToast`'s `quiet` leaves the sheet out), a "joined" over "2 of 3 didn't upload"; quiet it while the sheet stands, or let the sheet say what joined (no-signal r1).
-
 ### The host app
 
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
@@ -123,6 +107,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: a party with no signal: nothing waits on the device (no service worker; a closed tab loses an unsent photo, and iOS kills background tabs); unsent originals kept in IndexedDB and resumed on the next open with a "3 waiting to send" chip, Background Sync where it exists; whether a camera shot spends the roll when taken or when it lands is Will's (app-gaps-r1).
 - Uploads: the same photo sent twice lands twice (re-picked to be sure, AirDropped around a party), spending storage and the uploads allowance and repeating in the zip, Drive and the reel; skip a byte-identical file per album (a hash of the stripped bytes before presign) and say it is already in (app-gaps-r1).
 - Video: the album's viewer plays the original (up to 10 GB, HEVC by default on iPhones) with no fallback where the reel falls back to its poster (`lib/reel/engine/video/ladder.ts`); measure on real phones, then a light copy made in the uploading browser or a server transcode costed in the atlas (app-gaps-r1).
+- Uploads: a HEIC the uploading browser cannot decode gets no preview, phone copy or measures; decode it there with a WASM decoder fetched only then ($0, in-house; libheif and libde265 are LGPL, Will's call before it is built) (crumbs-90).
 
 ### The guest's album
 
@@ -148,6 +133,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: a guest's own "what happened to my photos" across albums (her sends, what landed, what waits, what was refused and why), after no-signal's carry is wired; and the install board's new reason (a home-screen album is exempt from Safari's 7-day eviction and can be granted `persist()`) (no-signal r1).
 - Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event", and it still wears the placeholder aperture tile left for the wordmark on 2026-09-17; the card's wiring loads its face (after-party r1).
 - Lab exploration: after-party r2, the album's later moments once Will picks where the recap lives: the anniversary a year on, and the keepsake's premiere (the reel opening by itself on a guest's return, with Skip: motion r1's stills could not judge) (after-party r1).
+- Album: the viewer draws nothing for a photograph its browser cannot decode (a HEIC with no preview in Chrome); say it as the tile's stand-in does, beside Save (crumbs-90).
+- Camera: at a roll of 1 the refusal says "You've taken all 1 shots on your roll." (`roll.ts`'s `rollSpentMessage` and `create_media`'s mirror, a migration) (crumbs-90).
 
 ### Accounts and profiles
 
@@ -222,6 +209,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: the hub's folded band brings its code pill in without the fold when the cover's code leaves the screen after the band has stuck (its sentinel reports a beat later), so it pops in; fold it in on its own arrival (event-header-wiring-2).
 - Design: one face size and caption rule for the guest faces presence r1 and guests-room r1 both draw, set when either wires (guests-room r1).
 - Settings' door page: at 375 the restore toast covers step 1 while it stands; her own step under a gate reads "On while you let each person in"; after Ask or Keep by keyboard focus falls to the sheet (red-team 57c, NITs).
+- Design: `halo-inset`'s forced-colours outline stands 2px outside its control, where a clipping box hides it; draw it inside, as the album tile's halo now does (crumbs-90).
 
 ### Marketing and content
 
