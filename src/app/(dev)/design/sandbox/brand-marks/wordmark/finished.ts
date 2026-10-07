@@ -6,7 +6,15 @@ import { WORDMARK_PATH } from "@/lib/brand/wordmark";
  * His file is one path of ten closed shapes (`src/lib/brand/wordmark.ts`,
  * never retyped): the r, t and y on their one bar, the a and its counter, the
  * second r joined to the first e and its eye, the second e and its eye, the P
- * and its counter, the l. The display cut (48px and up) is that path exactly.
+ * and its counter, the l.
+ *
+ * ★ THE DISPLAY CUT (48px and up: the foot's large mark, the social card, the
+ * press kit) parts the same three pairs by a hair and nothing else (the
+ * creative director's pass, a carried call his to overrule): as drawn, y|r
+ * stands 0.10 apart, so even at 80px the bar runs on into the second r, and
+ * e|e (0.47) and P|a (0.77) pinch to a pixel's hairline that fuses on a 1x
+ * screen. A hair (`HAIR`) is about one unit, a pixel's seam from 48px up and
+ * a near-touch no longer; the two open pairs stay as he drew them.
  *
  * THE SMALL CUT, for production's 22px (every bar and the foot) and 16px (the
  * admin's bar), moves whole shapes right and nothing else. Measured edge to
@@ -83,16 +91,25 @@ const PIECES: readonly (readonly [
   ["e|l", ["l"]],
 ];
 
-/** How far each shape moves right: everything opened to its left. */
-const MOVE = (() => {
+/** WHAT EACH PAIR OPENS BY in the display cut: a hair on the three that touch, nothing on the rest. */
+const HAIR: Record<keyof typeof OPEN, number> = {
+  "P|a": 0.9,
+  "a|r": 0,
+  "y|r": 1,
+  "e|e": 1,
+  "e|l": 0,
+};
+
+/** How far each shape moves right, given what each pair opens by: everything opened to its left. */
+function movesFor(open: Record<keyof typeof OPEN, number>) {
   const move: Partial<Record<Shape, number>> = {};
   let x = 0;
   for (const [pair, shapes] of PIECES) {
-    if (pair) x = Math.round((x + OPEN[pair]) * 1000) / 1000;
+    if (pair) x = Math.round((x + open[pair]) * 1000) / 1000;
     for (const shape of shapes) move[shape] = x;
   }
   return move;
-})();
+}
 
 /** A number from his file moved by `by`, exactly: his digits kept, no float noise. */
 function plus(n: string, by: number): string {
@@ -126,15 +143,19 @@ const PLAIN = /^(?:[MLHVZ]|-?\d*\.?\d+|[\s,])+$/;
 
 const SUBPATHS = WORDMARK_PATH.split(/(?=M)/);
 
-/** The display cut: his path exactly, in his 308 box. */
-export const FINISHED_DISPLAY = { d: WORDMARK_PATH, w: 308 } as const;
-
-/** The small cut, for production's 22px and 16px: the same shapes, spaced. */
-export const FINISHED_SMALL = (() => {
+/** His shapes, each moved right by the table's opening, and the word's new width. */
+function spaced(open: Record<keyof typeof OPEN, number>) {
   if (SUBPATHS.length !== SHAPES.length || !PLAIN.test(WORDMARK_PATH))
     // His next file arrives with another count of shapes, or curves: draw it
     // as is rather than move the wrong letters.
     return { d: WORDMARK_PATH, w: 308 };
-  const d = SUBPATHS.map((s, i) => moveRight(s, MOVE[SHAPES[i]] ?? 0)).join("");
-  return { d, w: 308 + (MOVE.l ?? 0) };
-})();
+  const move = movesFor(open);
+  const d = SUBPATHS.map((s, i) => moveRight(s, move[SHAPES[i]] ?? 0)).join("");
+  return { d, w: 308 + (move.l ?? 0) };
+}
+
+/** The display cut, 48px and up: his shapes, the three that touch parted by a hair. */
+export const FINISHED_DISPLAY = spaced(HAIR);
+
+/** The small cut, for production's 22px and 16px: the same shapes, spaced a step more. */
+export const FINISHED_SMALL = spaced(OPEN);

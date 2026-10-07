@@ -39,22 +39,20 @@ export function Word({
 
 /**
  * THE BARS' SIZE, ENLARGED PIXEL FOR PIXEL: the drawing rasterised at 22px on
- * a device pixel grid of 2, then shown four times larger with no smoothing,
- * so a reader sees the pixels a laptop actually lights.
+ * a device pixel grid of 2, then shown larger with no smoothing, so a reader
+ * sees the pixels a laptop actually lights. ★ IN ITS HALF'S OWN INK ON ITS
+ * HALF'S OWN GROUND, read off the half as the frame paints it, so the
+ * enlargement never sits in a box of a typed grey.
  */
 function Pixels({
   mark,
   height,
   zoom,
-  ink,
-  ground,
   read,
 }: {
   mark: Drawing;
   height: number;
   zoom: number;
-  ink: string;
-  ground: string;
   read?: string;
 }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
@@ -64,15 +62,18 @@ function Pixels({
   useEffect(() => {
     const canvas = ref.current;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
+    const half = canvas?.closest("[data-bm-half]");
+    const win = canvas?.ownerDocument.defaultView;
+    if (!canvas || !ctx || !half || !win) return;
+    const paint = win.getComputedStyle(half);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = ground;
+    ctx.fillStyle = paint.backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     const s = (height / 64) * dpr;
     ctx.setTransform(s, 0, 0, s, 2 * dpr, 2 * dpr);
-    ctx.fillStyle = ink;
+    ctx.fillStyle = paint.color;
     ctx.fill(new Path2D(mark.d));
-  }, [mark, height, ink, ground]);
+  }, [mark, height]);
   return (
     <canvas
       ref={ref}
@@ -121,12 +122,9 @@ function Half({
     desk ? 104 : 46,
     Math.floor((room * 64) / mark.display.w),
   );
-  const pixel = {
-    ink: ground === "paper" ? "#141416" : "#f5f5f7",
-    ground: ground === "paper" ? "#f6f6f8" : "#09090b",
-  };
   return (
     <div
+      data-bm-half={ground}
       className={
         ground === "paper"
           ? "surface-paper flex flex-col bg-background text-foreground"
@@ -158,12 +156,7 @@ function Half({
       <div className="flex flex-wrap items-start" style={{ gap: 18 }}>
         {before ? (
           <div className="flex flex-col gap-2">
-            <Pixels
-              mark={before}
-              height={22}
-              zoom={desk ? 3 : 1.4}
-              {...pixel}
-            />
+            <Pixels mark={before} height={22} zoom={desk ? 3 : 1.4} />
             <Cap>As drawn, 22 px enlarged</Cap>
           </div>
         ) : null}
@@ -173,7 +166,6 @@ function Half({
             height={22}
             zoom={desk ? 3 : 1.4}
             read={ground === "paper" ? "the bars' size, enlarged" : undefined}
-            {...pixel}
           />
           <Cap>{before ? "Finished, 22 px enlarged" : "22 px enlarged"}</Cap>
         </div>

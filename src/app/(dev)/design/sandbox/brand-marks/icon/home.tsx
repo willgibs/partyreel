@@ -207,15 +207,18 @@ function Shape({ id, c }: { id: Glyph; c: string }) {
 /** The icon's true size on a home screen, in points. */
 const SIZE = 60;
 
-/** A plain tile in the system's corner (a continuous corner reads as 22.4% of its side). */
-function Tile({ n }: { n: Neighbour }) {
+/**
+ * A plain tile in the system's corner (a continuous corner reads as 22.4% of
+ * its side), or round, as a launcher masks every icon to a circle.
+ */
+function Tile({ n, round = false }: { n: Neighbour; round?: boolean }) {
   return (
     <span
       className="flex items-center justify-center"
       style={{
         width: SIZE,
         height: SIZE,
-        borderRadius: SIZE * 0.2237,
+        borderRadius: round ? "50%" : SIZE * 0.2237,
         background: `linear-gradient(180deg, color-mix(in oklab, ${n.bg} 90%, white), ${n.bg})`,
         boxShadow: "inset 0 0 0 0.5px rgb(0 0 0 / 0.08)",
       }}
@@ -444,6 +447,108 @@ export function HomeScreen({ icon, wall }: { icon: IconId; wall: Wall }) {
           <Tile key={n.label} n={n} />
         ))}
       </div>
+    </div>
+  );
+}
+
+/** A launcher's twenty slots, row by row; null is Partyreel's. */
+const LAUNCHER: readonly (Neighbour | null)[] = [
+  N.clock,
+  N.calendar,
+  N.weather,
+  N.maps,
+  N.mail,
+  N.camera,
+  N.files,
+  N.music,
+  N.notes,
+  null,
+  N.wallet,
+  N.settings,
+  N.contacts,
+  N.podcasts,
+  N.books,
+  N.home,
+];
+
+/**
+ * A LAUNCHER'S HOME, 375 BY 812: every icon masked to a circle, as the
+ * manifest's maskable icon is (`icon-512-maskable.png`). ★ THE RING SITS IN
+ * THE MASK'S SAFE ZONE BY CONSTRUCTION: its outer edge is 62% of the tile's
+ * width, inside the 80% circle a mask always keeps, and the dark tile fills
+ * the circle whole, so no launcher's mask can cut the light.
+ */
+export function Launcher({ icon }: { icon: IconId }) {
+  const still = marketingImage("party-dj");
+  return (
+    <div
+      className="relative overflow-hidden"
+      style={{ width: 375, height: 812, background: "#000" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- a fixed still in a lab frame */}
+      <img
+        src={still.src}
+        alt=""
+        className="absolute inset-0 size-full object-cover"
+        style={{ objectPosition: "40% 50%", filter: "brightness(0.8)" }}
+      />
+      <Status />
+      {LAUNCHER.map((n, i) => {
+        const r = Math.floor(i / 4);
+        const c = i % 4;
+        return (
+          <span
+            key={`${r}-${c}`}
+            className="absolute"
+            style={{ left: COL[c], top: 300 + r * ROW }}
+          >
+            {n ? (
+              <Slot label={n.label}>
+                <Tile n={n} round />
+              </Slot>
+            ) : (
+              <Slot label="Partyreel">
+                <span
+                  data-bm-read="the maskable icon in a launcher's circle"
+                  data-bm-says="60×60"
+                  style={{
+                    display: "block",
+                    width: SIZE,
+                    height: SIZE,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                  }}
+                >
+                  <RingIcon id={icon} size={SIZE} />
+                </span>
+              </Slot>
+            )}
+          </span>
+        );
+      })}
+      <span
+        className="absolute flex items-center"
+        style={{
+          left: 20,
+          right: 20,
+          bottom: 30,
+          height: 48,
+          borderRadius: 99,
+          paddingInline: 18,
+          gap: 10,
+          background: "rgb(255 255 255 / 0.9)",
+          color: "#3c4043",
+          fontSize: 14,
+        }}
+      >
+        <span
+          style={{ fontWeight: 700, color: "#4285f4", fontSize: 18 }}
+          aria-hidden
+        >
+          G
+        </span>
+        Search
+      </span>
     </div>
   );
 }

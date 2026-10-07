@@ -50,11 +50,17 @@ function cut(size: number): Optics {
   // neighbours, on a dark strip and a light one. Few wedges, here and in the
   // next cut: at these sizes each seam between two wedges lets a hair of the
   // tile through, so fewer seams draw a cleaner band.
+  //
+  // ★ THE HOME SCREEN'S PROPORTIONS, AT A TAB'S WEIGHT (the creative
+  // director's pass): a thick band round a small puck read as a doughnut, a
+  // different shape from the ring on the home screen, so the tab's cut keeps
+  // the broad puck of every other size and gives the band its weight in
+  // light, never in width.
   if (size <= 20)
     return {
-      rDisc: 0.175,
-      gap: 0.055,
-      band: 0.145,
+      rDisc: 0.215,
+      gap: 0.05,
+      band: 0.11,
       glow: 0,
       glowBlur: 0.03,
       corona: 0,
@@ -67,9 +73,9 @@ function cut(size: number): Optics {
   // little glow at the key, the far side still well lit.
   if (size <= 40)
     return {
-      rDisc: 0.19,
-      gap: 0.045,
-      band: 0.115,
+      rDisc: 0.215,
+      gap: 0.05,
+      band: 0.11,
       glow: 0.45,
       glowBlur: 0.03,
       corona: 0,

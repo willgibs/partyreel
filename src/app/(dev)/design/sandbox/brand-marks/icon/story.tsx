@@ -3,26 +3,19 @@
 import type { ScreenId } from "../knobs";
 import { Story } from "../scene";
 import { Favourites, SearchResults, TabStrip } from "./browser";
-import { DAY, HomeScreen, NIGHT } from "./home";
+import { DAY, HomeScreen, Launcher, NIGHT } from "./home";
 import type { IconId } from "./ring";
 import { IconSheet } from "./sheet";
 
 /**
  * ONE ICON'S FRAMES: the icon itself, then where an icon lives: a phone's
- * home screen at night and by day (always a phone, whatever the Screen knob
- * says, since that is the only place a home screen is), and at a desk a
- * browser's tabs on a dark window and a light one with a search result; at a
- * phone, a browser's favourites on its light start page.
+ * home screen at night and by day and a launcher's circles (always a phone,
+ * whatever the Screen knob says, since that is the only place a home screen
+ * is), and at a desk a browser's tabs on a dark window and a light one with a
+ * search result; at a phone, a browser's favourites on its light start page.
+ * The tab is shown, not asked: its small ring is one cut for all three.
  */
-export function IconStory({
-  id,
-  screen,
-  lede,
-}: {
-  id: IconId;
-  screen: ScreenId;
-  lede: string;
-}) {
+export function IconStory({ id, screen }: { id: IconId; screen: ScreenId }) {
   const desk = screen === "1440";
   const phones = [
     {
@@ -39,11 +32,17 @@ export function IconStory({
       h: 812,
       node: <HomeScreen icon={id} wall={DAY} />,
     },
+    {
+      id: `bm-icon-${id}-launcher`,
+      title: "A launcher, every icon a circle",
+      w: 375,
+      h: 812,
+      node: <Launcher icon={id} />,
+    },
   ];
   return (
     <Story
       screen={screen}
-      lede={lede}
       sheet={{
         id: `bm-icon-${id}-sheet-${screen}`,
         title: "The icon, in the room and on paper",

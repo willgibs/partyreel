@@ -8,9 +8,11 @@ import type { ScreenId } from "../knobs";
 import type { StatusSet, StatusSetId } from "./sets";
 
 /**
- * THE STATUS SET ITSELF, on paper and in the room: first the five marks in
- * one line, side by side as a host's screen holds them (Standby, Ready,
- * Fault, the tally, live), then each on a row of its own with what it says
+ * THE STATUS SET ITSELF, on paper and in the room: first the five marks
+ * side by side as a host's screen holds them (Standby, Ready, Fault, the
+ * tally, live), drawn twice their size (★ the step first shows an option
+ * fitted to its window, where an 8px point is three pixels and its colour,
+ * the one thing asked, is lost), then each on a row of its own with what it says
  * in this set, the token it lands as and its contrast on the ground. Every
  * point is production's own Badge under the set's paste (Standby is its
  * `info`, production's "in progress"); the tally is drawn as the
@@ -39,7 +41,7 @@ const SAYS: Record<StatusSetId, { ready: string; fault: string }> = {
   amber: {
     ready: "Done: approved, sent, saved. Green, as a camera says ready.",
     fault:
-      "Failed, nothing lost: refused, full, stopped. Amber, so red stays a person's.",
+      "Failed: refused, full, stopped. Amber, so red stays the tally's and live's.",
   },
 };
 
@@ -230,19 +232,24 @@ function Half({
       style={{ flex: 1, padding: desk ? "36px 48px" : "24px 18px", gap: 14 }}
     >
       <Cap>{ground === "paper" ? "On paper" : "In the room"}</Cap>
-      {desk ? (
-        // The five side by side, as a host's screen holds them: Fault beside the tally.
-        <div
-          className="flex flex-wrap items-center"
-          style={{ columnGap: 22, rowGap: 8, paddingBottom: 6 }}
-        >
-          <Badge variant="info">Sending 3 of 12</Badge>
-          <Badge variant="success">12 approved</Badge>
-          <Badge variant="destructive">1 upload failed</Badge>
-          <Waiting />
-          <Badge variant="live">Live</Badge>
-        </div>
-      ) : null}
+      {/* The five side by side, as a host's screen holds them, Fault beside
+          the tally, at twice their size so the colours read at the step's
+          first, fitted look. */}
+      <div
+        className="flex flex-wrap items-center"
+        style={{
+          zoom: desk ? 2 : 1.5,
+          columnGap: 18,
+          rowGap: 8,
+          paddingBottom: 4,
+        }}
+      >
+        <Badge variant="info">Sending 3 of 12</Badge>
+        <Badge variant="success">12 approved</Badge>
+        <Badge variant="destructive">1 upload failed</Badge>
+        <Waiting />
+        <Badge variant="live">Live</Badge>
+      </div>
       <Row
         mark={<Badge variant="info">Sending 3 of 12</Badge>}
         state="Standby"

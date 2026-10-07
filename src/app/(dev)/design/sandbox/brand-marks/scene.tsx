@@ -197,17 +197,19 @@ const GAP = 24;
  * AN OPTION'S FRAMES: at a desk the sheet first and whole, then the surfaces
  * wrapping two to a row (each a laptop, so a row is the room beside paper);
  * at a phone every frame side by side in one fitted canvas (one scale, one
- * baseline), and stacked when the lab itself is read on a phone. `lede` is
- * the one line above the frames saying what they hold.
+ * baseline), and stacked when the lab itself is read on a phone.
+ *
+ * ★ NO LINE OF ITS OWN ABOVE THE FRAMES (the creative director's pass): a
+ * step draws the whole option inside its zoom, so a lede there stood at five
+ * pixels and only repeated the option's label; each frame's own title says
+ * what it holds.
  */
 export function Story({
   screen,
-  lede,
   sheet,
   frames,
 }: {
   screen: ScreenId;
-  lede: ReactNode;
   /** The mark itself, drawn whole before the surfaces it signs. */
   sheet?: StoryFrame;
   frames: readonly StoryFrame[];
@@ -230,15 +232,9 @@ export function Story({
       {f.node}
     </Scene>
   );
-  const head = (
-    <p className="max-w-3xl text-sm leading-snug text-muted-foreground">
-      {lede}
-    </p>
-  );
   if (screen === "1440" || onPhone)
     return (
       <div data-bm-story className="flex flex-col gap-4">
-        {head}
         {sheet ? scene(sheet) : null}
         <div className="flex flex-wrap items-start gap-6">
           {frames.map((f) => scene(f))}
@@ -249,7 +245,6 @@ export function Story({
     all.reduce((s, f) => s + (f.w ?? size.w), 0) + (all.length - 1) * GAP;
   return (
     <div data-bm-story className="flex flex-col gap-4">
-      {head}
       <Fit w={w}>
         <div className="flex items-start" style={{ gap: GAP }}>
           {all.map((f) => scene(f, true))}

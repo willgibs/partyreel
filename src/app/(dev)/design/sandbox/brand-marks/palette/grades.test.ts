@@ -3,13 +3,13 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { floors, type GradeId, GRADES, gradePaste } from "./grades";
+import { floors, GRADES, gradePaste, type PlateId } from "./grades";
 
 /**
- * THE GRADES' TWO PROMISES, held where Will can trust them without reading a
- * number: graphite IS production's grade (so the other two are judged against
- * what is built, never against a lane's guess at it), and no grade lets a text
- * step fall under its floor.
+ * THE PLATES' TWO PROMISES, held where Will can trust them without reading a
+ * number: the lifted plate IS production's grade (so the room's own black is
+ * judged against what is built, never against a lane's guess at it), and no
+ * plate lets a text step fall under its floor.
  */
 
 const ROOT = process.cwd();
@@ -39,11 +39,11 @@ const PRODUCTION = [
   ),
 ];
 
-describe("the grades", () => {
-  it("draws graphite as production's own grade, value for value", () => {
+describe("the plates", () => {
+  it("draws the lifted plate as production's own grade, value for value", () => {
     const differ: string[] = [];
     let checked = 0;
-    for (const b of blocks(gradePaste(GRADES.graphite))) {
+    for (const b of blocks(gradePaste(GRADES.lifted))) {
       const theirs = PRODUCTION.filter((p) => p.sel === b.sel);
       for (const [token, value] of b.decls) {
         // The ember's stops and the relit lamps are the one thing it adds.
@@ -60,16 +60,16 @@ describe("the grades", () => {
     expect(differ).toEqual([]);
   });
 
-  it("keeps every text step over its floor, in every grade", () => {
+  it("keeps every text step over its floor, on either plate", () => {
     const under: string[] = [];
-    for (const id of Object.keys(GRADES) as GradeId[]) {
+    for (const id of Object.keys(GRADES) as PlateId[]) {
       for (const [key, r] of Object.entries(floors(GRADES[id]))) {
         if (r.ink < 7) under.push(`${id} ${r.where}: ink ${r.ink.toFixed(2)}`);
         if (r.muted < 4.5)
           under.push(`${id} ${r.where}: muted ${r.muted.toFixed(2)}`);
         // A held row on the room's display is production's one documented
         // place under it (globals.css: AA there would close the gap to the
-        // muted step), and every grade keeps it as production does.
+        // muted step), and either plate keeps it as production does.
         if (key !== "roomScreenRow" && r.faint < 4.5)
           under.push(`${id} ${r.where}: faint ${r.faint.toFixed(2)}`);
       }

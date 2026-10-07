@@ -15,19 +15,32 @@ describe("the wordmarks", () => {
         expect(cut.w, mark.id).toBeGreaterThanOrEqual(308);
   });
 
-  it("draws v1's display cut as his path exactly", () => {
-    expect(WORDMARKS.finished.display.d).toBe(WORDMARK_PATH);
+  it("moves his shapes in both cuts and changes none of them", () => {
+    // Every shape of a cut is his own, moved: the same commands in the same
+    // order, every y his, every x his plus one amount for the whole shape.
+    const his = WORDMARK_PATH.split(/(?=M)/);
+    const numbers = (shape: string) =>
+      [...shape.matchAll(/-?\d*\.?\d+/g)].map((m) => Number(m[0]));
+    const commands = (s: string) => s.replace(/[-\d.\s,]+/g, " ").trim();
+    for (const cut of [WORDMARKS.finished.display, WORDMARKS.finished.small]) {
+      const shapes = cut.d.split(/(?=M)/);
+      expect(shapes).toHaveLength(his.length);
+      shapes.forEach((shape, i) => {
+        expect(commands(shape)).toBe(commands(his[i]));
+        const mine = numbers(shape);
+        const theirs = numbers(his[i]);
+        const moved = mine.map((n, k) => Math.round((n - theirs[k]) * 1000));
+        // An M and an L carry x then y, an H an x alone: every non-zero move
+        // in a shape is the same one.
+        expect(new Set(moved.filter(Boolean)).size).toBeLessThanOrEqual(1);
+      });
+    }
   });
 
-  it("moves his shapes in the small cut and changes none of them", () => {
-    // Every shape of the small cut, moved back to where the letter before it
-    // ends as he drew it, is his own: same commands, same y's, x's shifted
-    // by one amount per shape.
-    const his = WORDMARK_PATH.split(/(?=M)/);
-    const cut = WORDMARKS.finished.small.d.split(/(?=M)/);
-    expect(cut).toHaveLength(his.length);
-    const commands = (s: string) => s.replace(/[-\d.\s,]+/g, " ").trim();
-    cut.forEach((shape, i) => expect(commands(shape)).toBe(commands(his[i])));
+  it("parts the display cut by less than the small cut, and both by something", () => {
+    const { display, small } = WORDMARKS.finished;
+    expect(display.w).toBeGreaterThan(308);
+    expect(small.w).toBeGreaterThan(display.w);
   });
 
   it("swaps production's Logo by a transform, never by rewriting his numbers", () => {

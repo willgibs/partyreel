@@ -80,14 +80,20 @@ function plusAt(size: number) {
  * The plus's two ends: where the key falls, white warmed by the ember's own
  * lit hue; on the far side, the interface's cool grey. Chroma 0 is the tinted
  * appearance.
+ *
+ * ★ NEVER BRIGHTER THAN THE LIGHT (the creative director's pass): at 0.975 the
+ * plus was the brightest thing on the tile, so the eye met a white sticker
+ * before the ring's amber (0.87 at its brightest). In Aperture the light is
+ * the brightest thing in the room, so the plus is the button's marking, lit
+ * by the same lamp and a step under it: 0.86 where the key falls, 0.64 away.
  */
 const LIT: Record<Appearance, string> = {
-  room: toHex(toLab(0.975, 0.03, EMBER[0].h)),
-  tinted: toHex(toLab(0.975, 0, EMBER[0].h)),
+  room: toHex(toLab(0.86, 0.02, EMBER[0].h)),
+  tinted: toHex(toLab(0.86, 0, EMBER[0].h)),
 };
 const FAR: Record<Appearance, string> = {
-  room: toHex(toLab(0.82, 0.005, 286)),
-  tinted: toHex(toLab(0.82, 0, 286)),
+  room: toHex(toLab(0.64, 0.004, 286)),
+  tinted: toHex(toLab(0.64, 0, 286)),
 };
 
 /**

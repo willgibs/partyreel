@@ -19,12 +19,12 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import type { ScreenId } from "../knobs";
 
 /**
- * THE ROOM'S WHOLE LADDER, ON PRODUCTION'S OWN PIECES: a grade in the room
- * shows on what stands on its black (a card, the display's quick menu, the
- * lines and the three text steps), never on photographs alone, which look the
- * same on every black. So the host's app is drawn with its menu open (the
- * display's own panel, `floatingDisplayPanel`, drawn still where her avatar
- * opens it) beside her storage card and two of her events.
+ * A PIECE OF THE ROOM ON A PAPER PAGE, ON PRODUCTION'S OWN PIECES: the host's
+ * app in the light, its quick menu drawn open where her avatar opens it (the
+ * display's own panel, `floatingDisplayPanel`, a piece of the room on paper
+ * made of the plate), beside her storage card and two of her events, so the
+ * plate is judged where a host meets it daily and against the photographs
+ * and the paper around it.
  */
 
 const STILLS = MARKETING_IMAGES.map((m) => m.src);
@@ -39,7 +39,7 @@ const ROWS = [
 function OpenMenu() {
   return (
     <div
-      data-bm-read="the display's menu in the room"
+      data-bm-read="the display's menu on paper"
       className={`${floatingDisplayPanel} w-60 p-1.5`}
     >
       <div className="px-2.5 pt-1.5 pb-2">
@@ -72,7 +72,7 @@ function Storage() {
     ["Ines & Tom", "1.2 GB", "86 photos"],
   ] as const;
   return (
-    <Card data-bm-read="a card in the room">
+    <Card data-bm-read="a card on paper">
       <CardContent>
         <div className="flex items-center gap-2">
           <HardDrive className="size-4 text-muted-foreground" aria-hidden />
@@ -102,10 +102,10 @@ function Storage() {
   );
 }
 
-export function RoomGrounds({ screen }: { screen: ScreenId }) {
+export function AppWithMenu({ screen }: { screen: ScreenId }) {
   const desk = screen === "1440";
   return (
-    <div className="dark relative min-h-screen bg-background text-foreground">
+    <div className="surface-paper relative min-h-screen bg-background text-foreground">
       <AppShell
         headerActions={
           <UserMenu

@@ -17,7 +17,9 @@ import {
 } from "./grades";
 
 /**
- * THE GRADE AS ITS TOKENS, READ AT A GLANCE, by `globals.css`'s names: each
+ * THE GRADE AS ITS TOKENS, READ AT A GLANCE, with the plate the ask decides
+ * (the plate on paper and the display a menu is made of) among them, by
+ * `globals.css`'s names: each
  * ground's ladder, deepest step first, one row a token with its value; the
  * three inks set on the surfaces they stand on, each ratio printed in its
  * own ink; the lines; on paper the two pieces of the room (the plate the
@@ -28,15 +30,15 @@ import {
  * every colour here is the grade's own number, never a class's, and the
  * sheet is the grade, not a picture of one.
  *
- * ★ TODAY RIDES ALONG: where a grade moves a step off graphite, a strip of
- * today's value runs down the ladder's left edge, so a cast or a step deeper
- * is read beside what is built rather than remembered.
+ * ★ TODAY RIDES ALONG: where a plate moves a token off production's, a strip
+ * of today's value runs down its left edge, so the room's own black is read
+ * beside what is built rather than remembered.
  *
  * ★ IT FITS ITS FRAME: 620 tall at a desk, 1280 on a phone (`story.tsx`), so
  * a row added here is a row taken from somewhere else.
  */
 
-const TODAY = GRADES.graphite;
+const TODAY = GRADES.lifted;
 
 /** Both ladders stand as tall (the room's nine steps, paper's six), so the rows below line up across the sheet. */
 const LADDER = 171;
@@ -167,7 +169,7 @@ function Ladder({
       </div>
       <span style={{ color: cssOf(quiet), fontSize: 10.5 }}>
         {moved
-          ? "Deepest first. The strip at the left of each step is graphite's, today."
+          ? "Deepest first. The strip at the left of each step is today's."
           : "Deepest first, exactly as production declares them."}
       </span>
     </div>
@@ -381,6 +383,7 @@ function Ember({
 function Piece({
   name,
   value,
+  was,
   ground,
   step,
   stepName,
@@ -392,6 +395,8 @@ function Piece({
 }: {
   name: string;
   value: Tone;
+  /** Today's value, drawn as a strip down the piece's left edge where the plate moves it. */
+  was: Tone;
   ground: Tone;
   step: Tone;
   stepName: string;
@@ -419,6 +424,19 @@ function Piece({
         color: cssOf(inks[0]),
       }}
     >
+      {same(was, value) ? null : (
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 10,
+            background: cssOf(was),
+          }}
+        />
+      )}
       {seam ? (
         <>
           <span
@@ -691,6 +709,7 @@ export function GradeSheet({
               desk={desk}
               name="The plate, .surface-ink"
               value={slab.background}
+              was={TODAY.slab.background}
               ground={slab.background}
               step={slab.card}
               stepName="its --card"
@@ -703,6 +722,7 @@ export function GradeSheet({
               desk={desk}
               name="The display, a menu on paper"
               value={display.paper.display}
+              was={TODAY.display.paper.display}
               ground={display.paper.display}
               step={display.paper.step}
               stepName="--display-step"

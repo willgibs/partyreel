@@ -54,13 +54,15 @@ export const WHOLE_LIGHT: Lighting = {
   }),
   optics(size) {
     // The favicon's cut (16 to 32): the band 1.6 pixels at 16, the gap most
-    // of a pixel, the puck nearly as broad as the big icon's.
+    // of a pixel, the puck nearly as broad as the big icon's. ★ NO GLOW AT A
+    // TAB'S 16 (the creative director's pass): a blur at that size thickens
+    // the band into a smudge; the 32 keeps a breath of it.
     if (size <= 32)
       return {
         rDisc: 0.215,
         gap: 0.05,
         band: 0.1,
-        glow: 0.3,
+        glow: size <= 20 ? 0 : 0.3,
         glowBlur: 0.03,
         corona: 0,
         coronaOp: 0,

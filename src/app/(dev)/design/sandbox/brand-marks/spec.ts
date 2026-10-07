@@ -13,11 +13,17 @@ import { SCREEN } from "./knobs";
  * ring of light), the palette as tokens production can wear, and the status
  * set beside the tally he picked at event-header r6.
  *
+ * ★ THE PALETTE IS ONE ASK AND TWO CALLS (the creative director's pass): drawn
+ * as three grades, production's room stood the same in all three (its black is
+ * already at the floor), so the grade stays production's, named (a call), the
+ * ember's stops join it and relight the five lamps (a call), and the one
+ * visible decision left is asked: what a piece of the room on paper is made of.
+ *
  * ★ EVERY OPTION IS ITS ANSWER'S OWN SIZE: a wordmark is one path production's
- * `Logo` draws, a grade is a block of `globals.css` tokens, a status set is a
+ * `Logo` draws, a plate is a few `globals.css` tokens, a status set is a
  * few tokens and the Badge's point, so each frame wears its option as one
  * paste on production's own surfaces (the site's bar and foot, sign-in, the
- * host's app, the pricing page), the fix at its source rather than a page's.
+ * host's app and her hub), the fix at its source rather than a page's.
  * The icon has no surface in production yet (its stand-in is mounted nowhere
  * but the tab), so it is drawn where an icon lives: a home screen and tabs.
  *
@@ -51,18 +57,18 @@ export const BRAND_MARKS = defineExploration({
     n: 1,
     date: "2026-10-06",
     changed:
-      "A new board from your brand r2 pick: Aperture's marks made final, each drawn on production's own surfaces: the wordmark, the icon, the grade's tokens and the status set.",
+      "A new board from your brand r2 pick: Aperture's marks made final, each drawn on production's own surfaces: the wordmark, the icon, the plate a piece of the room is made of and the status set.",
   },
   context:
-    "Every option is drawn on production's own surfaces at a laptop or a phone (the Screen knob), the room and paper side by side: the site's first screen and its foot, sign-in, the host's app, the pricing page; the icon on a home screen and among a browser's tabs. Each option reaches production as one paste, so what a frame shows is what its answer lands.",
+    "Every option is drawn on production's own surfaces at a laptop or a phone (the Screen knob), the room and paper side by side: the site's first screen and its foot, sign-in, the social card, the host's app and her hub; the icon on a home screen, a launcher and among a browser's tabs. Each option reaches production as one paste, so what a frame shows is what its answer lands.",
   opening: {
     about:
-      "Aperture's marks, made final on production's own surfaces: the wordmark, the icon, the grade's tokens and the status set beside the tally.",
+      "Aperture's marks, made final on production's own surfaces: the wordmark, the icon, the plate a piece of the room is made of, and the status set.",
     settled: [
       "Aperture is the brand (your brand r2 pick): light lives in the dark, and on paper it stays inside a piece of the room.",
       "The icon is the Ring, the shutter's puck in its ring of light, lit by the house ember: one warm glow, never a spectrum.",
       "A status is a point and its word: Standby half-lit with no hue, and a count that needs you wears the tally (event-header r6).",
-      "The wordmark stands alone in the bars and the foot, never beside the icon, and it never glows.",
+      "The wordmark stands alone in the bars and the foot, and it never glows.",
     ],
     earlier: [
       "Brand r2: you picked Aperture, light kept in pieces of the room.",
@@ -94,9 +100,9 @@ export const BRAND_MARKS = defineExploration({
         "A wordmark's drawing for small sizes, spaced so no two letters blot at the bars' 22 pixels.",
     },
     {
-      term: "grade",
+      term: "plate",
       means:
-        "The greys a ground is built from: its blacks, its whites, its ink and its lines, as tokens.",
+        "What a piece of the room on paper is made of: the foot's slab, a menu's screen, one dark for all.",
     },
     {
       term: "tally",
@@ -114,7 +120,7 @@ export const BRAND_MARKS = defineExploration({
       id: "word-alone",
       question: "Does the icon ever stand beside the wordmark as a lockup?",
       taken:
-        "No, as your note had it: the word alone in the bars and the foot, the Ring alone on tabs and home screens.",
+        "Not in the bars or the foot, as your note had it, nor anywhere yet: the word alone, the Ring alone on tabs and home screens.",
       overrule:
         "A lockup, the Ring then the word, where both are wanted: a press kit, a mail's head.",
     },
@@ -123,7 +129,7 @@ export const BRAND_MARKS = defineExploration({
       question:
         "Is the Ring your v1 icon, or a stand-in until your own file lands?",
       taken:
-        "Your v1: the Ring picked here answers the icon's asset ask, drawn from it at every size.",
+        "Your v1, unless you still mean to draw it ('I'll upload new v1 icon separately later'): the Ring picked here answers that ask.",
       overrule: "A stand-in: your own drawing replaces it when you upload it.",
     },
     {
@@ -138,9 +144,9 @@ export const BRAND_MARKS = defineExploration({
       id: "lamps",
       question: "Where do the five house lamps go?",
       taken:
-        "Into the ember at their source: every grade relights them as its stops, so the foot's seam and every lamp glow as one.",
+        "Into the ember at their source: the foot's seam, the confetti and a photo-less event's lamp on the dashboard glow as one warm family.",
       overrule:
-        "Keep the five beside the ember, for the confetti and the reel's own light.",
+        "Keep the five beside the ember, so photo-less events on the dashboard still differ in hue.",
     },
     {
       id: "live-breathes",
@@ -148,6 +154,23 @@ export const BRAND_MARKS = defineExploration({
       taken:
         "Yes: live is the tally's red, the one point that breathes, since it alone is happening now.",
       overrule: "Live stands still, a point like every other state.",
+    },
+    {
+      id: "grade",
+      question:
+        "Does production's grade change: its blacks, its whites, its ink and its lines?",
+      taken:
+        "No: Aperture is the take closest to production, so its grade stays value for value, the ember's four stops joining it as tokens.",
+      overrule:
+        "Camera black: every dark neutral and a step deeper, paper a hair whiter, its cards white.",
+    },
+    {
+      id: "display-kisses",
+      question:
+        "At 48 pixels and up, do your v1's near-touching pairs (Pa, yr, ee) part a hair?",
+      taken:
+        "Yes, in the finished option: a hair at large sizes and a step more in the bars, so no two letters touch at any size.",
+      overrule: "As you drew them from 48 pixels up, parted only in the bars.",
     },
   ],
   asks: [
@@ -163,15 +186,15 @@ export const BRAND_MARKS = defineExploration({
       lands:
         "The wordmark's one path, drawn by every bar, foot and mail, the social card and the press kit.",
       context:
-        "The word first, large on paper and in the room and at the bars' sizes (22 pixels, enlarged), then production's own surfaces signing with it: the site's first screen, sign-in and the site's foot.",
+        "The word first, large on paper and in the room and at the bars' sizes (22 pixels, enlarged); then production's own surfaces signing with it: the site's first screen, sign-in, the foot and the social card.",
       options: [
         {
           id: "finished",
           label: "Your v1, finished",
           means:
-            "Your letters exactly, with a small cut for the bars: the pairs that touch (Pa, yr, ee) parted and the rest evened, so the word reads at 22 pixels.",
+            "Your letters exactly, spaced so no two touch: a hair at large sizes, a small cut a step more for the bars (Pa, yr, ee), so it reads from 16 pixels to a poster.",
           gains:
-            "Your drawing and its energy kept, every letter clear at the bars' size.",
+            "Your drawing and its energy kept, every letter clear from the bars to a poster.",
           costs:
             "A sporty italic is the loudest thing on a calm page; the bars' cut is a touch looser.",
         },
@@ -206,15 +229,15 @@ export const BRAND_MARKS = defineExploration({
     {
       id: "icon",
       label: "The icon",
-      question: "Which Ring should be the icon, on a home screen and in a tab?",
-      where: ["Shared", "The icon", "Home screens and tabs"],
+      question: "Which Ring should be the icon on a home screen?",
+      where: ["Shared", "The icon", "A home screen"],
       when: "A host saves Partyreel to her home screen; a guest keeps the album open in a tab among a dozen others.",
       matters:
         "The Ring is the one mark that holds the light, and it must read at 16 pixels as well as at 1024.",
       lands:
         "The favicon, the home-screen and app icons, the manifest's icons and the press kit's mark.",
       context:
-        "The icon first, at its home-screen sizes and as a favicon (16 and 32 pixels, enlarged), with its paper form; then a home screen at night and by day, and a browser's tabs on a dark window and a light one.",
+        "The icon first, at its sizes and on paper; then a home screen at night and by day, and a launcher's round mask. A tab shows one small ring for all three (16 and 32 pixels, enlarged), so it is shown, not asked.",
       options: [
         {
           id: "ember",
@@ -255,54 +278,46 @@ export const BRAND_MARKS = defineExploration({
       configs: [SCREEN],
     },
     {
-      id: "palette",
-      label: "The grade",
+      id: "plate",
+      label: "The plate",
       question:
-        "Which grade should production's tokens take, in the room and on paper?",
-      where: ["Shared", "The palette", "Every ground"],
-      when: "Every screen: the room where photographs play, paper where people decide, a piece of the room on a paper page.",
+        "On a paper page, what should a piece of the room be: lifted, or the room's own black?",
+      where: ["Shared", "Paper pages", "A piece of the room"],
+      when: "A paper page holds a dark piece: the site's foot, a menu or a toast on a light page, the code's plate.",
       matters:
-        "Light only reads against its dark: the grade sets how bright the ember and every photograph look.",
+        "It is the dark the light lives in on paper: how deep it is sets how bright that light reads, and how heavy the piece sits.",
       lands:
-        "globals.css's grounds: the room's blacks, the plate, paper's whites, the ink, the lines and the ember's stops.",
+        "One plate token for every piece of the room on paper: the foot's slab (.surface-ink) and paper's display.",
       context:
-        "The grade first as its tokens, by globals.css's names; then production's own pages wearing it: the pricing page on paper with its Pro card, the host's app in the room and the site's foot on its slab.",
+        "The foot and a menu on a paper page first, each wearing the plate on production's own pieces; then the tokens by globals.css's names, the plate among them and production's grade beside it.",
       options: [
         {
-          id: "graphite",
-          label: "Graphite, today's grade named",
+          id: "lifted",
+          label: "Lifted, as the foot is today",
           means:
-            "Production's cool graphite room and gallery white, value for value; only the light moves: the ember's four stops added and the five lamps relit as it.",
+            "Every piece of the room on paper a step above the room's black, as production's foot and menus already stand: an object set on the page.",
           gains:
-            "Nothing you have seen moves but the light: the smallest change.",
+            "Reads as a thing the page holds, never a hole in it; nothing you have seen moves.",
           costs:
-            "The room keeps its cool cast: a blue-grey dark under a warm light.",
+            "Its light sits on a lifted grey, a step less bright than in the room.",
         },
         {
-          id: "black",
-          label: "Camera black, a step deeper",
+          id: "room",
+          label: "The room's own black",
           means:
-            "Every dark goes neutral and a step deeper, and the foot and the menus on paper become the room's own black; paper a hair whiter, its cards white.",
+            "Every piece of the room on paper is the room itself, its own black: a window onto the room, its light exactly as bright as there.",
           gains:
-            "The deepest dark, so the ember and every photograph read brightest; paper crisp and white.",
+            "Aperture's promise to the letter: light on paper as bright as in the room.",
           costs:
-            "On paper the foot and the menus go from a step to a hole in the page; the room barely moves.",
-        },
-        {
-          id: "warm",
-          label: "Warm dark, the ember's room",
-          means:
-            "The room's blacks, its lines and its words take a breath of the ember, felt beside graphite and never brown on its own; paper stays gallery white.",
-          gains: "Room and light one family: the dark of a lit room at night.",
-          costs:
-            "Warm photographs glow a little less on a warm dark, and the warm foot sits under cool paper.",
+            "A deep black on white can read as a hole in the page, the reason production lifted its foot.",
         },
       ],
-      recommended: "graphite",
+      recommended: "lifted",
+      today: "lifted",
       because:
-        "Aperture is the take closest to production: its grade already works, so the answer is naming the plate and the ember.",
+        "A piece of the room is an object the page holds, as brand r2 drew it: lifted a step, it reads as set on the page, never as a hole.",
       overrule:
-        "If the light should read brighter, camera black; if the room should feel warm, the ember's room.",
+        "If the light on paper must be as bright as in the room, the room's own black.",
       configs: [SCREEN],
     },
     {
@@ -312,11 +327,11 @@ export const BRAND_MARKS = defineExploration({
       where: ["Shared", "The status set", "Every state"],
       when: "On one screen: a guest's photos sending, 12 approved, an upload that failed, and 8 waiting for her in Review.",
       matters:
-        "The tally took the red for 'needs you', so a fault and a waiting guest must never be mistaken for each other.",
+        "Red already means a count that needs her and live; whether a failure shares it, and whether done keeps a colour, sets how loud a night is.",
       lands:
-        "The status tokens and the Badge's points, the toasts' glyphs and every state's word, on both grounds.",
+        "The status tokens, the Badge's points, a meter's fill by its state, the toasts' glyphs and every state's word, on both grounds.",
       context:
-        "The status set first, each state's point and word on paper and in the room beside the tally (given); then a host's night on production's own pieces: her events, the live mark and the album going to Drive.",
+        "The status set first, each state's point and word on paper and in the room beside the tally (given); then a host's night on production's own pieces: her hub's doors, the live mark and the album going to Drive.",
       options: [
         {
           id: "pilot",
@@ -334,7 +349,7 @@ export const BRAND_MARKS = defineExploration({
           means:
             "Standby half-lit, Ready lit full in ink with no hue, a lamp's own levels; Fault and the tally share the one red, which means 'act on this'.",
           gains:
-            "One accent, as the brand asks: colour only where she must act, and every eye tells ink from red.",
+            "One accent: red only where she must act or it is live, and every eye tells ink from red.",
           costs:
             "Done has no colour, so a success feels quieter, and approve gives up its green.",
         },
@@ -342,18 +357,18 @@ export const BRAND_MARKS = defineExploration({
           id: "amber",
           label: "A fault in amber",
           means:
-            "Standby half-lit, Ready green, Fault a vivid amber that deepens to orange on white so it stands, since nothing was lost; red is the tally's alone.",
+            "Standby half-lit, Ready green, Fault a vivid amber that deepens to orange on white so it stands; red stays the tally's and live's.",
           gains:
-            "Red means one thing, someone needs you, and a failure never alarms.",
+            "A failure never wears red: red is only a count that needs her, or live.",
           costs:
             "A fourth colour; on white it must turn orange to stand, and a real failure may be read past.",
         },
       ],
       recommended: "ink",
       because:
-        "The brand has one accent: red, only where she must act. Ready reads as the ink lit full, and a fault is something to act on.",
+        "The brand has one accent, red, where she must act and on the live point; Ready reads as the ink lit full, and a fault is hers to act on.",
       overrule:
-        "If done should be green, green and red; if red should only ever mean a person waiting, a fault in amber.",
+        "If done should be green, green and red; if a failure should never wear red, a fault in amber.",
       configs: [SCREEN],
     },
   ],

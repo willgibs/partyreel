@@ -11,9 +11,9 @@
  *
  * ★ GIVEN IN EVERY SET, NEVER ASKED: a count that needs her is the tally
  * (event-header r6), the camera's red the palette holds, solid, its count in
- * white on it, under the name and values the event-header wiring lands
- * (`--needs-you`, `--needs-you-foreground`; re-declared here only so the board
- * shows it before that wiring merges, and a no-op after). Standby is half-lit
+ * white on it: production's own `--needs-you` and `--needs-you-foreground`
+ * (globals.css, landed by the event-header wiring), read here and never
+ * re-declared, so the board draws it exactly as production has it. Standby is half-lit
  * in the ground's own ink with no hue; no point ever glows, since the glow is
  * the light's (production's Badge lights its LED with a glow today, which
  * every set takes away); live is the tally's red and the one point that
@@ -110,8 +110,8 @@ const ON_READY: Pair = { paper: "oklch(0.99 0 0)", room: "oklch(0.13 0 0)" };
  * reach, each drawn to the set.
  *
  * ★ WHAT IT REACHES: the Badge (its point 8px, solid and hard-edged, its
- * variants folded as above, live breathing); `--success` and so every reader
- * of Ready (the meter's fill, the checks, `bg-success` discs, the success
+ * variants folded as above, live breathing); a meter's fill by its row's
+ * state; `--success` and so every reader of Ready (the checks, `bg-success` discs, the success
  * toast's glyph; in the ink set, chrome over a photograph reads it in white);
  * the toasts' error and info glyphs (and, in the amber set, the warning
  * glyph); a failed meter; the dashboard card's waiting count as the tally;
@@ -148,9 +148,6 @@ export function statusPaste(set: StatusSet): string {
   ].map((v) => `[data-variant="${v}"]`);
   const toast = "[data-sonner-toaster] [data-sonner-toast]";
   return [
-    // The tally, given: the event-header wiring's own two lines.
-    `:root, .surface-paper { --needs-you: var(--signal); --needs-you-foreground: oklch(1 0 0); }`,
-    `.dark { --needs-you: oklch(0.585 0.2 26); --needs-you-foreground: oklch(1 0 0); }`,
     // The set, per ground: a dark slab and the display read the room's lights.
     `:root, .surface-paper { ${ground("paper")} }`,
     `.dark, .surface-ink, .surface-display { ${ground("room")} }`,
@@ -180,6 +177,11 @@ export function statusPaste(set: StatusSet): string {
       : "",
     // A meter that failed fills in the Fault.
     `[data-slot="progress"][aria-invalid="true"] > [data-slot="progress-indicator"] { background-color: ${fault}; }`,
+    // ★ A METER FILLS IN ITS ROW'S STATE (the creative director's pass): production fills every meter in
+    // `--success`, so a send still going and one stopped wore Ready's green beside their own points; a
+    // wiring gives the meter its row's tone, drawn here on the board's mark.
+    `[data-bm-meter="sending"] [data-slot="progress-indicator"] { background-color: var(--foreground); }`,
+    `[data-bm-meter="stopped"] [data-slot="progress-indicator"] { background-color: ${fault}; }`,
     // The dashboard card's waiting count: the tally (inline amber today, so !important).
     `[data-media-tile] > div[style*="--warning"] { background: var(--needs-you) !important; color: var(--needs-you-foreground) !important; }`,
     // The dashboard's live dot: live's red, breathing, its ping gone.

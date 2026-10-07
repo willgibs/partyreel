@@ -14,11 +14,9 @@ import { StatusSheet } from "./sheet";
 export function StatusStory({
   id,
   screen,
-  lede,
 }: {
   id: StatusSetId;
   screen: ScreenId;
-  lede: string;
 }) {
   const set = STATUS_SETS[id];
   const css = statusPaste(set);
@@ -26,11 +24,10 @@ export function StatusStory({
   return (
     <Story
       screen={screen}
-      lede={lede}
       sheet={{
         id: `bm-status-${id}-sheet-${screen}`,
         title: "The status set, on paper and in the room",
-        h: desk ? 560 : 1180,
+        h: desk ? 700 : 1320,
         css,
         node: <StatusSheet set={set} screen={screen} />,
       }}

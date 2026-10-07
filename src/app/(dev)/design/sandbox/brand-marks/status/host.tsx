@@ -1,50 +1,46 @@
 "use client";
 
 import { DriveLight, DriveMeter } from "@/components/app/drive/drive-parts";
-import { EventCard } from "@/components/app/event-card";
+import {
+  DoorParts,
+  doorAttrs,
+} from "@/components/app/event-feed/room-card-door";
+import {
+  type DoorRoomId,
+  guestsCardFace,
+  reviewCardFace,
+  type RoomFace,
+} from "@/components/app/event-feed/room-card";
 import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
 import type { ScreenId } from "../knobs";
 
 /**
- * A HOST'S NIGHT OF STATES, ON PRODUCTION'S OWN PIECES: her events (the
- * dashboard's `EventCard`, the waiting count on its corner in the tally),
- * the album's live mark, and the album going to Drive (production's
+ * A HOST'S NIGHT OF STATES, ON PRODUCTION'S OWN PIECES: her event's hub with
+ * its live mark, its five doors as production draws them (`DoorParts`, the
+ * tally on Review's and the door's shoulders in production's own
+ * `--needs-you`, given), and the album going to Drive (production's
  * `DriveLight` and its meter): one sending (Standby), one saved (Ready), one
  * stopped because Drive is full (Fault). Every point is production's Badge,
- * reached only through the frame's paste.
+ * reached only through the frame's paste, so each set is read beside the
+ * tally exactly as the hub wears it tonight.
  */
 
-const STILLS = MARKETING_IMAGES.map((m) => m.src);
-
-const EVENTS = [
+/** Her five doors tonight: 8 uploads in Review and 2 people at her door, both waiting on her. */
+const DOORS: readonly { room: DoorRoomId; face: RoomFace }[] = [
+  { room: "reel", face: { value: "Live for guests" } },
   {
-    name: "Maya & Jay",
-    date: "Sat, Sep 12",
-    cover: 0,
-    items: "1,284 items",
-    pending: 8,
+    room: "guests",
+    face: guestsCardFace({ waiting: 2, guests: 31, shots: 0 }),
   },
-  {
-    name: "Lena turns 30",
-    date: "Fri, Oct 2",
-    cover: 2,
-    items: "312 items",
-    pending: 0,
-  },
-  {
-    name: "Ines & Tom",
-    date: "Sat, Oct 17",
-    cover: 9,
-    items: "86 items",
-    pending: 2,
-  },
-] as const;
+  { room: "review", face: reviewCardFace(true, 8) },
+  { room: "settings", face: { value: "Anyone with the link" } },
+  { room: "as-guest", face: { value: "What they see" } },
+];
 
 function DriveRow({
   name,
@@ -67,7 +63,12 @@ function DriveRow({
           <DriveLight tone={light}>{word}</DriveLight>
         )}
       </div>
-      <DriveMeter value={value} />
+      {/* The meter fills in its row's own state (a wiring gives DriveMeter
+          its tone; the set's paste reads this mark): Standby in the ink,
+          Ready in Ready's colour, Fault in the fault's. */}
+      <div data-bm-meter={light}>
+        <DriveMeter value={value} />
+      </div>
     </div>
   );
 }
@@ -95,31 +96,26 @@ export function HostStates({
         }
       >
         <div className="flex items-center gap-3">
-          <PageHeading>Your events</PageHeading>
+          <PageHeading>Maya &amp; Jay</PageHeading>
           <Badge variant="live">Live</Badge>
         </div>
-        <ul
-          className="mt-6 grid gap-4"
+        <div
+          role="group"
+          aria-label="This event"
+          data-bm-read="her doors, the tally on two"
+          data-bm-says="Review 8 and the door 2 in the tally"
+          className="mt-6 grid"
           style={{
-            gridTemplateColumns: `repeat(${desk ? 3 : 1}, minmax(0, 1fr))`,
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+            gap: desk ? 12 : 6,
           }}
         >
-          {EVENTS.slice(0, desk ? 3 : 2).map((e) => (
-            <li
-              key={e.name}
-              data-bm-read={e.pending ? `${e.name}'s waiting count` : undefined}
-            >
-              <EventCard
-                href={null}
-                name={e.name}
-                coverUrl={STILLS[e.cover]}
-                dateLabel={e.date}
-                itemsLabel={e.items}
-                pendingCount={e.pending}
-              />
-            </li>
+          {DOORS.map(({ room, face }) => (
+            <div key={room} {...doorAttrs(room, face.value)}>
+              <DoorParts room={room} face={face} />
+            </div>
           ))}
-        </ul>
+        </div>
         <Card className="mt-6" style={{ maxWidth: desk ? 560 : undefined }}>
           <CardContent>
             <p className="font-heading text-subsection">Saving to Drive</p>

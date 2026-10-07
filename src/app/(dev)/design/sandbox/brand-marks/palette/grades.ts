@@ -3,45 +3,42 @@ import { contrast, hex } from "@/lib/avatar/gradient";
 import { EMBER } from "../icon/light";
 
 /**
- * THE GRADES ON THE TABLE, AS THE TOKENS PRODUCTION WEARS (`globals.css`'s own
- * names, block for block): paper (`:root, .surface-paper`), the room
- * (`.dark`), the mat, the slab a piece of the room on paper is made of
- * (`.surface-ink`, which the foot wears), the display's screen on each ground
- * (`--display*`), the media well (`--gallery*`), the atoms' set (THE HOUSE
- * SET'S GROUNDS: a field's well, a key's line, a switch's thumb), and the
- * ember's four stops, with the five house lamps relit as the ember at their
- * source (the board's carried call, every grade alike).
+ * PRODUCTION'S GRADE, AS THE TOKENS IT WEARS, AND THE PLATE ON THE TABLE
+ * (`globals.css`'s own names, block for block): paper (`:root,
+ * .surface-paper`), the room (`.dark`), the mat, the slab a piece of the room
+ * on paper is made of (`.surface-ink`, which the foot wears), the display's
+ * screen on each ground (`--display*`), the media well (`--gallery*`), the
+ * atoms' set (THE HOUSE SET'S GROUNDS), and the ember's four stops, with the
+ * five house lamps relit as the ember at their source (the board's carried
+ * call).
  *
- * ★ A GRADE IS ONE PASTE, AND THE PASTE IS WHOLE: every token a ground
- * declares that carries the grade (a grey, a hue-286 cast, an ink or a white
- * at an alpha) is restated in the block that declares it, so no part stands
- * on a half-changed ground (design-system.md's grounds: a token left out
- * resolves to the ground beneath). Graphite IS production's grade, value for
- * value (its paste restates globals.css and adds only the ember's stops and
- * the relit lamps), which is what lets the other two be judged against what
- * is built.
+ * ★ THE GRADE IS PRODUCTION'S, VALUE FOR VALUE (the carried call `grade`):
+ * drawn as three grades (graphite, camera black, warm dark), production's
+ * room stood the same in all three, its black already at the floor, so the
+ * creative director's pass made the grade a call and asked the one visible
+ * decision left: what the plate is, `lifted` (production's slab, the grade as
+ * it stands) or the room's own black (`room`). `grades.test.ts` holds the
+ * lifted paste to globals.css token for token.
  *
- * ★ THE ROOM'S BLOCKS RESTATE EVERY TOKEN PAPER'S DO. A paste is adopted
- * after every sheet of the page, so on an `<html class="dark">` (a routed
- * frame in a dark system theme) a token the paste declares on `:root` and
- * not on `.dark` beats globals.css's `.dark` and lays paper's value over the
- * room. Every key paper's blocks declare, the room's blocks declare too.
+ * ★ A PASTE IS WHOLE: every token a ground declares that carries the grade is
+ * restated in the block that declares it, so no part stands on a
+ * half-changed ground (design-system.md's grounds: a token left out resolves
+ * to the ground beneath), and the room's blocks restate every token paper's
+ * do (a paste is adopted after every sheet, so a token declared on `:root`
+ * alone would lay paper's value over the room on an `<html class="dark">`).
  *
  * ★ EVERY TEXT STEP KEEPS ITS FLOOR, by computation (`floors` below, read on
- * the sheet): `--faint` clears 4.5:1 on its ground and its card in every
- * grade (the room and a dialog in it, paper and the mat, the slab, the
- * display on either ground), with `--muted-foreground` well above it; the
- * one place under it is production's own, the room's display under a held
- * row, which every grade keeps.
+ * the sheet): `--faint` clears 4.5:1 on its ground and its card on either
+ * plate, with `--muted-foreground` well above it; the one place under it is
+ * production's own, the room's display under a held row.
  *
  * Two of production's literals are a grade's too and are not tokens: the
  * marketing sheet's body grounds (`marketing.css`, `body:has(...)`, restated
  * here) and the browser bar's tint (`themeColor` below: the root and cinema
- * layouts and the 404 write it as a hex, since `<meta name="theme-color">`
- * is read before any sheet).
+ * layouts and the 404 write it as a hex).
  */
 
-export type GradeId = "graphite" | "black" | "warm";
+export type PlateId = "lifted" | "room";
 
 /** A colour as `globals.css` writes it: `oklch(l c h)`, or with `a` an alpha in percent (a line). */
 export type Tone = {
@@ -154,7 +151,7 @@ export type Atoms = {
 };
 
 export type Grade = {
-  readonly id: GradeId;
+  readonly id: PlateId;
   readonly paper: Ground;
   readonly room: Ground;
   /** A piece of the room on paper: the slab's ground (`.surface-ink`), the foot's and every leaf's. */
@@ -167,7 +164,7 @@ export type Grade = {
 
 /* ── GRAPHITE: production's grade, transcribed ───────────────────────────── */
 
-/** A white at an alpha: graphite's and camera black's lines on a dark ground. */
+/** A white at an alpha: the lines on a dark ground. */
 const WHITE = ok(1, 0, 0);
 const BLACK_INK = ok(0, 0, 0);
 
@@ -176,11 +173,12 @@ const G_PAPER_INK = ok(0.14, 0.004, 286);
 /**
  * PRODUCTION'S OWN GRADE, VALUE FOR VALUE (globals.css: `:root,
  * .surface-paper`, `.dark`, `.surface-mat`, `.surface-ink`,
- * `.surface-display` and the house set's three blocks). ★ Transcribed, never
- * tuned: a change here is a change to what the other two are judged against.
+ * `.surface-display` and the house set's three blocks), and the `lifted`
+ * plate. ★ Transcribed, never tuned: a change here is a change to what the
+ * room's own black is judged against.
  */
 const GRAPHITE: Grade = {
-  id: "graphite",
+  id: "lifted",
   paper: {
     background: ok(0.972, 0.002, 286),
     muted: ok(0.948, 0.003, 286),
@@ -301,255 +299,38 @@ const GRAPHITE: Grade = {
   },
 };
 
-/* ── CAMERA BLACK ────────────────────────────────────────────────────────── */
-
-const K = (l: number) => ok(l, 0, 0);
-const K_PAPER_INK = K(0.13);
+/* ── THE ROOM'S OWN BLACK, AS THE PLATE ───────────────────────────────────── */
 
 /**
- * CAMERA BLACK: a camera body's black, no blue in it. Every dark is neutral
- * and a step deeper (the room one sRGB level under graphite's #020202, the
- * well at #000, a screen's pixels off), and the room's black is the one black
- * a piece of the room is made of on paper: the slab IS the room
- * (`.surface-ink` restates `.dark`'s ladder), and paper's display is the
- * room's black, so a menu, a toast and the foot on a paper page are windows
- * onto the one room. Paper goes a hair whiter, its cards white; the ink, the
- * greys and the lines neutral.
- *
- * ★ THE LADDER KEEPS ITS PARTINGS, NOT ITS VALUES: a screen's own glow and
- * the room's light lift every black alike, so under a deeper floor the steps
- * above it close up. Each step is set where it parts from the one below as
- * graphite's does on a laptop in a lit room (a luminance floor of 0.4 percent
- * of white), so the floor and the well go a whole step down while a card, a
- * dialog and the display each go only a hair; on a phone's black panel every
- * step parts further than graphite's. The text steps sit where graphite's sit
- * (on a black this deep a ratio barely moves with its ground), the ink a hair
- * under white so the deeper black never turns the words harsh.
+ * THE ROOM'S OWN BLACK AS THE PLATE: production's grade in every token but
+ * the two a piece of the room on paper is made of. The slab (`.surface-ink`,
+ * the foot's) takes the room's own ladder, and paper's display (a menu, a
+ * toast, a select on a light page) the room's black with the room's dialog
+ * for its held row, so each is a window onto the one room rather than an
+ * object set on the page. The room itself, paper and every ink stay
+ * graphite's, so the two options differ in that one thing.
  */
-const ROOM_BLACK: Ground = {
-  background: K(0.06),
-  muted: K(0.11),
-  card: K(0.14),
-  popover: K(0.165),
-  secondary: K(0.2),
-  accent: K(0.235),
-  foreground: K(0.965),
-  mutedForeground: K(0.71),
-  faint: K(0.585),
-  primaryForeground: K(0.075),
-  border: at(WHITE, 10),
-  input: at(WHITE, 18),
-  haloBloom: at(WHITE, 18),
-};
-
-const BLACK: Grade = {
-  id: "black",
-  paper: {
-    background: K(0.98),
-    muted: K(0.956),
-    card: K(1),
-    popover: K(1),
-    secondary: K(0.938),
-    accent: K(0.92),
-    foreground: K_PAPER_INK,
-    mutedForeground: K(0.425),
-    faint: K(0.52),
-    primaryForeground: K(0.995),
-    border: at(K_PAPER_INK, 12),
-    input: at(K_PAPER_INK, 22),
-    haloBloom: at(K_PAPER_INK, 10),
-  },
-  room: ROOM_BLACK,
-  slab: ROOM_BLACK,
-  mat: {
-    background: K(0.956),
-    card: K(1),
-    popover: K(1),
-    muted: K(0.938),
-    secondary: K(0.92),
-    accent: K(0.92),
-    faint: K(0.52),
-  },
+const ROOM_PLATE: Grade = {
+  ...GRAPHITE,
+  id: "room",
+  slab: GRAPHITE.room,
   display: {
     paper: {
-      // The room's black, and its held row the room's dialog step, which
-      // parts from it as graphite's step parts from its near-black.
-      display: ROOM_BLACK.background,
-      step: ROOM_BLACK.popover,
-      foreground: K(0.97),
-      muted: K(0.715),
-      faint: K(0.6),
-      edge: at(WHITE, 11),
-      input: at(WHITE, 20),
-      cursor: at(WHITE, 50),
-      light: at(WHITE, 30),
+      ...GRAPHITE.display.paper,
+      display: GRAPHITE.room.background,
+      step: GRAPHITE.room.popover,
     },
-    room: {
-      display: K(0.28),
-      step: K(0.345),
-      foreground: K(0.97),
-      muted: K(0.765),
-      faint: K(0.675),
-      edge: at(WHITE, 12),
-      input: at(WHITE, 22),
-      cursor: at(WHITE, 55),
-      light: at(WHITE, 40),
-    },
-  },
-  gallery: {
-    well: K(0.04),
-    foreground: K(0.965),
-    muted: K(0.715),
-    border: at(WHITE, 8),
-  },
-  atoms: {
-    paper: {
-      well: K(0.963),
-      wellIn: K(0.993),
-      wellRim: at(K_PAPER_INK, 8),
-      wellRimUp: at(K_PAPER_INK, 15),
-      keyLine: at(K_PAPER_INK, 15),
-      keyLineUp: at(K_PAPER_INK, 24),
-      afloatLine: at(K_PAPER_INK, 9),
-      thumbSeam: at(K_PAPER_INK, 9),
-    },
-    dark: {
-      ...GRAPHITE.atoms.dark,
-      well: K(0.11),
-      wellIn: K(0.13),
-      thumb: K(0.96),
-    },
-    screen: { ...GRAPHITE.atoms.screen, thumb: K(0.96) },
+    room: GRAPHITE.display.room,
   },
 };
 
-/* ── WARM DARK, THE EMBER'S ROOM ─────────────────────────────────────────── */
-
-/**
- * The warm room's white: what its lines, its rims, the display's edge and
- * its light are made of, at the alphas graphite's white takes.
- */
-const EMBER_WHITE = ok(0.985, 0.012, 85);
-
-/**
- * WARM DARK, THE EMBER'S ROOM: graphite's ladder, lightness for lightness,
- * with the cast turned from blue to the ember's, and turning as the ember
- * itself turns: its darks lean to the coral (hue 50 at the floor, climbing
- * to 62 at the display's step), its words to the amber (64 for the faint, 68
- * for the muted, 85 for the ink), as a lamp's light falls warm on what it
- * lights. Paper stays production's gallery white; the pieces of the room on
- * it (the slab, the display a menu is made of) take the room's warmth,
- * since they are the room.
- *
- * ★ A BREATH, NEVER A COLOUR: every surface sits in the register of a warm
- * grey that is felt beside graphite and never seen as brown on its own
- * (Tailwind's stone, the common reference for one: chroma 0.004 to 0.0075,
- * the least at the floor and the well, where the photographs sit, the most
- * at the display, where a menu's grey is seen whole). The slab holds a
- * little under the room's own step, since it is the largest dark on a
- * paper page and white beside it makes any warmth read warmer. The text
- * steps keep graphite's lightness, so every ratio stays where production's
- * is.
- */
-const WARM: Grade = {
-  id: "warm",
-  paper: GRAPHITE.paper,
-  room: {
-    background: ok(0.085, 0.004, 50),
-    muted: ok(0.125, 0.005, 52),
-    card: ok(0.15, 0.0055, 53),
-    popover: ok(0.175, 0.0058, 54),
-    secondary: ok(0.21, 0.0062, 56),
-    accent: ok(0.245, 0.0066, 58),
-    foreground: ok(0.97, 0.0055, 85),
-    mutedForeground: ok(0.71, 0.011, 68),
-    faint: ok(0.59, 0.01, 64),
-    primaryForeground: ok(0.1, 0.0045, 50),
-    border: at(EMBER_WHITE, 10),
-    input: at(EMBER_WHITE, 18),
-    haloBloom: at(EMBER_WHITE, 18),
-  },
-  slab: {
-    background: ok(0.165, 0.0052, 54),
-    muted: ok(0.225, 0.006, 56),
-    card: ok(0.225, 0.006, 56),
-    popover: ok(0.27, 0.0066, 58),
-    secondary: ok(0.315, 0.0072, 60),
-    accent: ok(0.315, 0.0072, 60),
-    foreground: ok(0.965, 0.0055, 85),
-    mutedForeground: ok(0.715, 0.012, 68),
-    faint: ok(0.615, 0.011, 64),
-    primaryForeground: ok(0.165, 0.0052, 54),
-    border: at(EMBER_WHITE, 12),
-    input: at(EMBER_WHITE, 16),
-    haloBloom: at(EMBER_WHITE, 18),
-  },
-  mat: GRAPHITE.mat,
-  display: {
-    paper: {
-      display: ok(0.165, 0.0052, 54),
-      step: ok(0.235, 0.006, 56),
-      foreground: ok(0.975, 0.0055, 85),
-      muted: ok(0.72, 0.01, 68),
-      faint: ok(0.62, 0.01, 64),
-      edge: at(EMBER_WHITE, 11),
-      input: at(EMBER_WHITE, 20),
-      cursor: at(EMBER_WHITE, 50),
-      light: at(EMBER_WHITE, 30),
-    },
-    room: {
-      display: ok(0.29, 0.007, 60),
-      step: ok(0.355, 0.0075, 62),
-      foreground: ok(0.975, 0.0055, 85),
-      muted: ok(0.77, 0.01, 68),
-      faint: ok(0.68, 0.01, 64),
-      edge: at(EMBER_WHITE, 12),
-      input: at(EMBER_WHITE, 22),
-      cursor: at(EMBER_WHITE, 55),
-      light: at(EMBER_WHITE, 40),
-    },
-  },
-  gallery: {
-    well: ok(0.065, 0.0035, 48),
-    foreground: ok(0.965, 0.0055, 85),
-    muted: ok(0.715, 0.012, 68),
-    border: at(EMBER_WHITE, 8),
-  },
-  atoms: {
-    paper: GRAPHITE.atoms.paper,
-    dark: {
-      well: ok(0.12, 0.005, 52),
-      wellIn: ok(0.14, 0.0055, 53),
-      wellRim: at(EMBER_WHITE, 7),
-      wellRimUp: at(EMBER_WHITE, 13),
-      wellLip: at(EMBER_WHITE, 7),
-      keyLine: at(EMBER_WHITE, 15),
-      keyLineUp: at(EMBER_WHITE, 24),
-      afloatLine: at(BLACK_INK, 0),
-      thumb: ok(0.96, 0.0055, 85),
-      thumbSeam: at(BLACK_INK, 35),
-    },
-    screen: {
-      accent: at(EMBER_WHITE, 9),
-      haloBloom: at(EMBER_WHITE, 15),
-      wellRim: at(EMBER_WHITE, 7),
-      wellRimUp: at(EMBER_WHITE, 14),
-      wellLip: at(EMBER_WHITE, 8),
-      keyLine: at(EMBER_WHITE, 16),
-      keyLineUp: at(EMBER_WHITE, 26),
-      thumb: ok(0.96, 0.0055, 85),
-    },
-  },
+export const GRADES: Record<PlateId, Grade> = {
+  lifted: GRAPHITE,
+  room: ROOM_PLATE,
 };
 
-export const GRADES: Record<GradeId, Grade> = {
-  graphite: GRAPHITE,
-  black: BLACK,
-  warm: WARM,
-};
-
-export const gradeOf = (v: unknown): GradeId =>
-  v === "black" || v === "warm" ? v : "graphite";
+export const plateOf = (v: unknown): PlateId =>
+  v === "room" ? "room" : "lifted";
 
 /* ── THE EMBER AND THE LAMPS ─────────────────────────────────────────────── */
 
