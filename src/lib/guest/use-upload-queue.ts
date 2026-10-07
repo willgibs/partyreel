@@ -33,8 +33,8 @@
  * page and every 20 s, never `navigator.onLine` alone). So the run never ends on a drop: the stack and its stand-in say
  * "No connection" in the send's own place, the shutter's ring holds still at what landed with its count, nothing
  * opens, and the send's one toast comes once it has all landed. A refusal of the file or the album still ends in the
- * failure sheet. A copy of every file on its way waits on her phone too (`unsent/use-keep.ts`, IndexedDB), so a page
- * closed in a dead zone sends it at her next open, by itself (`restore`).
+ * failure sheet. A copy of every file on its way waits on her phone too until its bytes are up (`unsent/use-keep.ts`,
+ * IndexedDB), so a page closed in a dead zone sends it at her next open, by itself (`restore`).
  *
  * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
  * Deferred). Her Add on her own album's guest page went through the guest

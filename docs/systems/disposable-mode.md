@@ -181,8 +181,7 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   it took never takes one past her roll, so each lands. **Two phones of one account can still overrun it**: each counts
   its own shots off its own last read, so shots both took offline past the roll's end are refused when they land
   (`roll_spent`, "You've taken all 24 shots on your roll."), said on the album's failure sheet with no Retry, and her
-  camera ends the roll; so is a shot the host's smaller roll no longer has room for, and a file her phone carried
-  across a reload whose lost answer had landed it once (uploads-and-r2.md's Deferred). The roll's 3 re-shoots are no
+  camera ends the roll; so is a shot the host's smaller roll no longer has room for. The roll's 3 re-shoots are no
   shelter there: they are take-backs.
 - **Two doors take a shot back** (guest-moments r1's `where=reel`): a press on the reel's newest frame (this visit's
   newest shot, on an album that keeps it out of sight) lays it over the picture with Take it back and Keep it

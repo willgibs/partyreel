@@ -24,7 +24,7 @@ import {
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
 } from "@/lib/guest/upload-tracker";
-import { WAITING_FOR_CONNECTION } from "@/lib/guest/unsent/words";
+import { NO_CONNECTION } from "@/lib/guest/unsent/words";
 
 /**
  * Which album the camera shoots for: a develop time ahead, the host's approval, straight in, or, at the held door, none
@@ -400,8 +400,11 @@ export const SHOT_WORDS = {
   held: TRACKER_WORDS.waiting,
   /** Taken at the held door, waiting in the page's queue for the let-in: nothing of it is sending. */
   door: "Waiting to go in",
-  /** Taken in a dead zone, standing by for the line (`roll=taken`): the queue's own word for it. */
-  waiting: WAITING_FOR_CONNECTION,
+  /**
+   * Taken in a dead zone, standing by for the line (`roll=taken`): the state's own word, as the album's stack says it
+   * ("Waiting for your connection" is a row's, and never fits a tile of three across at a phone's width).
+   */
+  waiting: NO_CONNECTION,
   failed: "Didn’t send",
   removing: "Removing…",
   removeFailed: "Couldn’t remove it",

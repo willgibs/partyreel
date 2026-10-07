@@ -220,10 +220,12 @@ describe("the store, quietly", () => {
   it("★ keeps a file, reads it back by its album, and lets it go", async () => {
     expect(await keepFile(record())).toBe(true);
     expect(await keepFile(record({ id: "q-2", album: "qr-other" }))).toBe(true);
-    expect((await readKept("qr-1")).map((r) => r.id)).toEqual(["q-1"]);
+    const ids = async (album: string) =>
+      (await readKept(album)).map((r) => (r as KeptRecord).id);
+    expect(await ids("qr-1")).toEqual(["q-1"]);
     await forgetFiles(["q-1"]);
     expect(await readKept("qr-1")).toEqual([]);
-    expect((await readKept("qr-other")).map((r) => r.id)).toEqual(["q-2"]);
+    expect(await ids("qr-other")).toEqual(["q-2"]);
   });
 
   it("re-files records under a page, or a ticket, and leaves a gone one gone", async () => {
@@ -236,12 +238,21 @@ describe("the store, quietly", () => {
     expect(idb.rows.has("q-gone")).toBe(false);
   });
 
-  it("reads back only whole records: a row with no bytes is never half a file", async () => {
+  it("★ puts down a row that is no whole record: a row with no bytes is never half a file", async () => {
     idb.rows.set("broken", {
       ...record({ id: "broken" }),
       blob: undefined as unknown as Blob,
     });
-    expect(await readKept("qr-1")).toEqual([]);
+    const rows = await readKept("qr-1");
+    const { take, drop } = sortKept(rows, {
+      owner: "ticket:t-1",
+      liveTabs: new Set(),
+      held: new Set(),
+      tab: "tab-new",
+      now: NOW,
+    });
+    expect(take).toEqual([]);
+    expect(drop).toEqual(["broken"]);
   });
 
   it("★ keeps nothing where the phone has no room for it, and says so", async () => {

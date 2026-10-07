@@ -59,7 +59,14 @@ import { useUnsentKeep } from "./use-keep";
 
 type Item = Pick<
   QueueItem,
-  "id" | "file" | "status" | "takenAt" | "reelEligible" | "poster"
+  | "id"
+  | "file"
+  | "status"
+  | "progress"
+  | "cause"
+  | "takenAt"
+  | "reelEligible"
+  | "poster"
 >;
 
 const file = (name: string) =>
@@ -75,6 +82,7 @@ const item = (
   id,
   file: file(`${id}.jpg`),
   status,
+  progress: 0,
   ...extra,
 });
 
@@ -176,6 +184,29 @@ describe("a copy for each file on its way", () => {
     await act(async () => store.writes[0]!.resolve(true));
     await waitFor(() => expect(store.kept.size).toBe(0));
     expect(k.onKept).not.toHaveBeenCalled();
+  });
+
+  it("★ carries a file only until its bytes are up: its complete outlives the page, so the copy goes, and is never made again", async () => {
+    const k = mount({ items: [item("a", "uploading")] });
+    await waitFor(() => expect(store.kept.size).toBe(1));
+    // Its bytes are up and it waits for its burst's record: the complete (keepalive) will record it.
+    k.rerender({
+      items: [item("a", "queued", { progress: 100 })],
+      owner: "ticket:t-1",
+      enabled: true,
+    });
+    await waitFor(() => expect(store.kept.size).toBe(0));
+    expect(k.onKept).toHaveBeenLastCalledWith("a", false);
+    // Its complete lost its answer and it stands by for the line: it waits in this page (its kept complete asks again),
+    // never carried past it, where it could only go up again whole and land twice.
+    k.rerender({
+      items: [item("a", "queued", { progress: 0, cause: "dropped" })],
+      owner: "ticket:t-1",
+      enabled: true,
+    });
+    await act(async () => {});
+    expect(vi.mocked(keepFile)).toHaveBeenCalledTimes(1);
+    expect(store.kept.size).toBe(0);
   });
 
   it("★ says when the phone could not hold one: that file waits in the page alone", async () => {

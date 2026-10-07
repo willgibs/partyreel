@@ -15,8 +15,8 @@
  * her roll again. ★ Its head counts her re-shoots ("6 of 24 · 2 re-shoots left", guest-moments r1's `limit=three`),
  * and once they are spent its foot says a removal frees no frame now, so the X never promises one.
  *
- * ★ A SHOT WAITING FOR THE LINE IS HERS, ON THE ROLL (no-signal r1, `roll=taken`): its tile says "Waiting for your
- * connection" beside Standby's still point, never a spinner, and offers no Retry: it goes by itself once the line is back.
+ * ★ A SHOT WAITING FOR THE LINE IS HERS, ON THE ROLL (no-signal r1, `roll=taken`): its tile says "No connection" beside
+ * Standby's still point, never a spinner, and offers no Retry: it goes by itself once the line is back.
  */
 import { ChevronDown, Loader2, Play, RefreshCw, X } from "lucide-react";
 import type { Ref } from "react";

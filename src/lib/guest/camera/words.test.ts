@@ -382,8 +382,8 @@ describe("the roll in a dead zone", () => {
     ).toBe("3 shots. They go in once you’re let in.");
   });
 
-  it("her list says a waiting shot in the queue's own word", () => {
-    expect(SHOT_WORDS.waiting).toBe("Waiting for your connection");
+  it("her list says a waiting shot in the state's own word, short enough for a tile of three across", () => {
+    expect(SHOT_WORDS.waiting).toBe("No connection");
   });
 });
 

@@ -232,7 +232,8 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     (`upload/wait-point.tsx`) and "No connection", the promise under it ("Kept on this phone", or "Keep this page open"
     where her phone could not hold it: `unsent/words.ts`), its x still stopping it; the stand-in says the same; the
     shutter's ring holds still at what landed with its count; and a press on the stack or the stand-in opens the whole
-    send (`upload/waiting-sheet.tsx`, a list popup: each photograph and where it stands, under the promise in full).
+    send (`upload/waiting-sheet.tsx`, a list popup: each photograph and where it stands, under the promise in full,
+    closing itself once nothing waits).
     Both read the wait off the progress store they already read (`QueueProgress.waits`), as the stop does. On an album
     that waits (her host's yes, a develop) the head draws no stack, so her uploads list it, half-lit, "Waiting for your
     connection"; the door's upload step says it on the pick's row, and its heading once every pick waits. While the
@@ -242,12 +243,15 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   - ★ **Her phone keeps what is on its way** (`unsent/keep.ts`, `unsent/use-keep.ts`; IndexedDB `partyreel-unsent`, one
     record a file): each file is copied as she sends it while the phone has room (one it cannot hold waits in the page,
     and its pane says so), filed under the album and who it goes up as (the host on her own album, else the device's
-    ticket: `keepOwner`), re-filed when the queue swaps her ticket mid-visit, and put down the moment it lands, is
-    stopped or refused. Nothing is copied with no one to send as (a first pick on its join, a door that holds her: the
+    ticket: `keepOwner`), re-filed when the queue swaps her ticket mid-visit, and put down the moment it is stopped or
+    refused, or its bytes are up: its complete is asked then (at the burst's end, or at once as the page hides) and sent
+    `keepalive`, so it outlives a closed page, and a copy carried past it would go up again whole and land twice, so a
+    file whose complete then lost its answer waits in its page alone (asking that complete again), never carried.
+    Nothing is copied with no one to send as (a first pick on its join, a door that holds her: the
     held door keeps its own choice, `door/wait-picks-store.ts`). Once, as a page opens with an identity, it takes back
     what an earlier page kept and never sent (a page closed in a dead zone) and the queue sends it by itself under the
-    same ids (`restore`), the send's toast saying it landed; a record that is not this identity's, or past
-    `UNSENT_KEEP_DAYS` (14), is put down unread, and a kept file the server then refuses as somebody else's ticket is put
+    same ids (`restore`), the send's toast saying it landed; a record that is not this identity's, past
+    `UNSENT_KEEP_DAYS` (14), or no whole record, is put down unread, and a kept file the server then refuses as somebody else's ticket is put
     down, never re-sent on a fresh one. ★ One page sends each: a page holds a Web Lock of its own while it keeps a copy,
     and an opening page takes, under the album's lock, only records no live page holds (an iOS page frozen in the
     background still holds its lock; a discarded one does not); where the browser has no Web Locks every record is

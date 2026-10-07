@@ -108,9 +108,10 @@ shapes.
   40 s, 80 s, to five minutes, a landing starting it over), then sends it on that very File, so a kept complete is asked
   again and a row the server wrote answers `recorded`. The heal (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20
   and 60 s on, three asks a File) is the host panel's alone now (`host-upload.tsx`), where a row that said dropped
-  reads "Added to the album". ★ The kept complete is the page's (`UNANSWERED`, a WeakMap by File): a guest's file
-  carried across a reload by her phone's keep (guest-flow.md, the upload act) is a new File, so one whose first complete
-  recorded and whose answer was lost goes up again whole and lands twice (Deferred: carry the kept complete with it).
+  reads "Added to the album". ★ The kept complete is the page's (`UNANSWERED`, a WeakMap by File), so her phone's keep
+  (guest-flow.md, the upload act) carries a file only until its bytes are up: past that its complete is asked (sent
+  `keepalive`, so it outlives a closed page), and a copy carried on would go up again whole at the next open and land
+  twice; a file whose complete lost its answer waits in its page alone, asking that very complete again.
   `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a file going again on its kept
   complete, is ignored (the file lands as it would have). Nothing is counted for a
   cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the

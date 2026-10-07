@@ -709,6 +709,46 @@ describe("GalleryRows: a send standing by for the line", () => {
     expect(sheet).toHaveTextContent("w2.jpg");
   });
 
+  it("★ the list closes once nothing waits (the line is back), and a later wait never opens it by itself", () => {
+    const view = render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued")]}
+        progress={waitingStore({ w1: "kept" })}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "See what waits for your connection",
+      }),
+    );
+    expect(document.querySelector("[data-waiting-sheet]")).not.toBeNull();
+    // The line is back: the file goes again, and the list that said it waits closes.
+    view.rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "uploading", 10)]}
+        progress={waitingStore({})}
+      />,
+    );
+    act(() => vi.advanceTimersByTime(400));
+    expect(document.querySelector("[data-waiting-sheet]")).toBeNull();
+    // It drops again: the stack stands by, and nothing opens.
+    view.rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued")]}
+        progress={waitingStore({ w1: "kept" })}
+      />,
+    );
+    act(() => vi.advanceTimersByTime(400));
+    expect(document.querySelector("[data-stack-standby]")).not.toBeNull();
+    expect(document.querySelector("[data-waiting-sheet]")).toBeNull();
+  });
+
   it("goes back to its bar the moment the file goes again", () => {
     const view = render(
       <GalleryRows

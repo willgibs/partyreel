@@ -15,7 +15,7 @@
  * album at a desk, the whole screen under "Album" in a hand, the phone's own Back closing it. The board drew a sheet;
  * the house's one table says where a list opens, so this names its kind and never picks a posture of its own.
  */
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { WaitPoint } from "@/components/guest/upload/wait-point";
@@ -73,17 +73,18 @@ export function WaitingSheet({
   const holds = useHolds(progress, ids);
   const waiting = holds.filter((h) => h !== null).length;
   const kept = holds.filter((h) => h === "kept").length;
+  // ★ IT CLOSES ONCE NOTHING WAITS (the line is back, or what waited was stopped): its title would say a wait over a
+  // send that goes, and the stack under it says the send again, with its bar.
+  useEffect(() => {
+    if (open && waiting === 0) onOpenChange(false);
+  }, [open, waiting, onOpenChange]);
   return (
-    <Popup open={open && files.length > 0} onOpenChange={onOpenChange}>
+    <Popup open={open && waiting > 0} onOpenChange={onOpenChange}>
       <PopupContent kind="list" data-waiting-sheet="">
         {/* The wait's own word is the title, the promise in full its description, her list's way back "Album". */}
         <PopupHeader
           title={WAITING_FOR_CONNECTION}
-          description={
-            waiting > 0
-              ? waitPromise({ n: waiting, kept })
-              : TRACKER_WORDS.sending
-          }
+          description={waitPromise({ n: Math.max(1, waiting), kept })}
           back="Album"
         />
         <PopupBody>

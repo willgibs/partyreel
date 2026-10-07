@@ -8,7 +8,8 @@
  *
  * ★ WHOLE, WHILE THE PHONE HAS ROOM: each file is copied as she sends it, and one the phone cannot hold (no room, no
  * IndexedDB, a private window that refuses it) simply waits in the page, as before, and says so (`paneNote`). A record
- * goes the moment its file lands, is stopped, or is refused for a reason of its own (the failure sheet has it then).
+ * goes the moment its file's bytes are up (its complete, sent `keepalive`, outlives the page: `use-keep.ts`), it is
+ * stopped, or it is refused for a reason of its own (the failure sheet has it then).
  *
  * ★ HERS, AND ONLY HERS (`keepOwner`): each record is filed under the album and the identity it goes up as (the host on
  * her own album, else the device's ticket), so a phone that now holds another ticket, or no host, never sends her
@@ -99,7 +100,7 @@ const KEEP_MS = UNSENT_KEEP_DAYS * 24 * 60 * 60 * 1000;
  * holds is left to that page.
  */
 export function sortKept(
-  records: readonly KeptRecord[],
+  records: readonly unknown[],
   input: {
     owner: string;
     /** The pages holding a lock of their own now (`liveTabs`), or null where the browser cannot say. */
@@ -113,6 +114,12 @@ export function sortKept(
   const take: KeptRecord[] = [];
   const drop: string[] = [];
   for (const r of records) {
+    // A row that is no whole record (a store an older build wrote, a corrupted one) is put down, never half a file.
+    if (!isRecord(r)) {
+      const id = (r as { id?: unknown } | null)?.id;
+      if (typeof id === "string") drop.push(id);
+      continue;
+    }
     if (input.held.has(r.id)) continue;
     if (input.now - r.at > KEEP_MS || r.owner !== input.owner) {
       drop.push(r.id);
@@ -225,17 +232,17 @@ export async function forgetFiles(ids: readonly string[]): Promise<void> {
   });
 }
 
-/** Everything kept for this album, any page's, any owner's (`sortKept` decides). */
-export async function readKept(album: string): Promise<KeptRecord[]> {
+/** Everything kept for this album, any page's, any owner's, read as it is (`sortKept` decides, a broken row too). */
+export async function readKept(album: string): Promise<unknown[]> {
   const db = await open();
   if (!db) return [];
   return new Promise((resolve) => {
     try {
       const tx = db.transaction(STORE, "readonly");
       const req = tx.objectStore(STORE).index(BY_ALBUM).getAll(album);
-      let rows: KeptRecord[] = [];
+      let rows: unknown[] = [];
       req.onsuccess = () => {
-        rows = (req.result as KeptRecord[]).filter(isRecord);
+        rows = req.result as unknown[];
       };
       tx.oncomplete = () => {
         db.close();
@@ -274,7 +281,7 @@ export async function refile(
 }
 
 /** A row read back is only a record whole (a store an older build wrote, a corrupted row: never a half file). */
-function isRecord(value: unknown): value is KeptRecord {
+export function isRecord(value: unknown): value is KeptRecord {
   if (!value || typeof value !== "object") return false;
   const r = value as Record<string, unknown>;
   return (

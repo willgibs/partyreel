@@ -10,6 +10,14 @@
  * so a photograph that lands before its copy is written is put down as the copy ends. What could not be copied (no room,
  * no IndexedDB) is said to the queue (`onKept(id, false)`), whose stack then says "Keep this page open".
  *
+ * ★ CARRIED UNTIL ITS BYTES ARE UP, NEVER PAST THEM: once a file's bytes are up its complete is asked (at its burst's end,
+ * or at once as the page hides), and that complete is sent `keepalive`, so it outlives a closed page and very likely
+ * records the row. A copy carried past that moment would go up again whole at the next open and land twice (the
+ * uploader's kept complete, which asks again instead, is the page's alone), so the copy is put down the moment the bytes
+ * are up, and a file whose complete then lost its answer waits in this page (it asks that very complete again), never
+ * carried: nothing lands twice. A file is carried from her press until its bytes are up, which is where a dead zone
+ * catches it.
+ *
  * ★ FILED UNDER WHO IT GOES UP AS (`keepOwner`), and re-filed when the queue swaps her ticket mid-visit (a silent re-join
  * after the host's switch, a dead ticket put down), so the next open finds them under the ticket the device holds.
  * Nothing is written while there is no one to send as (a first pick waiting on its join, a door that holds her): the
@@ -35,8 +43,12 @@ import {
 /** The slice of a queue item the keep reads. */
 type Keepable = Pick<
   QueueItem,
-  "id" | "file" | "status" | "takenAt" | "reelEligible" | "poster"
+  "id" | "file" | "status" | "progress" | "takenAt" | "reelEligible" | "poster"
 >;
+
+/** Its bytes are up and it waits to be recorded with its burst (`queued` at 100): its complete is asked, or about to be. */
+const bytesUp = (it: Pick<QueueItem, "status" | "progress">) =>
+  it.status === "queued" && it.progress >= 100;
 
 /** Whether an item is still on its way: queued (waiting its turn, or for the line) or going up. */
 const onItsWay = (it: Pick<QueueItem, "status">) =>
@@ -67,6 +79,8 @@ export function useUnsentKeep(input: {
     latest.current = input;
   });
   const copies = useRef(new Map<string, CopyState>());
+  /** The files whose bytes went up in this page: never carried again (the head note). */
+  const upIds = useRef(new Set<string>());
   /** The owner the kept copies are filed under (they are re-filed when the queue's identity moves). */
   const filedAs = useRef<string | null>(null);
   const letGo = useRef<(() => void) | null>(null);
@@ -91,7 +105,17 @@ export function useUnsentKeep(input: {
 
   /* ── in step: a copy for each file on its way, none for anything else ─────────────────────────────────────────── */
   useEffect(() => {
-    const now = new Map(items.filter(onItsWay).map((it) => [it.id, it]));
+    // A file whose bytes just went up: its copy goes, and the page alone holds it from here (the head note).
+    for (const it of items) {
+      if (!bytesUp(it) || upIds.current.has(it.id)) continue;
+      upIds.current.add(it.id);
+      latest.current.onKept(it.id, false);
+    }
+    const now = new Map(
+      items
+        .filter((it) => onItsWay(it) && !upIds.current.has(it.id))
+        .map((it) => [it.id, it]),
+    );
     // What is no longer on its way: its copy goes (one being written goes as its write ends).
     const gone: string[] = [];
     for (const [id, state] of copies.current) {
@@ -136,7 +160,7 @@ export function useUnsentKeep(input: {
           ...(it.poster ? { poster: it.poster } : {}),
         }).then((ok) => {
           const stillOnItsWay = latest.current.items.some(
-            (q) => q.id === it.id && onItsWay(q),
+            (q) => q.id === it.id && onItsWay(q) && !upIds.current.has(q.id),
           );
           if (!stillOnItsWay) {
             // It landed (or left) while its copy was written: the copy has nothing left to carry.
