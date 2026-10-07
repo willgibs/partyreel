@@ -17,6 +17,10 @@ const state = vi.hoisted(() => ({
   signals: {} as JobSignals,
   states: [] as JobState[],
   wired: true,
+  sums: null as unknown,
+  sumsUnreadable: false,
+  names: new Map<string, string>(),
+  namesUnreadable: false,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -38,6 +42,16 @@ vi.mock("@/lib/jobs/spend-watch-run", () => ({
 vi.mock("@/lib/jobs/spend-watch-switches", () => ({
   readSwitches: async () => null,
 }));
+vi.mock("@/lib/db/queries/storage-sums", () => ({
+  readLatestStorageSumsCounts: async () => {
+    if (state.sumsUnreadable) throw new Error("job_runs unreachable");
+    return state.sums;
+  },
+  readHostLabels: async () => {
+    if (state.namesUnreadable) throw new Error("profiles unreachable");
+    return state.names;
+  },
+}));
 vi.mock("@/app/admin/jobs/prune-hold", () => ({
   readLastPruneReport: async () => null,
   readPruneHoldReleasedAtMs: async () => null,
@@ -48,6 +62,7 @@ vi.mock("@/app/admin/jobs/actions", () => ({
   releasePruneHoldAction: vi.fn(),
   runJobNowAction: vi.fn(),
   restoreNowAction: vi.fn(),
+  rebuildStorageSumsAction: vi.fn(),
 }));
 vi.mock("@/app/admin/jobs/restore-now", () => ({
   restoreNowWired: () => state.wired,
@@ -108,6 +123,10 @@ beforeEach(() => {
   state.signals = {};
   state.states = [];
   state.wired = true;
+  state.sums = null;
+  state.sumsUnreadable = false;
+  state.names = new Map();
+  state.namesUnreadable = false;
 });
 
 describe("the jobs console (crumbs-75)", () => {
@@ -362,6 +381,129 @@ describe("the backup reconcile's card (backup-reconcile)", () => {
     expect(within(reconcile).getByText("Reported")).toBeInTheDocument();
     expect(within(reconcile).getByText("checked 3,419")).toBeInTheDocument();
     expect(within(reconcile).queryByText("Pass")).toBeNull();
+  });
+});
+
+describe("the storage sums' card (storage-sums-signal)", () => {
+  const HOST = "6cb5fdb5-ac8a-4c82-83ce-59b5a2cfcd0b";
+  const drifted = {
+    checked: 3,
+    drifted: 1,
+    rows_failed: 1,
+    pass_checked: 3,
+    pass_complete: true,
+    last_pass_at: "2026-10-07T04:01:00.000Z",
+    last_pass_checked: 3,
+    findings: [
+      {
+        host_id: HOST,
+        summary_active: 5_242_880,
+        summary_deleted: 40,
+        summary_system: 0,
+        walk_active: 5_242_881,
+        walk_deleted: 40,
+        walk_system: 0,
+        events: 1,
+        total: false,
+        since: "2026-10-07T04:01:00.000Z",
+      },
+    ],
+  };
+
+  it("★ names each drifted host, what parts her sums from her walk, and her Rebuild, from the check's record", async () => {
+    state.sums = drifted;
+    state.names = new Map([[HOST, "willg97@gmail.com"]]);
+    state.states = [
+      runOf("storage_sums", drifted, {
+        status: "error",
+        note: "1 host's storage sums differ from her items walked: Rebuild her on this card.",
+      }),
+    ];
+    render(await JobsPage());
+    const sums = card("storage_sums");
+    expect(within(sums).getByText("Last run failed")).toBeInTheDocument();
+    expect(
+      within(sums).getByText(
+        "Complete: 3 hosts checked, 1 host drifted (below)",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(sums).getByText("Oct 7, 2026, 04:01 UTC, 3 hosts"),
+    ).toBeInTheDocument();
+    const list = within(sums).getByRole("region", {
+      name: "Hosts whose storage sums drifted",
+    });
+    const name = within(list).getByRole("link", { name: "willg97@gmail.com" });
+    expect(name).toHaveAttribute("href", `/admin/accounts/${HOST}`);
+    expect(
+      within(list).getByText(
+        "Albums 5 MB (5,242,880 B) by the sums, 5 MB (5,242,881 B) walked",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(list).getByText(
+        "1 of her event rows differs from her items by event",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(list).getByRole("button", {
+        name: "Rebuild the storage sums of willg97@gmail.com",
+      }),
+    ).toBeInTheDocument();
+    // Its own words stand in for the raw tally.
+    expect(within(sums).queryByText("Reported")).toBeNull();
+  });
+
+  it("counts the drifted hosts past the list, and says what a drift that wide is", async () => {
+    state.sums = { ...drifted, drifted: 3, rows_failed: 3, unlisted: 2 };
+    render(await JobsPage());
+    expect(
+      within(card("storage_sums")).getByText(
+        /^2 more drifted, not listed: a drift this wide is the sums’ trigger missing a writer/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("reads a whole clean pass as done, with nothing to rebuild", async () => {
+    state.sums = {
+      checked: 3,
+      drifted: 0,
+      rows_failed: 0,
+      pass_checked: 3,
+      pass_complete: true,
+      last_pass_at: "2026-10-07T04:01:00.000Z",
+      last_pass_checked: 3,
+    };
+    state.states = [
+      runOf("storage_sums", state.sums as Record<string, unknown>),
+    ];
+    render(await JobsPage());
+    const sums = card("storage_sums");
+    expect(within(sums).getByText("Healthy")).toBeInTheDocument();
+    expect(
+      within(sums).getByText(
+        "Complete: 3 hosts checked, every one's sums the walk",
+      ),
+    ).toBeInTheDocument();
+    expect(within(sums).queryByRole("button", { name: /^Rebuild/ })).toBeNull();
+  });
+
+  it("gives each host her id when names cannot be read, and says No reading when the record cannot", async () => {
+    state.sums = drifted;
+    state.namesUnreadable = true;
+    render(await JobsPage());
+    expect(
+      within(card("storage_sums")).getByRole("link", { name: HOST }),
+    ).toBeInTheDocument();
+
+    document.body.innerHTML = "";
+    state.sumsUnreadable = true;
+    render(await JobsPage());
+    expect(
+      within(card("storage_sums")).getByText(
+        /^No reading: its record could not be read \(job_runs unreachable\)\.$/,
+      ),
+    ).toBeInTheDocument();
   });
 });
 

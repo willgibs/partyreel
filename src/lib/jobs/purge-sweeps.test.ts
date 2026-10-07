@@ -25,6 +25,7 @@ vi.mock("@/lib/db/queries/jobs", () => ({
     purge_deleted_accounts: true,
     purge_inactivity: true,
     purge_over_capacity: true,
+    storage_sums: true,
   })),
   startJobRun: vi.fn(async () => ({
     runId: "run-1",
@@ -131,5 +132,59 @@ describe("createSweepRunner, for a sweep that stopped early", () => {
         note: undefined,
       },
     ]);
+  });
+});
+
+describe("createSweepRunner, for a sweep whose row keeps its own counts (storage-sums-signal)", () => {
+  it("★ writes the row the sweep's own builder makes: the drifted hosts whole beside the flat tally, never the note", async () => {
+    const { storageSumsCounts } =
+      await import("@/lib/lifecycle/sweeps/storage-sums-state");
+    const finding = {
+      host_id: "6cb5fdb5-ac8a-4c82-83ce-59b5a2cfcd0b",
+      summary_active: 1_001,
+      summary_deleted: 0,
+      summary_system: 0,
+      walk_active: 1_000,
+      walk_deleted: 0,
+      walk_system: 0,
+      events: 1,
+      total: true,
+      since: "2026-10-07T04:01:00.000Z",
+    };
+    const runner = createSweepRunner("schedule");
+    await runner.run(
+      "storage_sums",
+      async () => ({
+        checked: 3,
+        drifted: 1,
+        rows_failed: 1,
+        rows_note: "1 host's storage sums differ from her items walked.",
+        pass_complete: true,
+        findings: [finding],
+      }),
+      { counts: storageSumsCounts },
+    );
+    expect(calls.finish).toEqual([
+      {
+        status: "error",
+        counts: {
+          checked: 3,
+          drifted: 1,
+          rows_failed: 1,
+          pass_complete: true,
+          findings: [finding],
+        },
+        note: "1 host's storage sums differ from her items walked.",
+      },
+    ]);
+  });
+
+  it("keeps every other sweep's row flat, as before", async () => {
+    const runner = createSweepRunner("schedule");
+    await runner.run("orphans", async () => ({
+      scanned_pages: 1,
+      findings: [{ host_id: "x" }],
+    }));
+    expect(calls.finish[0].counts).toEqual({ scanned_pages: 1 });
   });
 });

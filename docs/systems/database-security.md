@@ -208,9 +208,14 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   (measured, 20261005130000). ★ So does every media write, in its statement trigger (`media_storage_sums`,
   20261006180000): the profiles row of every host the statement touched (`for no key update`, hosts in id order)
   before any sum row, free where the writer holds it already; a writer holding media rows takes them media then
-  profiles, as the purge does. The one deadlock it opens: a guest's withdrawal of a block-removed upload
-  (`remove_my_upload`: the media row, then her row in the trigger) against the host's Restore or Let back in (her
-  row, then the media), one side's 40P01 and a retry, until that arm takes her row first (a ROADMAP line).
+  profiles, as the purge does. ★ A writer that holds her row never waits on a media row it could meet held: the
+  guest's withdrawal of a block-removed upload (`remove_my_upload`'s sneaky arm, 20261007022000) takes her row first,
+  where her Restore and Let back in take it, then that media row NOWAIT (a holder, her Delete permanently, the purge or
+  an operator's removal, is on its way to her row: 55P03, and the guest presses again), so it sits in no cycle; her
+  row first alone would only turn the cycle round. One of the class stands: `disown_guest_rows_by_email` re-marks a
+  row the host binned (media, then her row) against `restore_media` (her row, then the media), one side's 40P01 and a
+  retry, until the restores take their rows without waiting (a ROADMAP line; `let_back_in`'s from let_in's
+  three-argument body, 20261007020000).
 - ★ **A write that bypasses triggers leaves the storage sums behind** (`session_replication_role = replica`, a
   data-only restore of `media` with its triggers off). A whole-database restore carries `event_storage_sums` and
   `host_storage_sums` in the same snapshot and stays exact; a partial restore of media rows runs

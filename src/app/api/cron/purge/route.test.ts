@@ -16,9 +16,12 @@ type Opts = { deadline?: { at: number }; resumeAfter?: string | null };
 const state = vi.hoisted(() => ({
   finish: [] as { status: string; counts?: unknown; note?: string }[],
   opts: {} as Record<string, unknown>,
+  order: [] as string[],
   results: {} as Record<string, unknown>,
   cursors: {} as Record<string, string | null>,
   warnings: [] as string[],
+  storageSums: null as unknown,
+  storageSumsUnreadable: false,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -70,6 +73,7 @@ vi.mock("@/lib/db/queries/jobs", () => ({
 function stub(name: string, argIndex: number) {
   return vi.fn(async (...args: unknown[]) => {
     state.opts[name] = args[argIndex];
+    state.order.push(name);
     return state.results[name] ?? { ok: 0 };
   });
 }
@@ -102,6 +106,15 @@ vi.mock("@/lib/lifecycle/sweeps/album-log", () => ({
 vi.mock("@/lib/lifecycle/sweeps/develop", () => ({
   sweepDevelop: stub("develop", 1),
 }));
+vi.mock("@/lib/lifecycle/sweeps/storage-sums", () => ({
+  sweepStorageSums: stub("storage_sums", 2),
+}));
+vi.mock("@/lib/db/queries/storage-sums", () => ({
+  readLatestStorageSumsCounts: vi.fn(async () => {
+    if (state.storageSumsUnreadable) throw new Error("job_runs unreachable");
+    return state.storageSums;
+  }),
+}));
 
 const { GET } = await import("@/app/api/cron/purge/route");
 
@@ -116,6 +129,7 @@ const BUDGETED = [
   "renewal_nudges",
   "inactive_free_events",
   "album_log",
+  "storage_sums",
 ];
 
 function cron(): Request {
@@ -133,9 +147,12 @@ function parentFinish() {
 beforeEach(() => {
   state.finish = [];
   state.opts = {};
+  state.order = [];
   state.results = {};
   state.cursors = {};
   state.warnings = [];
+  state.storageSums = null;
+  state.storageSumsUnreadable = false;
 });
 
 describe("GET /api/cron/purge", () => {
@@ -238,5 +255,76 @@ describe("GET /api/cron/purge", () => {
     expect(parent?.status).toBe("error");
     expect(parent?.note).toBe("Rows failed in: renewal_nudges.");
     expect(JSON.stringify(parent?.counts)).not.toContain("example.com");
+  });
+
+  it("★ runs the storage sums' check last, from its own record, its row keeping the drifted hosts and the parent the tally", async () => {
+    const host = "6cb5fdb5-ac8a-4c82-83ce-59b5a2cfcd0b";
+    const finding = {
+      host_id: host,
+      summary_active: 1_001,
+      summary_deleted: 0,
+      summary_system: 0,
+      walk_active: 1_000,
+      walk_deleted: 0,
+      walk_system: 0,
+      events: 1,
+      total: true,
+      since: "2026-10-06T04:01:00.000Z",
+    };
+    state.storageSums = {
+      checked: 2,
+      pass_checked: 2,
+      pass_started_at: "2026-10-06T04:00:00.000Z",
+      resume_after: host,
+      findings: [finding],
+    };
+    state.results = {
+      storage_sums: {
+        checked: 3,
+        drifted: 1,
+        rows_failed: 1,
+        rows_note: "1 host's storage sums differ from her items walked.",
+        pass_checked: 5,
+        pass_complete: true,
+        findings: [finding],
+      },
+    };
+    await GET(cron());
+
+    expect(state.order.at(-1)).toBe("storage_sums");
+    const opts = state.opts.storage_sums as {
+      previous: { resumeAfter: string; findings: unknown[] };
+    };
+    expect(opts.previous).toMatchObject({
+      resumeAfter: host,
+      findings: [finding],
+    });
+
+    const own = state.finish.find(
+      (f) => (f as unknown as { job: string }).job === "storage_sums",
+    );
+    expect(own).toMatchObject({
+      status: "error",
+      note: "1 host's storage sums differ from her items walked.",
+    });
+    expect((own?.counts as Record<string, unknown>).findings).toEqual([
+      finding,
+    ]);
+
+    const parent = parentFinish();
+    expect(parent?.status).toBe("error");
+    expect(parent?.note).toBe("Rows failed in: storage_sums.");
+    const counts = parent?.counts as Record<string, Record<string, unknown>>;
+    expect(counts.storage_sums).toMatchObject({ drifted: 1, rows_failed: 1 });
+    expect(counts.storage_sums).not.toHaveProperty("findings");
+  });
+
+  it("starts the check's pass over, and says so, when its record cannot be read", async () => {
+    state.storageSumsUnreadable = true;
+    await GET(cron());
+    expect(
+      (state.opts.storage_sums as { previous: unknown }).previous,
+    ).toBeNull();
+    expect(state.warnings).toContain("sweep_cursor_unreadable");
   });
 });

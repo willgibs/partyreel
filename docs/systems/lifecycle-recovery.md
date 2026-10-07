@@ -41,6 +41,13 @@ PostgREST fake.
 - **`develop_rolls` runs first of the budgeted sweeps** (`develop_due_sweep`): it develops every album whose sealed
   rows disagree with its event (a develop time passed with nobody reading), a batch of albums a call, and deletes
   nothing; its own job and switch, since it reveals photographs ([disposable-mode.md](disposable-mode.md)).
+- ★ **`storage_sums` proves the storage sums, last of the budgeted sweeps** (`sweeps/storage-sums.ts`, a job of its
+  own though it writes nothing: its finding is a figure a host is capped by, and waits on a person). It holds every
+  host's sums to her items walked (`storage_sums_drift`, 50 hosts a call), after the night's own writes; a pass the
+  deadline stops resumes at its cursor, the hosts the last run named are checked again first (a drift stays named until
+  a check reads her at parity, or her account is gone), and any drift fails the run with both figures on its row, one
+  Sentry error and the ops mail once a day. It never mends: the card's Rebuild is the fix
+  ([admin-observability.md](admin-observability.md)). Each host costs two walks of her items (11 ms for 4,330 warm).
 - ★ **`album_log` prunes the paged album's change log under a watermark** (`album_prune_tombstones`): a purged item's
   change row (its tombstone) goes, and the album's watermark rises to its versions in the same transaction, so a
   client below the watermark is sent its album whole ([guest-flow.md](guest-flow.md)). It walks the log album by
