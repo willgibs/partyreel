@@ -86,16 +86,21 @@ function arrivalsOf(count: number, ago: number): number[] {
   return out.sort((a, b) => a - b);
 }
 
-/** The app's bar over the hub: the wordmark, the crumbs, the bell and her face. */
-export function AppBar() {
+/**
+ * The app's bar over the hub: the wordmark, the crumbs, the bell and her face. `trail={false}` is her home's bar:
+ * `/dashboard` claims no crumbs (`crumbs.tsx`: a route that sets none draws none).
+ */
+export function AppBar({ trail = true }: { trail?: boolean } = {}) {
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border bg-background px-5">
       <Logo />
-      <span className="flex items-center gap-2 text-sm text-muted-foreground max-sm:hidden">
-        <span>Partyreel</span>
-        <span aria-hidden>/</span>
-        <span className="font-medium text-foreground">{WEDDING.short}</span>
-      </span>
+      {trail ? (
+        <span className="flex items-center gap-2 text-sm text-muted-foreground max-sm:hidden">
+          <span>Partyreel</span>
+          <span aria-hidden>/</span>
+          <span className="font-medium text-foreground">{WEDDING.short}</span>
+        </span>
+      ) : null}
       <span className="ml-auto flex items-center gap-3">
         <Bell className="size-5 text-muted-foreground" aria-hidden />
         <Avatar size="sm" seed={WEDDING.host.seed}>

@@ -1,0 +1,153 @@
+/* THE BRIDGE QUESTION'S OWN SHEET (`bridge.tsx`): the album's end in its own
+   light (the `end` option) and the chip that says what Create carried (the
+   `header` and `end` landings), the two places an option draws what
+   production has no class for.
+
+   ★ UNLAYERED, SO IT WINS (the `lab-utility-loses-to-production` trap): a
+   board's utilities compile into `utilities.lab` and lose to production's on
+   a shared element. Every rule here is the board's own, its media queries
+   included; every class is `ap-`. Type stays on production's ladder in the
+   markup. */
+
+/* ══ THE ALBUM'S END, IN ITS OWN LIGHT (the `end` option) ══════════════════
+
+   Production's Seam (`event-hub-head-seam.css`, the hub's light under its
+   cover) moved to where the album's photographs end: light born at the last
+   row's edge, in that row's own colours, the album's one light at its foot
+   (a closed album's dock carries no shutter, so no Ring argues with it).
+
+   ★ ON PAPER IT LIVES IN A STRIP OF THE ROOM (Aperture, brand r2, as the
+   hub's does): straight on from the last row's foot, the rows' own width, a
+   photograph's corner at its foot, so the light is seen coming out of the
+   photographs rather than a band laid over the page (set a gallery gap
+   apart, the first draw read as a copper bar); never a pale wash on white.
+   ★ A SILL, HALF THE HUB'S STRIP (16px in a hand, 20 from 40rem): the hub's
+   strip runs on from a cover its scrim has already darkened, but an album's
+   last row ends on whatever its photographs end on (a white dress, a grey
+   suit), and 30px of the room under a bright row read as a dark bar; half of
+   it reads as the photographs' own lit edge. In the room the strip is clear
+   and the light falls into the page itself, the hub's whole reach (72px in a
+   hand, 104 from 40rem, 120 at a desk).
+
+   ★ THE WORDS STAND PAST THE LIGHT (the Seam's geometry: nothing pressed
+   stands in the light), one quiet line in the album's own voice and size,
+   the closed line's and the lens line's grammar: the words muted, the press
+   in the foreground's ink. */
+
+.ap-past {
+  --ap-strip: 16px;
+  --ap-reach: 72px;
+}
+@media (width >= 40rem) {
+  .ap-past {
+    --ap-strip: 20px;
+    --ap-reach: 104px;
+  }
+}
+@media (width >= 68rem) {
+  .ap-past {
+    --ap-reach: 120px;
+  }
+}
+
+.ap-past-light {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+  height: var(--ap-strip);
+  /* Straight on from the last row's foot, as the hub's runs on from its cover: the light is born at the photographs'
+     own edge, so nothing of the page may stand between them; a photograph's corner at its own foot. */
+  border-radius: 0 0 var(--radius-tile, 2px) var(--radius-tile, 2px);
+}
+[data-ap-ground="room"] .ap-past-light {
+  height: var(--ap-reach);
+  border-radius: 0;
+}
+
+/* The strip wears the room (`dark` on the element): its ground is the room's own surfaces, as the hub's field. */
+.ap-past-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--popover) 0%, var(--card) 100%);
+}
+[data-ap-ground="room"] .ap-past-field {
+  background: none;
+}
+
+.ap-past-line {
+  margin-top: 1.125rem;
+  text-align: center;
+  text-wrap: balance;
+}
+[data-ap-ground="room"] .ap-past-line {
+  /* In the room the light has its whole reach under the row: the words stand just past it. */
+  margin-top: 0.25rem;
+}
+
+.ap-past-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+.ap-past-go svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+@media (hover: hover) {
+  .ap-past-go:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Forced colours: the light is decoration; the line carries everything (the hub's own rule). */
+@media (forced-colors: active) {
+  .ap-past-light {
+    display: none;
+  }
+}
+
+/* ══ WHAT CREATE CARRIED (the `header` and `end` landings) ═════════════════
+
+   One chip under Create's question, in the room's own material (the style
+   cards' ground and hairline, `create-room.css`): a tick for answered, the
+   two answers the album gave (its style and its code's look, by the names
+   Create's own screens give them), and Change. Phrasing only (spans),
+   because the room's sub line is a paragraph. */
+
+.ap-carried {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+  padding: 0.3125rem 0.875rem 0.3125rem 0.625rem;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--foreground) 14%, transparent);
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.ap-carried-tick {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+}
+
+.ap-carried-change {
+  margin-left: 0.25rem;
+  color: var(--muted-foreground);
+  text-underline-offset: 4px;
+}
+@media (hover: hover) {
+  .ap-carried-change:hover {
+    color: var(--foreground);
+    text-decoration: underline;
+  }
+}

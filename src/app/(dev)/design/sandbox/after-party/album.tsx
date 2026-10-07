@@ -564,6 +564,7 @@ export function GuestAlbum({
   stills,
   repeat,
   mark,
+  past,
   end,
   dock,
   foot,
@@ -590,6 +591,12 @@ export function GuestAlbum({
   repeat?: number;
   /** What a tile wears over its photograph (`Rows`): select mode's marks. */
   mark?: (key: string) => ReactNode;
+  /**
+   * What stands right past the last photograph, before Guests, in the album's
+   * own box: where production marks the album's end (`event-experience.tsx`'s
+   * `data-album-end`). The `bridge` question's end line stands here.
+   */
+  past?: ReactNode;
   /** What stands at the album's end, above Report. */
   end?: ReactNode;
   /** The foot's shutter in a scrolled frame: with Add, without it, or none. */
@@ -622,6 +629,7 @@ export function GuestAlbum({
           repeat={repeat}
           mark={mark}
         />
+        {past}
       </div>
       <div className="flex justify-center">
         <div className="w-full max-w-2xl px-5">
