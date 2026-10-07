@@ -1,6 +1,6 @@
 ---
 track: brand-marks-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2e094108"            # the launch-prep SHA the branch was cut from
 board: brand-marks
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -41,36 +41,97 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and drawn as one of the board's carried calls (`spec.ts` `carried`), Will's to overrule:
+
+- **A lockup?** Does the Ring ever stand beside the wordmark? Recommended: no, as his Sep 17 note had it for the nav and
+  the foot, and nowhere else yet. Overrule: the Ring then the word where both are wanted (a press kit, a mail's head).
+- **His v1 icon?** Is the Ring his v1 icon, or a stand-in until his own file lands (ASSETS row 19, "I'll upload new v1
+  icon separately later")? Recommended: the Ring picked on the icon ask answers that row unless he still means to draw
+  it. Overrule: a stand-in until his file lands.
+- **The icon's light?** Does the icon ever wear an event's own light? Recommended: no, it is the house's, lit by the
+  house ember everywhere. Overrule: an event's saved icon (its bookmark, its share card) in its photographs' light.
+- **The five lamps?** Recommended: relit as the ember at their source (`--lamp-1..5` take the ember's stops), so the
+  foot's seam, the confetti and a photo-less event's lamp on the dashboard (`lampOf`) glow as one warm family.
+  Overrule: keep the five beside the ember, so photo-less events still differ in hue.
+- **Live's breath?** Recommended: live is the tally's red and the one point that breathes (a point dimming, never a
+  ring of light). Overrule: live stands still.
+- **The grade?** Recommended: production's grade value for value (`palette/grades.test.ts` holds it to globals.css),
+  the ember's four stops joining it as `--ember-1..4`. Overrule: camera black (every dark neutral and a step deeper,
+  paper a hair whiter, its cards white). Drawn first as three grades (graphite, camera black, warm dark); the creative
+  director measured production's room the same in all three (#020202, #010101, #030202), so the grade became this call
+  and the one visible decision, the plate, the ask.
+- **v1's display cut?** Do his three near-touching pairs (P|a 0.77, y|r 0.10, e|e 0.47 units apart) part a hair from
+  48px up? Recommended: yes, in the finished option (0.9, 1 and 1 units; the bars' small cut a step more). Overrule:
+  as drawn from 48px up, parted only in the bars.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: a board ships no production byte; the facts the picks change land with their wiring.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- none (the dashboard's waiting amber is event-header-wiring-2's Deferred line already; the status set's wiring items
+  are in the Handoff for the board's wiring brief).
 
 ## Handoff (replaces the chat report)
 
-**Paused 2026-10-07 for the usage window (the Orchestrator's ask) at `267002f6e`; resume from here.** Done: the four
-asks drawn on production's surfaces (wordmark, icon, grade, status), each option refined by its own helper (the
-method's helper per option; the grade and status helpers took their ask's three), then the lane's fixes (the wordmark
-paste a transform, the sheet's large word fitted, the band's seams a pixel wide, the grade's room frame with its menu
-open, the helpers' option words in the spec, the board's own tests `palette/grades.test.ts` and
-`wordmark/wordmarks.test.ts`); typecheck, lint and the board's tests green on it. Next, in order: the creative
-director's fresh-eyes pass over the 24 captures in `_scratch/brand-marks-r1/cd/` (every option at a desk and a phone),
-one refinement on everything it names; a carried call for the display cut's three kisses (Pa, yr, ee at 72px and up);
-this manifest's Questions, Deferred and Handoff; the light gate (`test:rules`, `lab:smoke`, `lab:demo --board
-brand-marks`, all on :3138); hand off.
-
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/brand-marks-r1`:** work `70cb3d19c` (the first draw), `267002f6e` (each option refined by
+  its own helper), `887bbc024` (the pause note), sync `7268e7cf7` (`origin/launch-prep` merged for
+  event-header-wiring-2's `--needs-you` in globals.css), work `4324795ee` (the creative director's pass, one
+  refinement on each item), and this manifest at the head. launch-prep moved after the sync (storage-sums-signal,
+  album-moments-wiring's arrival line in design-system.md, records): nothing the board reads or draws, no conflict, so
+  no second sync.
+- **Gates on `4324795ee` (the synced tree), each its own exit code 0:** `pnpm typecheck`; `pnpm lint`
+  (`_scratch/brand-marks-r1/gate-lint.log`); the board's own tests with the registry's (`vitest run
+  src/app/(dev)/design/sandbox/brand-marks/ .../registry.test.ts`: 41 passed); `pnpm test:rules` (85 files, 1461 tests,
+  `gate-rules.log`); `pnpm lab:smoke --base http://localhost:3138` (21 checks, 0 failing; the board reads 985 of its
+  1200 words; `gate-smoke.log`); `pnpm lab:demo --board brand-marks --base http://localhost:3138` (4 steps, 0
+  failing, every option drawn at 1440 and 375; `gate-demo.log`). The light gate (PROGRAM, "Speed over proof"): no full
+  test run, no build.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = 33 files under
+  `src/app/(dev)/design/sandbox/brand-marks/` and this manifest; no exceptions.
+- **The board, four asks, each option worn by production's own components as one paste in real frames, at 1440 and
+  375, the room and paper side by side:**
+  - `wordmark`: v1 finished (his ten shapes byte for byte, moved whole: a small cut for the bars' 22 and the admin's 16
+    parting P|a, y|r, e|e and evening a|r, e|l; a hair at the display cut), a nameplate (PARTYREEL as an extended
+    grotesque spaced by area, 394 units), a lowercase (partyreel on one ring at Urbanist's weight, 316 units); swapped
+    into production's `Logo` by `pasteFor` (the svg widened by `aspect-ratio`, the path by `d: path()` and a
+    transform) on the site's first screen, sign-in, the foot, and drawn on the social card (`wordmark/card.tsx`).
+    Recommended: v1 finished.
+  - `icon`: the Ring key-lit by the house ember (brand r2's, a ring at every size), the whole ring lit top to bottom,
+    the shutter with its plus (a step under the light; its tab is the ring alone); at 1024, 180, 60, 29, the favicon's
+    32 and 16 enlarged pixel for pixel, its paper form, on a home screen at night and by day, a launcher's circle mask,
+    tabs on a dark and a light window and a search result (a phone's favourites at 375). Recommended: key-lit.
+  - `plate`: a piece of the room on paper lifted (today's slab, 0.165) or the room's own black (0.085), on the foot and
+    a menu open on the host's app on paper, with the tokens sheet (production's grade, the plate, the ember's stops,
+    the relit lamps). Recommended: lifted.
+  - `status`: green and red, ink until it needs you, a fault in amber; production's Badge folded into each set (an 8px
+    point, no glow, Standby half-lit on `info`, `warning` folded into Fault, live breathing as a point), Ready as
+    `--success`, the tally read from production's `--needs-you`; beside the hub's real doors (`DoorParts`) and the album
+    going to Drive, its meters filled by state. Recommended: ink until it needs you.
+- **The method:** a helper per option (eight: the three wordmarks, the three icons, the grades and the status sets each
+  one helper championing every option), the creative director's fresh-eyes pass (twelve items, all refined in
+  `4324795ee`: the palette made one ask and two calls on its measurement, v1's display cut, meters by state, the status
+  words true of live's red, the icon asked on a home screen, no unreadable ledes, the plus under the light, the lamps'
+  reach named, the opening's one home per fact, the social card and the launcher, the tab cuts, the sheet's grounds).
+- **For the status set's wiring, whichever set he picks** (what a paste cannot reach): Drive's `paused` tone holds both
+  a send that waits on her (Drive full, disconnected) and one that waits on Google (the daily limit), so its moments
+  split before a light can say which; `toast.warning` carries the hide act beside Drive's refusals (the hide a success,
+  the refusals errors); production's Drive meter fills in `--success` whatever its row's state (it takes its row's
+  tone); in the ink set, approve's action hue is `--success` and goes with Ready (an `--approve` token keeps its green).
+- **For the wordmark's wiring:** a picked redraw is wider than v1's 308 (the nameplate 394, the lowercase 316), so
+  `src/lib/brand/wordmark.ts` takes its width as its viewBox and aspect; v1 finished is two paths (a display and a
+  small cut, `logo.tsx` choosing by size; `logo.test.tsx` asserts one today); the social card draws the display cut.
+- **Assets requested from Will:** none.
+- **Board ideas:**
+  - A photo-less event's lamp on the dashboard is one of the house lamps by id (`lampOf`); by the brand's order
+    (photographs, then the event's seed, then the house) it is the event's seed light (the signature board's).
+  - `docs/systems/design-system.md` says `--faint` is under 4.5:1 on every ground; globals.css (and the board's floors:
+    4.98 on paper, 5.04 in the room) show it clears 4.5 everywhere but the room display's held row: a stale line.
+  - The lab: pressing the tab of the option already shown records a pick, so a script that presses every tab answers
+    the step (helpers met it in their own browsers; nothing reached a ledger): a press on the shown tab could only show
+    it.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the seven under Questions, drawn on the board as its carried calls.
+- **Look at first:** the wordmark step at 1:1, the sheet's 22px enlarged as drawn beside finished, then the three words
+  in the site's bar; and the plate step flipped between its options on the foot's slab (#0e0e11 against #020202).
