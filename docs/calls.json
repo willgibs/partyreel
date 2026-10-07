@@ -141,6 +141,15 @@
       "body": "Counted on her ticket before each presign, a twentieth of her host's hourly breaker, so one script cannot spend the breaker for every other guest; past it she waits, told in her own words, and a failure of the count lets her through.",
       "changeIf": "the cap should be higher, lower, or shared across one person's devices.",
       "home": "docs/systems/database-security.md"
+    },
+    {
+      "id": "CL1",
+      "kind": "call",
+      "theme": "Safety, and the product acting on its own",
+      "title": "A block reaches a quiet lit page within 5 minutes.",
+      "body": "An open album's \"has anything changed?\" answer is cached at the CDN for a few seconds, so a page that trusts it asks the album itself at least every 5 minutes; a guest blocked while her lit page sees no change is turned away at that ask, or at once on any change or reload.",
+      "changeIf": "a block should reach her sooner (more calls), or 15 minutes is enough (fewer).",
+      "home": "docs/systems/guest-flow.md"
     }
   ],
   "retired": [

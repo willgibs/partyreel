@@ -17,10 +17,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ## Immediate
 
-### Platform, data and cost
-
-- Cost: cache an open album's "has anything changed?" answer at the CDN for a few seconds (Will's yes to X5, 2026-10-07): only an open album at full access, never a password album or a blocked viewer, and the answer a version number alone, never photos or links (100 lit phones asking cost one call). With it in, AB5's cadence may tighten where that costs nothing (Will kept AB5's slowing ask and invites a livelier page at the same cost).
-
 ### Security and abuse
 
 - Settings: pin in a test that `eventPatch` and `updateEvent` name `require_verified_email` only when her switch provides it: `events_email_held`'s client arm (20261008030000) clears the gate's memory on any client write of the step, so a future whole-row save would undo a hold by a side door (the Advisor's Q45).

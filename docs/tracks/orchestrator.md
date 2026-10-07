@@ -27,8 +27,8 @@ Desk 8's wave runs (2026-10-07; at 23:20Z the week 85%, the 5-hour window 54% to
 recorded and pruned since its cut: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring
 (80), brand-marks-wiring (81), crumbs-91 (82; its migration applied on the Advisor's Q45 as 20261007230050),
 no-signal-wiring (83), crumbs-92 (84; its migration applied on the Advisor's Q46 as 20261007233007, advisors 29/4/36, the types
-regenerated and its two seams dropped at the record after it). brand-marks-r2 (85, the board's round two on the desk: one ask, the icon). Running, their rows below:
-the board event-page-r1 and cdn-version. No new lane until those close: the
+regenerated and its two seams dropped at the record after it). brand-marks-r2 (85, the board's round two on the desk: one ask, the icon). cdn-version (86: X5's CDN cache, about 30,000 to 9,600 calls at a lit 100-guest party; its call CL1).
+Running, its row below: the board event-page-r1. No new lane until those close: the
 week's last share goes to them and to milestone 40's red-team. Will's calls paste's first sections are routed; his
 Deletion and Safety sections are still to come (the Calls place holds 12, five of them new from lanes: CH1, CI1, CI2,
 CJ1). Both plan-limit tokens are minted and set. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk
@@ -37,7 +37,6 @@ and every merge above. Milestone 39 (`0333cd705`) is live.
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
 | `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
-| `cdn-version` | X5: an open album's "has anything changed?" answer cached at the CDN; AB5's cadence livelier where free | running (cut 5ed23311) | Opus, 3131 | `aa27be79bf2dd9424` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q46 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
