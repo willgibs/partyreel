@@ -418,38 +418,43 @@ describe("the email step a gate held on", () => {
     expect(settings.current.values.requireVerifiedEmail).toBe(true);
   });
 
-  it("★ a hold that found the step already on drops a stale note: only a hold that really turned it on can give it back", async () => {
+  it("★ moving from one gate to another keeps the note, and the second gate's own leave gives her choice back (the live walk's catch)", async () => {
     const updateEvent = saved();
-    // Left from a visit whose gate was let go of elsewhere; her step has been on since, by her own hand.
-    rememberEmailWasOff(ID);
-    const { settings, row } = mountRow(hostEvent(), {
-      setDoor: doorAnswer(false),
-      updateEvent,
-    } as unknown as Partial<Writes>);
-    await act(async () => {
-      await settings.current.saveDoor("approve");
-    });
-    expect(emailWasOff(ID)).toBe(false);
-    row({ door: "approve" });
-    row({ door: "open" });
-    await flush();
-    expect(updateEvent).not.toHaveBeenCalled();
-  });
-
-  it("moving from one gate to another gives nothing back: the step is still held", async () => {
-    const updateEvent = saved();
+    // As the database answers: the first gate turned the step on, the second finds it held by the first and says it did not.
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, emailHeld: true, admitted: 0 })
+      .mockResolvedValueOnce({ ok: true, emailHeld: false, admitted: 0 })
+      .mockResolvedValueOnce({ ok: true, emailHeld: false, admitted: 0 });
     const { settings, row } = mountRow(
       hostEvent({ require_verified_email: false }),
-      { setDoor: doorAnswer(true), updateEvent } as unknown as Partial<Writes>,
+      { setDoor, updateEvent } as unknown as Partial<Writes>,
     );
     await act(async () => {
       await settings.current.saveDoor("approve");
     });
     row({ door: "approve", require_verified_email: true });
+    await act(async () => {
+      await settings.current.saveDoor("invite");
+    });
     row({ door: "invite", require_verified_email: true });
     await flush();
+    // Still held: nothing is given back, and the note stands.
     expect(updateEvent).not.toHaveBeenCalled();
     expect(emailWasOff(ID)).toBe(true);
+
+    // Out of both gates, to the one that holds nothing.
+    await act(async () => {
+      await settings.current.saveDoor("closed");
+    });
+    row({ door: "closed", require_verified_email: true });
+    await flush();
+    expect(updateEvent).toHaveBeenCalledWith(ID, {
+      require_verified_email: false,
+    });
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while your invite list was the way in.",
+    });
   });
 
   it("★ however the row left the gate: a first password's own save moves the door with no pick on the door page", async () => {

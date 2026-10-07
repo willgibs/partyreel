@@ -17,8 +17,10 @@
  * gate sets when it turns the step on, and the door's own RPC and the password's both giving it back at one trigger),
  * which is a migration and so its own lane's.
  *
- * ★ HER OWN WORD ENDS IT: touching the switch herself forgets the note (`settings-state.tsx`'s `saveEvent`), and a hold
- * that found the step already on notes nothing, so a stale note can only wait for a hold that really turned it on.
+ * ★ HER OWN WORD ENDS IT: touching the switch herself forgets the note (`settings-state.tsx`'s `saveEvent`), and giving
+ * her choice back consumes it. Nothing else does, a move from one gate to another least of all: the first gate's hold is
+ * still standing then, the database answers that it turned nothing on (the step is already on), and that answer says
+ * nothing about what she had before the first.
  *
  * Pure, bar the storage: the provider calls it from a handler or an effect, never a render.
  */

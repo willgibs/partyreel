@@ -488,10 +488,13 @@ export function SettingsProvider({
             return { ok: false as const, message: result.message };
           answer = result;
           // ★ WHAT THE GATE TOOK IT FROM, NOTED FOR HER (`settings-state-email.ts`): a gate that turned the email step
-          // on from off is the one that gives her names-only back when it lets go (the effect below), and a gate that
-          // found it already on, her own or a stale note's, noted nothing.
+          // on from off is the one that gives her names-only back when it lets go (the effect below). ★ NOTHING ELSE
+          // TOUCHES THE NOTE HERE, A MOVE FROM ONE GATE TO ANOTHER LEAST OF ALL: the first gate's hold is still
+          // standing, so the database answers `emailHeld: false` for the second (the step is already on), and a note
+          // dropped on that answer is a choice lost (the live walk that found it: approve, then the invite list, then
+          // out of both, restored nothing). A note is only ever ended by her own word on the switch, or by giving it
+          // back.
           if (result.emailHeld) rememberEmailWasOff(event.id);
-          else if (holdsEmailOn(door)) forgetEmailWasOff(event.id);
           // An address gate holds the email step on: the row says so after the revalidation, and
           // the overlay says it now.
           return {
