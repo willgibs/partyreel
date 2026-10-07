@@ -1,6 +1,6 @@
 ---
 track: crumbs-91
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c04da309"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -144,25 +144,108 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- AY1's Disposable: a reached develop turns its album into the night's order whether or not she has closed adding,
+  and a reopen after the develop keeps it in order. Recommended: keep (the Orchestrator's call, built).
+- The host's Sort: her departure is kept for the visit only, where a guest's is remembered per album on the device
+  (`pr_album_sort`), so her hub opens each visit on the order her guests meet. Recommended: keep.
+- Settings' radio cards: an arrow onto a door gate that reaches nobody writes the door at once, as a tap does
+  (WAI-ARIA's selection following focus); a gate that would reach anyone asks first, however she got there.
+  Recommended: keep.
+- The compute model's lab demo: re-baselined (9 to 27 calls, 210 to 410 ms a step) rather than stubbed, since no
+  frame calls an API any more; a step is the demo's own four loads plus production links prefetching inside frames.
+  Recommended: keep (`2d77d98c2` says the measure).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- guest-flow.md: "The album's order turns" rewritten for AY1 (her close, a develop, never a date; the hook's live
+  word; the zone for words alone; the host's Sort on the same rule).
+- disposable-mode.md: the default develop's line (its 9 am no longer the album's turn; `developToKeep` is
+  Customize's).
+- host-app.md: Create's key (no keyless branch for a missing column), the email memory (the trigger hears the step,
+  her own write clears it), the party's zone (never the album's order).
+- database-security.md: `email_held`'s trigger columns, the restores in the lock-order paragraph (NOWAIT, SKIP
+  LOCKED), and the `presign` kind under Rate limits.
+- design-system.md: a Radix radio group's own Tab stop (a Gotchas line).
+- testing-verification.md: a kill by port wipes a walk's cookies (item 1's cause).
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Upcoming · The lab and the kit: the kit kills servers by port the broad way (`lsof -ti tcp:$PORT | xargs kill` in
+  `capture.sh`, `capture-all.sh`, `gate-lane.sh`, `demo-rerun.sh`, pinned by `gate-dev-cache-policy.test.ts`), which
+  also kills a walk's headless Chrome's network service and wipes its cookies; kill the listener alone
+  (`-sTCP:LISTEN`, `kit_port_pids`) (crumbs-91, red-team 56b's vanished cookies).
+- Upcoming · The guest's album: an album open across her close turns its order at the sync's word (AY1) but keeps
+  its Add and its open words until a reload (`event-experience.tsx`'s `canUpload` reads the render's
+  `accepting_uploads`, the camera alone the live word); say the close from the live word too (crumbs-91).
+- Upcoming · The host app: Settings: after a password's first set, a page that never saw her own write of "An email
+  first" elsewhere says names only are back while the step stays on (the trigger kept her word, 20261008030000) until
+  a reload; read the step from `set_event_password`'s answer (crumbs-91).
+- Upcoming · Security and abuse: QA hardening: the presign budget checks and counts in two round trips, so one
+  ticket's simultaneous bursts can all pass inside one; an atomic count-and-insert RPC (an advisory lock on the
+  requester) would close it (crumbs-91).
+- Upcoming · Code hygiene: `EventCard`'s `variant` has no caller passing it (the profile hands its own marker as
+  `action`; the marketing teaser draws its own card), and its `data-static` comment still says a host management card;
+  fold the guest marker into the profile's action (crumbs-91).
+- Before launch · Legal: the privacy page (`legal-privacy.tsx`) says the welcome's flag lives in local storage and
+  counts three cookies; `pr_welcome_<qr>` is a year's cookie now, beside `pr_tile_size`, `pr_album_sort` and
+  `pr_album_w` (crumbs-91).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- **Commits, pushed:** work `6a817c5a6` (AY1 and the Immediate lines), `2d77d98c2` (the lab demo's line),
+  `f5cec6227` (item 1's doc line); syncs `8c0b907c7` (f60bd5542, create-wizard-wiring-2) and `1e15d19c5`
+  (ec01d2013, brand-marks-wiring and guests-room-wiring; `needs-you.test.tsx` resolved by keeping launch-prep's live
+  dot and dropping the card chip this lane removed); this manifest last.
+- **Gates on the synced tree `1e15d19c5`, each its own exit code:** `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test`
+  0 (1,113 files, 14,218 tests), `NEXT_PUBLIC_SITE_URL=http://localhost:3138 zsh scripts/build-lock.sh pnpm build` 0,
+  `pnpm lab:smoke --base http://localhost:3138` 0 (203 checks); `lab:demo` reaches no board of this lane's. After
+  them only `testing-verification.md` and this file moved (the doc-reading policy tests green on them).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` (80 paths) = owned paths + this file + the six
+  system docs above, and one exception: `src/app/(dev)/design/sandbox/brand-marks/palette/menu.tsx` (brand-marks-r2's),
+  its two `itemsLabel` props removed because `EventCard` no longer takes them (line 12); nothing else drawn changes.
+- **AY1:** `albumOwnSort` (`lib/shared/album-order.ts`) is the one rule: in order once `accepting_uploads` is off or a
+  develop is reached, newest first while open, the demo never; `GuestAlbumOrder` is `{own, chosen}` (`morningAfter`
+  gone: nothing else read it). The guest page reads it off the row (the zone now read only where a develop time is
+  said), `useGuestAlbumOrder` follows the sync's word on adding (`open`) and a develop's instant, See it as a guest and
+  the hub's Sort (`event-gallery.tsx`, handed `acceptingUploads` by the hub's page) open on it. Walked on `:3138`:
+  a guest at 375 turned to "Oldest first" on the sync after the host's close (48 s) and back on the reopen (11 s);
+  a reload, a guest at 1440 (dark), the hub and See it as a guest each read the album's own; no console error.
+- **The items:** (1) reproduced, cause found: `lsof -ti tcp:<port>` lists a walk's Chrome's network service, so a
+  kill by port wipes every in-memory context's cookies at once (localStorage kept; a guest's httpOnly ticket returns
+  at its heal), proved by killing my dev server by port under three open contexts (every cookie gone in 10 s;
+  `lsof -ti tcp:3138` named Chrome's `NetworkService` helper beside `next-server`); `-sTCP:LISTEN` names the server
+  alone; (2) `presign`: 1,000 files an hour a ticket, one read and one write a burst, counted before
+  presigning, 429 with Retry-After, fails open; a walked guest upload wrote one `presign` row; (3) the dropzone is
+  `components/app/file-dropzone.tsx`, "Click to choose, or drag them here" at a desk and "Tap to choose" on a touch
+  phone (both walked); (4) the 375 Table's fold wears the needs-you dot (walked: "20 to review"); (5) and (7) the
+  migration below; (6) the nudge goes on every 4 s after the early four until the commit lands, at most 5 minutes;
+  (8) Settings' four radio groups are Radix groups (`radio-cards.tsx`), one Tab stop, arrows moving and choosing
+  (walked on the album styles); (9) the lab demo's line, above; (10) the motion playground points at
+  `/design/library/foundations#radius`; (11) `device-tickets.test.tsx` reads the welcome's cookie, the legacy put-down
+  gone; (12) `EventCard`'s dashboard-only props and `event-card-qr.tsx` gone with their specimens (the artifact
+  regenerated); (13) `LEGACY_WIDTH_STEP` gone; (14) the four stale comments; (15) crumbs-88's seam retired, its 42703
+  pin with it; (16) See it as a guest's two facts pinned in both its tests.
+- **The migration, `supabase/migrations/20261008030000_crumbs_91.sql`, not applied:** md5 `5574e613bed484eb8bf8dc93ae039508`.
+  `restore_media` takes the item NOWAIT right after her row (callers: `restoreMedia` in `lib/db/mutations/media.ts`,
+  `restoreMediaAction` in `dashboard/[eventId]/actions.ts`, whose words already make a 55P03 a retry); `let_back_in`'s
+  restore SKIP LOCKED (callers: `letBackIn` in `lib/db/mutations/event-blocks.ts`, `letBackInAction` in
+  `dashboard/[eventId]/guests/actions.ts`; a skipped row stays in her Deleted, out of `restored`); `events_email_held`
+  fires on `gate, require_verified_email` and a client role's write clears the memory (fires on `updateEvent`,
+  `set_event_door`, `set_event_password`, `block_from_event`). Live drift read equal on 2026-10-07 (restore_media
+  `f4ad56caa8b4a4176e55c28bcd434c93`, let_back_in `7383a75e041e739347d9f61e36ad122c`, events_email_held
+  `e8946631499647c941bc6a84acb04755`); RED then GREEN proved in one rolled-back call each (rows at the file's foot);
+  the pre-flight's races and stress in its header (0 deadlocks after). An expand: no signature, argument or answer
+  moves, so it applies in any order with any build; advisors: no delta expected.
+- **Test data, listed for deletion:** "crumbs-91 (disposable)" (`2dd94b2e-26af-41a7-9a41-ab6028eabc74`, willg97's: 8
+  photos seeded by `scripts/seed-demo-event.mjs`, 1 a walked guest upload; guest rows Ana R., Theo M., "crumbs-91
+  Guest", "crumbs-91 Desk"); one `presign` row in `action_attempts` (ages out). willg97's dashboard Display went to
+  Table for the walk and back to Gallery.
+- Assets requested from Will: none
+- Board ideas: Settings: confirming a consequence line by keyboard unmounts it and drops focus to the page; hand it back
+  to the card it asked about.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: the migration above; nothing else.
+- Calls for Will: a guest's own uploads are capped at 1,000 files an hour on her ticket (a twentieth of the host's
+  hourly breaker; past it she waits, told in her words); AY1's Disposable: a reached develop puts its album in the
+  night's order even while it takes uploads.
+- Look at first: a guest's album open while the host closes adding (it turns on its next sync), then her hub's Sort and
+  See it as a guest; Settings' album styles by keyboard; the dashboard's Table at 375.
