@@ -22,6 +22,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Cost: cache an open album's "has anything changed?" answer at the CDN for a few seconds (Will's yes to X5, 2026-10-07): only an open album at full access, never a password album or a blocked viewer, and the answer a version number alone, never photos or links (100 lit phones asking cost one call). With it in, AB5's cadence may tighten where that costs nothing (Will kept AB5's slowing ask and invites a livelier page at the same cost).
 - Lifecycle: a Free event idle for two years, not six months, is removed (Will changed K5, 2026-10-07: "6 months feels like too short a span"): the window in `src/lib/lifecycle/` and any SQL mirror, the warning mail, help's `<InactivityMonths />`, PRD's "Free-plan inactivity" line and lifecycle-recovery.md; the Terms state no number (his: "Legal terms should not bind us to this").
 
+### Security and abuse
+
+- Settings: pin in a test that `eventPatch` and `updateEvent` name `require_verified_email` only when her switch provides it: `events_email_held`'s client arm (20261008030000) clears the gate's memory on any client write of the step, so a future whole-row save would undo a hold by a side door (the Advisor's Q45).
+
 ### Uploads, media and exports
 
 - Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
