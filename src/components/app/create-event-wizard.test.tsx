@@ -4,19 +4,27 @@ import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CreateEventWizard } from "@/components/app/create-event-wizard";
+import { DEVELOP_QUESTION } from "@/components/app/create-event-wizard/develop-step";
+import {
+  HELD_DROPPED,
+  HELD_QUESTION,
+  heldFailure,
+} from "@/components/app/create-event-wizard/held";
+import { CODE_STILL_NEEDED } from "@/lib/events/readiness";
 
 /**
  * THE BEAT, DEVELOPED (create-wizard r2 `beat=develop`, Will 2026-10-03: "This is a beautiful screen and
- * allows everything to breathe, with lots of our aurora identity infused. The steps beneath could be
- * designed better, while remaining somewhat minimal"), still handing over as event-ready's `create=hand`
- * made it: the code first and whole, then what is left, then Get it ready into Settings' first step.
- * The room around it (the question in one place, Back, the carry, the close) is `room.test.tsx`'s; one
- * field, the looks and the door at the cap are `create-flow.test.tsx`'s.
+ * allows everything to breathe, with lots of our aurora identity infused"), still handing over as
+ * event-ready's `create=hand` made it: the code first and whole, then what guests still need in one line
+ * (r4's `close=next`), then Get it ready into Settings' first step; and a failed Create held right there
+ * (r4's `failed=held`). The room around it (the question in one place, Back, the carry, the close) is
+ * `room.test.tsx`'s; one field, the looks and the door at the cap are `create-flow.test.tsx`'s.
  *
  * What fails silently: a beat that shows the real code before the event exists (or the sample after),
- * a list that is not Settings' own (Create telling a host something Settings then contradicts), a Get it
- * ready that lands anywhere but the first step, and a refused Create that strands her on a screen that
- * says her event is live. No word or class is pinned but where the word is the fact.
+ * a close that is not the checklist's own (Create telling a host something Settings then contradicts), a
+ * Get it ready that lands anywhere but the first step, and a failed Create that strands her on a screen
+ * that says her event is live, loses what she chose, or says so only in a toast. No word or class is
+ * pinned but where the word is the fact.
  */
 
 const push = vi.fn();
@@ -192,46 +200,40 @@ describe("Print and Share stand as rounds", () => {
   });
 });
 
-describe("Settings' steps beneath, kept minimal (his note on develop)", () => {
-  it("★ stands Settings' five in its rail's order, ticked from the checklist's own function", async () => {
+/**
+ * ★ RESHAPED ON PURPOSE (create-wizard r4's `close=next`, Will 2026-10-07: "I do like the subtlety versus the steps";
+ * scar kept: what the beat says is left is the checklist's own reading of the new event, under the code, room beside
+ * it and never in it). Settings' five marks expired with the pick: the close is one line, what guests still need.
+ */
+describe("the close: one line, what guests still need (close=next)", () => {
+  const needs = () => beat().querySelector<HTMLElement>("[data-beat-needs]");
+
+  it("★ closes on the code, the one essential a new event has not done, and draws none of Settings' marks", async () => {
     await createIt();
-    const steps = [
-      ...beat().querySelectorAll<HTMLElement>("[data-beat-steps] li"),
-    ];
-    expect(steps.map((s) => s.dataset.stepItem)).toEqual([
-      "door",
-      "adds",
-      "photos",
-      "welcome",
-      "code",
-    ]);
-    // Create sets the name alone: the door is Public and uploads open; the rest waits in Settings.
-    expect(steps.map((s) => s.dataset.done)).toEqual([
-      "true",
-      "true",
-      "false",
-      "false",
-      "false",
-    ]);
-    expect(steps[0]).toHaveTextContent(/who can get in/i);
-    expect(steps[4]).toHaveTextContent(/the code/i);
-    expect(beat()).toHaveTextContent(/guests still need one more thing/i);
+    // Create sets the name alone: the door is Public and uploads open, so what guests still need is the code.
+    expect(needs()?.textContent).toBe(CODE_STILL_NEEDED);
+    expect(beat().querySelector("[data-beat-steps]")).toBeNull();
+    expect(within(beat()).queryAllByRole("listitem")).toEqual([]);
   });
 
-  it("keeps the code first: the steps stand under it", async () => {
+  it("keeps the code first: the line stands under it, under Print and Share", async () => {
     await createIt();
     const code = within(beat()).getAllByTestId("styled-qr")[0];
-    const steps = beat().querySelector("[data-beat-steps]")!;
+    const print = within(beat()).getByRole("link", { name: /^print$/i });
     expect(
-      code.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING,
+      code.compareDocumentPosition(needs()!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      print.compareDocumentPosition(needs()!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 
-  it("★ says room beside the steps once the account runs short (the carried `room`), never as a step", async () => {
+  it("★ says room beside the line once the account runs short (the carried `room`), never in it", async () => {
     await createIt(92);
     const room = beat().querySelector<HTMLElement>("[data-beat-room]");
     expect(room).toHaveTextContent(/92% of your storage is used/i);
-    expect(beat().querySelectorAll("[data-beat-steps] li")).toHaveLength(5);
+    expect(needs()?.textContent).toBe(CODE_STILL_NEEDED);
     await userEvent.click(
       within(room!).getByRole("button", { name: /plans/i }),
     );
@@ -258,89 +260,160 @@ describe("the way on", () => {
     );
   });
 
-  it("★ a refused Create brings her back to the look, her name and her look kept, and says why", async () => {
-    createEventInWizard.mockResolvedValue({
+  /**
+   * ★ RESHAPED ON PURPOSE (create-wizard r4's `failed=held`, Will 2026-10-07: "if something goes wrong, it doesn't feel
+   * frustrating or scary. Only easily correctable"; scar kept: a refused Create never says her event is live, keeps
+   * everything she chose, says why, and lets her press again). Its reason "back to the look, a toast" expired: the
+   * beat she is watching holds the failure, and a toast never carries one here.
+   */
+  it("★ a refused Create holds the beat she is watching: nothing live, nothing lost, why, and Try again; never a toast", async () => {
+    const refused = {
       ok: false,
       code: "unknown",
-      message: "The network dropped.",
-    });
+      message: "You've created a lot of events today. Try again tomorrow.",
+    } as const;
+    createEventInWizard.mockResolvedValue(refused);
     renderWizard();
     await toTheLook();
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
     );
+    const again = await screen.findByRole("button", { name: /^try again$/i });
+
+    expect(beat().dataset.beat).toBe("failed");
     expect(
-      await screen.findByRole("button", { name: /^create event$/i }),
+      screen.getByRole("heading", { level: 1, name: HELD_QUESTION }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /rounded/i })).toHaveAttribute(
-      "aria-checked",
-      "true",
+    // Still the sample she styled, saying so, and nothing that needs an event: no doors out, no way on.
+    expect(codes()).toEqual([
+      { value: expect.stringMatching(SAMPLE), dots: "rounded" },
+    ]);
+    expect(within(beat()).getByText(/^sample$/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /print/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /^get it ready$/i }),
+    ).toBeNull();
+    // What is kept and why, in the words under her code, and for a reader in the room's status.
+    const { line } = heldFailure(refused, { planName: "Free", maxEvents: 1 });
+    expect(line).toContain(refused.message);
+    expect(beat().querySelector("[data-beat-held]")).toHaveTextContent(line);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      `${HELD_QUESTION}. ${line}`,
     );
-    expect(document.querySelector("[data-beat]")).toBeNull();
-    expect(toast.error).toHaveBeenCalledWith(
-      expect.stringMatching(/couldn.t create/i),
-      expect.objectContaining({ description: "The network dropped." }),
-    );
+    expect(toast.error).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+
+    // Try again is the same Create, and this time the line answers.
+    createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
+    await userEvent.click(again);
+    expect(
+      await screen.findByRole("button", { name: /^get it ready$/i }),
+    ).toBeInTheDocument();
+    expect(beat().dataset.beat).toBe("arrived");
+    expect(codes()).toContainEqual({ value: REAL, dots: "rounded" });
+    expect(createEventInWizard).toHaveBeenCalledTimes(2);
   });
 
-  it("★ never develops for ever over a dropped connection: a rejected Create reads as the failure it is", async () => {
+  it("★ never develops for ever over a dropped connection: a rejected Create is held as the failure it is", async () => {
     createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
     renderWizard();
     await toTheLook();
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
     );
-    expect(
-      await screen.findByRole("button", { name: /^create event$/i }),
-    ).toBeInTheDocument();
-    expect(document.querySelector("[data-beat]")).toBeNull();
-    expect(toast.error).toHaveBeenCalledWith(
-      expect.stringMatching(/couldn.t create/i),
-      expect.objectContaining({ description: expect.any(String) }),
+    await screen.findByRole("button", { name: /^try again$/i });
+    expect(beat().dataset.beat).toBe("failed");
+    expect(beat().querySelector("[data-beat-held]")).toHaveTextContent(
+      HELD_DROPPED,
+    );
+    expect(document.querySelector("[data-app-room]")).not.toHaveAttribute(
+      "aria-busy",
     );
     // And she can press it again: the one-create guard let go with the failure.
     createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
-    await userEvent.click(
-      screen.getByRole("button", { name: /^create event$/i }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: /^try again$/i }));
     expect(
       await screen.findByRole("button", { name: /^get it ready$/i }),
     ).toBeInTheDocument();
   });
 
-  it("sends her to her events with the plan's sentence when a slot was spent elsewhere (the guard behind the door)", async () => {
-    createEventInWizard.mockResolvedValue({
+  /**
+   * ★ RESHAPED ON PURPOSE (r4's `failed=held`; scar kept: the server's guard behind the door is met with the plan's
+   * sentence and its Upgrade). Its reason "sends her to her events with a toast" expired: the beat holds it, the
+   * plans' sheet opens from its foot, and nothing she chose is thrown away by a navigation.
+   */
+  it("★ holds a slot spent elsewhere with its Upgrade (the guard behind the door): the plans open, nothing leaves the room", async () => {
+    const refused = {
       ok: false,
       code: "limit_reached",
-      message: "Event limit reached.",
-    });
+      message: "You've reached the event limit for your plan.",
+    } as const;
+    createEventInWizard.mockResolvedValue(refused);
     renderWizard();
     await toTheLook();
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
     );
-    await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
-    expect(toast.error).toHaveBeenCalledWith(
-      expect.stringMatching(/free plan/i),
-      expect.anything(),
+    const upgrade = await screen.findByRole("button", { name: /^upgrade$/i });
+    expect(beat().querySelector("[data-beat-held]")).toHaveTextContent(
+      heldFailure(refused, { planName: "Free", maxEvents: 1 }).line,
+    );
+    expect(screen.queryByRole("button", { name: /^try again$/i })).toBeNull();
+    await userEvent.click(upgrade);
+    expect(pricing).toHaveBeenLastCalledWith(
+      expect.objectContaining({ open: true, trigger: { kind: "room" } }),
+    );
+    expect(push).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("★ Back from a held failure is there for a change: the look, her look kept, and Create event makes it", async () => {
+    createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
+    renderWizard();
+    await toTheLook();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^try again$/i });
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(screen.getByRole("radio", { name: /rounded/i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("radio", { name: /dots/i }));
+    createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^get it ready$/i });
+    expect(createEventInWizard).toHaveBeenLastCalledWith(
+      expect.objectContaining({ name: EVENT.name, qr_style: "dots" }),
     );
   });
 });
 
-/* ── the album's style at birth (create-wizard r3's add=styles) ────────────────────────────────────────── */
+/* ── the album's style at birth (create-wizard r3's add=styles, r4's styles=focused) ─────────────────────── */
 
 /**
  * ★ A NEW EVENT IS BORN WITH ITS STYLE'S THREE COLUMNS IN ONE INSERT (`createFieldsOf`): what a host picked on the add
- * step is what the event is made with, and what Settings then shows (`styleOf` of the row reads her pick back). What fails
- * silently: a pick that never reaches the create (the event lands Live whatever she chose), approval standing with a
- * develop time, a Disposable made with no time or a time that has already passed, and a pick lost across a Back.
+ * step (and a Disposable's own screen after it) is what the event is made with, and what Settings then shows (`styleOf`
+ * of the row reads her pick back). What fails silently: a pick that never reaches the create (the event lands Live
+ * whatever she chose), approval standing with a develop time, a Disposable made with no time or a time that has already
+ * passed, and a pick lost across a Back.
  */
 describe("the album's style at birth (add=styles)", () => {
   const style = (name: RegExp) => screen.getByRole("radio", { name });
+  const onDevelopScreen = () =>
+    screen.queryByRole("heading", { level: 1, name: DEVELOP_QUESTION }) !==
+    null;
 
+  /** Continue from the add step (through a Disposable's own screen), then Create event: what the create was sent. */
   async function created() {
     await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    if (onDevelopScreen())
+      await userEvent.click(
+        screen.getByRole("button", { name: /^continue$/i }),
+      );
     await userEvent.click(
       await screen.findByRole("button", { name: /^create event$/i }),
     );
@@ -349,6 +422,7 @@ describe("the album's style at birth (add=styles)", () => {
       capture: string;
       moderation_mode: string;
       develops_at: string | null;
+      roll_size: number | null;
     };
   }
 
@@ -404,29 +478,50 @@ describe("the album's style at birth (add=styles)", () => {
     );
   });
 
-  it("keeps her style (and a develop time she moved) across a Back and a Continue", async () => {
+  /**
+   * ★ RESHAPED ON PURPOSE (r4's `styles=focused`; scar kept: her style, her time and her roll survive every Back and
+   * Continue and ride the create). The time and the roll are set on the Disposable's own screen now, where they stood
+   * under its card.
+   */
+  it("keeps her style, a develop time she moved and her roll across Back and Continue, through the Disposable's own screen", async () => {
     renderWizard();
     await toTheAdd();
     await userEvent.click(style(/^disposable\./i));
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(onDevelopScreen()).toBe(true);
     fireEvent.change(screen.getByLabelText("Develop time"), {
       target: { value: "2027-03-05T14:30" },
     });
+    await userEvent.click(screen.getByRole("radio", { name: "36 shots" }));
     await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await screen.findByRole("button", { name: /^create event$/i });
+    // Back to the Disposable's screen, its time and roll as she left them, then back to the cards.
     await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
-    expect(style(/^disposable\./i)).toHaveAttribute("aria-checked", "true");
     expect(screen.getByLabelText("Develop time")).toHaveValue(
       "2027-03-05T14:30",
     );
+    expect(screen.getByRole("radio", { name: "36 shots" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(style(/^disposable\./i)).toHaveAttribute("aria-checked", "true");
     const sent = await created();
     expect(new Date(sent.develops_at!).getTime()).toBe(
       new Date(2027, 2, 5, 14, 30).getTime(),
     );
+    expect(sent.roll_size).toBe(36);
   });
 
-  it("★ a develop time that is no time stops her on the add step, in words under its row, and sends nothing", async () => {
+  /**
+   * ★ RESHAPED ON PURPOSE (r4's `styles=focused`; scar kept: a time that is no time stops her where its row is, in words
+   * under it, and nothing is sent). Its row is on the Disposable's own screen now, so that is where she stops.
+   */
+  it("★ a develop time that is no time stops her on its own screen, in words under its row, and sends nothing", async () => {
     renderWizard();
     await toTheAdd();
     await userEvent.click(style(/^disposable\./i));
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
     const field = screen.getByLabelText("Develop time");
     for (const [typed, words] of [
       ["", /finish the time/i],
@@ -439,9 +534,7 @@ describe("the album's style at birth (add=styles)", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /^continue$/i }),
       );
-      expect(
-        screen.getByRole("radiogroup", { name: /album style/i }),
-      ).toBeTruthy();
+      expect(onDevelopScreen()).toBe(true);
       expect(field).toHaveAttribute("aria-invalid", "true");
       expect(field).toHaveAccessibleDescription(words);
     }
@@ -454,13 +547,17 @@ describe("the album's style at birth (add=styles)", () => {
     ).toBeInTheDocument();
   });
 
-  it("★ a time that passed while she stood on the look is not made: back to the add step, the words under its row", async () => {
+  /** ★ RESHAPED ON PURPOSE (r4's `styles=focused`; scar kept: a passed time is never made, and she lands on its row). */
+  it("★ a time that passed while she stood on the look is not made: back to its own screen, the words under its row", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     try {
       vi.setSystemTime(new Date(2026, 9, 10, 20, 0, 0));
       renderWizard();
       await toTheAdd();
       await userEvent.click(style(/^disposable\./i));
+      await userEvent.click(
+        screen.getByRole("button", { name: /^continue$/i }),
+      );
       await userEvent.click(
         screen.getByRole("button", { name: /^continue$/i }),
       );
@@ -471,7 +568,10 @@ describe("the album's style at birth (add=styles)", () => {
         screen.getByRole("button", { name: /^create event$/i }),
       );
       expect(
-        await screen.findByRole("radiogroup", { name: /album style/i }),
+        await screen.findByRole("heading", {
+          level: 1,
+          name: DEVELOP_QUESTION,
+        }),
       ).toBeInTheDocument();
       expect(screen.getByLabelText("Develop time")).toHaveAccessibleDescription(
         /that time has passed/i,
@@ -482,6 +582,7 @@ describe("the album's style at birth (add=styles)", () => {
     }
   });
 
+  /** ★ RESHAPED ON PURPOSE (r4's `failed=held`; scar kept: a refused Create keeps her style). Back walks from the hold. */
   it("a refused Create keeps her style, as it keeps her name and her look", async () => {
     createEventInWizard.mockResolvedValue({
       ok: false,
@@ -495,7 +596,8 @@ describe("the album's style at birth (add=styles)", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: /^create event$/i }),
     );
-    await screen.findByRole("button", { name: /^create event$/i });
+    await screen.findByRole("button", { name: /^try again$/i });
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
     await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
     expect(style(/^review\./i)).toHaveAttribute("aria-checked", "true");
   });

@@ -24,7 +24,8 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
 - **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`): the
-  name, the album's style (a Disposable's develop time and roll under its pick), the code's look, then the beat. It
+  name, the album's style (a Disposable adds its own screen after it, the develop time and the roll, so the steppers
+  count five), the code's look, then the beat. It
   creates once, at commit (an abandoned Create leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
   Settings (below). The look step's codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in
@@ -40,7 +41,10 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   header's `group-has-[[data-app-room]]/shell:hidden`, since a page cannot hand its layout a prop), so nothing of the
   app waits in the tab order behind Create.
 - **The beat happens once in an event's life**: only Create event reaches it, and nothing leads Back once the event
-  exists. Nothing on it says live before the event is (a refused Create returns to the look, her name and look kept).
+  exists. Nothing on it says live before the event is: a failed Create is held on it, never a toast (`held.ts`: the
+  sample stands, the words say nothing was lost and the way to put it right, the foot is Try again or, at the plan's
+  limit, Upgrade, and Back leads to the look). It closes on one line, what guests still need, read off the new event's
+  readiness (`stillNeeded`).
 - **The cap is a door, not a dead button**, so a host never does the work of an event and only then learns the plan
   cannot hold it: the route computes `atCap` with `enforce_event_limit`'s own math (`profile.event_slots ??
   MAX_EVENTS[tier]`), and the wizard draws the refusal in the room instead of its screens, so New event stays a live

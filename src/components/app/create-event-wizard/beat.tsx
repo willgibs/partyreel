@@ -8,27 +8,21 @@ import { useCopyLink } from "@/components/app/share/use-copy-link";
 import { Glow } from "@/components/shared/glow";
 import { trackAttrs } from "@/lib/analytics/events";
 import { QR_PRESETS, type QrStyleKey } from "@/lib/constants/qr-presets";
-import {
-  type Readiness,
-  readyHead,
-  settingsSteps,
-} from "@/lib/events/readiness";
-import { cn } from "@/lib/utils";
+import { type Readiness, stillNeeded } from "@/lib/events/readiness";
 
 /**
  * THE BEAT, DEVELOPED (create-wizard r2 `beat=develop`, Will 2026-10-03: "This is a beautiful screen and
- * allows everything to breathe, with lots of our aurora identity infused. The steps beneath could be
- * designed better, while remaining somewhat minimal"). Round one's `hand=lit` settled what it is: the
- * code alone, lit, the first win, leading on into Get it ready and Settings' first step; See it as a
- * guest stays the hub's payoff, never offered here.
+ * allows everything to breathe, with lots of our aurora identity infused"). Round one's `hand=lit` settled
+ * what it is: the code alone, lit, the first win, leading on into Get it ready and Settings' first step;
+ * See it as a guest stays the hub's payoff, never offered here.
  *
- * ★ THE SAMPLE DEVELOPS INTO HER CODE WHERE IT STANDS, WHILE CREATE RUNS. The press of Create event lands
- * here at once: the sample she styled, in her look, breathing like a print in the tray, while the event
- * is made (a status says so, for a reader and under reduced motion). When the event exists her own code
- * comes up sharp under the sample, the sample softens away, and its one word goes; then the question,
- * the two doors and the steps, then the foot. A refused Create takes her back to the look, her name and
- * look kept (the wizard's). One moment from her pick to her code, and nothing on the screen ever says
- * "live" before it is.
+ * ★ THE SAMPLE DEVELOPS INTO HER CODE WHERE IT STANDS, WHILE CREATE RUNS (r4's `wait=breath`, as built).
+ * The press of Create event lands here at once: the sample she styled, in her look, breathing like a print
+ * in the tray, while the event is made (a status says so, for a reader and under reduced motion). When the
+ * event exists her own code comes up sharp under the sample, the sample softens away, and its one word
+ * goes; then the question, the two doors and the close, then the foot. A failed Create is held right here,
+ * the sample standing still (the wizard's `held.ts`). One moment from her pick to her code, and nothing on
+ * the screen ever says "live" before it is.
  *
  * ★ THE LIGHT IS THE CODE'S OWN: a bloom behind the plate that ignites as the code turns real and rests
  * lit (the QR hero's composition, design-system.md: the bloom is a one-time glow that rests lit, the
@@ -38,10 +32,10 @@ import { cn } from "@/lib/utils";
  * table cards in a tab of their own; Share hands the link to the phone's own sheet, and where a browser
  * has none (most laptops) it is Copy link, with the press's own confirmation in place of a toast.
  *
- * ★ SETTINGS' STEPS BENEATH, REDESIGNED AND KEPT MINIMAL (his note): Settings' rail laid flat, its own
- * marks (a number, a tick once ready) joined by its own line, so the five a host is shown are the five
- * Get it ready opens onto, then the checklist's one line under them. Room, once the account runs short,
- * is said beside them (the carried `room`), never as a step: it is the plan's.
+ * ★ THE CLOSE IS ONE LINE, WHAT GUESTS STILL NEED (r4's `close=next`, his note: "I do like the subtlety
+ * versus the steps"): the code, sent or printed, which the two rounds right above it do. Settings' five
+ * marks went with it; Get it ready still opens Settings on its first step. Room, once the account runs
+ * short, is said beside the line (the carried `room`), never in it: it is the plan's.
  */
 
 export function BeatCode({
@@ -207,11 +201,12 @@ export function BeatActs({
 }
 
 /**
- * SETTINGS' STEPS, LAID FLAT: its own five marks in its rail's order (a number, a tick once ready) on its
- * own joining line, then the checklist's one line. Each mark is named for a screen reader as Settings
- * names its row, so the list says what the picture shows.
+ * WHAT CREATE CLOSES ON, UNDER PRINT AND SHARE: one quiet line saying what guests still need, read off
+ * the new event's own readiness (`stillNeeded`), so it is the checklist's truth and never a sentence of
+ * Create's. The line breaks after its colon when a narrow screen or a large text size cannot hold it
+ * whole, so what is needed and how to do it each stay in one piece.
  */
-export function BeatSteps({
+export function BeatClose({
   r,
   onPlans,
 }: {
@@ -219,52 +214,23 @@ export function BeatSteps({
   /** Room's own way on, the plans, where the account runs short. */
   onPlans: () => void;
 }) {
-  const steps = settingsSteps(r);
-  const head = readyHead(r);
+  const line = stillNeeded(r);
+  const at = line.indexOf(": ");
   const room = r.items.find((i) => i.id === "room") ?? null;
   return (
-    <div className="flex flex-col items-center gap-2.5">
-      <ol
-        data-beat-steps=""
-        aria-label="Settings' steps"
-        className="flex items-center"
+    <div data-beat-close="" className="flex flex-col items-center gap-2.5">
+      <p
+        data-beat-needs=""
+        className="max-w-[18rem] text-center text-caption text-balance text-muted-foreground md:max-w-none"
       >
-        {steps.map((s, i) => (
-          <li
-            key={s.item}
-            data-step-item={s.item}
-            data-done={s.done ? "true" : "false"}
-            className="flex items-center"
-          >
-            {i > 0 ? (
-              // The rail's own joining line, green where it joins two steps already ticked.
-              <span
-                aria-hidden
-                className={cn(
-                  "h-px w-3.5 md:w-5",
-                  s.done && steps[i - 1].done ? "bg-success/50" : "bg-border",
-                )}
-              />
-            ) : null}
-            <span
-              aria-hidden
-              className={cn(
-                "flex size-5 items-center justify-center rounded-full",
-                s.done
-                  ? "bg-success text-success-foreground"
-                  : "bg-muted text-[11px] font-semibold text-muted-foreground tabular-nums ring-1 ring-foreground/10",
-              )}
-            >
-              {s.done ? <Check className="size-3" strokeWidth={3} /> : s.n}
-            </span>
-            <span className="sr-only">
-              {`${s.n}. ${s.title}, ${s.done ? "done" : "to do"}`}
-            </span>
-          </li>
-        ))}
-      </ol>
-      <p className="text-center text-caption text-muted-foreground">
-        {head.line}
+        {at > 0 ? (
+          <>
+            <span className="inline-block">{line.slice(0, at + 1)}</span>{" "}
+            <span className="inline-block">{line.slice(at + 2)}</span>
+          </>
+        ) : (
+          line
+        )}
       </p>
       {room ? (
         <p
@@ -276,7 +242,7 @@ export function BeatSteps({
           <button
             type="button"
             onClick={onPlans}
-            className="rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-halo"
+            className="focus-halo rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline"
           >
             {room.actions[0]?.label ?? "See plans"}
           </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useId } from "react";
+import { useId } from "react";
 import { ChevronDown, Clock } from "lucide-react";
 
 import {
@@ -33,10 +33,8 @@ function wordsFor(iso: string, now: number): string {
 }
 
 /**
- * THE DISPOSABLE'S DEVELOP TIME, ONE ROW DIRECTLY UNDER ITS CARD (create-wizard r3's add=styles, Will: "If disposable is
- * selected, time should either be directly below option item or on a focused following screen, but not tucked
- * underneath the timeline where it may not be noticed"): "Develops", and when, in the camera's own words ("tomorrow at
- * 9 am"), a setting's row in the room's material, never a new control.
+ * THE DISPOSABLE'S DEVELOP TIME, ONE ROW (the develop step's, `develop-step.tsx`): "Develops", and when, in the
+ * camera's own words ("tomorrow at 9 am"), a setting's row in the room's material, never a new control.
  *
  * ★ THE ROW IS THE PICKER'S FACE, THE NATIVE FIELD ITS HAND: a `datetime-local` lies transparent over the whole row, so a
  * phone's own wheel and a desk's own calendar open from a press anywhere on it (the same field Settings' develop time
@@ -47,23 +45,15 @@ function wordsFor(iso: string, now: number): string {
  * it, once, and a half-typed year is never a time (`judgeDevelopTime`); the words say the draft while it is a whole time,
  * and the refusal stands under the row in words. Create knows no date yet, so the time it offers is 9 am tomorrow; a
  * party further off is a pick away, here or later in Settings (a stored time never follows the event's date).
- *
- * ★ IT OPENS WITH ITS CARD AND SHUTS WITH IT, in place (a row of height that eases), kept in the DOM, inert and
- * hidden while shut, so its place never moves the card above it and nothing of it waits in the tab order. What else
- * stands under the pick (`after`: its roll, customize r1's `roll=both`) opens and shuts inside the same slot.
  */
 export function DevelopRow({
-  open,
   developsAt,
   draft,
   refusal,
   onDraft,
   onFinish,
-  after,
   className,
 }: {
-  /** The Disposable card is picked: the row is there. */
-  open: boolean;
   /** The develop time that will be sent (ISO), or null before one is offered. */
   developsAt: string | null;
   /** What the field holds, unfinished (`YYYY-MM-DDTHH:mm`, "" when half filled), or null when it holds the time. */
@@ -72,14 +62,12 @@ export function DevelopRow({
   refusal: string | null;
   onDraft: (value: string) => void;
   onFinish: () => void;
-  /** What else stands under the Disposable's pick, opening and shutting with the row (its roll). */
-  after?: ReactNode;
   className?: string;
 }) {
   const fieldId = useId();
   const refusalId = `${fieldId}-refusal`;
-  // The reader's own now (the house's one clock), read only while the row is there: it says "tomorrow" by her calendar.
-  const now = useWaitClock(open);
+  // The reader's own now (the house's one clock): it says "tomorrow" by her calendar.
+  const now = useWaitClock();
   // The words say the draft while it is a whole time, else the time that will be sent.
   const draftAt = draft ? new Date(draft) : null;
   const shown =
@@ -87,100 +75,71 @@ export function DevelopRow({
       ? draftAt.toISOString()
       : developsAt;
   return (
-    <div
-      data-develop-slot=""
-      data-open={open ? "" : undefined}
-      inert={!open}
-      aria-hidden={open ? undefined : true}
-      className={cn("cr-develop-slot", className)}
-      onTransitionEnd={(e) => {
-        // Opened under its card on a screen too short to hold it: it is brought into view, never left where it
-        // may not be noticed (his own worry, and the room's body scrolls). Only what is out of view moves.
-        if (
-          !open ||
-          e.target !== e.currentTarget ||
-          e.propertyName !== "grid-template-rows"
-        )
-          return;
-        const calm = window.matchMedia?.(
-          "(prefers-reduced-motion: reduce)",
-        ).matches;
-        e.currentTarget.scrollIntoView?.({
-          block: "nearest",
-          behavior: calm ? "auto" : "smooth",
-        });
-      }}
-    >
-      <div className="cr-develop-inner">
-        <label
-          data-develop-row=""
-          data-invalid={refusal ? "" : undefined}
-          className="cr-develop relative flex h-12 w-full items-center gap-3 rounded-2xl px-4"
+    <div data-develop-field="" className={cn("w-full", className)}>
+      <label
+        data-develop-row=""
+        data-invalid={refusal ? "" : undefined}
+        className="cr-develop relative flex h-12 w-full items-center gap-3 rounded-2xl px-4"
+      >
+        <Clock aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+        <span aria-hidden className="text-working text-muted-foreground">
+          Develops
+        </span>
+        <span
+          aria-hidden
+          data-develop-words=""
+          className="ml-auto text-working font-medium"
         >
-          <Clock
-            aria-hidden
-            className="size-4 shrink-0 text-muted-foreground"
-          />
-          <span aria-hidden className="text-working text-muted-foreground">
-            Develops
-          </span>
-          <span
-            aria-hidden
-            data-develop-words=""
-            className="ml-auto text-working font-medium"
-          >
-            {shown && now !== null ? wordsFor(shown, now) : ""}
-          </span>
-          <ChevronDown
-            aria-hidden
-            className="size-4 shrink-0 text-muted-foreground"
-          />
-          <input
-            id={fieldId}
-            type="datetime-local"
-            aria-label="Develop time"
-            aria-invalid={refusal ? true : undefined}
-            aria-describedby={refusal ? refusalId : undefined}
-            value={draft ?? (developsAt ? toLocalInput(developsAt) : "")}
-            min={
-              now === null
-                ? undefined
-                : toLocalInput(
-                    new Date(now + DEVELOPS_NOW_WITHIN_MS).toISOString(),
-                  )
+          {shown && now !== null ? wordsFor(shown, now) : ""}
+        </span>
+        <ChevronDown
+          aria-hidden
+          className="size-4 shrink-0 text-muted-foreground"
+        />
+        <input
+          id={fieldId}
+          type="datetime-local"
+          aria-label="Develop time"
+          aria-invalid={refusal ? true : undefined}
+          aria-describedby={refusal ? refusalId : undefined}
+          value={draft ?? (developsAt ? toLocalInput(developsAt) : "")}
+          min={
+            now === null
+              ? undefined
+              : toLocalInput(
+                  new Date(now + DEVELOPS_NOW_WITHIN_MS).toISOString(),
+                )
+          }
+          max={
+            now === null
+              ? undefined
+              : toLocalInput(
+                  new Date(
+                    now + DEVELOP_MAX_AHEAD_DAYS * 86_400_000,
+                  ).toISOString(),
+                )
+          }
+          onChange={(e) => onDraft(e.target.value)}
+          onBlur={onFinish}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onFinish();
+            // A key can open the picker too (the field's own segments are out of sight under the row).
+            if (e.key === " ") {
+              e.preventDefault();
+              openPicker(e.currentTarget);
             }
-            max={
-              now === null
-                ? undefined
-                : toLocalInput(
-                    new Date(
-                      now + DEVELOP_MAX_AHEAD_DAYS * 86_400_000,
-                    ).toISOString(),
-                  )
-            }
-            onChange={(e) => onDraft(e.target.value)}
-            onBlur={onFinish}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onFinish();
-              // A key can open the picker too (the field's own segments are out of sight under the row).
-              if (e.key === " ") {
-                e.preventDefault();
-                openPicker(e.currentTarget);
-              }
-            }}
-            onClick={(e) => openPicker(e.currentTarget)}
-            className="cr-develop-input"
-          />
-        </label>
-        <p
-          id={refusalId}
-          aria-live="polite"
-          className="mt-2 px-1 text-caption text-pretty text-destructive empty:hidden"
-        >
-          {refusal ?? ""}
-        </p>
-        {after}
-      </div>
+          }}
+          onClick={(e) => openPicker(e.currentTarget)}
+          className="cr-develop-input"
+        />
+      </label>
+      <p
+        id={refusalId}
+        aria-live="polite"
+        className="mt-2 px-1 text-caption text-pretty text-destructive empty:hidden"
+      >
+        {refusal ?? ""}
+      </p>
     </div>
   );
 }
