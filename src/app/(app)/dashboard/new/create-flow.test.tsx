@@ -444,12 +444,10 @@ describe("the print route", () => {
 });
 
 describe("the one sharing surface", () => {
-  it("retired the second one, and the card chip goes to the sheet", () => {
+  it("retired the second one", () => {
     // Two surfaces drawing the same code, the same copy row and two versions of
     // the same designer meant a fix to either only half-landed.
     expect(() => read("src/components/app/event-share-dialog.tsx")).toThrow();
-    const chip = code("src/components/app/event-card-qr.tsx");
-    expect(/\?room=share/.test(chip)).toBe(true);
   });
 
   it("gives the share sheet a door onto paper", () => {

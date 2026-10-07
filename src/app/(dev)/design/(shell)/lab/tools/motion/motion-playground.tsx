@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { readCssMs as readMs } from "@/lib/shared/read-css-ms";
 
+import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
+
 // readMs (read-css-ms.ts) reads a --tune-* var as ms the same way the review triage's run() does
 // (use-review-triage.ts), so the JS-timed replays (the exit reset + the beat hold) match the tuner
 // (and survive the build minifier rewriting `2500ms` → `2.5s`).
@@ -114,9 +116,16 @@ export function MotionPlayground() {
           Tune the timings with the panel, hit Replay to feel each animation,
           then Copy CSS and bake the value as the globals.css default. These are
           dummies wired to the real motion hooks, so what you tune here is what
-          ships. Every knob on the panel has a specimen here or on the rounding
-          board; the tuned values survive Replay, navigation and a reload until
-          you Reset.
+          ships. Every knob on the panel has a specimen here or in the
+          Library&rsquo;s{" "}
+          <LabLink
+            href="/design/library/foundations#radius"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            radius section
+          </LabLink>
+          ; the tuned values survive Replay, navigation and a reload until you
+          Reset.
         </p>
       </header>
 
@@ -190,9 +199,12 @@ export function MotionPlayground() {
       </Section>
 
       {/* The rounding knobs ride along (the radius round's sitting, 2026-09-11):
-          the values land on <html>, so /design/lab/rounding, /design/library/components and
-          /design/compositions show the app's own surfaces at the dragged radii
-          after a soft navigation, and the store carries them across a reload. */}
+          the values land on <html>, so the Library's radius section
+          (/design/library/foundations#radius, their specimen since the rounding
+          board retired into it), its components (/design/library/components)
+          and its compositions (/design/library/compositions) show the app's own
+          surfaces at the dragged radii after a soft navigation, and the store
+          carries them across a reload. */}
       <MotionTuner controls={PLAYGROUND_CONTROLS} />
     </div>
   );

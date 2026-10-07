@@ -131,9 +131,12 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   wrote (`data-rows-plan`), never its own. Her lens (Photos, Videos, Yours: `lensAlbum`) runs over the manifest (the
   device's own ids met with it; the counts stay the album's). A photograph with no link yet is a loading tile, never a
   request.
-- **The album's order turns once the party is over** ([`album-order.ts`](../../src/lib/shared/album-order.ts),
-  customize r1's `order=turns`): newest first while it is on, the night in order from 9 am the morning after its last
-  day or from its develop; an undated album and the demo never turn, and a teaser's nine stay newest first. It is
+- **The album's order turns when its host closes adding, never on a date**
+  ([`album-order.ts`](../../src/lib/shared/album-order.ts), customize r1's `order=turns`; Will's AY1): newest first
+  while it takes uploads, the night in order once she closes adding (`accepting_uploads` off) or its develop is
+  reached (a Disposable's own chosen moment turns it, open or not); reopening turns it back, an undated album turns the
+  same way, the demo never turns, and a teaser's nine stay newest first. A date says when a party happens, never when
+  she is done collecting it: a week's trip dated on its first day stays the live feed all week. It is
   presentation over the one wire (the manifest and its delta stay `created_at desc`): the view turns the live source's
   list (`inOrder`) and the rows lay from the end it grows at, so an album in order grows at its end but for a late
   upload its capture time lands mid-album (the anchoring holds her place, the arrivals pill points there). In order
@@ -141,22 +144,19 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   one switch), else when it arrived, and a capture time before the night's own run of times (neighbours within three
   days, `NIGHT_GAP_US`, ending at the newest) is seated at the night's END edge while it is the smaller part of the album
   (`nightKeys`, one key for the first paint, the live album and the hub; the wire keeps the true time); newest first is
-  always by arrival, the live feed. ★ The turn is one moment for
-  every reader, the party's (Will: "It feels unfair to unlock the album at different times for certain guests based
-  on geographical location"): its 9 am is read in the event's own zone (`events.time_zone`,
-  [`lib/event/zone.ts`](../../src/lib/event/zone.ts); a row with none, or one the runtime cannot read, turns in UTC,
-  the one fallback), never the reader's. The page's server reads the zone on the service role beside the door's read
-  (`zone.server.ts`; a failed read is the fallback, reported) and hands the browser the turn as an INSTANT, never a
-  zone (`GuestAlbumOrder`'s `morningAfter`, beside the album's own order and her choice: event-zone's opening folded
-  in), so no reader's clock, geography or browser's database of zones moves it; the zone reaches the browser for words
-  alone (`partyZone`, never behind a lock), never for the turn. The seed links the first paint of that order and the
-  hydration lays the same rows; the page then turns it at that instant on the device's clock (`useGuestAlbumOrder`: a
-  timer, a return to the tab, a Develop now). A develop time wins over the morning after, and the one it turns at is
-  the sync's word once heard, a develop taken away included, else the page's own (`turnDevelopsAt`).
-  Behind a gate the order knows no days, as the shell does not. Her Newest or Oldest is remembered per album on the
-  device only as a departure from the turn (`pr_album_sort`, which the page reads; choosing the album's own order
-  forgets it), her lens for the visit. See it as a guest is handed the same opening (`readAsGuest`), so it lays the
-  album as a guest who never chose meets it.
+  always by arrival, the live feed. ★ The turn is one moment for every reader (Will: "It feels unfair to unlock the
+  album at different times for certain guests based on geographical location"): it is the album's own state, never a
+  day read in anyone's zone. The page's server decides the first paint's order off the row (`guestAlbumOrder`: the
+  album's own and her choice, `albumOwnSort` the one rule); the seed links that order's first paint and the hydration
+  lays the same rows. The page then follows the album as it hears it (`useGuestAlbumOrder`): her close and a reopen
+  reach every open page on its next sync (`accepting`, `useLiveUploadsWord`), and a develop turns it at its instant on
+  the device's clock (a timer, a return to the tab, a Develop now), the develop being the sync's word once heard, one
+  taken away included, else the page's own (`turnDevelopsAt`). The party's zone is read only for a develop time's
+  words (`partyZone`, never behind a lock), never for the order. Behind a gate the order knows no develop, as the shell
+  does not. Her Newest or Oldest is remembered per album on the device only as a departure from the album's own
+  (`pr_album_sort`, which the page reads; choosing the album's own order forgets it), her lens for the visit. See it as
+  a guest is handed the same opening (`readAsGuest`), so it lays the album as a guest who never chose meets it, and
+  the host's Sort opens on the same rule (`event-gallery.tsx`, her departure kept for the visit).
   The page root is two boxes ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)): `COLUMN`,
   the reading measure, and `BLEED`, the gutter alone. The album alone takes `BLEED` and the cover runs the window's
   width; everything else the page says keeps `COLUMN`.

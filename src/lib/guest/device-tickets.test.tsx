@@ -16,6 +16,12 @@
  * is the person's, and the next person on a shared phone skipped it, consent line and all. The scar
  * kept: what is not a person's (the device id, the theme) still survives every act below; the expired
  * reason dropped: that the welcome was the phone's.
+ *
+ * ★ READ BY ITS COOKIE (crumbs-91, reshaped on purpose: these pins held the welcome by the localStorage key
+ * it was before door-reveal made it the `pr_welcome_<qr>` cookie, and passed only while the put-down still
+ * cleared that key beside the cookie). The scar kept: each act puts down the welcome of exactly the tickets
+ * it puts down; the expired reason dropped: that the flag lives in localStorage. So these pins read
+ * `document.cookie`, as `foreign-ticket.test.tsx` does.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -33,6 +39,27 @@ import {
 const QR_A = "qr-a";
 const QR_B = "qr-b";
 
+/** An album's welcome, seen on this device: the cookie the page's server reads (`use-welcome-seen-cookie.ts`). */
+function seeWelcome(qr: string) {
+  document.cookie = `pr_welcome_${qr}=1; path=/`;
+}
+
+/** Whether that cookie is on the document. */
+function welcomeSeen(qr: string): boolean {
+  return document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .includes(`pr_welcome_${qr}=1`);
+}
+
+/** Cookies outlive `localStorage.clear()`, so a test would otherwise inherit the last one's welcomes. */
+function clearCookies() {
+  for (const part of document.cookie.split(";")) {
+    const name = part.trim().split("=")[0];
+    if (name) document.cookie = `${name}=; path=/; max-age=0`;
+  }
+}
+
 function seedTwoTickets() {
   localStorage.setItem(`pr_session_${QR_A}`, "a".repeat(64));
   localStorage.setItem(`pr_session_${QR_B}`, "b".repeat(64));
@@ -44,8 +71,8 @@ function seedTwoTickets() {
   localStorage.setItem(`pr_not_mine_${QR_A}`, JSON.stringify(["acct-1"]));
   localStorage.setItem(`pr_not_mine_${QR_B}`, JSON.stringify(["acct-1"]));
   // Each album's welcome, seen by the person holding its ticket (use-welcome-seen.ts).
-  localStorage.setItem(`pr_welcome_${QR_A}`, "1");
-  localStorage.setItem(`pr_welcome_${QR_B}`, "1");
+  seeWelcome(QR_A);
+  seeWelcome(QR_B);
   // Not a person's: these must survive every act below.
   localStorage.setItem("pr_device_id", "device-1");
   localStorage.setItem("theme", "dark");
@@ -60,6 +87,7 @@ function leaveCalls() {
 
 beforeEach(() => {
   localStorage.clear();
+  clearCookies();
   global.fetch = vi.fn().mockResolvedValue({ ok: true } as Response);
 });
 
@@ -85,11 +113,11 @@ describe("the sign-out: every ticket on the device", () => {
       `pr_guest_email_attached_${QR_B}`,
       `pr_not_mine_${QR_A}`,
       `pr_not_mine_${QR_B}`,
-      `pr_welcome_${QR_A}`,
-      `pr_welcome_${QR_B}`,
     ]) {
       expect(localStorage.getItem(key), key).toBeNull();
     }
+    expect(welcomeSeen(QR_A)).toBe(false);
+    expect(welcomeSeen(QR_B)).toBe(false);
     expect(localStorage.getItem("pr_device_id")).toBe("device-1");
     expect(localStorage.getItem("theme")).toBe("dark");
   });
@@ -127,13 +155,13 @@ describe("a refused ticket: that event's alone", () => {
     expect(localStorage.getItem(`pr_guest_email_attached_${QR_A}`)).toBeNull();
     expect(localStorage.getItem(`pr_not_mine_${QR_A}`)).toBeNull();
     // The person who saw this album's welcome is not the one at the door now.
-    expect(localStorage.getItem(`pr_welcome_${QR_A}`)).toBeNull();
+    expect(welcomeSeen(QR_A)).toBe(false);
     expect(leaveCalls()).toEqual([{ qr_token: QR_A }]);
     // The other event's ticket is somebody's too, and it is not this refusal's to touch.
     expect(localStorage.getItem(`pr_session_${QR_B}`)).toBe("b".repeat(64));
     expect(localStorage.getItem(`pr_guest_name_${QR_B}`)).toBe("Sam");
     expect(localStorage.getItem(`pr_not_mine_${QR_B}`)).toBe('["acct-1"]');
-    expect(localStorage.getItem(`pr_welcome_${QR_B}`)).toBe("1");
+    expect(welcomeSeen(QR_B)).toBe(true);
     expect(localStorage.getItem("pr_device_id")).toBe("device-1");
   });
 
@@ -141,7 +169,7 @@ describe("a refused ticket: that event's alone", () => {
     seedTwoTickets();
     await dropGuestTicket(QR_A, { keepWelcome: true });
     expect(localStorage.getItem(`pr_session_${QR_A}`)).toBeNull();
-    expect(localStorage.getItem(`pr_welcome_${QR_A}`)).toBe("1");
+    expect(welcomeSeen(QR_A)).toBe(true);
   });
 
   it("★ the prefill goes with it when it IS that ticket's name, so the door never offers the last owner's", () => {

@@ -770,6 +770,11 @@ board, its own sheet and scenes), found by the registry and the board route and 
   line that must read 1.5px is a `box-shadow` spread.
 - **Radix's `Portal` renders its children one commit after it mounts**, so an effect keyed on a dialog opening finds
   no element: the viewer binds its stage and media through callback refs held in state, and keys its effects on those.
+- **A Radix radio group is a Tab stop of its own that hands focus to its checked item**, right only while it holds
+  nothing but radios: a card that holds a control before the checked one (the door's (i)) loops Shift+Tab back onto the
+  checked card and Tab skips those controls. Settings' cards take the group out of the order once a card is chosen and
+  make the chosen card's radio the stop (`event-settings/radio-cards.tsx`), and a card chooses on its own press, never
+  the group's `onValueChange`, which never reports a press on the card already chosen.
 - **A tap never opens a tooltip on an icon control** (`ui/tooltip`'s `TooltipTrigger` refuses a focus a finger or a pen
   began, and its arrow takes no pointer): a touch's compatibility mousedown comes after its pointerup, so Radix opened
   the tooltip on that focus and its arrow slid over the trigger's edge and took the tap. A control whose words are the

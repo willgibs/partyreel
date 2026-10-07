@@ -23,25 +23,20 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Wave 1 of desk 8 runs (cut `d4da2464`, 2026-10-07 19:45Z): eight lanes, their rows below. Will's desk-8 batch is
-kept (`docs/reviews/batches/2026-10-07-b0eb89bc9.txt`), transcribed (29 answers; presence `atmosphere`, after-party
-`recap` and `card` unclear) and folded (PRD's principles: words in compact groups, simple on top and deep underneath,
-one product on both sides, no date reshapes an album; PROGRAM's "Fast, focused rounds": zoom out to the whole where a
-ground-up redesign lands the better whole sooner, judged per board; design-system.md: a light fades on its own, never at
-a box's edge). His chat answers: the cover's light goes to the event-page board; AY1 changed (an album turns at her
-close, never on a date; crumbs-91 wires it; retired). His revision made the event page one ground-up board led by his
-idea 1 (the head with no slideshow, its UI on a glow sampled from the album's media, the gallery teasing the scroll), so
-presence, signature and after-party's page-level picks are its inputs and their boards retire into it; nothing of
-theirs is wired into today's head. **Milestone 40 forms on `launch-prep`:** `crumbs-88` (`7224261b3`, gate 75),
-`crumbs-90` (`38e51ae9c`, gate 76 FULL), `calls-desk` (`ed704a2f8`, gate 77), and wave 1's wirings as they merge.
-Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../partyreel-wt/_scratch/`.
+Desk 8's wave runs (2026-10-07; this session's context about 73% at 22:58Z). Merged since its cut, each recorded and
+pruned: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring (80), brand-marks-wiring
+(81), crumbs-91 (82, AY1 built; its migration `20261008030000_crumbs_91.sql` waits on the Advisor's Q45, then the
+protocol). Running: the two boards (event-page-r1, brand-marks-r2: told to sync for brand-marks-wiring's and
+crumbs-91's lines in its folder), no-signal-wiring, and the two cut at 22:00Z (cdn-version, crumbs-92). Will's calls
+paste's first sections are routed (`docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`); his Deletion and Safety
+sections are still to come. Both plan-limit tokens are minted and set (the ROADMAP's two readers ready). Milestone 40
+forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
 | `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
 | `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
-| `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
 | `cdn-version` | X5: an open album's "has anything changed?" answer cached at the CDN; AB5's cadence livelier where free | running (cut 5ed23311) | Opus, 3131 | `aa27be79bf2dd9424` |
 | `crumbs-92` | K5 two years idle, X6 the audited uploads credit, the desk's Clear | running (cut 5ed23311) | Sonnet, 3132 | `a321cec9d5fec5e15` |
 

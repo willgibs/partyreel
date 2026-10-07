@@ -31,20 +31,17 @@ export const TILE_SIZE_COOKIE = "pr_tile_size";
 export const TILE_SIZE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 /**
- * A cookie written while the albums were masonry columns holds a pixel width,
- * and reads as the step that width meant (300 loose is 0, 240 the default is 1,
- * 180 tight is 2), so a returning device keeps its pick. Nothing writes a width
- * any more: the entries can go with the cookie's next reset.
+ * The step a cookie names: an index, and anything else the default, a pixel
+ * width the masonry columns once wrote (300, 240, 180) included. Nothing has
+ * written a width since the rows and only test devices held one, so a width is
+ * no pick worth carrying across (crumbs-91 retired that mapping).
  */
-const LEGACY_WIDTH_STEP: Record<number, RowStep> = { 300: 0, 240: 1, 180: 2 };
-
-/** The step a cookie names: an index, or a legacy width mapped across. */
 export function resolveRowStep(raw: string | undefined | null): RowStep {
+  // An empty value is no pick: `Number("")` is 0, the largest step, which nobody chose.
   if (raw === undefined || raw === null || raw.trim() === "")
     return DEFAULT_ROW_STEP;
   const n = Number(raw);
-  if (isRowStep(n)) return n;
-  return LEGACY_WIDTH_STEP[n] ?? DEFAULT_ROW_STEP;
+  return isRowStep(n) ? n : DEFAULT_ROW_STEP;
 }
 
 /** Sentence-case labels for the three steps, largest photographs first. */

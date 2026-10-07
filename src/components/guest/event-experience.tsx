@@ -340,11 +340,10 @@ function EventExperienceBody({
    */
   uploadsWait: UploadsWait;
   /**
-   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render, her
-   * remembered choice, and the instant the party's morning after begins (event-zone: read in the party's zone on the
-   * server, one moment for every reader), decided by the page's server so the seed links what the first paint draws
-   * and the hydration lays the same rows. The page keeps it live from here (`useGuestAlbumOrder`). Absent (a stand-in
-   * page), the album stays newest first.
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render (the
+   * night in order once its host has closed adding or its develop has come, AY1) and her remembered choice, decided by
+   * the page's server so the seed links what the first paint draws and the hydration lays the same rows. The page keeps
+   * it live from here (`useGuestAlbumOrder`). Absent (a stand-in page), the album stays newest first.
    */
   albumOrder?: GuestAlbumOrder;
   /**
@@ -752,11 +751,14 @@ function EventExperienceBody({
   const { word: uploadsWord, onWord: onUploadsWord } = useLiveUploadsWord(
     event.accepting_uploads,
   );
-  /* ★ THE ALBUM'S ORDER, LIVE (album-order): the page's word at the first paint, then the turn on this device's clock
-     (a Develop now moves it: the develop time as the page holds it, ahead or reached) and her choice in View's Sort. */
+  /* ★ THE ALBUM'S ORDER, LIVE (album-order, AY1): the page's word at the first paint, then the album's own state as the
+     page hears it: the host's word on adding as the sync carries it (her close turns the album, a reopen turns it back)
+     and the develop on this device's clock (a Develop now moves it: the develop time as the page holds it, ahead or
+     reached); and her choice in View's Sort. */
   const albumOrderNow = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
+    open: uploadsWord.open,
     developsAt: turnDevelopsAt,
     isDemo,
   });

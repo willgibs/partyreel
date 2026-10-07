@@ -160,6 +160,11 @@ function of elapsed time can be frozen at a chosen moment and shot.
   `javascript_tool`.
 - **A raw headless `--screenshot` cannot scroll** (a fragment URL paints black; a tall window stretches a 100vh hero),
   so a board is captured through `lab:demo` (`--save-shots`), whose scrolled capture is how subtle light is judged.
+- ★ **A kill by port kills the port's clients too:** `lsof -ti tcp:<port>` lists every process with a socket on it, a
+  walk's headless Chrome's network service among them, and killing that wipes the cookies of every in-memory context
+  at once (sign-ins and welcomes gone, localStorage kept, so a guest's httpOnly ticket returns at its next heal: red-team
+  56b's "vanished" cookies, reproduced by crumbs-91). Kill a server by its listener alone: `lsof -ti tcp:<port>
+  -sTCP:LISTEN` (`kit-env.sh`'s `kit_port_pids`).
 - ★ **A headless Chrome of your own asks for port 0 and reads `DevToolsActivePort` off its own profile** (`lab:demo`;
   `--chrome-port` pins one and refuses a port that answers). A port taken from a pid or a random number can land on
   another lane's Chrome, which the script then connects to and drives (brand-r1 did).

@@ -51,8 +51,8 @@ import { runOf, useStory, useStoryRuns } from "./style-story";
  *
  * ★ THE PARTY'S ZONE IS HERS, CAPTURED AND NEVER ASKED (event-zone): the create carries her browser's own zone
  * (`fields`' `captured_zone`), the party's from birth, and the 9 am the Disposable offers is read in that same zone
- * (`patchForStyle`'s `zone`), so the default develop and the album's turn are one morning for every guest. Create never
- * asks a zone: a party far from home is Settings' quiet choice.
+ * (`patchForStyle`'s `zone`), so the default develop is one morning for every guest. Create never asks a zone: a party
+ * far from home is Settings' quiet choice.
  *
  * ★ THE ROLL (customize r1's `roll=both`): 24 unless she picks, on the Disposable's own screen; her pick is kept while
  * she moves between the styles, and rides the create only with the Disposable (`createFieldsOf`). The card's line and
@@ -197,7 +197,7 @@ export function useAddChoice(
         ),
         roll,
       ),
-      // Her own zone, whatever the style: a dated album turns in it too, once Settings gives it a date.
+      // Her own zone, whatever the style: a develop chosen later in Settings is read in it too.
       ...(zone ? { captured_zone: zone } : {}),
     };
   };

@@ -5,27 +5,39 @@ import { ImagePlus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-// Mobile-first picker: a tappable area wrapping a hidden file input. On phones the
-// native input opens the camera/library; on desktop it also accepts drag-and-drop.
-// (No dropzone primitive in the registry — this is intentionally minimal.)
+/**
+ * THE HOST'S MANUAL ADD: the box at the head of her upload panel (`host-upload.tsx`, its one caller), a tap target
+ * over a hidden multi-file input that also takes a drop at a desk. It lived in `guest/` from when the guest's upload
+ * drew it; every Add on the guest page now opens the intent sheet (`guest/upload/intent-sheet.tsx`: Take a photo, or
+ * Choose from your album), so it is the host's alone and lives beside the panel it serves (crumbs-91). No dropzone
+ * primitive is in the registry: this is intentionally minimal.
+ *
+ * ★ ITS HINT IS WORDED FOR THE DEVICE IN HAND, BY CSS ALONE. A phone has no drag and a desk clicks rather than taps,
+ * so a coarse pointer reads "Tap to choose" and any other "Click to choose, or drag them here" (the one line said "Tap
+ * to choose, or drag them here", half wrong on either). Both lines are in the markup and the pointer's media query
+ * shows one (`pointer-coarse:`), so the server's first paint is already the right one, where a read of the pointer at
+ * render would paint one device's words everywhere and swap them after hydration. The line not shown is
+ * `display: none`, so a screen reader hears only the one on screen.
+ */
 export function FileDropzone({
   onFiles,
   disabled,
-  // When false (a free host's event), restrict the native picker to images
-  // so the host can't even select a video. Guests always leave this true — they never
-  // learn the host's tier, so a guest's video is rejected at presign instead (the
-  // event-framed "photos only" message). Default true preserves the guest behavior.
-  allowVideos = true,
+  allowVideos,
 }: {
   onFiles: (files: File[]) => void;
   disabled?: boolean;
-  allowVideos?: boolean;
+  /**
+   * Whether her plan takes video: when false the native picker offers images only, so she cannot even select one.
+   * Required, since a plan's fact is never a default; a dropped video is the presign's to refuse, in its own words.
+   */
+  allowVideos: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
   function handleFiles(list: FileList | null) {
-    if (!list || list.length === 0) return;
+    // A disabled box takes no files, whichever way they come.
+    if (disabled || !list || list.length === 0) return;
     onFiles(Array.from(list));
   }
 
@@ -64,7 +76,10 @@ export function FileDropzone({
         {allowVideos ? "Add photos & videos" : "Add photos"}
       </p>
       <p className="text-xs text-muted-foreground">
-        Tap to choose, or drag them here
+        <span className="pointer-coarse:hidden">
+          Click to choose, or drag them here
+        </span>
+        <span className="hidden pointer-coarse:inline">Tap to choose</span>
       </p>
       <input
         ref={inputRef}

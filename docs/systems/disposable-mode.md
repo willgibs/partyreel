@@ -239,13 +239,14 @@ before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time
 rolls or Keep it as it is (`camera-settings-fresh-rolls.ts`), wherever she adds one: Customize, the Disposable style
 from a mix, a new time for a camera that has developed (a close, which cannot ask, writes nothing of it).
 
-★ **The default develop is the party's 9 am, the morning its album turns** (`developToKeep`, `lib/event/zone-morning.ts`):
-9 am the morning after the party's last day (or after today, once that has passed) in the event's own zone
-(`events.time_zone`), so a destination wedding set up from home develops in the party's morning, not hers, and its
-develop and its album's turn are one morning for every guest. Create offers it in the zone it captures (her browser's);
-Settings in the party's stored zone, else hers. `patchForStyle` and `defaultDevelopAt` take the party's zone themselves
-(`{ zone }`, through `event/wall-time.ts`, the one wall-clock arithmetic the turn shares); `developToKeep` is a thin
-wrapper until Create and Settings drop it. Where the party's zone is not the host's own (`farZone`), the
+★ **The default develop is the party's 9 am** (`developToKeep`, `lib/event/zone-morning.ts`): 9 am the morning after
+the party's last day (or after today, once that has passed) in the event's own zone (`events.time_zone`), so a
+destination wedding set up from home develops in the party's morning, not hers, one moment for every guest; and the
+develop is what turns its album into the night's order (album-order, AY1: her close or her develop, never a date).
+Create offers it in the zone it captures (her browser's); Settings in the party's stored zone, else hers.
+`patchForStyle` and `defaultDevelopAt` take the party's zone themselves (`{ zone }`, through `event/wall-time.ts`, the
+one wall-clock arithmetic); `developToKeep` is Customize's "At a develop time" (a time still ahead kept, else that
+morning). Where the party's zone is not the host's own (`farZone`), the
 develop time is her party's clock throughout Settings: the field takes it both ways (`toZoneInput`/`fromZoneInput`, the
 judge reads it), and every line says its place ("Develops Sun, Oct 4, 9:00 AM in Mexico City", `zone-words.ts`). An
 instant is never moved by a zone: a develop set before she picks another city keeps its moment and is said in the new

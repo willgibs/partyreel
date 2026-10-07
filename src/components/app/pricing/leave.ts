@@ -13,8 +13,9 @@ import { stepOutThenLeave } from "@/components/ui/popup-back-way-out";
  * second goes nowhere (the same address again), two presses to get out from behind a payment page. So while the sheet
  * is up as a place, the way out REPLACES its entry: the sheet's entry becomes Stripe's, the page's own entry is the one
  * beneath, and one Back returns to the page. Taking the entry first (`history.back()` and waiting for the popstate) was
- * the other way, and it closes the sheet before the browser has started to leave, so the button's "Starting…" would
- * vanish over a page that does nothing for as long as Stripe takes to answer.
+ * the other way, and it closes the sheet before the browser has started to leave, so the key's "Opening billing" (the
+ * portal's and a plan change's "Opening…") would vanish over a page that does nothing for as long as Stripe takes to
+ * answer.
  *
  * ★ TWO PLACES ARE TWO ENTRIES, AND A REPLACE TAKES ONE (crumbs-83). The size list a too-small price opens stacks over
  * the sheet (`storage/refusal-face.tsx`), a place of its own, and its goal strip leaves from there. Replacing the list's

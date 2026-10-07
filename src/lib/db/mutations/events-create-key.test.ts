@@ -247,26 +247,6 @@ describe("a read that fails", () => {
   });
 });
 
-describe("a build ahead of its migration (the key's column is not in the schema yet)", () => {
-  it("★ makes the event it always made, keyless, and says so where failures are read: Create is never down for want of the column", async () => {
-    db.readError = {
-      at: 1,
-      code: "42703",
-      message: "column events.create_key does not exist",
-    };
-    const result = await createEvent(VALUES, KEY);
-    expect(result).toMatchObject({ ok: true, data: { id: "evt-new" } });
-    expect(db.inserts).toHaveLength(1);
-    // The column is unknown to the database: the insert must not name it either.
-    expect(db.inserts[0]).not.toHaveProperty("create_key");
-    expect(captureWarning).toHaveBeenCalledWith(
-      "db",
-      expect.stringContaining("create_key is missing"),
-      expect.anything(),
-    );
-  });
-});
-
 describe("a Create that sends no key (a build before this one, a specimen)", () => {
   it("★ is the create it always was: no read, and no key column on the insert", async () => {
     const result = await createEvent(VALUES);

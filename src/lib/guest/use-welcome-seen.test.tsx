@@ -6,8 +6,7 @@
  * ★ RESHAPED ON PURPOSE (door-reveal): the flag was a localStorage key, which no server render can read, so the
  * page drew the album for every visitor and the welcome rose over it after hydration (Will's live walk, "full
  * guest album was visible before gate appeared over it (big bug)"). It is the `pr_welcome_<qr>` cookie now, the
- * page's server reads it to draw the door first, and these pins read the cookie where they read the key; the
- * legacy key is still put down with its ticket.
+ * page's server reads it to draw the door first, and these pins read the cookie where they read the key.
  */
 import { renderToString } from "react-dom/server";
 import { act, renderHook } from "@testing-library/react";
@@ -101,7 +100,6 @@ describe("useWelcomeSeen: it goes with the ticket", () => {
 
   it("a sign-out on the device brings every album's welcome back, for whoever holds the phone next", () => {
     localStorage.setItem(`pr_session_${QR}`, "a".repeat(64));
-    localStorage.setItem(`pr_welcome_${QR}`, "1");
     markWelcomeSeen("welcome-seen-qr-2");
     const { result } = renderHook(() => useWelcomeSeen(QR, false));
     act(() => result.current[1]());
@@ -111,8 +109,6 @@ describe("useWelcomeSeen: it goes with the ticket", () => {
     expect(result.current[0]).toBe(false);
     expect(cookieSet(QR)).toBe(false);
     expect(cookieSet("welcome-seen-qr-2")).toBe(false);
-    // The legacy key goes with it.
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
   });
 
   it("a ticket put down as someone else's takes its album's welcome, and leaves another album's", async () => {
