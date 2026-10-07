@@ -1,7 +1,9 @@
 // Shared helpers over drv.mjs (127.0.0.1:$DRV, default 9996). rtDir() is the walk's own folder (RT_DIR, the red-team's
 // scratch folder), where every script writes its state and records: never the repo.
 export const rtDir = () => { const d = process.env.RT_DIR; if (!d) { console.error("set RT_DIR to your red-team's scratch folder"); process.exit(2); } return d.replace(/\/$/, ""); };
-export const APP = process.env.APP || "http://localhost:3000";
+// The app a walk drives, named every time and never defaulted: :3000 is Will's desk, so a default sends a lane's
+// walk there. A lane passes its own http://localhost:<port>; a milestone red-team names the desk.
+export const APP = process.env.APP;
 export const call = async (b) => (await fetch(`http://127.0.0.1:${process.env.DRV || 9996}/`, { method: "POST", body: JSON.stringify(b) })).json();
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const ev = async (key, expr, timeout) => { const r = await call({ key, eval: expr, timeout }); if (r.result?.exceptionDetails) return { EXC: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text }; if (r.result?.result) return r.result.result.value ?? null; return r; };
