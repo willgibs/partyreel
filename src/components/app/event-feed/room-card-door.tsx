@@ -2,7 +2,7 @@
 
 import "./room-card.css";
 
-import { type PointerEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Clapperboard,
   ListChecks,
@@ -13,10 +13,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { formatCompactNumber, formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 import {
+  badgeCount,
   countWord,
   type DoorRoomId,
   ROOM_LABEL,
@@ -25,19 +25,21 @@ import {
 } from "./room-card";
 
 /**
- * ONE DOOR, A CARD AT REST AND A PILL UNDER THE BAR, AND THE SAME ELEMENT IN BOTH (event-header r4's cards over the seam,
- * Will's pick: "a bit more pronounced than the glass capsule, without shouting"). Every piece of both forms is drawn once
- * here, the row's `data-stuck` decides which shows (`room-card.css`), and `data-fold` names what the fold carries from one
- * form to the other (`event-cards-row-fold.ts`). The element itself is the row's to choose: a link into a room, the reel's
- * link or its guidance's button; they all wear `doorAttrs` and draw `DoorParts`.
+ * ONE DOOR, A CARD AT REST AND A PILL UNDER THE BAR, AND THE SAME ELEMENT IN BOTH (event-header r4's cards, Will's pick:
+ * "a bit more pronounced than the glass capsule, without shouting"; drawn as r6 left them). Every piece of both forms is
+ * drawn once here, the row's `data-stuck` decides which shows (`room-card.css`), and `data-fold` names what the fold
+ * carries from one form to the other (`event-cards-row-fold.ts`). The element itself is the row's to choose: a link into a
+ * room, the reel's link or its guidance's button; they all wear `doorAttrs` and draw `DoorParts`.
  *
  * ★ A NAME, THEN PIECES THAT SAY NOTHING TWICE. The door's accessible name is its room and its line ("Review: 8
  * waiting"), so every piece inside is `aria-hidden`: a screen reader hears the door once, in either form.
  *
- * ★ A WAITING COUNT IS A NUMERAL, AMBER ONLY AS ITS POINT. Where something waits on her the count stands big in the heading
- * face at the card's end with today's waiting light beside it, and the line keeps the word it counts; no card is ever washed
- * amber. Settings' steps left stay plain words in the ink and, for a pill too small for its words, an unlit mark; paused
- * uploads read Paused and, in a pill, the plain pause.
+ * ★ THE COUNT RIDES THE GLYPH'S SHOULDER, AND ONLY WHERE IT NEEDS HER (event-header r6, Will's `card=shoulder`: "add the
+ * count as a badge on the card icons ... so each card's content can be absorbed in one glance"). Review's waiting uploads
+ * and the people at her door wear a badge in the needs-you status (`--needs-you`, his `attention=tally`), and the line
+ * keeps the word it counts; every other glyph is bare and its line says it. Settings' steps left and paused uploads are
+ * hers to act on, never a status: a quiet badge where a door has no line to say them in (a hand's tile, a pill), and
+ * plain words in the ink where it has. Every glyph is the ink, the reel's too: Afterglow paints no hue on a control.
  */
 
 /** Production's glyphs for the five doors. */
@@ -49,47 +51,30 @@ const ROOM_ICON: Record<DoorRoomId, LucideIcon> = {
   "as-guest": Smartphone,
 };
 
-/** The door's class: the sheet's one hook, on whatever element the row makes the door. */
-export const DOOR = "hub-door";
-
 /**
- * A COUNT AS THE DOOR DRAWS IT: whole to 999, then "1.2K". A numeral is the loudest thing on a card and a pill has one slot
- * for it, so a count that grew a comma ("1,234") widened a phone's half-width card past its own name and a pill past the
- * screen; the exact number is in the door's name ("Review: 1,234 waiting") and in the room it opens.
+ * The door's classes: the sheet's one hook, and the house's press (identity r4's `press=shrink`, its give per form set
+ * by the sheet's `--press-scale`), which leaves a trigger whose layer opens on the press alone (the reel's guidance).
  */
-const numeral = (n: number) =>
-  n >= 1000 ? formatCompactNumber(n) : formatCount(n);
+export const DOOR = "hub-door press-shrink";
 
 /** A door's whole accessible name: its room, then its line ("Review: 8 waiting"). */
 export const doorName = (room: DoorRoomId, value: string) =>
   `${ROOM_LABEL[room]}: ${value}`;
 
-/**
- * The pointer's place on a card, for the light that follows it in the room (`room-card.css`): two properties written,
- * nothing rendered, so a hover costs the page nothing. A finger and a pen leave it alone.
- */
-function follow(e: PointerEvent<HTMLElement>) {
-  if (e.pointerType !== "mouse") return;
-  const door = e.currentTarget;
-  const r = door.getBoundingClientRect();
-  door.style.setProperty("--hub-door-x", `${e.clientX - r.left}px`);
-  door.style.setProperty("--hub-door-y", `${e.clientY - r.top}px`);
-}
-
-/** What every door element wears, whatever it is: the sheet's hook, its name and the light that follows the pointer. */
+/** What every door element wears, whatever it is: the sheet's hook and its name. */
 export function doorAttrs(room: DoorRoomId, value: string) {
   return {
     "data-hub-door": room,
     "aria-label": doorName(room, value),
-    onPointerMove: follow,
     className: DOOR,
   } as const;
 }
 
 /**
- * THE WAITING COUNT TICKS DOWN ON RETURN. A host clears nine photographs in the Review room and comes back; the numeral
+ * THE WAITING COUNT TICKS DOWN ON RETURN. A host clears nine photographs in the Review room and comes back; the badge
  * sliding 12 to 3 over 200ms says what she just did, where a number that is simply different says nothing at all. First
  * paint never animates (there is no previous value to travel from), and reduced motion shortens the travel to one frame.
+ * It says what the badge says at every step (`badgeCount`), so a count clearing from 140 reads 99+ until it is under 100.
  */
 function TickingCount({ value }: { value: number }) {
   const [shown, setShown] = useState(value);
@@ -118,7 +103,44 @@ function TickingCount({ value }: { value: number }) {
     return () => cancelAnimationFrame(raf);
   }, [value]);
 
-  return <>{numeral(shown)}</>;
+  return <>{badgeCount(shown)}</>;
+}
+
+/**
+ * THE BADGE ON THE GLYPH'S SHOULDER, or nothing: a count that waits on her in the status, else a count hers to act on
+ * (steps left, paused uploads) as a quiet ring, marked `data-hers` so the sheet shows it only where the door has no line.
+ */
+function Badge({ face, waits }: { face: RoomFace; waits: number }) {
+  if (waits)
+    return (
+      <span data-fold="badge" data-badge="needs" className="hub-door-badge">
+        <TickingCount value={waits} />
+      </span>
+    );
+  if (face.left)
+    return (
+      <span
+        data-fold="badge"
+        data-badge="quiet"
+        data-hers=""
+        className="hub-door-badge"
+      >
+        {badgeCount(face.left)}
+      </span>
+    );
+  if (face.paused)
+    return (
+      <span
+        data-fold="badge"
+        data-badge="quiet"
+        data-hers=""
+        className="hub-door-badge"
+      >
+        {/* Paused uploads: the plain pause, the code's own corner glyph. */}
+        <Pause fill="currentColor" strokeWidth={0} />
+      </span>
+    );
+  return null;
 }
 
 /**
@@ -134,7 +156,7 @@ export function DoorParts({
   face: RoomFace;
 }) {
   const Icon = ROOM_ICON[room];
-  const waits = face.amber && face.count ? face.count : 0;
+  const waits = face.needs && face.count ? face.count : 0;
   const full = ROOM_LABEL[room];
   const short = ROOM_SHORT[room];
   return (
@@ -142,19 +164,17 @@ export function DoorParts({
       {/* The card's surface on its own layer, so the fold can carry it from the card's box to the pill's without
           touching the words on it. */}
       <span aria-hidden data-fold="skin" className="hub-door-skin" />
-      <span
-        aria-hidden
-        className={cn("hub-door-glyph", room === "reel" && "hub-door-reel")}
-      >
+      <span aria-hidden className="hub-door-glyph">
         <span data-fold="disc" className="hub-door-disc" />
         <span data-fold="glyph" className="hub-door-mark">
           <Icon />
         </span>
+        <Badge face={face} waits={waits} />
       </span>
       <span aria-hidden className="hub-door-text">
         <span
           data-fold="title"
-          className="truncate font-heading text-card-title"
+          className="hub-door-title truncate font-heading text-card-title"
         >
           {short === full ? (
             full
@@ -168,8 +188,9 @@ export function DoorParts({
         <span
           data-fold="text"
           className={cn(
-            "truncate text-xs",
-            face.strong || face.paused
+            "hub-door-line truncate text-xs",
+            // A line that names what waits on her, or what is hers to act on, reads in the ink.
+            waits || face.strong || face.paused
               ? "font-medium text-foreground"
               : "text-muted-foreground",
           )}
@@ -184,30 +205,6 @@ export function DoorParts({
       >
         {short}
       </span>
-      {waits ? (
-        <span aria-hidden className="hub-door-count">
-          <span data-fold="light" className="hub-door-light" />
-          <span data-fold="num" className="hub-door-num font-heading">
-            <TickingCount value={waits} />
-          </span>
-        </span>
-      ) : face.left ? (
-        // Settings' steps left, for a pill too small for its words: an unlit ring, never amber.
-        <span aria-hidden className="hub-door-count hub-door-left">
-          <span data-fold="light" className="hub-door-unlit" />
-          <span data-fold="num" className="hub-door-num font-heading">
-            {numeral(face.left)}
-          </span>
-        </span>
-      ) : face.paused ? (
-        // Paused uploads on a pill too small for "Paused": the plain pause, the code's own corner glyph.
-        <span
-          aria-hidden
-          className="hub-door-count hub-door-left hub-door-pause"
-        >
-          <Pause data-fold="light" fill="currentColor" strokeWidth={0} />
-        </span>
-      ) : null}
     </>
   );
 }

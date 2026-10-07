@@ -1,83 +1,226 @@
-/* THE SEAM: where the hub's cover meets the page under it, and the one stylesheet the cover (`event-hub-head.tsx`) and the
-   cards row (`event-cards-row.tsx`) both read, so the cover's foot clears exactly what the cards cover (event-header r4's
-   cards over the seam, Will's pick: "the cover dissolves into the page and five cards stand across the seam").
+/* THE SEAM: where the hub's cover meets the page under it (event-header r6, the Seam made Afterglow's), and the one stylesheet
+   the cover (`event-hub-head.tsx`), the cards row (`event-cards-row.tsx`) and the light (`event-hub-head-light.tsx`) all
+   read, so the cover's foot clears exactly what the cards cover and the light is born exactly where the photograph ends.
 
-   ★ ONE SET OF NUMBERS, READ BY BOTH. `.hub-seam` is worn by the cover's wrapper and by the row's footprint, each of which
-   reads the same two properties at the same widths: `--hub-rise`, how far the cards stand up into the photograph (the
-   cover's words clear it), and `--hub-fade`, how far the photograph dissolves into the page. They are siblings in the
-   hub's `space-y-6`, so neither can read the other's box; the shared widths are the only thing both can agree on.
-   ★ THE WIDTHS ARE THE DOORS' (`room-card.css`): a hand's grid first, a tablet's tiles from 640px, a desk's cards from
-   1100px. The cover's own height steps at 640px as it always has (`EventHead`).
-   ★ NOTHING MOVES HERE: the rest state is the whole of it (bible 5). */
+   ★ THE BRAND'S GEOMETRY: WORDS AND CONTROLS PAST THE LIGHT'S REACH. The cards stand ON the cover's foot, the photograph
+   running on under them to its edge (`--hub-under` below them, its own colours seen there: the light's source), and the
+   Seam falls from that edge into the page, its whole reach clear, the album starting past it. Nothing pressed stands in
+   the light, and the fold, which moves only the cards, can never flash it.
+
+   ★ ONE SET OF NUMBERS, READ BY ALL THREE. `.hub-seam` is worn by the cover's wrapper, the row's footprint and the light,
+   siblings in the hub's `space-y-6`, so none can read another's box; the shared widths are what all three agree on. They
+   are the doors' widths (`room-card.css`: a hand's tiles, a tablet's from 640px, a desk's cards from 1088px).
+   ★ NOTHING MOVES HERE BUT THE COVER'S OWN CLOCK: the light crosses with each photograph on the cover's dissolve
+   (`head-crossfade`, `event-experience-head.css`), and arrives once, both behind `no-preference`. */
 
 .hub-seam {
-  /* The gap the hub's `space-y-6` leaves between its blocks (page.tsx's root): the row takes it back, and the rise besides. */
-  --hub-gap: 24px;
-  /* A hand's grid: its first row stands on the photograph and the seam runs under it. */
-  --hub-rise: 52px;
-  --hub-fade: 84px;
+  /* The gap the hub's `space-y-6` leaves under each block (page.tsx's root): the row and the light take it back. */
+  --hub-space: 24px;
+  /* A hand: one row of five 76px tiles, 14px of photograph under them, the band's own 6px foot. */
+  --hub-card: 76px;
+  --hub-under: 14px;
+  --hub-foot: 6px;
+  /* The cover's words stand this far above the cards. */
+  --hub-words: 16px;
+  /* The light's reach in the room (the brand's shortest, in a hand), and Aperture's strip of the room on paper. */
+  --hub-reach: 72px;
+  --hub-strip: 30px;
+  /* How far the cards stand up into the cover: their whole height and the photograph left under them. */
+  --hub-rise: calc(var(--hub-card) + var(--hub-under));
 }
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .hub-seam {
-    /* A tablet's tiles: about half a tile stands on the photograph. */
-    --hub-rise: 44px;
-    --hub-fade: 80px;
+    /* A tablet's 108px tiles. */
+    --hub-card: 108px;
+    --hub-under: 20px;
+    --hub-foot: 8px;
+    --hub-words: 22px;
+    --hub-reach: 104px;
+    --hub-strip: 36px;
   }
 }
-@media (min-width: 68.75rem) {
+@media (width >= 68rem) {
   .hub-seam {
-    /* A desk's cards: about half a card, so the seam runs through the row. */
-    --hub-rise: 40px;
-    --hub-fade: 72px;
+    /* A desk's 72px cards, and the room's own Seam: 120px. */
+    --hub-card: 72px;
+    --hub-reach: 120px;
   }
 }
+
+/* ══ THE COVER'S FOOT ══════════════════════════════════════════════════════════════════════════════════════════════ */
 
 /* The cover's words clear what the cards cover: the strip stands above the rise, never behind a card. */
 .hub-cover-foot {
-  padding-bottom: calc(var(--hub-rise) + 16px);
+  padding-bottom: calc(var(--hub-rise) + var(--hub-words));
 }
-@media (min-width: 40rem) {
-  .hub-cover-foot {
-    padding-bottom: calc(var(--hub-rise) + 22px);
+
+/* ★ THE HUB'S COVER LIFTS ITS SCRIM AT ITS FOOT, so the edge the light is born at is seen. The cover's own scrim (the
+   album's, `event-experience-head.css`) is heaviest at the cut, which hid that edge under 80% black; the hub's keeps its
+   breath at the top and its weight behind the name, the strip and the cards, then lifts under the cards, so the
+   photograph's last rows show in their own colours: the Seam's source. The album's cover keeps its own. */
+.hub-seam [data-event-head="hub"] .head-scrim {
+  background:
+    linear-gradient(to bottom, rgb(0 0 0 / 0.42) 0, rgb(0 0 0 / 0) 7.5rem),
+    linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.22) 0,
+      rgb(0 0 0 / 0.34) var(--hub-under),
+      rgb(0 0 0 / 0.78) var(--hub-rise),
+      rgb(0 0 0 / 0.78) calc(var(--hub-rise) + var(--hub-words) + 56px),
+      rgb(0 0 0 / 0.4) 58%,
+      rgb(0 0 0 / 0) 72%
+    );
+}
+
+/* ══ THE LIGHT UNDER THE COVER ═════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Placed by its own margins straight under the cover's edge: from the band's foot (the row's footprint) back up past the
+   hub's gap to the photograph's edge, bled to the window's edges as the cover is, and the album 8px past its reach. Its
+   margins are an unlayered rule's, so they outrank the hub's `space-y-6` (a utility, in a layer). */
+.hub-light {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+  height: var(--hub-strip);
+  margin-top: calc(var(--hub-under) - var(--hub-foot) - var(--hub-space));
+  margin-bottom: 8px;
+  margin-inline: -12px;
+}
+@media (width >= 40rem) {
+  .hub-light {
+    margin-inline: -20px;
+  }
+}
+/* In the room the light reaches the brand's whole length into the page itself. */
+.dark .hub-light {
+  height: var(--hub-reach);
+}
+
+/* ★ ON PAPER, APERTURE (brand r2, Will's pick): the light never touches the page. It lives in a strip of the room under the
+   photograph (this field wears `dark`, so its ground is the room's own, a step above the room fading to it), as bright
+   as in the room; in the room the field is clear and the page is the room. */
+.hub-light-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--muted) 0%, var(--background) 100%);
+}
+.dark .hub-light .hub-light-field {
+  background: none;
+}
+
+/* One photograph's light, on the cover's own clock (its slots, its delays). */
+.hub-light-slot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.hub-light-slot[data-rest] {
+  opacity: 1;
+}
+.hub-light-lit {
+  position: absolute;
+  inset: 0;
+}
+
+/* The light (Afterglow's Seam): the edge's colours pooled in three soft ellipses at a fifth, the middle and four fifths of
+   the width, a hot core at the edge and a short fall, so it reads as light gathering where it enters, never a wash. */
+.hub-light-glow {
+  position: absolute;
+  inset: 0 -14%;
+  opacity: 0.95;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+}
+
+/* The source line: the edge itself, lit, faded at both ends. */
+.hub-light-line {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1.5px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+/* ★ THE LIGHT RESTS STILL (bible 5): its only movement is the cover's own crossfade, on the cover's own clock, and its
+   arrival once its photograph's edge is read; reduced motion holds the first photograph's light, as the cover holds the
+   photograph. */
+@media (prefers-reduced-motion: no-preference) {
+  .hub-light-slot[data-cycle] {
+    animation-name: head-crossfade;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: calc(var(--head-hold) * 6 * 1s);
+    animation-delay: calc(var(--head-delay) * 1s);
+  }
+  .hub-light-lit {
+    animation: hub-light-in 1200ms var(--ease-emphasis) both;
   }
 }
 
-/* The photograph dissolves into the page on an eased ramp (half a cosine), so neither the fade's start nor the cover's own
-   foot reads as a line. It runs under the cards and just above them, never behind the strip, whose white marks need the
-   photograph's dark foot on paper. It is the page's own colour (`--background`, read OUTSIDE the cover, which is always the
-   room), so the seam fades into the right ground in both themes. */
-.hub-cover-fade {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: var(--hub-fade);
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    color-mix(in oklab, var(--background) 2.4%, transparent) 10%,
-    color-mix(in oklab, var(--background) 9.5%, transparent) 20%,
-    color-mix(in oklab, var(--background) 20.6%, transparent) 30%,
-    color-mix(in oklab, var(--background) 34.5%, transparent) 40%,
-    color-mix(in oklab, var(--background) 50%, transparent) 50%,
-    color-mix(in oklab, var(--background) 65.5%, transparent) 60%,
-    color-mix(in oklab, var(--background) 79.4%, transparent) 70%,
-    color-mix(in oklab, var(--background) 90.5%, transparent) 80%,
-    color-mix(in oklab, var(--background) 97.6%, transparent) 90%,
-    var(--background) 100%
-  );
+@keyframes hub-light-in {
+  from {
+    opacity: 0;
+  }
 }
-/* In the room the photograph's foot is already dark (the cover's own scrim), so it holds to the cards' tops and dissolves
-   only behind them: the cards overlap the photograph itself, and the gaps between them show it go. */
-.dark .hub-cover-fade {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    transparent 44%,
-    color-mix(in oklab, var(--background) 9.5%, transparent) 55%,
-    color-mix(in oklab, var(--background) 34.5%, transparent) 66%,
-    color-mix(in oklab, var(--background) 65.5%, transparent) 77%,
-    color-mix(in oklab, var(--background) 90.5%, transparent) 88%,
-    var(--background) 100%
-  );
+
+/* Forced colours: the light is decoration; the cards and words carry everything. */
+@media (forced-colors: active) {
+  .hub-light-field {
+    display: none;
+  }
 }
