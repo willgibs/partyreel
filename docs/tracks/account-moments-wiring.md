@@ -1,6 +1,6 @@
 ---
 track: account-moments-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2e094108"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -47,25 +47,118 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and listed under the Handoff's calls his to overrule.
+
+- **The well's words and place.** Built: "You blocked {name}. Neither of you can follow the other, and they aren't told.",
+  under the bio where there is one, with Unblock by its side (wrapped under the words at 375, as drawn). The drawing
+  wrote "Jordan" twice, a first name the page does not have; the display name stands once and "they" follows.
+  Recommended: as built.
+- **Where a person lands when she follows them from their look in Connections.** Built: they join Following at once
+  and keep their turned-back row under Blocked until she leaves (on both lists meanwhile, each button true), and a block
+  that lands takes the person's Following row (it severs the follow, as the ask says). The alternative moves the row
+  out of Blocked the moment she follows. Recommended: as built (a list she is reading never loses a row but to a block
+  she confirmed).
+- **A look's Follow after an Unblock where they blocked her back.** Follow is block-silent (the server answers ok and
+  writes nothing), so the look reads Following and a false row stands under Following until she leaves; the profile
+  page hides Follow there through `isBlockedEitherWay`. The cure is a render-or-not read per Blocked row in
+  `lib/db/queries/social.ts`, outside this claim. Recommended: a small follow-up lane adds it and feeds `canFollow`;
+  the cost until then is one wrong row in a mutual-block corner, gone next visit.
+- **Her page's head carries no handle and the sections' own line is dropped on `/me`.** `/me` shows her photo, name and
+  "Joined {month year}", then "Only you can see this page."; "Only you can see the sections below." stays on the public
+  page's owner mode, where the page is public. Recommended: as built.
+- **A name in Connections opens the look, so her page is one tap further than the old link** ("Open full profile" is
+  the look's last button). It is his ask; recommended: as built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/profiles-social.md` (in `reads`, edited as a listed edit): `/me` is her page before it is public (the
+  head, the mark, the standing invitation, `OwnerNote` moved to the public page), the blocked well and the offline
+  flip in the block bullet, and the ★ Connections island that ignores the server's re-render by design.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Immediate · Accounts and profiles: Profiles: Connections' look offers Follow after an Unblock where they blocked her
+  back (`followUser` is block-silent: ok, nothing written), so a wrong Following row stands until she leaves; the
+  profile page's `isBlockedEitherWay` read per Blocked row (`lib/db/queries/social.ts`) would hide it
+  (account-moments-wiring).
+- Immediate · Accounts and profiles: Profiles: the album's guest list offers Follow on a chip of someone she blocked or
+  who blocked her (the same silent no-op, then the chip reads Following), and a look's Follow reads Follow again on its
+  next open; `GuestList` needs `blockedIds` beside `followingIds` and the look the answer kept, as Connections keeps
+  it and hands the look (`GuestPeek`'s `follow`) (account-moments-wiring).
+- Upcoming · Accounts and profiles: Profiles: the owner mode's Connections chips (`/me`, `/u/<handle>`) link to pages
+  where Account's names now open the look; the same look could serve them (account-moments-wiring).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
+- **Commits, pushed:** the work is `412031f37` and `c038b1ba8` (the well's button kept out of the status region's
+  announcement) on `lp/account-moments-wiring`; the head (this manifest on top of them) is in the chat line. launch-prep moved by three record commits (`e6fa3cc8f`, `f4becf845`, `4b1abf0b2`: STATUS, the
+  Orchestrator's pickup and two board manifests) that touch no path or import of mine, so no sync, per PROGRAM.md.
+- **Gates, each on its own exit code, all on the tree of `c038b1ba8`** (logs in
+  `../partyreel-wt/_scratch/account-moments-wiring/`): `pnpm typecheck` exit 0 (`typecheck.log`); `pnpm lint` exit 0,
+  no warnings (`lint.log`); `pnpm test` exit 0, 1061 files and 13323 tests, `test:rules` inside it (`test.log`);
+  `zsh scripts/build-lock.sh pnpm build` exit 0 (`build.log`); `pnpm lab:smoke --base http://localhost:3135` exit 0,
+  181 checks, 0 failing (`smoke.log`; its scope reached the account-moments, customize, event-header and host-moments
+  boards through `guest-peek.tsx` and `profile-actions-menu.tsx`, all 200). ★ `pnpm test` ran with
+  `NEXT_PUBLIC_SUPABASE_URL=https://test.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=test-publishable-key`
+  exported (the component setup's own dummies): the unit project reads no `.env.local`, and without them six files
+  (`inline-code`, `spec-shared`, `blog-keep-lines`, `help-mdx-compile`, `change-plan-watch`, `server-pipeline`) fail to
+  import `env.ts` on the primary checkout's HEAD as well, none of them this lane's.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): `docs/systems/profiles-social.md` (listed above);
+  `src/app/(app)/account/page.tsx`, `page.test.tsx` and the two new `page-connections.tsx`, `.test.tsx` (inside the
+  `account/page` claim by name, one directory that is the page's own); `src/app/(app)/me/page.tsx`, `page.test.tsx`;
+  under `src/app/(guest)/u/[slug]/`: `page.tsx`, `page.test.tsx`, `owner-sections.tsx`, `owner-skeleton.tsx` and the
+  new `blocked-well.tsx`, `profile-head.tsx` and their tests; `src/components/social/relation-toggle.tsx`, `.test.tsx`,
+  `profile-actions-menu.tsx` (a comment, and prettier's one unrelated wrap), `guest-peek.tsx` and the new
+  `guest-peek.test.tsx`; this file. No exceptions: `page-invite-card` is in the claim and untouched (invite = today).
+- **The items:**
+  - block=line: `u/[slug]/blocked-well.tsx` under a standing `role="status"` in `page.tsx`, drawn for `hasBlocked`
+    alone (`page.test.tsx` pins that a viewer only THEY blocked, and a signed-out one, meet nothing); Unblock hands focus
+    to `[data-profile-actions]` when it lands (`blocked-well.test.tsx`), its button's own flip sits under
+    `aria-live="off"` so only the words are announced, and the menu's row stays the second way.
+  - tidy=stays: `account/page-connections.tsx` (an island that keeps both lists and one answer per person; its test
+    re-renders the page without the row and the row stays, turned back, one press undoes it); names open `GuestPeek`.
+  - `guest-peek.tsx`: one optional prop, `follow` (the Follow the look offers while `canFollow`, where the surface keeps
+    the relation); `guest-list.tsx`, `credit-look.tsx` and the Library's demo call it as before (their tests are green,
+    `popup-demos.test.tsx` included), so the Guests room needs nothing.
+  - me-page=private: `me/page.tsx` wears `u/[slug]/profile-head.tsx` (the head the public page now also draws), "Only
+    you can see this page.", the standing invitation, then the sections; `OwnerNote` moved to the public page so `/me`
+    does not say it twice, and `OwnerSections()` still takes no parameter (`owner-mode.test.ts` untouched, green).
+  - The orphan `·`: `profile-head.tsx`'s meta row carries each separator inside the item it leads and clips it where the
+    item starts a line; measured at 375 on `/u/partyr33l` with a long handle and a long month (no dot at either edge, a
+    30-character handle breaks inside the column); it closes the ROADMAP Immediate line of the same words (the
+    Orchestrator deletes it).
+  - `relation-toggle.tsx`: `onSettle` (a landed flip), `srLabel` (Connections' buttons are heard as "Following Sam
+    Okafor"), and a Server Function that never answers (offline) is now a refusal with one toast ("Couldn't reach
+    Partyreel just now. Please try again."), where its rejection went to the page's error boundary.
+- **Walked, local, signed in as willg97 on my own port (3135, a headless Chrome of my own, `signin.mjs`):** the block from
+  the menu at 375 and 1440 and its well on a revisit, Unblock from the well (focus lands on More options) and from the
+  menu's row and from Connections, a flip and its undo in Connections, a name opening the look (a sheet at 375, a card at
+  1440, Enter opens, Escape returns focus to the name), Follow from the look after an Unblock (joins Following; the
+  Blocked row stays), leaving Account and coming back (history.back: the lists are fresh), a 2.5 s-latency Follow (flips
+  at once, two extra presses ignored), offline (one toast, the row as it was, no error screen), reduced motion on the well
+  (opacity only), Tab with the halo on the name and the toggle, and the same on a production build (`next start` on 3135);
+  dark ("the room") and light ("paper"); the accessibility tree read off Chrome (a decorative face, "Unblock
+  Partyreel", "Following Partyreel", the Connections lists named by their headings, the status region); a 72-character
+  name truncates in a row with no horizontal scroll. Captures are in `../partyreel-wt/_scratch/account-moments-wiring/rt/shots/`
+  (pruned with the lane).
+- **Test data:** none left. Every follow and block willg97 made on the operator's page (partyr33l) was undone through the
+  app's own controls; reads before and after through the Supabase MCP (select only): follows 1 (`hi@willgibs.com` to
+  willg, which was there), blocks 0.
+- **Walks I could not drive, for the desk:** `/me` as a real handle-less account (hi@willgibs.com, the only one, holds
+  a second factor, which `signin.mjs` refuses to mint around): I rendered the real page body for willg97 through a
+  temporary route (deleted, never committed) at 375 and 1440, dark and light, and the unit test holds the redirect, the
+  head and the invitation; a real screen reader and a real phone (the sheet is Chrome's phone emulation, names are the
+  accessibility tree, not speech); the mutual-block corner (they blocked her, the third Deferred line) because only one
+  other account has a page.
+- Assets requested from Will: none
+- Board ideas: one answer per person for every face of a relation on a page (a store the chip, the look, the row and the
+  profile's Follow share, as Connections' island is for its card) would end the guest list's chip-and-look disagreement;
+  plumbing more than a board, but the Orchestrator may want it as a lane.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Calls his to overrule:** the well's words and its place under the bio (Questions, first); Follow from the look joins
+  Following and leaves the turned-back row in Blocked (second); the look offers no Follow from a Following row, whose own
+  button is the Follow, and none while the block stands; `/me` shows no handle and drops the sections' own line; the
+  new offline copy; the name's look in place of the old direct link.
+- **Look at first:** Account at 375 after Following on a row and Unblock on a row (each stays, turned back), then the
+  Blocked row's name and its look; `/u/partyr33l` as willg97 after a Block (375, then 1440, dark then paper); and `/me`
+  for hi@willgibs.com, a handle-less account only he can open.
