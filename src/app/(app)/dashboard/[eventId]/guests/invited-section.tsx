@@ -197,7 +197,7 @@ export function InvitedSection({
               }
               <Link
                 href={settingsPageHref(eventId, "door")}
-                className="font-medium text-foreground underline underline-offset-4"
+                className="rounded-sm font-medium text-foreground underline underline-offset-4 outline-none focus-halo"
               >
                 Change who can get in
               </Link>
@@ -228,7 +228,7 @@ export function InvitedSection({
             }
             <Link
               href={settingsPageHref(eventId, "door")}
-              className="font-medium text-foreground underline underline-offset-4"
+              className="rounded-sm font-medium text-foreground underline underline-offset-4 outline-none focus-halo"
             >
               Change who can get in
             </Link>
