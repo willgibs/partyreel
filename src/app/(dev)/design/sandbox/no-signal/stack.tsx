@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 import { UNSENT } from "./fixtures";
 import { namedFile } from "./scene";
-import { NO_SIGNAL, waitingCount } from "./words";
+import { NO_CONNECTION, waitingCount } from "./words";
 
 /**
  * THE SEND STANDING BY (the `standby` option): production's stack and its
@@ -19,19 +19,22 @@ import { NO_SIGNAL, waitingCount } from "./words";
  * the glass pill, the x), because production's pane has no slot for a state
  * of its own.
  *
- * ★ ONE STRIP, PRODUCTION'S ROW: the pane keeps the stack's own row, its word
- * and its bar side by side, with "No signal" and the half-lit point (Standby,
- * no hue, in the pane's own white) where the count stood, and the bar held
- * where it stopped, dimmed. Under it ONE line: the carry's promise in a few
- * words, or, where nothing goes by itself, her one press. The promise lives
- * on the send because it stays there: a toast at a party is gone before a
- * phone leaves a pocket (the failure sheet's own reason for having none), and
- * the pane is where she is already looking. The x stays (a waiting file can
+ * ★ THE BAR GIVES WAY TO THE POINT. A photograph goes up as one PUT
+ * (`part-plan.ts`: a single PUT under 100 MB), so one dropped at 38% goes
+ * again from the start: a bar held at 38% would promise progress the line's
+ * return throws away, and read as stuck (the creative director's pass). The
+ * pane says the state alone, the half-lit point (Standby, no hue, in the
+ * pane's own white) and "No connection", and under it ONE line: the carry's
+ * promise in a few words, or, where nothing goes by itself, what she will do
+ * once the line is back (never a press while the phone is offline: it could
+ * only fail, crumbs-71). The promise lives on the send because it stays
+ * there: a toast at a party is gone before a phone leaves a pocket (the
+ * failure sheet's own reason for having none). The x stays (a waiting file can
  * still be stopped, as a sending one can).
  *
- * ★ THE STAND-IN IS THE PANE'S FIRST ROW: the same photograph, point, word,
- * bar and x, and no second count, since the shutter's shoulder under it
- * already says how many, as it does for production's own run.
+ * ★ THE STAND-IN IS THE PANE'S FIRST ROW: the same photograph, point, word and
+ * x, and no second count, since the Add's shoulder under it already says how
+ * many, as it does for production's own run.
  */
 
 /** The point, half-lit (`ns.css`): Standby's mark, in whatever ink stands around it. */
@@ -58,31 +61,6 @@ export function WaitPoint({
 const TILE_BOX =
   "relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10";
 
-/** The bar held where the line went: production's track, its fill the run's white dimmed, and still. */
-function HeldBar({
-  progress,
-  className,
-}: {
-  progress: number;
-  className?: string;
-}) {
-  return (
-    <span
-      data-ns-held-bar=""
-      className={cn(
-        "h-1 flex-1 overflow-hidden rounded-full bg-white/30",
-        className,
-      )}
-    >
-      <span
-        data-pending-progress
-        className="block h-full rounded-full bg-white/45"
-        style={{ width: `${progress}%` }}
-      />
-    </span>
-  );
-}
-
 /** The point and the state's word, lit for the glass they stand on. */
 function StateWord({ className }: { className?: string }) {
   return (
@@ -94,24 +72,19 @@ function StateWord({ className }: { className?: string }) {
       )}
     >
       <WaitPoint />
-      <span data-ns-state-word="">{NO_SIGNAL}</span>
+      <span data-ns-state-word="">{NO_CONNECTION}</span>
     </span>
   );
 }
 
 /** The stack at the album's head, standing by: her photo, the rest under it, the pane saying the line is gone. */
 export function WaitingStack({
-  progress,
   remaining,
   note,
-  press,
 }: {
-  progress: number;
   remaining: number;
-  /** The carry's promise in a few words, under the state ("Safe on this phone"). */
-  note?: string;
-  /** Where nothing goes by itself, her one press stands there instead (`Try again`). */
-  press?: string;
+  /** The carry's promise in a few words, under the state (`paneNote`). */
+  note: string;
 }) {
   const first = UNSENT[0]!;
   return (
@@ -152,28 +125,15 @@ export function WaitingStack({
             "absolute inset-x-0 bottom-0 flex flex-col gap-0.5 px-2 py-1.5",
           )}
         >
-          <span className="flex items-center gap-2">
-            <StateWord />
-            <HeldBar progress={progress} />
+          <StateWord />
+          <span
+            data-ns-pane-note=""
+            className={cn(GLASS_MARK_LIT, "text-working text-white/90")}
+          >
+            {note}
           </span>
-          {press ? (
-            <span
-              data-ns-pane-press=""
-              className={cn(
-                GLASS_MARK_LIT,
-                "self-start text-working font-semibold text-white underline decoration-white/60 underline-offset-4",
-              )}
-            >
-              {press}
-            </span>
-          ) : note ? (
-            <span
-              data-ns-pane-note=""
-              className={cn(GLASS_MARK_LIT, "text-working text-white")}
-            >
-              {note}
-            </span>
-          ) : null}
+          {/* How many, for whoever cannot see the ghost edges and the Add's shoulder. */}
+          <span className="sr-only">, {waitingCount(remaining)}</span>
         </div>
       </div>
       <button
@@ -198,14 +158,8 @@ export function WaitingStack({
   );
 }
 
-/** The stand-in above the foot, standing by: her photo, the point and "No signal", the held bar, the x. */
-export function WaitingPill({
-  progress,
-  remaining,
-}: {
-  progress: number;
-  remaining: number;
-}) {
+/** The stand-in above the foot, standing by: her photo, the point and "No connection", the x. */
+export function WaitingPill({ remaining }: { remaining: number }) {
   const first = UNSENT[0]!;
   return (
     <div
@@ -225,10 +179,9 @@ export function WaitingPill({
           className="absolute inset-0"
         />
       </span>
-      <StateWord />
-      {/* What the shutter's shoulder shows, for whoever cannot see it (the shutter's own name says it too). */}
+      <StateWord className="flex-1" />
+      {/* What the Add's shoulder shows, for whoever cannot see it (the Add's own name says it too). */}
       <span className="sr-only">, {waitingCount(remaining)}</span>
-      <HeldBar progress={progress} className="min-w-8" />
       <span
         className={cn(
           GLASS_MARK,

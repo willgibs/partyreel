@@ -1,18 +1,109 @@
-/* THE REEL AT TWICE A PHONE'S SIZE, under the roll's frames (`camera.tsx`'s `ReelAt2x`): production's reel and its
-   caption (`camera.css`), so the waiting mark can be judged where a phone draws it seven points wide.
+/* THE ROLL'S LEDGER, under the roll's frames (`roll.tsx`'s `CellarLedger`): his presses in the cellar, the count each
+   left and where each shot ends, then the reel at twice a phone's size. A lab drawing in the lab's own ink, never the
+   product's.
+
+   ★ SET IN THE STAGE'S SCREEN PIXELS, DOWN TO A FLOOR (the night strip's own way, `carry.css`): the whole stage zooms
+   a drawing by `--lab-k`, so `--u` is one pixel on the reader's screen; below the floor it shrinks with the stage like
+   anything else, so it never binds the phones beside it. At a phone it keeps the presses alone (the creative director's
+   pass: at 375 it had fallen to about 4px type). */
+.ns-ledger {
+  --ns-floor: 0.5;
+  --ns-k: max(var(--lab-k, 1), var(--ns-floor));
+  --u: calc(1px / var(--ns-k));
+  margin: 0;
+  width: calc(500 * var(--u));
+  max-width: calc(500 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(16 * var(--u));
+  color: var(--foreground);
+  font-size: calc(13 * var(--u));
+  line-height: 1.35;
+}
+[data-lab-reflow] > .ns-ledger {
+  flex: 0 0 auto;
+}
+
+.ns-ledger-line {
+  text-wrap: pretty;
+}
+
+/* One column a press: the shot, the count it left, where it ends. */
+.ns-ledger-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: calc(10 * var(--u));
+  row-gap: calc(6 * var(--u));
+}
+.ns-ledger-span {
+  grid-column: span 2;
+}
+.ns-ledger-shot {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--radius-tile, 2px) / var(--ns-k));
+  background: var(--muted);
+}
+.ns-ledger-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ns-ledger-shot[data-ns-fate="refused"] img {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+.ns-ledger-shot[data-ns-fate="untaken"] {
+  background: transparent;
+  outline: var(--u) dashed
+    color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+  outline-offset: calc(-1 * var(--u));
+}
+.ns-ledger-count {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.ns-ledger-fate {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+.ns-ledger .ns-point {
+  width: calc(8 * var(--u));
+  height: calc(8 * var(--u));
+}
+.ns-ledger .ns-point[data-unlit] {
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u))
+    color-mix(in oklab, currentColor 55%, transparent);
+}
+
+.ns-ledger-reel {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--u));
+  color: var(--muted-foreground);
+}
+
+/* THE REEL AT TWICE A PHONE'S SIZE (`camera.tsx`'s `ReelAt2x`): production's reel and its caption (`camera.css`), so
+   the waiting mark can be judged where a phone draws it seven points wide.
 
    ★ ITS FRAMES ARE SIZED HERE, AS THE CAMERA'S UPRIGHT SCREEN SIZES THEM (`.cam-screen`'s own three), never by
    `.cam-screen` itself: the board's page is on its side at a desk, and the camera's landscape sizes would follow it.
 
    ★ LAID OUT AT A PHONE'S POINTS, DRAWN AT TWICE THEM: a transform, so the reel's own geometry (its centre, its pitch,
-   its fade) is the phone's, and the browser draws its marks and minutes again at the larger size, crisp. */
+   its fade) is the phone's, and the browser draws its marks and minutes again at the larger size, crisp. ★ FIVE
+   PITCHES WIDE (190 points, 380 drawn), so its edges fall between two frames and never cut one in half (a half frame
+   at the edge read as a render bug: the creative director's pass). */
 .ns-reel2x {
   --cam-cell-w: 32px;
   --cam-cell-h: 42px;
   --cam-pitch: 38px;
   position: relative;
-  width: 100%;
-  max-width: 532px;
+  width: 380px;
+  max-width: 100%;
   height: 176px;
   overflow: hidden;
   border-radius: 16px;
@@ -24,4 +115,27 @@
   padding-top: 4px;
   transform: scale(2);
   transform-origin: 0 0;
+}
+/* The film's own fade, which a phone draws at its edges, lifted here: drawn twice its size, the faded edge frame read as
+   a frame cut in half (its "10:36" as "0:36"), and this view is for the marks, not the edge. */
+.ns-reel2x .cam-reel-film {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* NARROWER THAN A DESK: the presses alone, a size smaller, down to a phone's own floor. Last in the sheet, so it
+   stands over the rules above it (one specificity, so the later rule wins). */
+@media (max-width: 1023px) {
+  .ns-ledger {
+    --ns-floor: 0.26;
+    --u: calc(0.85px / var(--ns-k));
+    width: auto;
+    max-width: none;
+  }
+  [data-lab-reflow] > .ns-ledger {
+    flex: 1 1 calc(380 * var(--u));
+  }
+  .ns-ledger-reel {
+    display: none;
+  }
 }

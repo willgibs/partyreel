@@ -5,6 +5,7 @@ import "./ns.css";
 import "./roll.css";
 
 import { Camera, QrCode, RefreshCw, SwitchCamera, X, Zap } from "lucide-react";
+import type { CSSProperties } from "react";
 
 import { RollDonePanel } from "@/components/guest/camera/camera-panels";
 import { CameraReel } from "@/components/guest/camera/camera-reel";
@@ -151,10 +152,11 @@ export type CameraState = {
   /** The roll is spent: its end's panel stands over the picture. */
   done?: boolean;
   /**
-   * What the roll's end says under its keys, in the panel's own caption line (production's `freeLine`): the shots that
-   * still wait, since the line under the shutter goes with the shutter.
+   * What the roll's end says in place of production's line (`rollDoneLine`), where shots still wait: the wait first,
+   * since the line under the shutter goes with the shutter (the creative director's pass: "24 shots, developing with
+   * everyone's" over four shots still on the phone read as all in).
    */
-  doneNote?: string;
+  doneLine?: string;
 };
 
 /** The reel's frames for a state: the evening's twenty, then the cellar's waiting shots. */
@@ -221,14 +223,16 @@ export function CellarCamera({ s }: { s: CameraState }) {
           />
           {s.done ? (
             <RollDonePanel
-              line={rollDoneLine({
-                held: ROLL.cap,
-                reveal: "develop",
-                developsAt: DEVELOPS,
-                nowMs: NOW,
-              })}
-              freeAFrame={Boolean(s.doneNote)}
-              freeLine={s.doneNote}
+              line={
+                s.doneLine ??
+                rollDoneLine({
+                  held: ROLL.cap,
+                  reveal: "develop",
+                  developsAt: DEVELOPS,
+                  nowMs: NOW,
+                })
+              }
+              freeAFrame={false}
               onShots={none}
               onBack={none}
             />
@@ -411,6 +415,9 @@ export function RefusedInAlbum() {
   return (
     <div
       data-ns-album-under=""
+      // The cover drawn short (production's is most of a phone's screen), so its name stands above the sheet and the
+      // frame reads as the album it is, not a blank page (the creative director's pass).
+      style={{ "--cover-h": "15.5rem" } as CSSProperties}
       className="relative min-h-screen bg-background text-foreground"
     >
       <GuestBar name="Sam" />

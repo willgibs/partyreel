@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ListChecks, RefreshCw } from "lucide-react";
+import { Check, ListChecks } from "lucide-react";
 import type { ComponentProps } from "react";
 
 import { DoorHeading } from "@/components/guest/door/heading";
@@ -26,8 +26,8 @@ import {
 } from "@/components/ui/sheet";
 import { UPLOAD_WORDS } from "@/lib/upload/uploader";
 
-import { GuestAlbum, ToastStill } from "./album";
-import { DROPPED_AT, LANDED, UNSENT, WEDDING } from "./fixtures";
+import { GuestAlbum, type ShutterLook, ToastStill } from "./album";
+import { LANDED, ONE_MORE, type Sent, UNSENT, WEDDING } from "./fixtures";
 import type { Ground } from "./knobs";
 import {
   find,
@@ -44,53 +44,59 @@ import { WaitingPill, WaitingStack, WaitPoint } from "./stack";
 import {
   type Carry,
   goesItself,
-  keeps,
-  NO_SIGNAL_NOW,
   paneNote,
-  pressWord,
   promiseLine,
   uploadsLine,
-  WAITING_ROW,
+  WAITING,
+  waitingCount,
   waitingToSend,
 } from "./words";
 
 /**
- * THE MOMENT THE LINE DROPS, THREE WAYS (the `drop` ask), each drawn in the
- * carry answer (`carry`): its words promise only what that answer keeps, so
- * the same option says "Safe on this phone" in one world and "Keep this page
- * open" in another, and where nothing goes by itself (today's carry) the
- * press stands where the promise would.
+ * THE MOMENT THE LINE DROPS, THREE CONTAINERS (the `drop` ask): over the
+ * party (a sheet), in the send's own place (the stack standing by), or in her
+ * list (her uploads). Each is drawn in the carry answer (`carry`), and so is
+ * every word it says: the question is the container, never its words, so a
+ * sheet in a world that keeps her photos says what waits, as the others do,
+ * and today's sheet is drawn verbatim only where it is today, in today's
+ * carry (the creative director's pass).
  *
  * Every option is the same three moments: 11:42 pm at the album's head as the
- * line drops on her second photo (38% of it up, the run's share on the
- * shutter's ring); 11:44 pm, scrolled on into the album; then her press on
- * what says it. Today's sheet has nothing left to say at 11:44 once Not now
- * has put it down, so its press is the one the sheet offers: Retry both, with
- * the line still gone.
+ * line drops on her second photo; 11:44 pm, as she sends one more with the
+ * line still gone (whether a container lets a party keep adding is what the
+ * question's `matters` is about); then her press on what says it.
  *
- * ★ WHAT PRODUCTION SAYS BESIDE IT. Where the run ends (today's sheet, and
- * her uploads, whose stack steps out), production's send toast says what
+ * ★ NO PRESS WHILE THE PHONE IS OFFLINE (crumbs-71, `export-toast.tsx`): a Try
+ * again in a dead zone can only fail, so no frame here draws one but today's
+ * own sheet, which does (its third frame is that very press, failing). The
+ * press comes back with the line.
+ *
+ * ★ WHAT PRODUCTION SAYS BESIDE IT. Where the send ends at the drop (a sheet,
+ * and her uploads, whose stack steps out), production's send toast says what
  * landed (`send-toast.ts`: once, at the run's end, for what landed, and no
  * failure sheet quiets it), so both draw it beside their own words. The send
- * that stands by never ends its run, so nothing of production's speaks until
- * all three land (one toast for the whole send), and its promise is on the
- * send itself, where it stays.
+ * that stands by never ends, so nothing of production's speaks until all of
+ * it lands (one toast for the whole send).
  *
- * ★ STAND-INS, SAID ONCE: the send's own sheet, her uploads' chip and the
- * lists' one press are this board's (the options'); the toast is production's
- * words drawn still where sonner's toaster stands (`ToastStill`); every press
- * is inert.
+ * ★ THE ADD'S RING IS PRODUCTION'S SENDING RING, HELD STILL at what landed
+ * (one of three), its count on its shoulder: how it looks while it waits is
+ * signature r1's to finish (where the light lives, the Add's ring), so a pick
+ * here never answers that board's question.
+ *
+ * ★ STAND-INS, SAID ONCE: the sheets' words in a keeping world, the send's
+ * own sheet and her uploads' chip are this board's (the options'); the toast
+ * is production's words drawn still where sonner's toaster stands
+ * (`ToastStill`); every press is inert.
  */
 
 export type DropWay = "sheet" | "standby" | "uploads";
 
-/** Her run: three sent, one in, two waiting, the second at 38% when the line went. */
+/** Her first send: three, the toast in, two waiting. At 11:44 she sends one more. */
 const SENT = 3;
-const WAITING = UNSENT.length;
-/** The run's share up when it stopped: the first whole, the second at 38%, the third not begun. */
-const RUN = (1 + DROPPED_AT / 100) / SENT;
+const AT_DROP: readonly Sent[] = UNSENT;
+const AFTER_ONE_MORE: readonly Sent[] = [...UNSENT, ONE_MORE];
 
-/** What landed, in production's own send toast (`keepSentLine`), and its press. */
+/** What landed, in production's own send toast (`keepSentLine`). */
 const JOINED = keepSentLine({
   count: 1,
   held: false,
@@ -99,18 +105,23 @@ const JOINED = keepSentLine({
   nowMs: null,
 });
 
+/** The Add as the send holds it: production's sending ring at what landed, its count still to go. */
+const ringFor = (landed: number, waiting: number): ShutterLook => ({
+  state: "sending",
+  progress: landed / (landed + waiting),
+  count: waiting,
+});
+
 /* ── what the frames read ──────────────────────────────────────────────── */
 
-/** The shutter as the foot holds it: at rest in the album's light, or standing by with its count. */
-function readShutter(root: HTMLElement): string | undefined {
+/** The Add as the foot holds it: at rest, or holding its ring with a count on its shoulder. */
+function readAdd(root: HTMLElement): string | undefined {
   const shutter = find(root, "[data-slot='shutter']");
   if (!shutter) return undefined;
   const count = textOf(shutter.querySelector("[data-slot='shutter-count']"));
-  if (shutter.closest("[data-ns-standby]"))
-    return `the shutter standing by, its ring held with no hue${count ? `, ${count} on its shoulder` : ""}`;
   return shutter.dataset.state === "idle"
-    ? "the shutter at rest"
-    : `the shutter ${shutter.dataset.state}`;
+    ? "the Add at rest"
+    : `the Add's ring held${count ? `, ${count} on its shoulder` : ""}`;
 }
 
 const readDrop: Reader = (root, win) => {
@@ -124,22 +135,14 @@ const readDrop: Reader = (root, win) => {
   const stack = find(root, "[data-ns-stack]");
   const pill = find(root, "[data-ns-pill]");
   const chip = find(root, "[data-ns-chip]");
-  const head = find(root, "[data-ns-hers]");
+  const hers = find(root, "[data-ns-hers]");
   const word = (el: HTMLElement) =>
     textOf(el.querySelector("[data-ns-state-word]"));
-  const under = stack?.querySelector<HTMLElement>(
-    "[data-ns-pane-note], [data-ns-pane-press]",
-  );
+  const note = stack?.querySelector<HTMLElement>("[data-ns-pane-note]");
   return parts(
     stack && inView(stack, win)
-      ? `the stack stands by: "${word(stack)}"${
-          under
-            ? under.dataset.nsPanePress !== undefined
-              ? `, her press "${textOf(under)}"`
-              : `, under it "${textOf(under)}"`
-            : ""
-        }`
-      : head && inView(head, win)
+      ? `the stack stands by: "${word(stack)}"${note ? `, under it "${textOf(note)}"` : ""}`
+      : hers && inView(hers, win)
         ? "no stack: her landed photo heads the album"
         : "no stack in view",
     pill && inView(pill, win) ? `the stand-in: "${word(pill)}"` : undefined,
@@ -147,11 +150,11 @@ const readDrop: Reader = (root, win) => {
       ? `her uploads' chip: "${textOf(chip)}"`
       : undefined,
     said,
-    readShutter(root),
+    readAdd(root),
   );
 };
 
-/** A list's rows, read: her uploads, or the send's own sheet. */
+/** A list's rows, read: her uploads, or a sheet's. */
 const readList: Reader = (root, win) => {
   const rows = findAll(root, "[data-ns-row]");
   if (rows.length === 0) return readDrop(root, win);
@@ -159,32 +162,42 @@ const readList: Reader = (root, win) => {
   return `${title ? `"${title}": ` : ""}${rows.length} rows, ${rows.map((r) => `"${textOf(r)}"`).join(", ")}`;
 };
 
-/* ── today: the failure sheet, and the toast beside it ─────────────────── */
+/* ── a sheet: today's, verbatim, where today's carry is ────────────────── */
 
 /**
- * Production's failure sheet, over the album, as the run ends: her two, the uploader's sentence on each. `again` is
- * her Retry both while the line is still gone: a run of its own, which fails whole ("2 of 2": AG1, crumbs-76's count,
- * so no line about the rest).
+ * Production's failure sheet, over the album, as the send ends: the photos that did not go, the uploader's one
+ * sentence on each. `sent` is the run's own count ("2 of 3", "1 of 1", "2 of 2": crumbs-76's rule, `useRunSent`).
  */
-function TodaySheet({ again = false }: { again?: boolean }) {
-  const a = useStillFile(UNSENT[0]!.still, UNSENT[0]!.name);
-  const b = useStillFile(UNSENT[1]!.still, UNSENT[1]!.name);
-  const failures: UploadFailure[] =
-    a && b
-      ? [a, b].map((file, i) => ({
-          id: `q-${i}`,
-          file,
-          error: UPLOAD_WORDS.dropped,
-          cause: "dropped",
-        }))
-      : [];
+function TodaySheet({
+  photos,
+  sent,
+  landed,
+}: {
+  photos: readonly Sent[];
+  sent: number;
+  landed: number;
+}) {
+  const a = useStillFile(photos[0]!.still, photos[0]!.name);
+  const b = useStillFile(
+    (photos[1] ?? photos[0])!.still,
+    (photos[1] ?? photos[0])!.name,
+  );
+  const files = photos.length > 1 ? [a, b] : [a];
+  const failures: UploadFailure[] = files.every(Boolean)
+    ? files.map((file, i) => ({
+        id: `q-${i}`,
+        file: file as File,
+        error: UPLOAD_WORDS.dropped,
+        cause: "dropped",
+      }))
+    : [];
   return (
     <UploadFailureSheet
       open={failures.length > 0}
       onOpenChange={() => {}}
       failures={failures}
-      sent={again ? WAITING : SENT}
-      landed={again ? 0 : 1}
+      sent={sent}
+      landed={landed}
       hostName={WEDDING.host.name}
       onRetry={() => {}}
     />
@@ -203,13 +216,13 @@ function JoinedToast() {
   );
 }
 
-/* ── standby: the send's own sheet, on her press ───────────────────────── */
+/* ── the waiting rows, a sheet's and the send's ─────────────────────────── */
 
-/** Her two waiting, in the order they were sent: the picture, its name, the point and its word. */
-function WaitingRows() {
+/** What waits, in the order it was sent: the picture, its name, the point and its word. */
+function WaitingRows({ photos }: { photos: readonly Sent[] }) {
   return (
     <ul className="flex flex-col gap-3">
-      {UNSENT.map((u) => (
+      {photos.map((u) => (
         <li key={u.name} data-ns-row="" className="flex items-center gap-3">
           <span className="relative size-11 shrink-0 overflow-hidden rounded-tile bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element -- her photo, as the queue holds it */}
@@ -226,7 +239,7 @@ function WaitingRows() {
             </span>
             <span className="flex items-center gap-1.5 text-reading text-muted-foreground">
               <WaitPoint />
-              {WAITING_ROW}
+              {WAITING}
             </span>
           </span>
         </li>
@@ -236,28 +249,16 @@ function WaitingRows() {
 }
 
 /**
- * THE ONE PRESS, AT THE WEIGHT ITS WORLD GIVES IT: where nothing goes by itself it is the only way on, the filled
- * press; where they go by themselves it is a "sooner, if you think the line is back", so it never shouts.
+ * A SHEET IN A WORLD THAT KEEPS THEM: production's sheet and the door's heading, opening by itself as the send ends,
+ * in the carry's words: how many wait, the promise, what waits, and its close (nothing to press while offline).
  */
-function OnePress({ carry, className }: { carry: Carry; className?: string }) {
-  const variant: ComponentProps<typeof Button>["variant"] = goesItself(carry)
-    ? "outline"
-    : "default";
-  return (
-    <Button
-      type="button"
-      size="cta"
-      variant={variant}
-      className={className}
-      tabIndex={-1}
-    >
-      <RefreshCw /> {pressWord(carry)}
-    </Button>
-  );
-}
-
-/** Her press on the stack or its stand-in: the send's own sheet, the door's heading, her press, her two. */
-function SendSheet({ carry }: { carry: Carry }) {
+function KeptSheet({
+  carry,
+  photos,
+}: {
+  carry: Carry;
+  photos: readonly Sent[];
+}) {
   return (
     <Sheet open onOpenChange={() => {}}>
       <SheetContent responsive className="overflow-y-auto">
@@ -265,14 +266,13 @@ function SendSheet({ carry }: { carry: Carry }) {
           <DoorHeading
             announce
             titleAs="h2"
-            title={NO_SIGNAL_NOW}
-            reason={promiseLine(carry, WAITING)}
+            title={`${waitingCount(photos.length)} for your connection`}
+            reason={promiseLine(carry, photos.length)}
             className="pr-8"
           />
         </SheetHeader>
-        <div className="flex flex-col gap-4 px-4">
-          <OnePress carry={carry} className="w-full" />
-          <WaitingRows />
+        <div className="px-4">
+          <WaitingRows photos={photos} />
         </div>
         <SheetFooter>
           <Button
@@ -282,9 +282,37 @@ function SendSheet({ carry }: { carry: Carry }) {
             className="w-full"
             tabIndex={-1}
           >
-            Close
+            OK
           </Button>
         </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/** Her press on the stack or its stand-in: the send's own sheet, the door's heading and what waits; its x closes it. */
+function SendSheet({
+  carry,
+  photos,
+}: {
+  carry: Carry;
+  photos: readonly Sent[];
+}) {
+  return (
+    <Sheet open onOpenChange={() => {}}>
+      <SheetContent responsive className="overflow-y-auto">
+        <SheetHeader>
+          <DoorHeading
+            announce
+            titleAs="h2"
+            title={WAITING}
+            reason={promiseLine(carry, photos.length)}
+            className="pr-8"
+          />
+        </SheetHeader>
+        <div className="px-4 pb-6">
+          <WaitingRows photos={photos} />
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -301,7 +329,7 @@ function SendSheet({ carry }: { carry: Carry }) {
  * wears the page's material, never the send's glass: it is her list's door,
  * not the send.
  */
-function UploadsChip() {
+function UploadsChip({ waiting }: { waiting: number }) {
   return (
     <Button
       type="button"
@@ -312,7 +340,7 @@ function UploadsChip() {
       className="pointer-events-auto rounded-full bg-background px-4 tabular-nums shadow-layer"
     >
       <ListChecks />
-      {waitingToSend(WAITING)}
+      {waitingToSend(waiting)}
     </Button>
   );
 }
@@ -320,9 +348,16 @@ function UploadsChip() {
 /**
  * Her press on the chip: production's list popup ("Your uploads", a whole screen in a hand), her own newest sent
  * first as its rows run (`buildTrackerRows`), this device's own pictures for what waits and the album's for what is in.
+ * Each waiting row keeps a Remove (it never reached the server, so it is the page's own to put down: a wiring note).
  */
-function UploadsList({ carry }: { carry: Carry }) {
-  const waiting = [...UNSENT].reverse();
+function UploadsList({
+  carry,
+  photos,
+}: {
+  carry: Carry;
+  photos: readonly Sent[];
+}) {
+  const waiting = [...photos].reverse();
   return (
     <Popup open onOpenChange={() => {}}>
       <PopupContent kind="list" data-upload-tracker-sheet>
@@ -348,7 +383,7 @@ function UploadsList({ carry }: { carry: Carry }) {
                 </div>
                 <p className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-foreground">
                   <WaitPoint />
-                  <span className="truncate">{WAITING_ROW}</span>
+                  <span className="truncate">{WAITING}</span>
                 </p>
                 <Button
                   type="button"
@@ -376,7 +411,6 @@ function UploadsList({ carry }: { carry: Carry }) {
               </p>
             </li>
           </ul>
-          <OnePress carry={carry} className="mt-2 w-full" />
         </PopupBody>
       </PopupContent>
     </Popup>
@@ -397,14 +431,34 @@ function DropAlbum({
   );
 }
 
-const DROP = "11:42 pm · the line drops on her second photo";
-const LATER = "11:44 pm · scrolled on, still no signal";
-
-/** What `sheet`'s Not now does in this carry: puts them down (the page's keep), or closes over a keep that says nothing. */
-const notNowTitle = (carry: Carry) =>
-  keeps(carry)
-    ? "11:44 pm · Not now: kept on her phone, and nothing says so"
-    : "11:44 pm · Not now: her 2 photos are let go";
+/**
+ * THE CAPTIONS, POINT FIRST AND 40 CHARACTERS AT MOST: three phones at a desk
+ * leave a frame's title about 40 before the stage cuts it, so what differs
+ * between options leads.
+ */
+const TITLE = {
+  sheet: {
+    drop: "11:42 pm · the send ends in a sheet",
+    more: (carry: Carry) =>
+      goesItself(carry)
+        ? "11:44 pm · one more: the sheet again"
+        : "11:44 pm · one more: 1 of 1, 2 let go",
+    third: (carry: Carry) =>
+      goesItself(carry)
+        ? "Closed: 3 wait, and nothing says so"
+        : "11:42, Retry both instead: 2 of 2 again",
+  },
+  standby: {
+    drop: "11:42 pm · the send stands by",
+    more: "11:44 pm · one more, scrolled: 3 wait",
+    third: "Her press on it: the send's own sheet",
+  },
+  uploads: {
+    drop: "11:42 pm · her uploads hold 2",
+    more: "11:44 pm · one more: the chip says 3",
+    third: "Her press on the chip: her uploads",
+  },
+} as const;
 
 export function DropStory({
   way,
@@ -416,27 +470,14 @@ export function DropStory({
   ground: Ground;
 }) {
   const id = (k: string) => `ns-drop-${k}-${way}-${carry}`;
-  const held = {
-    state: "standby" as const,
-    progress: RUN,
-    count: WAITING,
-  };
-  const stack = (
-    <WaitingStack
-      progress={DROPPED_AT}
-      remaining={WAITING}
-      note={paneNote(carry)}
-      // Where nothing goes by itself (today's carry), the pane carries her one press.
-      press={goesItself(carry) ? undefined : pressWord(carry)}
-    />
-  );
-  if (way === "sheet")
+  if (way === "sheet") {
+    const kept = goesItself(carry);
     return (
       <Story>
         <Scene
           id={id("drop")}
           ground={ground}
-          title={`${DROP}: the run ends in the sheet`}
+          title={TITLE.sheet.drop}
           measure={readDrop}
         >
           <DropAlbum
@@ -444,67 +485,103 @@ export function DropStory({
             scroll="head"
             over={
               <>
-                <TodaySheet />
+                {kept ? (
+                  <KeptSheet carry={carry} photos={AT_DROP} />
+                ) : (
+                  <TodaySheet photos={AT_DROP} sent={SENT} landed={1} />
+                )}
                 <JoinedToast />
               </>
             }
           />
         </Scene>
         <Scene
-          id={id("later")}
+          id={id("more")}
           ground={ground}
-          title={notNowTitle(carry)}
+          title={TITLE.sheet.more(carry)}
           measure={readDrop}
         >
-          <DropAlbum way={way} scroll="rows" />
+          {/* Today the close let the two go, so the one she adds fails alone; in a world that keeps them, the sheet
+              opens again over all three. */}
+          <DropAlbum
+            way={way}
+            scroll="rows"
+            over={
+              kept ? (
+                <KeptSheet carry={carry} photos={AFTER_ONE_MORE} />
+              ) : (
+                <TodaySheet photos={[ONE_MORE]} sent={1} landed={0} />
+              )
+            }
+          />
         </Scene>
         <Scene
-          id={id("again")}
+          id={id("third")}
           ground={ground}
-          title="Her press, Retry both with no signal: the sheet again, 2 of 2"
+          title={TITLE.sheet.third(carry)}
           measure={readDrop}
         >
-          <DropAlbum way={way} scroll="head" over={<TodaySheet again />} />
+          {kept ? (
+            <DropAlbum way={way} scroll="rows" />
+          ) : (
+            <DropAlbum
+              way={way}
+              scroll="head"
+              over={<TodaySheet photos={AT_DROP} sent={2} landed={0} />}
+            />
+          )}
         </Scene>
       </Story>
     );
+  }
   if (way === "standby")
     return (
       <Story>
         <Scene
           id={id("drop")}
           ground={ground}
-          title={`${DROP}: the send stands by, and nothing opens`}
+          title={TITLE.standby.drop}
           measure={readDrop}
         >
-          <DropAlbum way={way} scroll="head" head={stack} shutter={held} />
+          <DropAlbum
+            way={way}
+            scroll="head"
+            head={
+              <WaitingStack remaining={AT_DROP.length} note={paneNote(carry)} />
+            }
+            shutter={ringFor(1, AT_DROP.length)}
+          />
         </Scene>
         <Scene
-          id={id("later")}
+          id={id("more")}
           ground={ground}
-          title={`${LATER}: the stand-in says it`}
+          title={TITLE.standby.more}
           measure={readDrop}
         >
           <DropAlbum
             way={way}
             scroll="rows"
-            head={stack}
-            shutter={held}
-            above={<WaitingPill progress={DROPPED_AT} remaining={WAITING} />}
+            head={
+              <WaitingStack
+                remaining={AFTER_ONE_MORE.length}
+                note={paneNote(carry)}
+              />
+            }
+            shutter={ringFor(1, AFTER_ONE_MORE.length)}
+            above={<WaitingPill remaining={AFTER_ONE_MORE.length} />}
           />
         </Scene>
         <Scene
           id={id("press")}
           ground={ground}
-          title="Her press on it: the send's own sheet"
+          title={TITLE.standby.third}
           measure={readList}
         >
           <DropAlbum
             way={way}
             scroll="rows"
-            head={stack}
-            shutter={held}
-            over={<SendSheet carry={carry} />}
+            shutter={ringFor(1, AFTER_ONE_MORE.length)}
+            over={<SendSheet carry={carry} photos={AFTER_ONE_MORE} />}
           />
         </Scene>
       </Story>
@@ -514,35 +591,39 @@ export function DropStory({
       <Scene
         id={id("drop")}
         ground={ground}
-        title={`${DROP}: the stack steps out, her uploads hold them`}
+        title={TITLE.uploads.drop}
         measure={readDrop}
       >
         <DropAlbum
           way={way}
           scroll="head"
-          above={<UploadsChip />}
+          above={<UploadsChip waiting={AT_DROP.length} />}
           over={<JoinedToast />}
         />
       </Scene>
       <Scene
-        id={id("later")}
+        id={id("more")}
         ground={ground}
-        title={`${LATER}: her uploads' chip says it`}
+        title={TITLE.uploads.more}
         measure={readDrop}
       >
-        <DropAlbum way={way} scroll="rows" above={<UploadsChip />} />
+        <DropAlbum
+          way={way}
+          scroll="rows"
+          above={<UploadsChip waiting={AFTER_ONE_MORE.length} />}
+        />
       </Scene>
       <Scene
         id={id("press")}
         ground={ground}
-        title="Her press on the chip: her uploads, two waiting"
+        title={TITLE.uploads.third}
         measure={readList}
       >
         <DropAlbum
           way={way}
           scroll="rows"
-          above={<UploadsChip />}
-          over={<UploadsList carry={carry} />}
+          above={<UploadsChip waiting={AFTER_ONE_MORE.length} />}
+          over={<UploadsList carry={carry} photos={AFTER_ONE_MORE} />}
         />
       </Scene>
     </Story>

@@ -3,9 +3,9 @@
    its word, and Standby is half-lit with no hue). Nothing here is production's;
    a wiring lane lands what the picks keep.
 
-   ★ STANDBY, NEVER A FAULT. A dead zone is nobody's failure and asks nothing of
-   her while her photos are kept, so its point is half-lit in the ground's own
-   ink (or the glass's white) with no hue at all, never the fault's red.
+   ★ STANDBY, NEVER A FAULT. A dead zone is nobody's failure: it waits for the
+   line, not for her, so its point is half-lit in the ground's own ink (or the
+   glass's white) with no hue at all, never the fault's red.
 
    ★ STILL UNTIL SOMETHING HAPPENS (Aperture): nothing waiting moves. The
    sending dot on a camera's frame pulses today; a waiting one stands still. */
@@ -33,32 +33,10 @@
     color-mix(in oklab, currentColor 55%, transparent);
 }
 
-/* THE SHUTTER STANDING BY (the drop's `standby`): its ring holds what the run
-   had sent, in the ground's own ink, never the light greyed. The album's light
-   with its hue drained is a pale grey on both grounds: in the room it reads,
-   but on paper (where the light is lit at 0.8) the ring all but vanishes into
-   the page. Standby's point is the ink of whatever it stands on, so the ring
-   that holds the run's share is too: the room's light ink, paper's dark one.
-   The fill keeps what was sent, the track is a hairline's weight, and the glow
-   goes, so the shutter reads as held, never as switched off. ★ Specific enough
-   to stand over the atom's own `sending` rules (`shutter.css`'s
-   `.shutter[data-state="sending"] .shutter-fill`), whatever order the sheets
-   land in. The atom is production's (`ui/shutter.tsx`); only this frame's copy
-   changes. */
-[data-ns-standby] .shutter[data-state] .shutter-track,
-[data-ns-standby] .shutter[data-state] .shutter-fill {
-  background: var(--foreground);
-  filter: none;
-}
-[data-ns-standby] .shutter[data-state] .shutter-track {
-  opacity: 0.18;
-}
-[data-ns-standby] .shutter[data-state] .shutter-fill {
-  opacity: 0.72;
-}
-[data-ns-standby] .shutter[data-state] .shutter-glow {
-  opacity: 0;
-}
+/* THE ADD'S RING IS PRODUCTION'S: a send that waits holds the sending ring
+   still at what landed, its count on its shoulder. How the ring looks while it
+   waits is signature r1's to finish (where the light lives, the Add's ring), so
+   nothing here redraws it (the creative director's pass). */
 
 /* A CAMERA'S FRAME WAITING FOR THE LINE: the sending dot's place, half-lit and
    still (production pulses a frame that is sending). Scoped to a camera drawn

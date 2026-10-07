@@ -88,7 +88,22 @@ export const UNSENT: readonly Sent[] = [
   },
 ];
 
-/** Where the second photo's bytes stood when the line dropped. */
+/**
+ * THE ONE SHE SENDS AT 11:44 PM, STILL WITH NO CONNECTION (the drop's second
+ * moment): whether a container lets a party keep adding is what its `matters`
+ * line is about.
+ */
+export const ONE_MORE: Sent = {
+  still: still("festival-crowd", "50% 45%", PORTRAIT),
+  name: "IMG_4131.HEIC",
+};
+
+/**
+ * Where the second photo's bytes stood when the line dropped. ★ A photograph
+ * goes up as one PUT (`part-plan.ts`: a single PUT under 100 MB), so a drop at
+ * 38% sends it again from the start: no frame draws a bar held at 38%, since
+ * that would promise progress the line's return throws away.
+ */
 export const DROPPED_AT = 38;
 
 /** The album as Priya opens it, newest first (everyone's, before hers land). */

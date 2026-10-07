@@ -231,11 +231,10 @@ function AlbumBar({ count }: { count: number }) {
   );
 }
 
-/** The shutter as the foot holds it: at rest, sending (its ring the run's progress), or standing by (no hue). */
+/** The Add as the foot holds it: at rest, or its ring the send's progress with the count still to go on its shoulder. */
 export type ShutterLook =
   | { state: "idle" }
-  | { state: "sending"; progress: number; count: number }
-  | { state: "standby"; progress: number; count: number };
+  | { state: "sending"; progress: number; count: number };
 
 /**
  * THE FOOT, as `guest-action-dock.tsx` draws it: the page's ground rising,
@@ -246,7 +245,6 @@ export type ShutterLook =
  * stand-in uses.
  */
 function Dock({ shutter, above }: { shutter: ShutterLook; above?: ReactNode }) {
-  const standby = shutter.state === "standby";
   return (
     <>
       <div
@@ -268,20 +266,18 @@ function Dock({ shutter, above }: { shutter: ShutterLook; above?: ReactNode }) {
           >
             <QrCode />
           </Button>
-          <span data-ns-standby={standby ? "" : undefined} className="contents">
-            <Shutter
-              state={shutter.state === "idle" ? "idle" : "sending"}
-              progress={shutter.state === "idle" ? 0 : shutter.progress}
-              count={shutter.state === "idle" ? 0 : shutter.count}
-              hues={WEDDING.hues}
-              tabIndex={-1}
-              aria-label={
-                shutter.state === "idle"
-                  ? "Add photos"
-                  : `Add photos, ${shutter.count} ${standby ? "waiting" : "uploading"}`
-              }
-            />
-          </span>
+          <Shutter
+            state={shutter.state}
+            progress={shutter.state === "idle" ? 0 : shutter.progress}
+            count={shutter.state === "idle" ? 0 : shutter.count}
+            hues={WEDDING.hues}
+            tabIndex={-1}
+            aria-label={
+              shutter.state === "idle"
+                ? "Add photos"
+                : `Add photos, ${shutter.count} uploading`
+            }
+          />
           <Button
             type="button"
             variant="outline"

@@ -2,7 +2,6 @@
 
 import { afterShotHint, reelCaption } from "@/lib/guest/camera/words";
 import { UPLOAD_WORDS } from "@/lib/upload/uploader";
-import { cn } from "@/lib/utils";
 
 import {
   type CameraState,
@@ -23,7 +22,7 @@ import {
   textOf,
 } from "./scene";
 import { WaitPoint } from "./stack";
-import { reelWaiting, shotsWaitingLine } from "./words";
+import { reelWaiting, rollWaitingLine, shotsWaitingLine } from "./words";
 
 /**
  * A DISPOSABLE'S ROLL IN A DEAD ZONE (the `roll` ask, Will's one-way door):
@@ -89,7 +88,7 @@ const PRESSING: Record<RollWay, CameraState> = {
     hint: afterShotHint(ROLL.before + 1),
     retry: false,
   },
-  // The line under the shutter goes with the shutter, so the roll's end says what waits in its own caption line.
+  // The line under the shutter goes with the shutter, so the roll's end leads its own line with what waits.
   taken: {
     used: ROLL.cap,
     waiting: LEFT,
@@ -107,7 +106,7 @@ const PRESSING: Record<RollWay, CameraState> = {
     ),
     hint: "",
     done: true,
-    doneNote: shotsWaitingLine(LEFT),
+    doneLine: rollWaitingLine({ held: ROLL.cap, waiting: LEFT }),
   },
 };
 
@@ -210,9 +209,6 @@ const FATE_WORDS: Record<Fate, string> = {
   untaken: "Never taken",
 };
 
-const LEDGER_HEAD =
-  "His presses in the cellar: the count each one left, and where each shot is at 12:41 am.";
-
 const LEDGER_LINE: Record<RollWay, string> = {
   lands:
     "The count stayed at 4 and nothing stopped him; as the line came back it fell to 0, and his last 2 were refused.",
@@ -227,80 +223,59 @@ const REEL_LINE: Record<RollWay, string> = {
     "The reel at 11:49 pm, at twice a phone's size: his 2 waiting, half-lit and still.",
 };
 
-const COUNT_CELL = "text-[13px] leading-tight text-muted-foreground";
-const FATE_CELL = "flex items-center gap-1.5 text-sm leading-tight";
-
 /**
  * HIS PRESSES, THE COUNT EACH LEFT, AND WHERE EACH SHOT ENDS: one row a fact,
  * the two the shutter never took (like film) drawn as the empty frames they
  * are, the two the roll refused (today) as the photographs he lost; under it
  * the reel at twice a phone's size. ★ A COLUMN, so the whole stage stands it
- * beside the phones in the room their height leaves, at a size it can be read
- * at once the stage is scaled to fit.
+ * beside the phones in the room their height leaves; ★ SET IN THE STAGE'S
+ * SCREEN PIXELS DOWN TO A FLOOR (`roll.css`, the night strip's own way), so
+ * at a phone it never shrinks to a few pixels' type, and there it keeps the
+ * presses alone.
  */
 function CellarLedger({ way }: { way: RollWay }) {
   const presses = PRESSES[way];
   const fifth = presses[LEFT]!;
   return (
-    <figure
-      data-ns-ledger={way}
-      className="m-0 flex w-full max-w-[34rem] flex-col gap-4"
-    >
-      <figcaption className="flex flex-col gap-1 text-sm text-pretty">
-        <span className="text-muted-foreground">{LEDGER_HEAD}</span>
-        <span>{LEDGER_LINE[way]}</span>
-      </figcaption>
-      <div className="grid grid-cols-6 gap-x-2.5 gap-y-2">
+    <figure data-ns-ledger={way} className="ns-ledger">
+      <figcaption className="ns-ledger-line">{LEDGER_LINE[way]}</figcaption>
+      <div className="ns-ledger-grid">
         {presses.map((p, i) => (
           <span
             key={`shot-${i}`}
             data-ns-fate={p.fate}
-            className={cn(
-              "relative aspect-[3/4] w-full overflow-hidden rounded-tile",
-              p.fate === "untaken"
-                ? "outline-1 -outline-offset-1 outline-muted-foreground/45 outline-dashed"
-                : "bg-muted",
-            )}
+            className="ns-ledger-shot"
           >
             {p.fate === "untaken" ? null : (
               // eslint-disable-next-line @next/next/no-img-element -- his shot, as the press took it
-              <img
-                src={CELLAR_SHOTS[i]!.src}
-                alt=""
-                className={cn(
-                  "size-full object-cover",
-                  p.fate === "refused" && "opacity-40 grayscale",
-                )}
-              />
+              <img src={CELLAR_SHOTS[i]!.src} alt="" />
             )}
           </span>
         ))}
         {presses.map((p, i) =>
           p.left === null ? null : (
-            <span key={`left-${i}`} className={cn(COUNT_CELL, "tabular-nums")}>
+            <span key={`left-${i}`} className="ns-ledger-count">
               {`${p.left} left`}
             </span>
           ),
         )}
         {fifth.left === null ? (
-          <span className={cn(COUNT_CELL, "col-span-2")}>Shutter off</span>
+          <span className="ns-ledger-count ns-ledger-span">Shutter off</span>
         ) : null}
         {presses.slice(0, LEFT).map((p, i) => (
-          <span key={`fate-${i}`} className={FATE_CELL}>
+          <span key={`fate-${i}`} className="ns-ledger-fate">
             <WaitPoint lit />
             {FATE_WORDS[p.fate]}
           </span>
         ))}
-        <span className={cn(FATE_CELL, "col-span-2")}>
+        <span className="ns-ledger-fate ns-ledger-span">
           {fifth.fate === "refused" ? <WaitPoint unlit /> : null}
           {FATE_WORDS[fifth.fate]}
         </span>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="ns-ledger-reel">
         <ReelAt2x s={SECOND[way]} />
-        <p className="text-[13px] text-pretty text-muted-foreground">
-          {REEL_LINE[way]}
-        </p>
+        <p>{REEL_LINE[way]}</p>
       </div>
     </figure>
   );

@@ -34,7 +34,6 @@ const PREVIEWS: PreviewsFor<typeof NO_SIGNAL> = {
   "carry.retry": (s) => <CarryStory carry="retry" ground={on(s)} />,
   "carry.return": (s) => <CarryStory carry="return" ground={on(s)} />,
   "carry.phone": (s) => <CarryStory carry="phone" ground={on(s)} />,
-  "carry.background": (s) => <CarryStory carry="background" ground={on(s)} />,
   "drop.sheet": (s) => (
     <DropStory way="sheet" carry={carried(s)} ground={on(s)} />
   ),
