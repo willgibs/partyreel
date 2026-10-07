@@ -61,7 +61,9 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
   Guests list's own cell in `social.test.ts`) runs them on the fake PostgREST and fails if one forgets.
 - ★ **The guest's page is the guests' view, its host's included**: no guest-path read takes the owner's exemption (the
   open album RPC is asked with no session, `createAnonClient`), so two viewers of one page never hold two albums under
-  one validator. The host's exemption is her dashboard's (her own session's INVOKER reads).
+  one validator. The host's exemption is her dashboard's (her own session's INVOKER reads), so a dashboard surface
+  that draws a photograph a guest could be shown carries the filter itself: the stage's wall does
+  (`getStagePhotos`, [dashboard.md](dashboard.md)); a tile's cover and still and the stage's counts stay hers.
 - **Never a NOT of the visible predicate**: it is not null-safe. Where the sealed rows themselves are asked, write
   `m.sealed_until > now() and e.host_id is distinct from (select auth.uid())`, as `album_changes_since` does.
 - ★ **No writer seals a row a guest may have seen**, so a photo a guest has seen never goes back into the wait: every
@@ -271,8 +273,9 @@ in the reader's own clock and only after hydration (`wait-words.ts`, `lib/guest/
 decides ahead or reached on `useWaitClock`, one shared store that turns at the develop itself. A far party's develop
 is said in both clocks ("Sun, Oct 4 at 9 am in Bali, Sat 6 pm yours", her weekday only where her day differs:
 `developsWhen(iso, now, zone)`, `bothClocksWhen`), the page handing its zone for words alone (`partyZone`, never behind a
-lock); the cover's eyebrow keeps her own short clock, and the hub names a far party's place as Settings does
-(`hubDevelopWhen`). A reader with a clock of
+lock); the cover's eyebrow keeps her own short clock, the hub's line names a far party's place as Settings does
+(`hubDevelopWhen`) and the held card under it (`ContactSheet`'s develop clock, handed the same zone) says both clocks as
+the guests' sheet does, never her own alone, unlabelled, beneath a line in the party's. A reader with a clock of
 its own (a `Date.now()` in a render, an interval of its own) keeps a cover standing after its develop.
 
 ## Verifying it
