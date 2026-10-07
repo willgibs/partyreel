@@ -22,6 +22,7 @@ import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { waitsForLine } from "@/lib/guest/unsent/standby";
 import {
   uploadsWait as uploadsWaitOf,
   type UploadsWait,
@@ -257,6 +258,12 @@ export function GuestUpload({
      mounted (`carriedFailures`) is not this run's, so a clean run after a gate
      never reopens the OLD sheet, with its Retry for a file the host's switch
      refused an hour ago.
+
+     ★ A FILE STANDING BY FOR THE LINE IS NOT GOING (no-signal r1, `drop=standby`):
+     it waits, said where it stands (the stack, her uploads), and the line may not
+     come back for an hour, so a refusal of a file of its own (too large, a type)
+     beside it is said once nothing is going up, as at any run's end, never held
+     behind the wait. The sheet lists only the refusal: a wait is never a failure.
      ──────────────────────────────────────────────────────────────────────── */
   const [failuresOpen, setFailuresOpen] = useState(false);
   const wasRunning = useRef(false);
@@ -277,7 +284,9 @@ export function GuestUpload({
   );
   useEffect(() => {
     const running = items.some(
-      (it) => it.status === "queued" || it.status === "uploading",
+      (it) =>
+        (it.status === "queued" || it.status === "uploading") &&
+        !waitsForLine(it),
     );
     if (
       wasRunning.current &&

@@ -14,7 +14,17 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { joinEvent } from "@/lib/guest/join";
 import {
+  LINE_EVERY_MS,
+  LINE_FIRST_MS,
+  LINE_TEXT,
+  LINE_URL,
+  releaseGap,
+} from "@/lib/guest/unsent/line";
+import {
+  JOIN_OFFLINE_WORDS,
+  joinLostTheLine,
   landedAs,
   runLandedOf,
   runProgressOf,
@@ -35,7 +45,6 @@ import {
   type BurstFile,
   type UploadOutcome,
 } from "@/lib/upload/uploader";
-import { HEAL_AFTER_MS } from "@/lib/guest/use-upload-queue.heal";
 
 vi.mock("@/lib/upload/uploader", () => {
   const uploadFile = vi.fn();
@@ -571,29 +580,36 @@ describe("a join nobody at the door could fix", () => {
 });
 
 /*
- * ★ WHY A FILE DID NOT GO RIDES THE QUEUE (the failure sheet and the camera draw a dropped connection apart from a
- * refusal by the transport's `cause`, never by matching its words): a drop carries its own, a refusal carries none, and a
- * Retry gives it back with the rest of the failure. (Her own cancel used to be a third failure that carried
- * `cause: "cancelled"`; since upload-cancel it is no failure at all: the file leaves the queue and the failure sheet
- * never lists it, `use-upload-queue.stop.test.tsx`.)
+ * ★ A DROPPED LINE STANDS BY, AND GOES AGAIN WHEN THE LINE ANSWERS (no-signal r1, Will's `drop=standby` over
+ * `carry=phone`). A file the connection ended is never a failure now: it waits `queued`, its cause kept
+ * (`waitsForLine`), its bar at nothing, while the run (so the shutter's ring and the stack) holds it, and it goes again,
+ * the very same File, once the line answers: a tiny static file asked a few seconds on, every 20 s after, on the phone's
+ * `online` and on her return to the page (`unsent/line.ts`).
+ *
+ * RESHAPED ON PURPOSE (no-signal-wiring): these pinned "★ a lost answer heals itself" (red-team 55's LOW) and "★ the
+ * cause of a failure rides the queue". The reason that expired is the failure itself: a dropped file used to fail into
+ * the sheet, and the heal (`use-upload-queue.heal.ts`, which the host's panel still reads) asked a kept complete again
+ * for it; no guest file fails for the line any more, so a lost answer stands by with every other drop and goes again on
+ * its kept complete when the line answers. The scars kept: the very same File goes again (so the uploader asks its kept
+ * complete, never a second upload), a landing is told once, a check that finds the line down changes nothing she sees,
+ * nothing goes while the door holds her, the owner's go through her own pair, no join is made for a file that has its
+ * ticket, a refusal carries no cause and a cancel is no failure, and a Retry for a file the line's return already took
+ * moves nothing (crumbs-90).
  */
-/**
- * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (red-team 55's LOW). A file that failed as a dropped connection with its complete
- * kept may be in the album already (its row stands, only the answer was lost): the queue asks that very complete again,
- * as her Retry does, a few seconds on, and tells the file as landed when the server's own row answers, so the sheet that
- * listed it as failed lets it go and the album's tile is the queue's own landing. The ask is the hook's
- * (`use-upload-queue.heal.test.tsx` pins when); this is what it does to the queue.
- */
-describe("★ a lost answer heals itself", () => {
+describe("★ a dropped line stands by, and goes again when the line answers", () => {
   const DROPPED = "Your connection dropped. Check your signal, then try again.";
   const droppedOutcome: UploadOutcome = {
     ok: false,
     message: DROPPED,
     cause: "dropped",
   };
+  let lineUp = false;
+  let lineAsks = 0;
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    lineUp = false;
+    lineAsks = 0;
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -602,12 +618,34 @@ describe("★ a lost answer heals itself", () => {
     vi.mocked(hasKeptComplete).mockReset();
   });
 
-  /** A file whose complete is kept, sent once and failed: the queue at the moment the guest is shown the failure. */
-  async function lostOnce(
+  /** fetch as `answer` gives it, with the line's own file (`/line.txt`) answering its words while `lineUp`. */
+  function withLine(
+    routes: Record<string, { ok: boolean; body: unknown }[]> = {},
+  ) {
+    answer(routes);
+    const routed = global.fetch;
+    global.fetch = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        if (String(input).startsWith(LINE_URL)) {
+          lineAsks += 1;
+          if (!lineUp) throw new TypeError("Failed to fetch");
+          return { ok: true, text: async () => LINE_TEXT } as Response;
+        }
+        return routed(input, init);
+      },
+    ) as typeof fetch;
+  }
+
+  /** Every request but the line's own. */
+  const nonLineUrls = () => fetchUrls().filter((u) => !u.startsWith(LINE_URL));
+
+  /** A file sent once and dropped: the queue at the moment the line went. */
+  async function droppedOnce(
     props: Props = { sessionToken: STALE, isVerified: false },
   ) {
-    answer({});
+    withLine();
     const file = makeFile("lost.jpg");
+    // Its complete was kept (a lost answer): the uploader asks it again by this very File.
     vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
     mockUploadFile.mockResolvedValueOnce(droppedOutcome);
     const q = mountQueue(props);
@@ -616,16 +654,35 @@ describe("★ a lost answer heals itself", () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     expect(q.items()).toEqual([
-      expect.objectContaining({ status: "error", cause: "dropped" }),
+      expect.objectContaining({
+        status: "queued",
+        cause: "dropped",
+        progress: 0,
+      }),
     ]);
     return { q, file };
   }
 
-  it("★ asks the kept complete again a few seconds on, and tells the file as landed when the row answers", async () => {
-    const { q, file } = await lostOnce();
+  it("★ stands by: queued, its cause kept and its bar at nothing, never an error, and the run still holds it", async () => {
+    const { q } = await droppedOnce();
+    const it0 = q.items()[0]!;
+    expect(it0.error).toBeUndefined();
+    expect(it0.errorCode).toBeUndefined();
+    // Still on its way: the shutter's ring holds it, at what landed (nothing), its count on its shoulder.
+    expect(
+      runProgressOf(q.items(), q.result.current.progress, new Set()),
+    ).toEqual({ sending: 1, progress: 0, landed: 0, failed: 0 });
+    // And the stack reads it off the store: waiting, in the page alone (jsdom keeps no IndexedDB).
+    expect(q.result.current.progress.waits?.(it0.id)).toBe("page");
+    expect(q.result.current.progress.get(it0.id)).toBe(0);
+  });
+
+  it("★ goes again a few seconds on once the line answers, the very same File, and is told as landed once", async () => {
+    const { q, file } = await droppedOnce();
+    lineUp = true;
     mockUploadFile.mockResolvedValueOnce(landed("med-1"));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
     // The very same File went again (the uploader sends its kept complete, never a presign or a byte), once.
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
@@ -638,6 +695,7 @@ describe("★ a lost answer heals itself", () => {
         cause: undefined,
       }),
     ]);
+    expect(q.result.current.progress.waits?.(q.items()[0]!.id)).toBeNull();
     // Told as any landing is: the album draws it as her own upload, once.
     expect(q.onUploaded).toHaveBeenCalledTimes(1);
     expect(q.onUploaded).toHaveBeenCalledWith(
@@ -645,79 +703,146 @@ describe("★ a lost answer heals itself", () => {
     );
   });
 
-  it("★ an ask that finds the line still down changes nothing she sees: the failure stands as it was, and the next ask is longer", async () => {
-    const { q } = await lostOnce();
-    mockUploadFile.mockResolvedValueOnce(droppedOutcome);
+  it("★ a check that finds the line still down changes nothing she sees, and the line is asked again on its cadence", async () => {
+    const { q } = await droppedOnce();
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
-    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(lineAsks).toBe(1);
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
     expect(q.items()).toEqual([
-      expect.objectContaining({
-        status: "error",
-        cause: "dropped",
-        error: DROPPED,
-      }),
+      expect.objectContaining({ status: "queued", cause: "dropped" }),
     ]);
-    expect(q.onUploaded).not.toHaveBeenCalled();
-    // Not again after the same wait, but after the longer one.
+    // Not again before the line's own 20 s.
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[1] - 1);
+      await vi.advanceTimersByTimeAsync(LINE_EVERY_MS - 1);
     });
-    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(lineAsks).toBe(1);
+    lineUp = true;
     mockUploadFile.mockResolvedValueOnce(landed("med-2"));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1);
     });
+    expect(lineAsks).toBe(2);
     expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
   });
 
-  it("★ leaves a failure that is not a lost answer to her Retry: a refusal, and a drop whose bytes never went", async () => {
-    answer({});
+  it("★ the phone's own `online` and her return to the page ask at once", async () => {
+    const { q } = await droppedOnce();
+    lineUp = true;
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+  });
+
+  it("★ a send that drops again on an answering line backs off: the next goes 40 s on, never every 20 s", async () => {
+    const { q } = await droppedOnce();
+    lineUp = true;
+    mockUploadFile.mockResolvedValueOnce(droppedOutcome);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
+    });
+    // The line answered, the send went, and it dropped again: a miss.
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items()[0]).toMatchObject({ status: "queued", cause: "dropped" });
+    // Nothing goes before the backoff, whatever asks: the cadence, the phone's `online`.
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      await vi.advanceTimersByTimeAsync(releaseGap(1) - 1_000);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(3);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+  });
+
+  it("a dropped connection stands by with its cause, a refusal fails with none, and a cancel is no failure here", async () => {
+    withLine();
     mockUploadFile
+      .mockResolvedValueOnce(droppedOutcome)
+      .mockResolvedValueOnce({
+        ok: false,
+        message: "That upload was cancelled.",
+        cause: "cancelled",
+      })
       .mockResolvedValueOnce({
         ok: false,
         code: "too_large",
         message: "Files for this event are capped at 500 MB.",
-      })
-      .mockResolvedValueOnce(droppedOutcome);
-    // Neither file's complete is kept: the first was refused outright, the second dropped before its complete.
-    vi.mocked(hasKeptComplete).mockReturnValue(false);
+      });
     const q = mountQueue({ sessionToken: STALE, isVerified: false });
     act(() =>
-      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+      q.result.current.addFiles([
+        makeFile("a.jpg"),
+        makeFile("b.jpg"),
+        makeFile("c.jpg"),
+      ]),
     );
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[2]);
+      await vi.advanceTimersByTimeAsync(0);
     });
-    expect(mockUploadFile).toHaveBeenCalledTimes(2);
-    expect(q.items().map((it) => it.status)).toEqual(["error", "error"]);
+    // The cancelled one (b) left the queue: the sheet lists what did not go, and a cancel is not that.
+    expect(q.items().map((it) => [it.file.name, it.status, it.cause])).toEqual([
+      ["a.jpg", "queued", "dropped"],
+      ["c.jpg", "error", undefined],
+    ]);
+    expect(q.items()[1]).toMatchObject({ errorCode: "too_large" });
+    // The refusal is the file's own: the line's return never sends it, only her Retry may.
+    lineUp = true;
+    mockUploadFile.mockResolvedValueOnce(landed("med-a"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(4);
+    expect(mockUploadFile.mock.calls[3]![0].file.name).toBe("a.jpg");
+    expect(q.items().map((it) => it.status)).toEqual(["done", "error"]);
   });
 
-  it("asks nothing on a device with no ticket, or while a door holds her: the join and the door are not this to make", async () => {
-    const { q } = await lostOnce({ sessionToken: STALE, isVerified: false });
-    q.rerender({ sessionToken: null, isVerified: false });
+  it("the line's return gives the cause back as the file goes again", async () => {
+    const { q } = await droppedOnce();
+    lineUp = true;
+    // The second go stays in the air, so what the item holds is exactly what the send left it.
+    mockUploadFile.mockReturnValueOnce(new Promise<UploadOutcome>(() => {}));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
-    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    expect(q.items()[0]!.status).toBe("uploading");
+    expect(q.items()[0]!.cause).toBeUndefined();
+    expect(q.items()[0]!.error).toBeUndefined();
+  });
+
+  it("nothing goes while a door holds her: the line's return leaves it for the door's own opening", async () => {
+    const { q } = await droppedOnce({ sessionToken: STALE, isVerified: false });
     q.rerender({ sessionToken: STALE, isVerified: false, doorOpen: false });
+    lineUp = true;
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[1]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
     expect(mockUploadFile).toHaveBeenCalledTimes(1);
-    expect(q.items()).toEqual([expect.objectContaining({ status: "error" })]);
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    q.rerender({ sessionToken: STALE, isVerified: false, doorOpen: true });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
   });
 
-  it("asks through the host's own pair for the album's owner, as her Retry does", async () => {
-    const { q } = await lostOnce({
+  it("goes through the host's own pair for the album's owner", async () => {
+    const { q } = await droppedOnce({
       sessionToken: null,
       isVerified: true,
       ownerEventId: "evt-own",
     });
+    lineUp = true;
     mockUploadFile.mockResolvedValueOnce(landed("med-own"));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
     expect(mockUploadFile.mock.calls[1]![0].identity).toEqual({
       event_id: "evt-own",
@@ -725,19 +850,25 @@ describe("★ a lost answer heals itself", () => {
     expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
   });
 
-  it("★ a Retry pressed as the line comes back, for a file the heal took, sends nothing beside it: in the air or landed (crumbs-90)", async () => {
-    // The sheet's Retry all as the line returns: its words are latched while it slides away, so a press names files
-    // the heal already took on `online`. It re-queued them: one in the air fell back to nothing, and one landed went
-    // up again as a second upload of the same photograph (a second complete beside the heal's, and a second row).
-    const { q, file } = await lostOnce();
+  it("★ a Retry for a file that stands by, or that the line's return took, sends nothing beside it: in the air or landed (crumbs-90)", async () => {
+    // The scar kept from the heal's race: a press names a file a moment ago's words drew, and a file the line's return
+    // already took (in the air, or landed) must never go up again as a second upload of the same photograph.
+    const { q, file } = await droppedOnce();
     const id = q.items()[0]!.id;
-    let answerHeal: (outcome: UploadOutcome) => void = () => {};
+    // Standing by: it is no failure, so her press moves nothing (the line is what sends it).
+    await act(async () => {
+      q.result.current.retry(id);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    let answerSend: (outcome: UploadOutcome) => void = () => {};
     mockUploadFile.mockImplementationOnce(
       () =>
         new Promise<UploadOutcome>((resolve) => {
-          answerHeal = resolve;
+          answerSend = resolve;
         }),
     );
+    lineUp = true;
     await act(async () => {
       window.dispatchEvent(new Event("online"));
       await vi.advanceTimersByTimeAsync(0);
@@ -751,16 +882,13 @@ describe("★ a lost answer heals itself", () => {
     });
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
     await act(async () => {
-      answerHeal(landed("med-1"));
+      answerSend(landed("med-1"));
       await vi.advanceTimersByTimeAsync(0);
     });
-    expect(q.items()).toEqual([
-      expect.objectContaining({ status: "done", mediaId: "med-1" }),
-    ]);
     // Landed: still nothing, and the photograph stays the one row it is.
     await act(async () => {
       q.result.current.retry(id);
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[2]);
+      await vi.advanceTimersByTimeAsync(LINE_EVERY_MS * 3);
     });
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
     expect(q.items()).toEqual([
@@ -769,79 +897,95 @@ describe("★ a lost answer heals itself", () => {
     expect(q.onUploaded).toHaveBeenCalledTimes(1);
   });
 
-  it("is the file's complete asked again and no more: no join is made and no ticket is touched", async () => {
-    // Not her Retry in one thing: it never gives the silent join back (the head note), so a ticket that keeps being
-    // refused can never turn it into a row factory.
-    const { q } = await lostOnce();
+  it("is the file sent again and no more: no join is made and no ticket is touched", async () => {
+    const { q } = await droppedOnce();
+    lineUp = true;
     mockUploadFile.mockResolvedValueOnce(landed("med-1"));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
-    expect(fetchUrls()).toEqual([]);
+    expect(nonLineUrls()).toEqual([]);
     expect(q.onSession).not.toHaveBeenCalled();
   });
-});
 
-describe("★ the cause of a failure rides the queue", () => {
-  const DROPPED = "Your connection dropped. Check your signal, then try again.";
-
-  it("a dropped connection carries its cause beside the sentence, a refusal none, and a cancel is no failure here", async () => {
-    answer({});
-    mockUploadFile
-      .mockResolvedValueOnce({ ok: false, message: DROPPED, cause: "dropped" })
-      .mockResolvedValueOnce({
-        ok: false,
-        message: "That upload was cancelled.",
-        cause: "cancelled",
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        code: "too_large",
-        message: "Files for this event are capped at 500 MB.",
+  it("★ while the phone says it is offline, what she adds stands by at once: no presign, no join", async () => {
+    withLine();
+    const onLine = Object.getOwnPropertyDescriptor(
+      Navigator.prototype,
+      "onLine",
+    );
+    Object.defineProperty(navigator, "onLine", {
+      configurable: true,
+      value: false,
+    });
+    try {
+      const q = mountQueue({ sessionToken: STALE, isVerified: false });
+      act(() =>
+        q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+      );
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
       });
-    const q = mountQueue({ sessionToken: STALE, isVerified: false });
-
-    act(() =>
-      q.result.current.addFiles([
-        makeFile("a.jpg"),
-        makeFile("b.jpg"),
-        makeFile("c.jpg"),
-      ]),
-    );
-    // The cancelled one (b) left the queue: the sheet lists what did not go, and a cancel is not that.
-    await waitFor(() =>
-      expect(q.items().map((it) => [it.file.name, it.status])).toEqual([
-        ["a.jpg", "error"],
-        ["c.jpg", "error"],
-      ]),
-    );
-    expect(q.items().map((it) => it.cause)).toEqual(["dropped", undefined]);
-    expect(q.items()[0]).toMatchObject({ error: DROPPED });
-    expect(q.items()[0].errorCode).toBeUndefined();
-    expect(q.items()[1]).toMatchObject({ errorCode: "too_large" });
+      expect(mockUploadFile).not.toHaveBeenCalled();
+      expect(vi.mocked(uploadBurst)).not.toHaveBeenCalled();
+      expect(q.items().map((it) => [it.status, it.cause])).toEqual([
+        ["queued", "dropped"],
+        ["queued", "dropped"],
+      ]);
+      // Nor is the line asked while the phone says it is offline: the one way its word is true.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
+      });
+      expect(lineAsks).toBe(0);
+    } finally {
+      delete (navigator as { onLine?: boolean }).onLine;
+      if (onLine) Object.defineProperty(Navigator.prototype, "onLine", onLine);
+    }
   });
 
-  it("a Retry gives the cause back with the rest of the failure", async () => {
-    answer({});
-    mockUploadFile.mockResolvedValueOnce({
-      ok: false,
-      message: DROPPED,
-      cause: "dropped",
+  it("★ a first pick whose silent join never reached the network stands by, never a toast, and goes once the line answers, the join asked again", async () => {
+    localStorage.clear();
+    const { toast } = await import("sonner");
+    // No route for the join: its request never reaches a server (the join module's own offline refusal).
+    withLine();
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
     });
-    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+    expect(q.items()).toEqual([
+      expect.objectContaining({ status: "queued", cause: "dropped" }),
+    ]);
+    // The line comes back: the join is asked again as the file goes, and the file rides its ticket.
+    withLine({
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "fresh-token" } },
+      ],
+    });
+    lineUp = true;
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
+    });
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+    expect(sentOn(0)).toBe("fresh-token");
+  });
 
-    act(() => q.result.current.addFiles([makeFile()]));
-    await waitFor(() =>
-      expect(q.items()[0]).toMatchObject({ status: "error", cause: "dropped" }),
-    );
-
-    // The second go stays in the air (queued only now, so a failure above never leaves it for the next test), and
-    // what the item holds is exactly what the Retry left it.
-    mockUploadFile.mockReturnValueOnce(new Promise<UploadOutcome>(() => {}));
-    act(() => q.result.current.retry(q.items()[0].id));
-    await waitFor(() => expect(q.items()[0].status).toBe("uploading"));
-    expect(q.items()[0].cause).toBeUndefined();
-    expect(q.items()[0].error).toBeUndefined();
+  it("holds the join module's own words for a request that never left (`JOIN_OFFLINE_WORDS`)", async () => {
+    global.fetch = vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }) as typeof fetch;
+    const joined = await joinEvent({ qrToken: "qr-offline" });
+    expect(joined.ok).toBe(false);
+    if (joined.ok) return;
+    expect(joined.refusal.message).toBe(JOIN_OFFLINE_WORDS);
+    expect(joinLostTheLine(joined.refusal)).toBe(true);
+    // A server's own refusal is never the line.
+    expect(
+      joinLostTheLine({ kind: "other", message: "Too many joins right now." }),
+    ).toBe(false);
   });
 });
 
@@ -1204,6 +1348,7 @@ describe("★ what waits goes as one burst (compute-uploads)", () => {
 describe("★ bursts back to back (uploads-bursts)", () => {
   const burstMock = vi.mocked(uploadBurst);
   const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  const REFUSED = "That upload didn't go through. Please try again.";
   type BurstArgs = Parameters<typeof uploadBurst>[0];
 
   /** A burst whose bytes go up at once (each file sent, then its `onSendDone`) and whose complete answers on `answer`. */
@@ -1227,11 +1372,13 @@ describe("★ bursts back to back (uploads-bursts)", () => {
   const many = (count: number) =>
     Array.from({ length: count }, (_, i) => makeFile(`p${i}.jpg`));
 
-  it("★ a dropped burst's Retry all goes back as ONE burst: one presign and one complete for the lot", async () => {
+  it("★ a failed burst's Retry all goes back as ONE burst: one presign and one complete for the lot", async () => {
+    // RESHAPED (no-signal-wiring): the burst failed as a dropped line, which no longer fails (it stands by, and the
+    // line's return sends it as one burst: the next case). The scar kept is the Retry all's: a failure that is no
+    // drop (an answer that was an error) goes back as the one burst it was, and the sheet's close drops none of it.
     mockUploadFile.mockResolvedValue({
       ok: false,
-      message: DROPPED,
-      cause: "dropped",
+      message: REFUSED,
     });
     const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
     act(() => q.result.current.addFiles(many(5)));
@@ -1257,11 +1404,45 @@ describe("★ bursts back to back (uploads-bursts)", () => {
     expect(q.items()).toHaveLength(5);
   });
 
+  it("★ a dropped burst goes back as ONE burst when the line answers: one presign and one complete for the lot", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    try {
+      const real = global.fetch;
+      global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).startsWith(LINE_URL)) {
+          return { ok: true, text: async () => LINE_TEXT } as Response;
+        }
+        return real(input);
+      }) as typeof fetch;
+      mockUploadFile.mockResolvedValue({
+        ok: false,
+        message: DROPPED,
+        cause: "dropped",
+      });
+      const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
+      act(() => q.result.current.addFiles(many(5)));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      expect(q.items().every((it) => it.status === "queued")).toBe(true);
+      expect(burstMock).toHaveBeenCalledTimes(1);
+      let n = 0;
+      mockUploadFile.mockImplementation(async () => landed(`med-${++n}`));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
+      });
+      expect(q.items().every((it) => it.status === "done")).toBe(true);
+      expect(burstMock).toHaveBeenCalledTimes(2);
+      expect(burstMock.mock.calls[1]![0].files).toHaveLength(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("a single file's Retry is a burst of that file alone, as ever", async () => {
     mockUploadFile.mockResolvedValue({
       ok: false,
-      message: DROPPED,
-      cause: "dropped",
+      message: REFUSED,
     });
     const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
     act(() => q.result.current.addFiles(many(3)));
@@ -1481,7 +1662,9 @@ describe("a refusal of the file itself that the uploader made locally", () => {
     ]);
   });
 
-  it("never speaks for the line: a connection that dropped stays a failure worth another go, whatever the file", async () => {
+  it("never speaks for the line: a connection that dropped stands by with no code, whatever the file", async () => {
+    // RESHAPED (no-signal-wiring): "stays a failure worth another go" became "stands by" (a drop is a wait now, never
+    // a failure: `drop=standby`). The scar kept: the queue makes no code up for a file the line could not carry.
     mockUploadFile.mockResolvedValue({
       ok: false,
       message: "Your connection dropped.",
@@ -1489,7 +1672,12 @@ describe("a refusal of the file itself that the uploader made locally", () => {
     });
     const q = mountQueue({ sessionToken: "ticket-1", isVerified: false });
     act(() => q.result.current.addFiles([file("notes.txt", "text/plain")]));
-    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    await waitFor(() =>
+      expect(q.items()[0]).toMatchObject({
+        status: "queued",
+        cause: "dropped",
+      }),
+    );
     expect(q.items()[0]?.errorCode).toBeUndefined();
   });
 

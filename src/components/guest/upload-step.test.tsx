@@ -441,6 +441,45 @@ describe("the surface", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("★ a pick waiting for the line says so in its bar's place, and the step says it once every pick waits (no-signal r1)", () => {
+    const { container, rerender } = mount({
+      queue: [
+        item({ id: "a", status: "uploading", progress: 40 }),
+        item({ id: "b", status: "queued", progress: 0, cause: "dropped" }),
+      ],
+    });
+    // One still goes: the step still sends, and the waiting pick says it waits, half-lit, with no bar.
+    expect(screen.getByText("Sending your photos")).toBeInTheDocument();
+    expect(container.querySelectorAll("[data-upload-progress]")).toHaveLength(
+      1,
+    );
+    const waiting = container.querySelector(
+      "[data-upload-waiting]",
+    ) as HTMLElement;
+    expect(waiting).toHaveTextContent("Waiting for your connection");
+    expect(waiting.querySelector("[data-wait-point]")).not.toBeNull();
+    rerender(
+      <UploadStep
+        isDemo={false}
+        requireUpload={false}
+        albumEmpty={false}
+        queue={[
+          item({ id: "a", status: "queued", progress: 0, cause: "dropped" }),
+          item({ id: "b", status: "queued", progress: 0, cause: "dropped" }),
+        ]}
+        onSend={() => {}}
+        onRetry={() => {}}
+        onDismiss={() => {}}
+        onContinueWithout={() => {}}
+      />,
+    );
+    // Every pick waits: nothing is sending, and the step never opens a failure over a wait.
+    // The heading and each pick's own line.
+    expect(screen.getAllByText("Waiting for your connection")).toHaveLength(3);
+    expect(screen.queryByText("Sending your photos")).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+  });
+
   it("★ each bar fills as its bytes go: the queue's 0 to 100 is a percent, never a fraction", () => {
     const { container } = mount({
       queue: [

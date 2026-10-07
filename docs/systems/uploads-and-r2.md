@@ -100,22 +100,28 @@ shapes.
   the phone cannot read, or the server's own `complete_failed` or `unknown`) is kept by its File (`UNANSWERED`), and
   that file's next try sends that very complete again (its media id, key and parts), never a presign or a byte: a row
   the first wrote answers `recorded`, so no row or byte is counted twice; any other answer settles it, and a refused
-  file's next try starts afresh. The guest's queue makes that try itself for a file that failed as a dropped connection
-  (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20 and 60 s on, on the browser's `online` and when the page is
-  looked at again, none while it says it is offline, three asks a File, through the queue's own runner so her Retry
-  never races it, and her Retry re-queues only a file still failed, so a press on words the heal has overtaken sends
-  nothing), so a row the server wrote is told as landed and the sheet that listed it lets it go; the host
-  panel's rows (`host-upload.tsx`) read the same hook, and a row that said dropped reads "Added to the album".
+  file's next try starts afresh. ★ **The guest's queue never fails a file for the line** (no-signal r1, `drop=standby`):
+  a dropped file stands by, `queued` with its cause kept (`unsent/standby.ts`'s `waitsForLine`), and the runner leaves
+  it until the line answers (`unsent/line.ts`: the static `public/line.txt`, its words checked so a venue's sign-in
+  page never reads as the line, asked 5 s after a drop, every 20 s, on the browser's `online` and when the page is
+  looked at again, never while the phone says offline, and a send that drops again on an answering line backs off
+  40 s, 80 s, to five minutes, a landing starting it over), then sends it on that very File, so a kept complete is asked
+  again and a row the server wrote answers `recorded`. The heal (`use-upload-queue.heal.ts`, `hasKeptComplete`: 5, 20
+  and 60 s on, three asks a File) is the host panel's alone now (`host-upload.tsx`), where a row that said dropped
+  reads "Added to the album". ★ The kept complete is the page's (`UNANSWERED`, a WeakMap by File): a guest's file
+  carried across a reload by her phone's keep (guest-flow.md, the upload act) is a new File, so one whose first complete
+  recorded and whose answer was lost goes up again whole and lands twice (Deferred: carry the kept complete with it).
   `complete` is never aborted by a cancel: a stop pressed once it is asked, or on a file going again on its kept
   complete, is ignored (the file lands as it would have). Nothing is counted for a
   cancelled file (the meter counts at complete); its R2 bytes, if any, are the orphan sweep's, a started multipart the
   bucket's abort rule's. ★ It is ONE SENTENCE everywhere: the downloads say it as a title and its detail
-  (`WALK_COPY`), and the album's camera says this very string where it used to count ("2 shots didn’t send.") when a
-  shot failed that way; `uploader.transport.test.ts` holds the three to one wording. ★ **The cause, never the words,
-  says which it was:** the queue keeps the outcome's `cause` beside the message (`QueueItem.cause`: `dropped`, absent
-  for a refusal, cleared by a Retry), and what draws a drop apart from a refusal reads it: the camera's line, and the
-  failure sheet's row for a dropped connection (a signal mark before its sentence). A cancelled file is no failure and
-  never stays in the guest queue (`stop`), so the sheet has nothing of it to draw.
+  (`WALK_COPY`), and `uploader.transport.test.ts` holds the uploader's to one wording; the album's camera says a shot
+  waiting for the line in the state's own word ("No connection: your shot waits, and goes in once it’s back.",
+  `shotsWaitingLine`), with no press. ★ **The cause, never the words, says which it was:** the queue keeps the outcome's
+  `cause` beside the message (`QueueItem.cause`: `dropped`, absent for a refusal, cleared as the file goes again), and
+  what draws a wait apart from a send or a refusal reads it: the stack and its stand-in, her uploads' row, the door's
+  step and the camera. A cancelled file is no failure and never stays in the guest queue (`stop`), so the sheet has
+  nothing of it to draw.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary, and so does `captured_at`, held to its bounds (the EXIF strip, below).

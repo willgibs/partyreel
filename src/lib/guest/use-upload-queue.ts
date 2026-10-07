@@ -26,6 +26,16 @@
  * that waited for the landing left its question standing, unchanged, for as long as the complete took, so it read as
  * unheard).
  *
+ * ★ A DROPPED LINE IS A WAIT, NEVER A FAILURE (no-signal r1, Will's `drop=standby` over `carry=phone`). A file the
+ * connection ended (`cause: "dropped"`) goes back to `queued` with its cause kept: it STANDS BY (`waitsForLine`), its
+ * bar at nothing (a photograph goes up as one PUT, so it goes again from the start), and the runner sends nothing that
+ * waits until the line answers (`unsent/line.ts`: a tiny static file asked on the phone's `online`, on her return to the
+ * page and every 20 s, never `navigator.onLine` alone). So the run never ends on a drop: the stack and its stand-in say
+ * "No connection" in the send's own place, the shutter's ring holds still at what landed with its count, nothing
+ * opens, and the send's one toast comes once it has all landed. A refusal of the file or the album still ends in the
+ * failure sheet. A copy of every file on its way waits on her phone too (`unsent/use-keep.ts`, IndexedDB), so a page
+ * closed in a dead zone sends it at her next open, by itself (`restore`).
+ *
  * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
  * Deferred). Her Add on her own album's guest page went through the guest
  * pair, minting her a guest row at her own door, and `create_guest` never
@@ -48,10 +58,22 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
+import {
+  joinEvent,
+  type JoinedGuest,
+  type JoinRefusal,
+} from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
+import { keepOwner, type RestoredFile } from "@/lib/guest/unsent/keep";
+import {
+  phoneSaysOffline,
+  releaseGap,
+  useLineWatch,
+} from "@/lib/guest/unsent/line";
+import { waitsForLine } from "@/lib/guest/unsent/standby";
+import { useUnsentKeep } from "@/lib/guest/unsent/use-keep";
+import type { WaitHold } from "@/lib/guest/unsent/words";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
-import { useHealLostAnswers } from "@/lib/guest/use-upload-queue.heal";
 import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { takeBurst } from "@/lib/upload/burst";
 import type { StopResult } from "@/lib/upload/stop-upload";
@@ -93,6 +115,25 @@ import {
  */
 const VERIFICATION_REQUIRED = "verification_required";
 const DEAD_TICKET = "invalid_session";
+
+/**
+ * The join module's own words for a join that never reached the network (`join.ts`'s `OFFLINE`), read here only to tell
+ * the line from a refusal (`joinLostTheLine`); `use-upload-queue.test.tsx` holds the two to one wording.
+ */
+export const JOIN_OFFLINE_WORDS = "Check your connection and try again.";
+
+/**
+ * ★ A JOIN THAT NEVER REACHED THE NETWORK IS THE LINE, NOT A REFUSAL (no-signal r1): her first pick in a dead zone, with
+ * no ticket on the device yet, went to a silent join the line could not carry, and her picks were put down with a toast
+ * ("Couldn't start uploading"), lost. Told by the join module's own words for a request that never left, or by the
+ * phone itself saying it is offline (the one way its word is true); her picks then stand by for the line instead.
+ */
+export function joinLostTheLine(refusal: JoinRefusal): boolean {
+  return (
+    refusal.kind === "other" &&
+    (phoneSaysOffline() || refusal.message === JOIN_OFFLINE_WORDS)
+  );
+}
 
 /** A guest's upload pair: the ticket in the body (`session_token`), every guest gate re-checked per file. */
 const GUEST_ENDPOINTS = {
@@ -145,12 +186,12 @@ export type QueueItem = {
    */
   errorCode?: string;
   /**
-   * ★ WHY THE TRANSPORT ENDED IT, beside the sentence (`UploadOutcome.cause`): `dropped` is the connection (the same
-   * file goes again once the line is back) and `cancelled` is her own stop (nothing is wrong; such a file leaves the
-   * queue, `stop`, so no item stays `error` with it). Absent for a refusal
-   * (an answer that was an error: the server's own code is `errorCode`) and for a local validation. A surface that draws
-   * a dropped connection apart from a refusal (the failure sheet, the camera) reads this and never the message, whose
-   * words are free to change.
+   * ★ WHY THE TRANSPORT ENDED ITS LAST TRY, beside the sentence (`UploadOutcome.cause`): `dropped` is the connection and
+   * `cancelled` is her own stop (nothing is wrong; such a file leaves the queue, `stop`). ★ A DROPPED FILE IS NEVER AN
+   * ERROR (no-signal r1, `drop=standby`): it is `queued` with this cause kept, standing by until the line answers
+   * (`waitsForLine`), and the cause goes the moment it is sent again. Absent for a refusal (an answer that was an error:
+   * the server's own code is `errorCode`) and for a local validation. A surface that draws a wait apart from a send (the
+   * stack, her uploads, the door's step, the camera) reads this and never the message, whose words are free to change.
    */
   cause?: UploadCause;
   /**
@@ -210,17 +251,34 @@ export type QueueProgress = {
    * (`useUploadQueue`'s `stop`, which this is).
    */
   stop?(id: string): Promise<StopResult>;
+  /**
+   * ★ AND WHETHER IT STANDS BY FOR THE LINE, ON THE SAME STORE (no-signal r1, `drop=standby`), for the same reason as the
+   * stop: the stack and its stand-in say "No connection" in the send's own place, and no prop runs through the page,
+   * the provider and the gallery to tell them. Where it waits: `kept` on her phone (`unsent/use-keep.ts`: it outlives
+   * the page), or in the `page` alone (no room, no IndexedDB); null while it goes, or once it has landed. Absent on a
+   * store that is only a reading.
+   */
+  waits?(id: string): WaitHold | null;
 };
 
 type WritableQueueProgress = QueueProgress & {
   set(id: string, value: number): void;
   /** The queue's live `stop`, bound once per render of it (its closure changes with the page's callbacks). */
   bindStop(stop: (id: string) => Promise<StopResult>): void;
+  /** These files stand by for the line now (and no others do). */
+  setWaiting(ids: ReadonlySet<string>): void;
+  /** A file's copy is on her phone (`true`), or the page alone holds it. */
+  setKept(id: string, kept: boolean): void;
 };
 
 function createQueueProgress(): WritableQueueProgress {
   const values = new Map<string, number>();
   const listeners = new Set<() => void>();
+  let waiting: ReadonlySet<string> = new Set();
+  const kept = new Map<string, boolean>();
+  const tell = () => {
+    for (const listener of listeners) listener();
+  };
   // Nothing is stoppable until the queue binds its own: a store only read answers "too late" to a stop.
   let stopper: ((id: string) => Promise<StopResult>) | undefined;
   return {
@@ -229,6 +287,8 @@ function createQueueProgress(): WritableQueueProgress {
       stopper = next;
     },
     get: (id) => values.get(id) ?? 0,
+    waits: (id) =>
+      waiting.has(id) ? (kept.get(id) === true ? "kept" : "page") : null,
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -238,9 +298,34 @@ function createQueueProgress(): WritableQueueProgress {
     set(id, value) {
       if (values.get(id) === value) return;
       values.set(id, value);
-      for (const listener of listeners) listener();
+      tell();
+    },
+    setWaiting(ids) {
+      if (ids.size === waiting.size && [...ids].every((id) => waiting.has(id)))
+        return;
+      waiting = ids;
+      tell();
+    },
+    setKept(id, value) {
+      if (kept.get(id) === value) return;
+      kept.set(id, value);
+      if (waiting.has(id)) tell();
     },
   };
+}
+
+/** Where one item stands by for the line, subscribed: `kept`, `page`, or null while it goes (`QueueProgress.waits`). */
+export function useQueueWaits(
+  progress: QueueProgress | null | undefined,
+  id: string | null | undefined,
+): WaitHold | null {
+  const subscribe = useCallback(
+    (onChange: () => void) =>
+      progress?.waits && id ? progress.subscribe(onChange) : () => {},
+    [progress, id],
+  );
+  const read = () => (progress?.waits && id ? progress.waits(id) : null);
+  return useSyncExternalStore(subscribe, read, () => null);
 }
 
 /** One item's live progress, subscribed: a tick re-renders the caller and nothing else. */
@@ -710,10 +795,17 @@ export function useUploadQueue({
     doorOpenRef.current = doorOpen;
   }, [doorOpen]);
 
-  const sync = useCallback((next: QueueItem[]) => {
-    itemsRef.current = next;
-    setItems(next);
-  }, []);
+  const sync = useCallback(
+    (next: QueueItem[]) => {
+      itemsRef.current = next;
+      setItems(next);
+      // What stands by for the line, as the stack reads it off the progress store (`QueueProgress.waits`).
+      progress.setWaiting(
+        new Set(next.filter(waitsForLine).map((it) => it.id)),
+      );
+    },
+    [progress],
+  );
 
   const patch = useCallback(
     (id: string, p: Partial<QueueItem>) => {
@@ -724,6 +816,51 @@ export function useUploadQueue({
       sync(itemsRef.current.map((it) => (it.id === id ? { ...it, ...p } : it)));
     },
     [sync, progress],
+  );
+
+  /* ★ THE LINE'S BACKOFF (`unsent/line.ts`'s `releaseGap`): a send that went on an answering line and dropped again is a
+     miss, and each miss doubles the wait before the next send (a network that blocks the bucket would otherwise send the
+     same photographs, each a presign, every 20 s for as long as the page stood). A landing starts it over. */
+  const missesRef = useRef(0);
+  /** A send went again since the last drop (the line answered): its next drop is a miss. */
+  const sentAgainRef = useRef(false);
+  /** The earliest moment what stands by may go again. */
+  const notBeforeRef = useRef(0);
+  /** The files this page took back from her phone's keep as it opened (`restore`), sent by an earlier page. */
+  const restoredRef = useRef(new Set<string>());
+
+  /**
+   * ★ THESE FILES STAND BY FOR THE LINE (the head note): `queued`, their bar at nothing (a photograph goes up as one PUT,
+   * so it goes again from the start, and a bar held at 38% would promise what the line's return throws away), their
+   * cause kept, and the runner leaving them until the line answers. Never an error, so nothing opens.
+   */
+  const standBy = useCallback(
+    (ids: readonly string[]) => {
+      if (ids.length === 0) return;
+      const these = new Set(ids);
+      for (const id of these) progress.set(id, 0);
+      // One miss a send, however many of its files dropped.
+      if (sentAgainRef.current) {
+        sentAgainRef.current = false;
+        missesRef.current += 1;
+      }
+      notBeforeRef.current = Date.now() + releaseGap(missesRef.current);
+      sync(
+        itemsRef.current.map((it) =>
+          these.has(it.id)
+            ? {
+                ...it,
+                status: "queued" as const,
+                progress: 0,
+                cause: "dropped" as const,
+                error: undefined,
+                errorCode: undefined,
+              }
+            : it,
+        ),
+      );
+    },
+    [progress, sync],
   );
 
   /**
@@ -818,6 +955,17 @@ export function useUploadQueue({
       silentJoinSpentRef.current = true;
       const joined = await joinEvent({ qrToken });
       if (joined.ok) return takeJoin(joined.guest);
+      if (joinLostTheLine(joined.refusal)) {
+        // ★ THE LINE, NOT A REFUSAL (`joinLostTheLine`): nothing was minted, so the join is hers again, and what waits
+        // stands by for the line, which asks for her ticket again as it sends.
+        silentJoinSpentRef.current = false;
+        standBy(
+          itemsRef.current
+            .filter((it) => it.status === "queued")
+            .map((it) => it.id),
+        );
+        return null;
+      }
       if (
         joined.refusal.kind !== "name_required" &&
         joined.refusal.kind !== "verification_required"
@@ -834,6 +982,7 @@ export function useUploadQueue({
     onSession,
     onDoorNeeded,
     failWaiting,
+    standBy,
     takeJoin,
     joinsSilently,
   ]);
@@ -890,6 +1039,21 @@ export function useUploadQueue({
          ────────────────────────────────────────────────────────────────── */
       if (first.code === SESSION_OTHER_ACCOUNT || first.code === DEAD_TICKET) {
         sessionRef.current = null;
+        /* ★ A FILE CARRIED FROM AN EARLIER PAGE IS NEVER SENT AS SOMEBODY ELSE (no-signal r1, `carry=phone`). The rule
+           above sends a file under whoever holds the phone NOW because they pressed Send in this page; a file the phone
+           kept from an earlier page was sent by the ticket's owner, and the server just said the viewer is not her. So
+           it is put down (its copy with it, `unsent/use-keep.ts`), never re-sent on a fresh ticket. A dead ticket's
+           files are the same person's (this device's own ticket, its row gone), and go on as any file does. */
+        if (first.code === SESSION_OTHER_ACCOUNT) {
+          const carried = new Set(
+            spent
+              .filter((it) => restoredRef.current.has(it.id))
+              .map((it) => it.id),
+          );
+          if (carried.size > 0) {
+            sync(itemsRef.current.filter((it) => !carried.has(it.id)));
+          }
+        }
         requeue();
         if (!joinsSilently()) {
           let down = () => {};
@@ -1010,6 +1174,10 @@ export function useUploadQueue({
         if (outcome.ok) {
           // A file landed on this ticket: any later refusal is a new chain.
           silentJoinSpentRef.current = false;
+          // And the line carries her bytes: what stands by goes again at the line's own pace, the backoff over.
+          missesRef.current = 0;
+          sentAgainRef.current = false;
+          notBeforeRef.current = 0;
           // A row the album keeps until it develops lands as `sealed` (`landedAs`), drawn nowhere.
           const landed = landedAs(outcome.status, outcome.sealed);
           patch(it.id, {
@@ -1029,6 +1197,11 @@ export function useUploadQueue({
         }
         // The session's three wait for the burst's end (`afterSessionRefusal`); everything else is this file's own.
         if (isSessionRefusal(outcome)) return;
+        // ★ THE LINE DROPPED: the file stands by for it, never an error (the head note). The demo never drops.
+        if (outcome.cause === "dropped" && !isDemo) {
+          standBy([it.id]);
+          return;
+        }
         patch(it.id, {
           status: "error",
           progress: 0,
@@ -1088,7 +1261,7 @@ export function useUploadQueue({
       void whole.then(sendDone);
       return { burst, told, whole, bytesUp };
     },
-    [patch, sync, onUploaded, isDemo],
+    [patch, sync, standBy, onUploaded, isDemo],
   );
 
   // What waits goes as one burst (the head note), its bytes one file at a time — robust on flaky mobile connections.
@@ -1102,12 +1275,22 @@ export function useUploadQueue({
     const begin = async (after: Flight | null): Promise<Flight | null> => {
       // The owner never meets a door; anyone else waits for hers to open (the note above).
       if (!ownerEventId && !doorOpenRef.current) return null;
-      // A file in flight holds its stop until it is told, and one up waits `queued` at 100: never taken twice.
+      // A file in flight holds its stop until it is told, and one up waits `queued` at 100: never taken twice. One that
+      // stands by for the line waits for the line (`sendWaiting`).
       const waiting = () =>
         itemsRef.current.filter(
-          (it) => it.status === "queued" && !stopsRef.current.has(it.id),
+          (it) =>
+            it.status === "queued" &&
+            !stopsRef.current.has(it.id) &&
+            !waitsForLine(it),
         );
       if (waiting().length === 0) return null;
+      // ★ THE PHONE SAYS IT IS OFFLINE, the one way its word is true: what she adds stands by at once, never a join or a
+      // presign sent into a dead line for the stack to show sending and then not.
+      if (phoneSaysOffline()) {
+        standBy(waiting().map((it) => it.id));
+        return null;
+      }
       /* ★ THE TICKET IS READ PER BURST, NEVER ONCE PER RUN. Both re-joins
          below swap it mid-run, and the burst after a swap must go up on the NEW
          one. (Read once at the top, the verified re-join after a mid-run flip
@@ -1173,7 +1356,7 @@ export function useUploadQueue({
     } finally {
       processingRef.current = false;
     }
-  }, [acquireTicket, afterSessionRefusal, fly, ownerEventId]);
+  }, [acquireTicket, afterSessionRefusal, fly, ownerEventId, standBy]);
 
   /* ★ AND THE RUN RESUMES WHEN A TICKET ARRIVES FROM THE DOOR. Files left
      `queued` for `onDoorNeeded` wait for exactly one thing: the name step's join
@@ -1264,6 +1447,26 @@ export function useUploadQueue({
   }, [onDoorNeeded, sync]);
 
   /**
+   * ★ A FIRST ADD THE LINE COULD NOT CARRY (no-signal r1): her picks join the queue standing by for the line, never put
+   * down, and go when it answers, the join asked again first (`acquireTicket`). No copy is kept on her phone: there is no
+   * ticket yet to file it under, so they wait in the page, and the stack says to keep it open.
+   */
+  const holdPicksForLine = useCallback(() => {
+    const files = pendingFilesRef.current;
+    const clips = pendingClipsRef.current;
+    pendingFilesRef.current = [];
+    pendingClipsRef.current = [];
+    const held = [
+      ...files.map(({ file, extra }) => queueItem(file, extra)),
+      ...clips.map((clip) =>
+        queueItem(clip.file, { reelEligible: false, poster: clip.poster }),
+      ),
+    ];
+    sync([...itemsRef.current, ...held]);
+    standBy(held.map((it) => it.id));
+  }, [standBy, sync]);
+
+  /**
    * ★ HER CHOICE AT THE HELD DOOR (`locked-door` r2, Will's `wait=pick`: "adds a lot of value to the
    * waiting door"): what she picked while the host decides, held here as `queued` and sent the moment the
    * door lets her through (the flip above), never before (the runner's door guard). A new choice replaces
@@ -1325,6 +1528,10 @@ export function useUploadQueue({
         holdPicksForDoor();
         return;
       }
+      if (joinLostTheLine(joined.refusal)) {
+        holdPicksForLine();
+        return;
+      }
       pendingFilesRef.current = [];
       pendingClipsRef.current = [];
       if (joined.refusal.kind === "verification_required") {
@@ -1347,7 +1554,14 @@ export function useUploadQueue({
       return;
     }
     handleJoined(joined.guest.sessionToken);
-  }, [isDemo, qrToken, handleJoined, holdPicksForDoor, onVerificationRequired]);
+  }, [
+    isDemo,
+    qrToken,
+    handleJoined,
+    holdPicksForDoor,
+    holdPicksForLine,
+    onVerificationRequired,
+  ]);
 
   /**
    * Her files into the queue. `extra` rides each of them (`FileExtra`): a camera video's poster. Additive: every caller
@@ -1439,37 +1653,60 @@ export function useUploadQueue({
   );
 
   /**
-   * ★ A LOST ANSWER IS ASKED AGAIN FOR HER (`use-upload-queue.heal.ts`): the files that failed as a dropped connection
-   * with their complete kept (the row may stand: the album may already show the photograph) go again the way her Retry
-   * sends them, which asks that very complete and nothing else, so a row the server wrote lands now and one it did not is
-   * written. Not her Retry in one thing: it never gives the silent join back (`silentJoinSpentRef`), so a ticket that
-   * keeps being refused can never turn this into a row factory. Nothing is asked of a demo, a door that holds her
-   * (`doorOpenRef`) or a device with no ticket: the join is not this to make.
+   * ★ THE LINE ANSWERED (`unsent/line.ts`): what stood by goes again, as one burst, the runner's own way. A file whose
+   * complete lost its answer goes again on that very complete (`uploader.ts`'s kept complete, by its File), so a row the
+   * server wrote answers it and nothing lands twice; the lost answer's own heal (`use-upload-queue.heal.ts`, which the
+   * host's panel still reads) has nothing left to ask here, since no file of hers fails as a dropped line any more. A
+   * send that drops again is a miss, and the next waits longer (`standBy`).
    */
-  const healLost = useCallback(
-    (ids: string[]) => {
-      if (isDemo || !doorOpenRef.current) return;
-      if (!(ownerEventId || sessionRef.current)) return;
-      const lost = new Set(ids);
-      sync(
-        itemsRef.current.map((it) =>
-          lost.has(it.id) && it.status === "error"
-            ? {
-                ...it,
-                status: "queued" as const,
-                progress: 0,
-                error: undefined,
-                errorCode: undefined,
-                cause: undefined,
-              }
-            : it,
-        ),
-      );
+  const sendWaiting = useCallback(() => {
+    if (!itemsRef.current.some(waitsForLine)) return;
+    sentAgainRef.current = true;
+    sync(
+      itemsRef.current.map((it) =>
+        waitsForLine(it) ? { ...it, cause: undefined } : it,
+      ),
+    );
+    void runQueueRef.current();
+  }, [sync]);
+  const readNotBefore = useCallback(() => notBeforeRef.current, []);
+  useLineWatch({
+    waiting: items.some(waitsForLine),
+    notBefore: readNotBefore,
+    onBack: sendWaiting,
+  });
+
+  /**
+   * ★ WHAT HER PHONE KEPT, BACK IN THE QUEUE (`unsent/use-keep.ts`, once as the page opens): files an earlier page of
+   * this album took and never sent (a page closed in a dead zone, a phone that put the tab away), sent now by themselves,
+   * under the same ids, so their copies stay theirs. The send's toast says they landed, as for any send.
+   */
+  const restore = useCallback(
+    (files: readonly RestoredFile[]) => {
+      const held = new Set(itemsRef.current.map((it) => it.id));
+      const fresh = files.filter((f) => !held.has(f.id));
+      if (fresh.length === 0) return;
+      for (const f of fresh) restoredRef.current.add(f.id);
+      sync([
+        ...itemsRef.current,
+        ...fresh.map(({ id, file, ...extra }) => ({
+          ...queueItem(file, extra),
+          id,
+        })),
+      ]);
       void runQueue();
     },
-    [isDemo, ownerEventId, runQueue, sync],
+    [runQueue, sync],
   );
-  useHealLostAnswers(items, healLost);
+  useUnsentKeep({
+    items,
+    album: qrToken,
+    // Who her files go up as: the host on her own album, else this device's ticket (`keepOwner`); the demo keeps nothing.
+    owner: isDemo ? null : keepOwner({ ownerEventId, ticket: sessionToken }),
+    enabled: !isDemo && doorOpen,
+    onKept: (id, kept) => progress.setKept(id, kept),
+    onRestore: restore,
+  });
 
   /**
    * Drop the named ERRORED items from the queue for good (the failure sheet's

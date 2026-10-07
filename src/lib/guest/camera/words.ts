@@ -24,6 +24,7 @@ import {
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
 } from "@/lib/guest/upload-tracker";
+import { WAITING_FOR_CONNECTION } from "@/lib/guest/unsent/words";
 
 /**
  * Which album the camera shoots for: a develop time ahead, the host's approval, straight in, or, at the held door, none
@@ -179,6 +180,17 @@ export function unsentLine(n: number): string {
   return `${n} ${n === 1 ? "shot" : "shots"} didn’t send.`;
 }
 
+/**
+ * ★ THE LINE UNDER THE SHUTTER WHILE SHOTS WAIT FOR THE LINE (no-signal r1, Will's `roll=taken`): what happens to them, in
+ * the state's own word ("No connection", `unsent/words.ts`), never a press (a Retry in a dead zone could only fail the
+ * same way: they go by themselves once the line is back).
+ */
+export function shotsWaitingLine(n: number): string {
+  return n === 1
+    ? "No connection: your shot waits, and goes in once it’s back."
+    : `No connection: ${n} shots wait, and go in once it’s back.`;
+}
+
 /** The roll's end, and how the roll comes back (the board's carried call `end`). */
 export const ROLL_DONE_TITLE = "That’s your roll";
 
@@ -190,8 +202,26 @@ export function rollDoneLine(input: {
   nowMs?: number;
   /** The party's zone, for a far party's two clocks (`developsWhen`). */
   zone?: string | null;
+  /**
+   * ★ HOW MANY OF THEM STILL WAIT FOR THE LINE (no-signal r1, `roll=taken`): the roll is spent at the press, so it can end
+   * with shots still on the phone, and its line then says the wait first (the line under the shutter goes with the
+   * shutter): "24 shots; 4 wait for your connection, then develop with everyone’s." over four shots on the phone would
+   * otherwise read as all in.
+   */
+  waiting?: number;
 }): string {
   const shots = `${input.held} ${input.held === 1 ? "shot" : "shots"}`;
+  const w = Math.max(0, Math.floor(input.waiting ?? 0));
+  if (w > 0 && input.reveal !== "door") {
+    const one = w === 1;
+    const wait = `${shots}; ${w} ${one ? "waits" : "wait"} for your connection, then`;
+    if (input.reveal === "develop" && input.developsAt) {
+      return `${wait} ${one ? "develops" : "develop"} with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
+    }
+    return input.reveal === "approve"
+      ? `${wait} ${one ? "waits" : "wait"} for the host.`
+      : `${wait} ${one ? "goes" : "go"} into the album.`;
+  }
   if (input.reveal === "develop" && input.developsAt) {
     return `${shots}, developing with everyone’s. They’re back ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
   }
@@ -370,6 +400,8 @@ export const SHOT_WORDS = {
   held: TRACKER_WORDS.waiting,
   /** Taken at the held door, waiting in the page's queue for the let-in: nothing of it is sending. */
   door: "Waiting to go in",
+  /** Taken in a dead zone, standing by for the line (`roll=taken`): the queue's own word for it. */
+  waiting: WAITING_FOR_CONNECTION,
   failed: "Didn’t send",
   removing: "Removing…",
   removeFailed: "Couldn’t remove it",
@@ -413,11 +445,14 @@ export function reelCaption(input: {
   done: boolean;
   host: boolean;
   sending: number;
+  /** Her shots waiting for the line (`roll=taken`): "Frame 23 of 24 · 2 waiting", said over any still sending. */
+  waiting?: number;
 }): string {
   const base = input.host
     ? HOST_NO_ROLL
     : input.done
       ? rollCount(input.held ?? input.cap, input.cap)
       : `Frame ${input.frame} of ${input.cap}`;
+  if ((input.waiting ?? 0) > 0) return `${base} · ${input.waiting} waiting`;
   return input.sending > 0 ? `${base} · sending ${input.sending}` : base;
 }
