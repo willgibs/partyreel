@@ -1,0 +1,55 @@
+/* THE LINE AT A FIRST FOLLOW (`first-follow-line.tsx`): a row of its own, opened as the line arrives.
+
+   ★ THE LINE IS THE ROW'S LAST ITEM AND TAKES THE WHOLE ROW (`flex-basis: 100%`), so wherever the button that made it
+   stands in a row (the guest list's chip, the moment card's host, a claim's follow-up, the look's actions) the line
+   stands under that row, and the row wraps to carry it for as long as it stands (the `:has()` rule below), with no
+   change to the seat's own file. A column (the look's actions) and a block take it as the next item, as they would.
+   This sheet is unlayered, so it outranks a seat's `flex-nowrap` utility, which is the point.
+
+   ★ IT OPENS ITS OWN ROW AS IT FADES IN (the board's `am-open`): the row grows from nothing on the emphasis curve and
+   the line rises into it, so the page below eases down rather than jumping. A wrapped row adds its host's own gap at
+   once (4 to 12px), which is the only step; none of it under reduced motion, where the line is simply there. */
+[data-follow-line] {
+  display: grid;
+  grid-template-rows: 1fr;
+  flex: 0 0 100%;
+  min-width: 0;
+}
+[data-follow-line] > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+:has(> [data-follow-line]) {
+  flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-follow-line] {
+    animation: ffl-open 240ms var(--ease-emphasis) both;
+  }
+  [data-follow-line] p {
+    animation: ffl-in 240ms var(--ease-emphasis) both;
+  }
+}
+
+@keyframes ffl-open {
+  from {
+    grid-template-rows: 0fr;
+  }
+}
+
+@keyframes ffl-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* ★ UNDER A PAGE'S HEAD (the slot), the line stands flush with the actions' end at a desk, where the button that made it
+   is; in a hand the actions are the row's width and start where the row does. */
+@media (width >= 40rem) {
+  .ffl-slot > div {
+    justify-self: end;
+  }
+}

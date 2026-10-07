@@ -42,6 +42,11 @@ vi.mock("@/app/(guest)/u/[slug]/owner-sections", () => ({
 vi.mock("@/app/(app)/account/profile/actions", () => ({
   dismissPageInviteAction: vi.fn(),
 }));
+// The plate reads her photographs' light on her device after the page is idle (`page-invite-read.ts`, tested beside it);
+// here it never lands, so the page is pinned to what it draws and not to a read.
+vi.mock("@/components/app/dashboard/page-invite-read", () => ({
+  readInviteLight: () => new Promise(() => {}),
+}));
 
 const { default: MePage, metadata } = await import("./page");
 
@@ -93,6 +98,18 @@ describe("a handle-less account at /me", () => {
     expect(
       screen.queryByRole("button", { name: "Not now" }),
     ).not.toBeInTheDocument();
+  });
+
+  // `invite=plate` (account-moments r2): the invitation is one compact lit plate under her head, arriving a beat after it,
+  // and what stands below is as it was.
+  it("draws the invitation as its plate, in a beat of its own after her head", async () => {
+    const { container } = render(<>{await MePage()}</>);
+    const plate = container.querySelector("[data-page-invite]")!;
+    expect(plate).not.toBeNull();
+    expect(plate.closest("[data-arrive]")).toHaveStyle({ "--arrive-i": "1" });
+    expect(
+      screen.getByRole("region", { name: "Your page, when you’re ready" }),
+    ).toBeInTheDocument();
   });
 
   it("is in nobody's index, and titled for what it is", () => {

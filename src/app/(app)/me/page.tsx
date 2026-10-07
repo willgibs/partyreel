@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Lock } from "lucide-react";
+import { type CSSProperties, Suspense } from "react";
 
 import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
 import { OwnerSkeleton } from "@/app/(guest)/u/[slug]/owner-skeleton";
 import { ProfileHead } from "@/app/(guest)/u/[slug]/profile-head";
 import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
+import { PrivateLine } from "@/components/social/private-line";
 import { seedFor } from "@/lib/avatar/seed";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
@@ -39,8 +39,9 @@ export const metadata: Metadata = {
  *
  * ★ THE SETUP'S INVITATION STANDS UNDER THE HEAD (`dismissible={false}`): this page is the menu's only profile door for
  * an account that has not claimed a handle, so the way on to the setup stays on it. The dashboard's invitation points at
- * the same setup and is not moved here: it IS the invitation, and a stop at /me on the way would be a tap more. (The
- * invitation's own look is account-moments r2's.)
+ * the same setup and is not moved here: it IS the invitation, and a stop at /me on the way would be a tap more. It is one
+ * compact lit plate (`account-moments` r2, `invite=plate`): the one piece of the room on her paper page, its edge lit in
+ * her own photographs' colours, arriving a beat after her head. What stands below it is as it was, until her page's redesign.
  *
  * Like the profile, the sections stream behind a boundary of their own inside the page and never a `loading.tsx`: a
  * loading file flushes before the page decides, and a handle that exists must redirect with a real 307, not after a
@@ -64,12 +65,13 @@ export default async function MePage() {
         name={profile.display_name?.trim() || "Your profile"}
         joined={formatMonthYear(profile.created_at)}
       >
-        <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <Lock className="size-4 shrink-0" aria-hidden />
-          Only you can see this page.
-        </p>
+        <PrivateLine className="mt-4">Only you can see this page.</PrivateLine>
       </ProfileHead>
-      <div className="mt-6">
+      <div
+        data-arrive
+        style={{ "--arrive-i": 1 } as CSSProperties}
+        className="mt-6"
+      >
         <PageInviteCard dismissible={false} />
       </div>
       <div className="mt-10">

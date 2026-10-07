@@ -1,0 +1,213 @@
+/* THE INVITATION'S PLATE (`page-invite-card.tsx`): a piece of the room on her paper page, and her photographs' light inside
+   it (`account-moments` r2, `invite=plate`, the board's `invite-plate.css`). Every selector is `.pic-…`, every keyframe `pic-…`.
+
+   ★ ON PAPER THE PLATE IS THE ROOM ITSELF, NOT THE SLAB'S GRAPHITE (Aperture: "light reads as light only against the
+   darkest thing round it"). It wears `surface-ink`, the leaf that carries every token a dark piece on paper reads (the
+   focus ring, the borders, the muted words, the key), so its ground is the room's own black wherever that class is
+   (brand-marks-wiring deepens it) and the words and the key read its tokens, never a hex of ours.
+
+   ★ THE LIGHT IS THE HUB'S SEAM, BORN AT THE PLATE'S TOP EDGE (production's own construction, `event-hub-head-seam.css`),
+   redrawn for a plate with sides: its pools stand inside the plate, so it is hot at the edge it is born at and black by
+   the plate's other edges, and the plate keeps its silhouette on paper. Three layers, as light is: the body (the Bloom's
+   register, falling through the key's deeper neighbour), the glow at the edge (the Seam's own register), and the edge
+   itself, lit. On paper no glow, tint or wash ever touches the page. The words and the key stand past the light's reach:
+   nothing pressed stands in the light.
+
+   ★ A COMPACT OBJECT, NEVER A BANNER (the creative director's pass): the light is a short band at the top, the plate only
+   as tall as its words, and at a desk it keeps its phone's proportion instead of stretching across the column. */
+.pic-plate {
+  /* The light's whole fall: short, a lit edge more than a sky. */
+  --pic-reach: 56px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* The words start where the light is spent. */
+  padding: calc(var(--pic-reach) - 12px) 20px 20px;
+  background: var(--background);
+  /* One pixel of light on the bevel: a surface lit from above, never a shadow under it (a card lies flat). */
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 6%);
+}
+.pic-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+@media (width >= 40rem) {
+  /* A desk: the same object as her phone's, a touch roomier, never wider than its words want (26rem holds the title on
+     one line at the desk's 20px). The width is the wrapper's, so the room's spill above the edge measures the plate it
+     stands on, never the column. */
+  .pic-wrap {
+    max-width: 26rem;
+  }
+  .pic-plate {
+    --pic-reach: 64px;
+    padding: calc(var(--pic-reach) - 14px) 24px 24px;
+  }
+  .pic-keys {
+    margin-top: 18px;
+  }
+}
+
+/* The light stands on its own: it fills the top of its parent behind its words (the parent is positioned, isolated and
+   clips, as `.pic-plate` is), its reach the parent's `--pic-reach`. */
+.pic-light {
+  /* The right-hand pool's strength: 1 where it is the key's own, less where it is the answer (a fill is softer than its
+     key). Set from the light. */
+  --pic-fill: 1;
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: -1;
+  height: var(--pic-reach, 56px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pic-lit,
+.pic-body,
+.pic-glow {
+  position: absolute;
+  inset: 0;
+}
+
+/* The body: broad, the light's own colour deepening as it falls, spent before the words and black by the plate's sides. */
+.pic-body {
+  --pic-mask:
+    radial-gradient(
+      ellipse 74% 96% at 26% 0%,
+      rgb(0 0 0 / 0.6) 0%,
+      rgb(0 0 0 / 0.29) 24%,
+      rgb(0 0 0 / 0.065) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 56% 78% at 52% 0%,
+      rgb(0 0 0 / 0.32) 0%,
+      rgb(0 0 0 / 0.15) 24%,
+      rgb(0 0 0 / 0.035) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 54% 92% at 79% 0%,
+      rgb(0 0 0 / calc(0.56 * var(--pic-fill))) 0%,
+      rgb(0 0 0 / calc(0.27 * var(--pic-fill))) 24%,
+      rgb(0 0 0 / calc(0.06 * var(--pic-fill))) 58%,
+      transparent 100%
+    );
+  -webkit-mask-image: var(--pic-mask);
+  mask-image: var(--pic-mask);
+}
+
+/* The glow: hot where the light enters, short. */
+.pic-glow {
+  --pic-mask:
+    radial-gradient(
+      ellipse 48% 58% at 26% 0%,
+      rgb(0 0 0 / 0.94) 0%,
+      rgb(0 0 0 / 0.38) 14%,
+      rgb(0 0 0 / 0.06) 36%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 46% at 52% 0%,
+      rgb(0 0 0 / 0.6) 0%,
+      rgb(0 0 0 / 0.22) 14%,
+      rgb(0 0 0 / 0.03) 36%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 52% at 79% 0%,
+      rgb(0 0 0 / calc(0.86 * var(--pic-fill))) 0%,
+      rgb(0 0 0 / calc(0.33 * var(--pic-fill))) 14%,
+      rgb(0 0 0 / calc(0.05 * var(--pic-fill))) 36%,
+      transparent 70%
+    );
+  -webkit-mask-image: var(--pic-mask);
+  mask-image: var(--pic-mask);
+}
+
+/* The source: the edge itself, lit, faded well before the corners. */
+.pic-line {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1.5px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 4%,
+    #000 24%,
+    #000 76%,
+    transparent 96%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 4%,
+    #000 24%,
+    #000 76%,
+    transparent 96%
+  );
+}
+
+/* ★ IN THE ROOM THE PLATE IS A CARD OF THE ROOM: the page is already the room's near-black, so the plate takes the room's
+   own card, its tone alone (a card lies flat), and the light lives inside it as on paper. The card is read from the wrapper,
+   where the room's tokens still stand: inside the plate `surface-ink` has redeclared them. */
+.pic-wrap {
+  position: relative;
+  --pic-room-card: var(--card);
+}
+.dark .pic-plate {
+  background: var(--pic-room-card);
+}
+
+/* The spill above the lit edge: the room's alone. On paper the plate is the only dark there is, so nothing outside it may
+   be lit. */
+.pic-spill {
+  display: none;
+}
+.dark .pic-spill {
+  position: absolute;
+  top: -14px;
+  right: 14%;
+  left: 14%;
+  display: block;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0.32;
+  -webkit-mask-image:
+    linear-gradient(0deg, #000 0%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(0deg, #000 0%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* ★ STILL AT REST (bible 5): the light arrives once, as soon as her photographs are read, and rests lit; under reduced
+   motion it is simply lit. */
+@media (prefers-reduced-motion: no-preference) {
+  .pic-lit,
+  .dark .pic-spill {
+    animation: pic-ignite 1100ms var(--ease-emphasis) both;
+  }
+}
+
+@keyframes pic-ignite {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Forced colours: the light is decoration, and the plate's ground and bevel are the system's, so the plate keeps an edge of
+   its own; the words and the key carry everything. */
+@media (forced-colors: active) {
+  .pic-light,
+  .dark .pic-spill {
+    display: none;
+  }
+  .pic-plate {
+    /* No light to leave room for: the words start near the edge. */
+    --pic-reach: 32px;
+    border: 1px solid CanvasText;
+  }
+}

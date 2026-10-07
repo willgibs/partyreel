@@ -1,8 +1,9 @@
 "use client";
 
-import { useId, useReducer } from "react";
+import { useId, useReducer, type ReactNode } from "react";
 
 import { GuestPeek } from "@/components/social/guest-peek";
+import { FOLLOWING_WORDS, PrivateLine } from "@/components/social/private-line";
 import {
   RelationToggle,
   type Relation,
@@ -40,6 +41,12 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * her own block leaves theirs, and a Follow across it writes nothing and reads Following over nothing until she
  * leaves Account. `followBarred` says it per Blocked row (`getMyBlocks`: a yes or no, never which side blocked first),
  * so the look offers a Follow only where one could land.
+ *
+ * ★ THE LIST SAYS WHAT A FIRST FOLLOW SAID, FOR WHENEVER SHE LOOKS (`account-moments` r2, `follow=once`): her first follow
+ * says once, under its button, that only she sees who she follows, and every one after is the button alone; the place those
+ * follows live keeps the line standing (`FOLLOWING_WORDS`), above the people it is about and never above Blocked. So a row's
+ * own Follow, which would say it again if its list had been emptied, stays quiet (`privateLine={false}`): the line is
+ * already here, a few pixels above it. The look's Follow keeps its own, since the look closes.
  */
 
 /** A person in a list; a Blocked row also says whether a Follow could only no-op once she unblocks them. */
@@ -132,6 +139,7 @@ function Row({
             relation="follow"
             profileId={person.id}
             on={live.following}
+            person={person.displayName}
             onSettle={(on) =>
               onSettled({ id: person.id, relation: "follow", on })
             }
@@ -155,6 +163,8 @@ function Row({
         person={person.displayName}
         srLabel={name}
         size="sm"
+        // The line stands on the list below its heading, so a row never says it again.
+        privateLine={false}
         onSettle={(on) => onSettled({ id: person.id, relation, on })}
       />
     </li>
@@ -164,6 +174,7 @@ function Row({
 function Group({
   relation,
   heading,
+  note,
   ids,
   state,
   onSettled,
@@ -171,6 +182,8 @@ function Group({
 }: {
   relation: Relation;
   heading: string;
+  /** What this list stands on, above its people (Following's private line). */
+  note?: ReactNode;
   ids: string[];
   state: State;
   onSettled: (settled: Settled) => void;
@@ -184,6 +197,7 @@ function Group({
       <p id={headingId} className="text-xs font-medium text-muted-foreground">
         {heading}
       </p>
+      {note}
       <ul aria-labelledby={headingId} className="divide-y divide-border/60">
         {ids.map((id) => (
           <Row
@@ -224,6 +238,7 @@ export function ConnectionsLists({
         <Group
           relation="follow"
           heading="Following"
+          note={<PrivateLine className="pb-2">{FOLLOWING_WORDS}</PrivateLine>}
           ids={state.following}
           state={state}
           onSettled={dispatch}
