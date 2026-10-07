@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "5dd7ee60"          # the launch-prep SHA this state was written at
+cut: "d4da2464"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -23,17 +23,29 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Nothing runs: no lane, no red-team, no background job (2026-10-07 18:50Z). Round 15 went on from a local seat on Will's
-Mac (session `ce3ea37b-9032-4189-8a20-a57d78adb657`, from 2026-10-07 01:10Z) and shipped **milestone 39**
-(`0333cd705`, tagged, live 16:15Z; its merge commit says what it holds; Drive's Worker deployed with it). **Milestone 40
-forms on `launch-prep`:** `crumbs-88` (`7224261b3`, gate 75: red-team 57's LOW and NIT, Create's retry key, Immediate's
-app lines), `crumbs-90` (`38e51ae9c`, gate 76 FULL: the guest's send and album), `calls-desk` (`ed704a2f8`, gate 77:
-the calls lab at the desk's Calls place, `docs/calls.json`, `usher/kit/calls.py` its only writer). Their migration
-`event_create_key` is live (Q43). Each lane's own summary is its merge commit; their ledgers and the red-teams' (57,
-57b, 57c) are under `../partyreel-wt/_scratch/`.
+Wave 1 of desk 8 runs (cut `d4da2464`, 2026-10-07 19:45Z): eight lanes, their rows below. Will's desk-8 batch is
+kept (`docs/reviews/batches/2026-10-07-b0eb89bc9.txt`), transcribed (29 answers; presence `atmosphere`, after-party
+`recap` and `card` unclear) and folded (PRD's principles: words in compact groups, simple on top and deep underneath,
+one product on both sides, no date reshapes an album; PROGRAM's "Fast, focused rounds": zoom out to the whole where a
+ground-up redesign lands the better whole sooner, judged per board; design-system.md: a light fades on its own, never at
+a box's edge). His chat answers: the cover's light goes to the event-page board; AY1 changed (an album turns at her
+close, never on a date; crumbs-91 wires it; retired). His revision made the event page one ground-up board led by his
+idea 1 (the head with no slideshow, its UI on a glow sampled from the album's media, the gallery teasing the scroll), so
+presence, signature and after-party's page-level picks are its inputs and their boards retire into it; nothing of
+theirs is wired into today's head. **Milestone 40 forms on `launch-prep`:** `crumbs-88` (`7224261b3`, gate 75),
+`crumbs-90` (`38e51ae9c`, gate 76 FULL), `calls-desk` (`ed704a2f8`, gate 77), and wave 1's wirings as they merge.
+Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../partyreel-wt/_scratch/`.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
+| `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
+| `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
+| `brand-marks-wiring` | the wordmark finished, the ember Ring icon, the room-black plate, the status tiers; retires the brand board | running (cut d4da2464) | Opus, 3131 | `a5b5ef7ec4210f810` |
+| `create-wizard-wiring-2` | Create's close with the link card, ready from the start, the styles calm, the room dark, the like-entry and Make one like this | running (cut d4da2464) | Opus, 3132 | `acf206769e01c36d9` |
+| `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
+| `guests-room-wiring` | one calm row a person, the standing card from every name | running (cut d4da2464) | Opus, 3134 | `a1b4c2e7343d06bfc` |
+| `account-moments-wiring-2` | a first follow said once, the invitation as one lit plate | running (cut d4da2464) | Sonnet, 3135 | `a7602fac08c2d60e6` |
+| `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q44 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
@@ -41,52 +53,51 @@ Q44 answered (each APPLY, each applied); the next migration's read goes to it (f
 **Seats.** A successor in another session respawns a lane from its transcript
 (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`).
 Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The session's context names hi@willgibs.com since
-18:45Z; its usage reads the same week as before (weekly 58%, resetting 2026-10-13 21:00Z; the 5-hour window 5%,
-resetting 21:10Z).
+18:45Z; at the cut (19:40Z) weekly 59% (resetting 2026-10-13 21:00Z), the 5-hour window 8% (resetting 21:10Z), memory
+81% free, this session's context 42%.
 
 ## Next, in order
 
-1. **Will's review batch, the first thing after this compaction** (he asked for the compaction first, to plan with a
-   fresh context): his desk serves `b0eb89bc9` (the next desk's six boards, the two gap boards behind them, and the
-   Calls place). Keep the paste verbatim in `docs/reviews/batches/<date>-<build>.txt`, committed before a word of it is
-   transcribed (the runbook's "Run a round"); `pnpm lab:review --dry` over it, then for real (the boards' lines into
-   their ledgers; the `calls:` line printed as a routing list, nothing written: route each answer, then
-   `python3 usher/kit/calls.py retire <ids>`); then plan the next round with him: the wirings of his picks first, and a
-   pick that changes what a board's open ask describes re-read against production (`PREMISE` lines).
-2. **Milestone 40** when it holds a round's worth (crumbs-88, crumbs-90 and calls-desk so far): a red-team of what
-   merged since 39 on a desk refreshed to the tip, the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes.
-   crumbs-88's emailed-link paths (a told name to an album, a Create account link for an existing address) need a real
-   email: his walk or the red-team's.
-3. **Open seats, paced by the 5-hour window and the week** (six to eight agents, `get_usage` at every cut): a crumbs
-   lane on Immediate (21 lines: red-team 57c's two LOWs and 57b's NITs first, crumbs-88's typed seam); the gap audit's
-   other design gaps (turned-away demand, the host's picks, duplicates, video playback) once a desk has room. Lanes take
-   ports 3131 to 3139 only (R2's CORS). Specs written so far live in the session scratchpad's `specs/` (`common.py`, the
-   `make-*.py` generators).
-4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
-   app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6 (his r5 note
-   on `stage`, kept in its ledger, is that round's brief for the home's hero), marketing's light, N4, N7, N9, and the
-   ROADMAP's marketing lines unless one breaks production. Crumbs lanes take app lines first.
-5. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
+1. **Integrate wave 1 as each hands off** (one at a time, `integrate.sh`; the day's first runs `negative.sh` first). At each
+   record: the lane's board folder is gone in its branch, so delete its ledger (`docs/reviews/<board>.json`) and its
+   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`
+   and `after-party.json` (its folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
+   retire G3`) and adds its successor only if the new checklist rule passes the calls test; ROADMAP lines each lane
+   names close through `record.py`. Migrations named in the manifests (`20261008010000_roll_taken`,
+   `20261008020000_guest_look`, `20261008030000_crumbs_91`, `20261008040000_first_follow`,
+   `20261008050000_create_like`), each only if the lane wrote it: the Advisor first, then the protocol.
+2. **Then, as seats free (six to eight agents, `get_usage` at every cut):** the event page's wiring once Will picks its
+   direction (one lane builds the whole: faces, the offer, the keepsake, the light, the end line); fresh whole designs
+   on the next surfaces in its language, by leverage: the dashboard home and its event cards, the door, her own page
+   (`/me` and the public page, folding account-moments r3's teaser), Settings (only the optional and Create's changes,
+   never steps: ROADMAP's "Settings' rail reads as steps" line).
+3. **Milestone 40** once wave 1 merges: red-team 58 on a desk refreshed to the tip (crumbs-88's emailed-link paths need
+   a real email: his walk or the red-team's), the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes.
+4. **His desk** (:3000, `b0eb89bc9`) has no open ask but the three `?` until event-page-r1 and brand-marks-r2 land;
+   refresh it with `desk-refresh.sh` once both merge, never while a red-team walks it, and tell him which board opens
+   first (event-page, desk 4).
+5. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
+   app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6, marketing's
+   light, N4, N7, N9, and the ROADMAP's marketing lines unless one breaks production.
+6. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
    ROADMAP's buckets and areas, a proposed order of rounds on top.
-6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
-   serves `b0eb89bc9` (refreshed 17:20Z), never refreshed while a red-team walks it.
-7. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling at about
-   250 calls a day toward the REFUSE line around 2026-10-16 and WARN in early November. Nothing runs against the alias
-   or partyreel.com but what Will asks for by name; `node usher/kit/vercel-usage.mjs` before any.
-8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, nothing new
-   started when the window would run out before its reset, so the account rolls into about 99% at the reset. ★ The week
-   ran fast (58% by 18:50Z on day one of seven): keep this block handoff-ready for another account's seat, and tell
-   Will before it runs low. Who does the work: the runbook's "Working with Will".
+7. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks.
+8. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling toward the
+   REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
+   `node usher/kit/vercel-usage.mjs` before any.
+9. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill; nothing new started when the window
+   would run out before its reset. ★ The week reads 59% at 19:40Z on day one of seven, this wave takes it toward 80%:
+   keep this block handoff-ready for the other account's seat, and tell Will before it runs low. Who does the work: the
+   runbook's "Working with Will".
 
 ## Waiting on Will
 
 - **His Drive walk** on partyreel.com, now Drive is live (P3's consent; drive-crumbs' Handoff lists what to press),
   and the call AH1 (Drive on every plan, Free included) before Drive sees real use.
-- **The calls lab** (the desk's Calls place, `/design/lab#calls`, over `docs/calls.json`): the open questions X1, X2,
-  X3, X5, X6 and X9 to X17 and 16 built calls he cannot see by using the product; his answers ride the desk's paste.
-  calls-desk's three calls, built and his to overrule (relayed in chat): an untouched call is never kept by silence
-  ("Keep the other N" is one press); a fifth theme, "What Partyreel is", for the product-shape questions; an entry's
-  words never change under its id. He asks direct questions in chat; answer in chat, never only in a file.
+- **The calls lab** (the desk's Calls place, `/design/lab#calls`, over `docs/calls.json`): 29 entries (14 questions, 15
+  calls); no `calls:` line rode desk 8's paste. AY1 left with his chat answer; AH1's "decide before 39" window passed
+  with Drive live on every plan (he can still change it). He asks direct questions in chat; answer in chat, never only
+  in a file.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,
