@@ -82,8 +82,7 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
    ROADMAP's marketing lines unless one breaks production. Crumbs lanes take app lines first.
 5. **His list of 100+ items, when he sends it** (Will, 2026-10-06: after the desk batch, with a fresh context): each
    batch kept verbatim first, slotted into the ROADMAP's buckets and areas, a proposed order of rounds on top.
-6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
-   serves `b1e219f26` (red-team 57's walk).
+6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000 serves `b0eb89bc9` (refreshed 17:20Z: the six boards, the two gap boards and the Calls place).
 7. **★ Vercel stays on Hobby** (Will, 2026-10-07; he offered his personal account for Partyreel, not needed: since the
    desks and red-teams moved to the Mac the team's calls fell from 20,000 to 57,000 a day to about 2,000, so at ~250 a
    day the window falls under the REFUSE line around 2026-10-16 and under WARN in early November, when 2026-09-29 to

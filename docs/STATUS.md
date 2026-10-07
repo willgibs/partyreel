@@ -31,7 +31,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 Will's desk (`localhost:3000/design/lab?key=fiesta`; refreshed by `S=<scratch> zsh usher/kit/desk-refresh.sh <sha>`)
 answered brand r2 (Aperture), event-header r6 and desk 7's four moments boards on 2026-10-06 (`docs/reviews/`), all but
 account-moments' follow. The next desk, all merged: brand-marks r1, signature r1, account-moments r2, create-wizard r5,
-guests-room r1 and presence r1; his desk serves the tip (refreshed 2026-10-07 for red-team 57b and his sitting).
+guests-room r1 and presence r1; his desk serves the tip (`b0eb89bc9`, refreshed 2026-10-07 17:20Z), with the Calls place.
 
 ## Live state
 
