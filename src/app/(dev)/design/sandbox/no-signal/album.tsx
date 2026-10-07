@@ -7,13 +7,12 @@ import {
   QrCode,
   SlidersHorizontal,
 } from "lucide-react";
-import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useLayoutEffect, useRef } from "react";
 
 import {
   AlbumCover,
   HeadStills,
 } from "@/components/guest/event-experience-head";
-import { SendingStandIn } from "@/components/guest/upload/sending-stand-in";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -37,9 +36,9 @@ import { namedFile } from "./scene";
  * actions), the album's bar, its rows laid by production's own engine
  * (`album-rows.ts`) with the head's one slot where her send stands (as
  * `album-window-plan.ts` lays it: a square, first), the stack in it
- * (production's `UploadStackTile`), its stand-in above the foot (production's
- * `SendingStandIn`), and the foot itself as `guest-action-dock.tsx` draws it
- * around production's `Shutter`.
+ * (production's `UploadStackTile`, sending), the band above the foot where
+ * production's stand-in stands, and the foot itself as `guest-action-dock.tsx`
+ * draws it around production's `Shutter`.
  *
  * ★ AN OPTION DRAWS ONLY WHAT IT CHANGES: the head's slot, the shutter's
  * state, what stands above the shutter, a layer over the page (a sheet, the
@@ -157,8 +156,8 @@ function Rows({
   );
 }
 
-/** The guest's header on the cover (`guest-header.tsx`, `over`): the wordmark and her name. */
-function GuestBar() {
+/** The guest's header on the cover (`guest-header.tsx`, `over`): the wordmark and the guest's name. */
+export function GuestBar({ name = "Priya" }: { name?: string }) {
   return (
     <header
       data-surface="photo"
@@ -166,17 +165,17 @@ function GuestBar() {
     >
       <Logo />
       <span className="flex items-center gap-2 text-sm">
-        <Avatar seed="guest-priya" size="sm">
-          <AvatarFallback>P</AvatarFallback>
+        <Avatar seed={`guest-${name.toLowerCase()}`} size="sm">
+          <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>
-        Priya
+        {name}
       </span>
     </header>
   );
 }
 
-/** The cover's actions on a Live album: Add photos, the reel, Invite; her uploads' round where it stands. */
-function CoverActions({ uploads }: { uploads?: ReactNode }) {
+/** The cover's actions on a Live album: Add photos, the reel, Invite. */
+function CoverActions() {
   return (
     <>
       <Button
@@ -188,7 +187,6 @@ function CoverActions({ uploads }: { uploads?: ReactNode }) {
       >
         <ImageUp /> Add photos
       </Button>
-      {uploads}
       <Button
         type="button"
         variant="glass"
@@ -241,22 +239,13 @@ export type ShutterLook =
 
 /**
  * THE FOOT, as `guest-action-dock.tsx` draws it: the page's ground rising,
- * Invite, the Add, the reel, then her uploads' round where it stands, in one
- * row (`{invite} {shutter} {twin} {tracker}`). What stands above the shutter
- * (`above`: an option's own pill) stands where production's stand-in stands
- * (`sending-stand-in.tsx`: fixed, 6.25rem up, centred, 18rem at most), so a
- * pill an option draws is judged in the very band the stack's stand-in uses.
+ * Invite, the Add, the reel, in one row. What stands above the shutter
+ * (`above`: an option's own pill or chip) stands where production's stand-in
+ * stands (`sending-stand-in.tsx`: fixed, 6.25rem up, centred, 18rem at most),
+ * so whatever an option draws there is judged in the very band the stack's
+ * stand-in uses.
  */
-function Dock({
-  shutter,
-  above,
-  uploads,
-}: {
-  shutter: ShutterLook;
-  above?: ReactNode;
-  /** Her uploads' round, after the right flank, where it stands (`tracker`). */
-  uploads?: ReactNode;
-}) {
+function Dock({ shutter, above }: { shutter: ShutterLook; above?: ReactNode }) {
   const standby = shutter.state === "standby";
   return (
     <>
@@ -303,7 +292,6 @@ function Dock({
           >
             <Play className="fill-current" />
           </Button>
-          {uploads}
         </div>
       </div>
       {above ? (
@@ -384,38 +372,19 @@ function useScroll(to: Scroll) {
   return ref;
 }
 
-/** The frame's document, once mounted: a stand-in portals into its body, as production's does into the page's. */
-function useDoc() {
-  const [doc, setDoc] = useState<Document | null>(null);
-  const ref = (el: HTMLDivElement | null) => {
-    if (el && el.ownerDocument !== doc) setDoc(el.ownerDocument);
-  };
-  return [doc, ref] as const;
-}
-
 /* ── the send, as the head and the foot draw it ─────────────────────────── */
 
-/** Her send at the head: production's stack, its file in the air, the rest under it. */
+/** Her send at the head, sending: production's stack, its file in the air, the rest under it. */
 export function SendStack({
   progress,
   remaining,
-  held = false,
-  pane,
 }: {
   progress: number;
   remaining: number;
-  /** The line is gone: the bar holds where it stopped. */
-  held?: boolean;
-  /** What the pane says in place of production's count, where an option changes it. */
-  pane?: ReactNode;
 }) {
   const first = UNSENT[0]!;
   return (
-    <div
-      data-ns-held={held ? "" : undefined}
-      data-ns-stack={held ? "held" : "sending"}
-      className="relative h-full"
-    >
+    <div data-ns-stack="sending" className="relative h-full">
       <UploadStackTile
         file={namedFile(first.name)}
         url={first.still.src}
@@ -423,31 +392,7 @@ export function SendStack({
         remaining={remaining}
         onStop={() => {}}
       />
-      {pane}
     </div>
-  );
-}
-
-/** Her send's stand-in above the foot, production's own, while the stack is out of her sight. */
-export function SendStandIn({
-  doc,
-  progress,
-  remaining,
-}: {
-  doc: Document;
-  progress: number;
-  remaining: number;
-}) {
-  const first = UNSENT[0]!;
-  return (
-    <SendingStandIn
-      doc={doc}
-      file={namedFile(first.name)}
-      url={first.still.src}
-      progress={progress}
-      remaining={remaining}
-      onStop={() => {}}
-    />
   );
 }
 
@@ -456,9 +401,9 @@ export function SendStandIn({
 /**
  * PRIYA'S PAGE: the header, the cover, the album's bar and rows, its foot. The
  * head's slot holds what an option puts there (`head`); `landed` is what of
- * hers is in the album (newest first, at its head); `over` is a layer over the
- * page (a sheet, her list, a toast); `standIn` draws production's stand-in
- * above the shutter, read off the frame's own document.
+ * hers is in the album (newest first, at its head); `above` stands over the
+ * shutter in the stand-in's band; `over` is a layer over the page (a sheet,
+ * her list, a toast).
  */
 export function GuestAlbum({
   scroll,
@@ -466,31 +411,21 @@ export function GuestAlbum({
   landed = [LANDED.still],
   shutter = { state: "idle" },
   above,
-  standIn,
-  uploads,
   over,
 }: {
   scroll: Scroll;
   head?: ReactNode;
   landed?: readonly Still[];
   shutter?: ShutterLook;
-  /** What stands above the shutter (a chip), in the foot's own band. */
+  /** What stands above the shutter (a pill, a chip), in the foot's own band. */
   above?: ReactNode;
-  /** Production's stand-in above the foot, sending: the send's file, at this progress and count. */
-  standIn?: { progress: number; remaining: number };
-  /** Her uploads' round, beside the cover's Add and at the foot, where it stands. */
-  uploads?: { cover: ReactNode; foot: ReactNode };
   over?: ReactNode;
 }) {
   const boxRef = useScroll(scroll);
-  const [doc, docRef] = useDoc();
   const count = WEDDING.photos + landed.length;
   return (
     <div
-      ref={(el) => {
-        boxRef.current = el;
-        docRef(el);
-      }}
+      ref={boxRef}
       data-ns-album={scroll}
       className="relative min-h-screen bg-background pb-40 text-foreground"
     >
@@ -512,22 +447,13 @@ export function GuestAlbum({
         description={null}
         mediaCount={count}
         guestCount={WEDDING.guests}
-        actions={<CoverActions uploads={uploads?.cover} />}
+        actions={<CoverActions />}
       />
       <div className="mt-5 px-3">
         <AlbumBar count={count} />
         <Rows head={head} landed={landed} />
       </div>
-      {scroll === "top" ? null : (
-        <Dock shutter={shutter} above={above} uploads={uploads?.foot} />
-      )}
-      {doc && standIn && scroll !== "top" ? (
-        <SendStandIn
-          doc={doc}
-          progress={standIn.progress}
-          remaining={standIn.remaining}
-        />
-      ) : null}
+      {scroll === "top" ? null : <Dock shutter={shutter} above={above} />}
       {over}
     </div>
   );

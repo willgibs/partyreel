@@ -17,10 +17,21 @@ import { NO_SIGNAL, waitingCount } from "./words";
  * stand-in, recomposed from their own markup (`stack-tile.tsx`,
  * `sending-stand-in.tsx`: the tile's box, its ghost edges, the reading pane,
  * the glass pill, the x), because production's pane has no slot for a state
- * of its own. ★ ONLY THE PANE'S WORDS AND ITS BAR CHANGE: the point half-lit
- * in the pane's own white (Standby, no hue), "No signal" where the count
- * stood, the bar held where it stopped at the run's white dimmed, and the x
- * still there (a waiting file can still be stopped, as a sending one can).
+ * of its own.
+ *
+ * ★ ONE STRIP, PRODUCTION'S ROW: the pane keeps the stack's own row, its word
+ * and its bar side by side, with "No signal" and the half-lit point (Standby,
+ * no hue, in the pane's own white) where the count stood, and the bar held
+ * where it stopped, dimmed. Under it ONE line: the carry's promise in a few
+ * words, or, where nothing goes by itself, her one press. The promise lives
+ * on the send because it stays there: a toast at a party is gone before a
+ * phone leaves a pocket (the failure sheet's own reason for having none), and
+ * the pane is where she is already looking. The x stays (a waiting file can
+ * still be stopped, as a sending one can).
+ *
+ * ★ THE STAND-IN IS THE PANE'S FIRST ROW: the same photograph, point, word,
+ * bar and x, and no second count, since the shutter's shoulder under it
+ * already says how many, as it does for production's own run.
  */
 
 /** The point, half-lit (`ns.css`): Standby's mark, in whatever ink stands around it. */
@@ -47,15 +58,59 @@ export function WaitPoint({
 const TILE_BOX =
   "relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10";
 
+/** The bar held where the line went: production's track, its fill the run's white dimmed, and still. */
+function HeldBar({
+  progress,
+  className,
+}: {
+  progress: number;
+  className?: string;
+}) {
+  return (
+    <span
+      data-ns-held-bar=""
+      className={cn(
+        "h-1 flex-1 overflow-hidden rounded-full bg-white/30",
+        className,
+      )}
+    >
+      <span
+        data-pending-progress
+        className="block h-full rounded-full bg-white/45"
+        style={{ width: `${progress}%` }}
+      />
+    </span>
+  );
+}
+
+/** The point and the state's word, lit for the glass they stand on. */
+function StateWord({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        GLASS_MARK_LIT,
+        "flex shrink-0 items-center gap-1.5 text-reading font-medium text-white",
+        className,
+      )}
+    >
+      <WaitPoint />
+      <span data-ns-state-word="">{NO_SIGNAL}</span>
+    </span>
+  );
+}
+
 /** The stack at the album's head, standing by: her photo, the rest under it, the pane saying the line is gone. */
 export function WaitingStack({
   progress,
   remaining,
+  note,
   press,
 }: {
   progress: number;
   remaining: number;
-  /** Where nothing goes by itself, the pane carries her one press (`Try again`). */
+  /** The carry's promise in a few words, under the state ("Safe on this phone"). */
+  note?: string;
+  /** Where nothing goes by itself, her one press stands there instead (`Try again`). */
   press?: string;
 }) {
   const first = UNSENT[0]!;
@@ -89,38 +144,34 @@ export function WaitingStack({
           className="absolute inset-0"
         />
         <div
+          role="status"
           style={READING_PANE}
           data-ns-pane=""
           className={cn(
             GLASS_MARK,
-            "absolute inset-x-0 bottom-0 flex flex-col gap-1.5 px-2 py-1.5",
+            "absolute inset-x-0 bottom-0 flex flex-col gap-0.5 px-2 py-1.5",
           )}
         >
-          <span
-            className={cn(
-              GLASS_MARK_LIT,
-              "flex items-center gap-1.5 text-reading font-medium text-white",
-            )}
-          >
-            <WaitPoint />
-            <span data-ns-pane-words="">{NO_SIGNAL}</span>
-          </span>
-          <span className="h-1 w-full overflow-hidden rounded-full bg-white/30">
-            <span
-              data-pending-progress
-              className="block h-full rounded-full bg-white/45"
-              style={{ width: `${progress}%` }}
-            />
+          <span className="flex items-center gap-2">
+            <StateWord />
+            <HeldBar progress={progress} />
           </span>
           {press ? (
             <span
               data-ns-pane-press=""
               className={cn(
                 GLASS_MARK_LIT,
-                "text-reading font-semibold text-white underline decoration-white/50 underline-offset-4",
+                "self-start text-working font-semibold text-white underline decoration-white/60 underline-offset-4",
               )}
             >
               {press}
+            </span>
+          ) : note ? (
+            <span
+              data-ns-pane-note=""
+              className={cn(GLASS_MARK_LIT, "text-working text-white")}
+            >
+              {note}
             </span>
           ) : null}
         </div>
@@ -147,7 +198,7 @@ export function WaitingStack({
   );
 }
 
-/** The stand-in above the foot, standing by: her photo, "No signal · 2 waiting", the held bar, the x. */
+/** The stand-in above the foot, standing by: her photo, the point and "No signal", the held bar, the x. */
 export function WaitingPill({
   progress,
   remaining,
@@ -174,21 +225,10 @@ export function WaitingPill({
           className="absolute inset-0"
         />
       </span>
-      <span
-        className={cn(
-          GLASS_MARK_LIT,
-          "flex shrink-0 items-center gap-1.5 text-reading font-medium tabular-nums",
-        )}
-      >
-        <WaitPoint />
-        {NO_SIGNAL} · {waitingCount(remaining)}
-      </span>
-      <span className="h-1 min-w-6 flex-1 overflow-hidden rounded-full bg-white/30">
-        <span
-          className="block h-full rounded-full bg-white/45"
-          style={{ width: `${progress}%` }}
-        />
-      </span>
+      <StateWord />
+      {/* What the shutter's shoulder shows, for whoever cannot see it (the shutter's own name says it too). */}
+      <span className="sr-only">, {waitingCount(remaining)}</span>
+      <HeldBar progress={progress} className="min-w-8" />
       <span
         className={cn(
           GLASS_MARK,
@@ -200,6 +240,7 @@ export function WaitingPill({
           className={cn(GLASS_MARK_LIT, "size-3.5")}
           strokeWidth={2.5}
         />
+        <span className="sr-only">{STOP_COPY.stop}</span>
       </span>
     </div>
   );

@@ -33,24 +33,31 @@
     color-mix(in oklab, currentColor 55%, transparent);
 }
 
-/* THE SHUTTER STANDING BY: its ring keeps what the run had sent, but the
-   light's hue goes (no hue is Standby), and its glow with it. The atom is
-   production's (`ui/shutter.tsx`); only this frame's copy is dimmed. */
-[data-ns-standby] .shutter-fill {
-  filter: grayscale(1) brightness(1.25);
-  opacity: 0.7;
+/* THE SHUTTER STANDING BY (the drop's `standby`): its ring holds what the run
+   had sent, in the ground's own ink, never the light greyed. The album's light
+   with its hue drained is a pale grey on both grounds: in the room it reads,
+   but on paper (where the light is lit at 0.8) the ring all but vanishes into
+   the page. Standby's point is the ink of whatever it stands on, so the ring
+   that holds the run's share is too: the room's light ink, paper's dark one.
+   The fill keeps what was sent, the track is a hairline's weight, and the glow
+   goes, so the shutter reads as held, never as switched off. ★ Specific enough
+   to stand over the atom's own `sending` rules (`shutter.css`'s
+   `.shutter[data-state="sending"] .shutter-fill`), whatever order the sheets
+   land in. The atom is production's (`ui/shutter.tsx`); only this frame's copy
+   changes. */
+[data-ns-standby] .shutter[data-state] .shutter-track,
+[data-ns-standby] .shutter[data-state] .shutter-fill {
+  background: var(--foreground);
+  filter: none;
 }
-[data-ns-standby] .shutter-track {
-  filter: grayscale(1);
+[data-ns-standby] .shutter[data-state] .shutter-track {
+  opacity: 0.18;
 }
-[data-ns-standby] .shutter-glow {
+[data-ns-standby] .shutter[data-state] .shutter-fill {
+  opacity: 0.72;
+}
+[data-ns-standby] .shutter[data-state] .shutter-glow {
   opacity: 0;
-}
-
-/* The stack's bar, held where it stopped: the run's white, dimmed. */
-[data-ns-held] [data-pending-progress],
-[data-ns-held] [data-stand-in-progress] {
-  opacity: 0.45;
 }
 
 /* A CAMERA'S FRAME WAITING FOR THE LINE: the sending dot's place, half-lit and

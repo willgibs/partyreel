@@ -62,6 +62,19 @@ export function promiseLine(c: Carry, n: number): string {
 export const pressWord = (c: Carry) =>
   c === "retry" ? "Try again" : "Try now";
 
+/**
+ * THE PANE'S LINE UNDER THE STATE, the carry's promise in a few words: her
+ * phone's keep says she has lost nothing; the page's says the one thing that
+ * would lose them; today's has no promise to make, and carries her press
+ * instead (`pressWord`).
+ */
+export const paneNote = (c: Carry): string | undefined =>
+  keeps(c)
+    ? "Safe on this phone"
+    : goesItself(c)
+      ? "Keep this page open"
+      : undefined;
+
 /** Her uploads' list, its line while something waits. */
 export function uploadsLine(c: Carry): string {
   return keeps(c)
@@ -71,9 +84,12 @@ export function uploadsLine(c: Carry): string {
       : "Waiting ones go when you try again with signal. Keep this page open.";
 }
 
-/** The toast a send that went in the background leaves for her next open (Android's). */
-export const wentInLastNight = (n: number) =>
-  `Your ${n} photos went in last night, once you had signal.`;
+/**
+ * The toast a send that went in the background leaves for her next open (Android's): production's own sentence
+ * (`keepSentLine`'s "joined Maya's album"), told when.
+ */
+export const wentInLastNight = (n: number, hostName: string) =>
+  `Your ${n} photos joined ${hostName}’s album last night, once you had signal.`;
 
 /* ── the camera in a dead zone ─────────────────────────────────────────── */
 

@@ -149,13 +149,13 @@ export const NO_SIGNAL = defineExploration({
       question:
         "When her photos can't send, how far should Partyreel carry them to the album?",
       where: ["Guest", "Her photos on their way", "The line gone"],
-      when: "Priya sends three from the dance floor at 11:41 pm; the first lands, the line drops on the second, and later the page is closed.",
+      when: "Priya sends three from the dance floor at 11:41 pm; the first lands, the line drops on the second, and it is back at 12:40 am.",
       matters:
         "A photo she pressed Send on that never reaches the album is the one failure a party can't forgive.",
       lands:
         "Where unsent photos wait (the page, or her phone) and what sends them again: her Retry, the line's return, her next open, or the background.",
       context:
-        "Priya's phone at two moments after the drop: at 12:40 am the line is back while the album is still open; at 9:10 am she opens it after the page was closed in the night. Under them, where her two photos are at each beat of the night.",
+        "Priya's phone at the same moments on every rung: 12:40 am, the line back with the page open; 9:10 am, after the page closed in the night (an iPhone, then Android, on the background rung). With them, her two photos through the night.",
       options: [
         {
           id: "retry",
@@ -185,7 +185,7 @@ export const NO_SIGNAL = defineExploration({
           gains:
             "Nothing she sent is lost to a closed page; her next open sends it.",
           costs:
-            "A second copy on her phone while it waits; Safari clears it after 7 days away.",
+            "A second copy on her phone as it waits; Safari clears it after 7 days away, a private tab on close.",
         },
         {
           id: "background",
@@ -193,7 +193,7 @@ export const NO_SIGNAL = defineExploration({
           means:
             "Her phone's keep, plus a service worker: on Android it sends with the album closed once the line is back; on an iPhone, at her next open.",
           gains:
-            "An Android guest's photos land with the phone still in her pocket.",
+            "An Android guest's photos land with the album closed, her phone still in her pocket.",
           costs:
             "The app's first service worker to own, for Android alone; nothing tells her until she opens it.",
         },
@@ -217,42 +217,42 @@ export const NO_SIGNAL = defineExploration({
       lands:
         "The send's state when the line drops (the stack, its stand-in, the shutter's ring) and its words, wherever what she adds shows at once.",
       context:
-        "Maya & Jay's album at a phone, in your answer to how far it's carried (its words promise only what it keeps): the moment the line drops, at the album's head; a minute later, scrolled into the album; then her press on what says it.",
+        "Maya & Jay's album at a phone, in your answer to how far it's carried (its words promise only what it keeps): the moment the line drops, at the album's head; two minutes on, scrolled into the album; then her press on what says it.",
       options: [
         {
           id: "sheet",
           label: "As today: a sheet once the run ends",
           means:
-            "When the run ends, a sheet opens over the album: '2 of 3 didn't upload', each row with the signal's mark, Retry both and Not now.",
+            "When the run ends a sheet opens over the album: '2 of 3 didn't upload', Retry both and Not now; the send's toast says the one that joined.",
           gains: "Built, and impossible to miss.",
           costs:
-            "Says 'didn't upload' over photos that are only waiting, in a sheet over the party.",
+            "Says 'didn't upload' over photos only waiting, in a sheet over the party, beside a 'joined' toast.",
         },
         {
           id: "standby",
           label: "The send stands by where it is",
           means:
-            "The stack keeps her photo and holds its bar: 'No signal', half-lit; the stand-in and the shutter's ring say it too, and nothing opens.",
+            "The stack keeps her photo and holds its bar: 'No signal', half-lit, its promise under it; the stand-in and the shutter's ring hold too, and nothing opens.",
           gains:
-            "Said where she is already looking, in the send's own place; nothing interrupts the party.",
+            "Said once, where she is already looking, in the send's own place; nothing interrupts the party.",
           costs:
-            "A held bar can read as stuck to a glance that misses its words.",
+            "A queue state that waits, where a dropped file errors today; a held bar can read as stuck.",
         },
         {
           id: "uploads",
           label: "Her uploads hold them",
           means:
-            "The stack steps out of the album; her uploads' button stands by the Add as a chip, '2 waiting to send', its list saying each waits.",
+            "The stack steps out; the send's toast says what joined, and her uploads' button stands over the Add as a chip, '2 waiting to send', its list saying each waits.",
           gains:
             "The album shows only what is in it, as for a held photo; one home for hers not in yet.",
           costs:
-            "Her uploads' button stands on every album now, and her photo leaves where it will land.",
+            "Her uploads' button on every album and a row that waits; her photo leaves where it will land.",
         },
       ],
       recommended: "standby",
       today: "sheet",
       because:
-        "Waiting is a state of sending: said in the send's own place and words, one object, never a second.",
+        "Waiting is a state of sending: said once, in the send's own place and words, one object, never a second.",
       overrule:
         "If what waits belongs with her uploads, the chip; if it must be impossible to miss, today's sheet.",
       after: { ask: "carry" },
@@ -268,28 +268,28 @@ export const NO_SIGNAL = defineExploration({
       matters:
         "The count he shoots by must be the count he has, or a shot he took is thrown away later.",
       lands:
-        "How the camera counts a shot it can't send yet, and what happens to shots past the roll when the line returns. One-way: guests learn it.",
+        "How the camera counts a shot it can't send yet, and whether a shot past his roll is taken at all. One-way: the count is the roll's promise, and guests learn it.",
       context:
-        "The album's camera at a phone in the cellar: his second shot there; still pressing on; then back upstairs as the line returns and his shots land (his shots' list, where a refused one shows).",
+        "The album's camera in the cellar: his second shot; still pressing; then upstairs as the line returns (today the refusal shows only on the album's sheet). Under them, each press's count and fate, and the reel at twice its size.",
       options: [
         {
           id: "lands",
           label: "As today: when it lands",
           means:
-            "A shot that can't send gives its frame back while it waits, so the count stays at 4; he takes 6, and 2 are refused as the line returns.",
+            "A shot that can't send leaves the count and the reel at once: it stays at 4 and nothing stops him; the line back, the last 2 of his 6 are refused.",
           gains: "Built; the count is always the album's own.",
           costs:
-            "He can shoot past his roll offline, and those shots are thrown away later.",
+            "The count lies offline; shots past his roll are thrown away, said only on the album's sheet.",
         },
         {
           id: "taken",
           label: "When he takes it, like film",
           means:
-            "Every press spends a frame at once, sent or not: the count steps down in the cellar, the roll ends at 0, and every shot he took lands.",
+            "Every press spends a frame at once, sent or not: the count steps down in the cellar, the roll ends at 0 with 4 waiting, and all 4 land.",
           gains:
             "The count he shoots by is the count he has; no shot he took is refused for the roll.",
           costs:
-            "A waiting shot holds its frame until it lands, or his phone lets it go.",
+            "The camera must count its waiting shots itself; a cleared page loses them and frees their frames.",
         },
       ],
       recommended: "taken",

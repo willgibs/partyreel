@@ -1,0 +1,27 @@
+/* THE REEL AT TWICE A PHONE'S SIZE, under the roll's frames (`camera.tsx`'s `ReelAt2x`): production's reel and its
+   caption (`camera.css`), so the waiting mark can be judged where a phone draws it seven points wide.
+
+   ★ ITS FRAMES ARE SIZED HERE, AS THE CAMERA'S UPRIGHT SCREEN SIZES THEM (`.cam-screen`'s own three), never by
+   `.cam-screen` itself: the board's page is on its side at a desk, and the camera's landscape sizes would follow it.
+
+   ★ LAID OUT AT A PHONE'S POINTS, DRAWN AT TWICE THEM: a transform, so the reel's own geometry (its centre, its pitch,
+   its fade) is the phone's, and the browser draws its marks and minutes again at the larger size, crisp. */
+.ns-reel2x {
+  --cam-cell-w: 32px;
+  --cam-cell-h: 42px;
+  --cam-pitch: 38px;
+  position: relative;
+  width: 100%;
+  max-width: 532px;
+  height: 176px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #000;
+  color: #fff;
+}
+.ns-reel2x-in {
+  width: 50%;
+  padding-top: 4px;
+  transform: scale(2);
+  transform-origin: 0 0;
+}
