@@ -8,6 +8,7 @@ import {
   lastClaimPlayedMoment,
   recordMomentPlayed,
   reportConfirmBeat,
+  takeToldName,
 } from "@/lib/guest/confirm-beat";
 
 /**
@@ -32,7 +33,8 @@ import {
  * confirmed reports its beat and the page says it once. The mount's own claim (a full-reload return)
  * has no door behind it, so this hook reports that one itself: whenever it carried uploads from other
  * events, and whenever a door opened here led to it and nothing here moved, so the page can say where
- * photos typed under another address are (the page reads that when it speaks).
+ * photos typed under another address are (the page reads that when it speaks). ★ It also tells the name a tapped
+ * link adopted on the server, which no claim carries (the callback leaves it: `confirm-beat.ts`'s `takeToldName`).
  *
  * The marker is spent by the first claim that actually ran for this album, whatever it carried: a
  * door opened and abandoned is used up by the next real sign-in, never replayed weeks later.
@@ -63,13 +65,18 @@ export function useConfirmReturn(
     void claimAnonymousUploads({ silent: true }).then((result) => {
       // A remount (StrictMode's, or a real one) hears the same shared claim: only the live mount
       // reports it, so the beat is said once.
-      if (!active || !result || result.album !== qrToken) return;
+      if (!active) return;
+      // ★ THE NAME A TAPPED LINK ADOPTED (crumbs-88): the callback left it for this album (`takeToldName`), and it is the
+      // link's word, not the claim's: a claim that carried nothing here (a link opened on another device holds no ticket, so
+      // the claim is null) still means a name was adopted. Spent here, whichever way the beat goes, so a reload says nothing.
+      const told = takeToldName(qrToken);
       if (lastClaimPlayedMoment(qrToken)) return;
-      if (result.elsewhere > 0 || opened) {
+      const carried = result && result.album === qrToken ? result : null;
+      if (told || carried?.elsewhere || opened) {
         reportConfirmBeat({
           album: qrToken,
-          name: null,
-          elsewhere: result.elsewhere,
+          name: told,
+          elsewhere: carried?.elsewhere ?? 0,
         });
       }
     });

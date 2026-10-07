@@ -185,6 +185,75 @@ describe("the stage's photographs", () => {
     expect(photos[1]?.url).toBe("signed:preview-1");
     expect(presigned).toHaveLength(9);
   });
+
+  /**
+   * ★ HELD TO WHAT HER GUESTS SEE (crumbs-88): her own session is exempt from a disposable album's seal at every SQL home,
+   * so the wall asked the seal's predicate itself, or it drew the very photographs the hub covers until the develop. The
+   * rows below are the three the one predicate tells apart: sealed past now, sealed to a time already reached (the sweep
+   * has not cleared it yet), and never sealed. The newest are the sealed ones, so a wall that took the newest nine
+   * and then dropped the sealed would come back short.
+   */
+  describe("★ held to what her guests see: a row sealed past now is never drawn", () => {
+    const row = (i: number, sealedUntil: string | null) => ({
+      id: uuid("s", i),
+      event_id: uuid("e", 0),
+      type: "photo",
+      status: "approved",
+      removed_at: null,
+      created_at: pgTime(i),
+      preview_key: `preview-${i}`,
+      original_key: `original-${i}`,
+      sealed_until: sealedUntil,
+    });
+    const AHEAD = "2999-01-01T00:00:00+00:00";
+    const REACHED = "2020-01-01T00:00:00+00:00";
+
+    it("draws the nine newest of what is unsealed, skipping the sealed ones however new they are", async () => {
+      fake = createFakePostgrest({
+        tables: {
+          media: [
+            // The newest three wait for the develop, then twelve that never did and two whose time has come.
+            row(0, AHEAD),
+            row(1, AHEAD),
+            row(2, AHEAD),
+            ...Array.from({ length: 12 }, (_, i) =>
+              row(3 + i, i % 5 === 4 ? REACHED : null),
+            ),
+          ],
+        },
+      });
+      const photos = await getStagePhotos(uuid("e", 0), 9);
+      expect(photos.map((p) => p.id)).toEqual(
+        Array.from({ length: 9 }, (_, i) => uuid("s", 3 + i)),
+      );
+      expect(presigned).toHaveLength(9);
+      expect(presigned.some((k) => /-(0|1|2)$/.test(k))).toBe(false);
+    });
+
+    it("draws nothing for a covered album whose every row waits: the stage stands on its code's plate", async () => {
+      fake = createFakePostgrest({
+        tables: { media: [row(0, AHEAD), row(1, AHEAD), row(2, AHEAD)] },
+      });
+      expect(await getStagePhotos(uuid("e", 0), 9)).toEqual([]);
+      expect(presigned).toEqual([]);
+    });
+
+    it("asks the seal's own logic tree, an `or` beside the drawable one, which PostgREST ANDs", async () => {
+      fake = createFakePostgrest({ tables: { media: [row(0, null)] } });
+      await getStagePhotos(uuid("e", 0), 9);
+      const ors = fake.requests
+        .flatMap((r) => r.filters)
+        .filter((f) => f.op === "or")
+        .map((f) => String(f.value));
+      expect(ors).toHaveLength(2);
+      expect(
+        ors.filter((t) =>
+          /^sealed_until\.is\.null,sealed_until\.lte\..+$/.test(t),
+        ),
+      ).toHaveLength(1);
+      expect(ors).toContain("type.eq.photo,preview_key.not.is.null");
+    });
+  });
 });
 
 describe("a link's opens", () => {

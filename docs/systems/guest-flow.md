@@ -94,7 +94,11 @@ says what she now holds, her other events once in a line that never leads out (`
 with its Change; where no moment plays, the page says it once, after the door's hold, with the name's Change
 ([`confirm-beat-name.tsx`](../../src/lib/guest/confirm-beat-name.tsx)). The events waiting under her
 email are the moment's alone, counted on the server from the dashboard banner's own list
-([`confirm-beat-action.ts`](../../src/lib/guest/confirm-beat-action.ts)).
+([`confirm-beat-action.ts`](../../src/lib/guest/confirm-beat-action.ts)). ★ **A confirmation by the emailed link is the
+same beat after a full reload:** the callback adopts the name typed at the door and leaves what her photographs now
+carry in a two-minute cookie bound to that album (`pr_told_name`, `adopt-door-name-told.ts`, never a query), which the
+album's mount spends (`takeToldName`, `use-confirm-return.ts`) to tell it with its Change, unless the follow moment
+plays.
 
 The follow moment offers the host alone, with the quieter Follow (`FollowButton`'s `quiet`): the other guests carry
 their own Follow on each handled chip ([`guest-list.tsx`](../../src/components/social/guest-list.tsx)), and a second
@@ -392,17 +396,22 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
 - **`password`** → access `none`: the doorway at rest under the door's password step, showing the album's name and
   its real "N photos & videos inside" count (the name is link-shared, not the secret) and nothing more, no media URL
   at all, until a signed unlock cookie is present; then the rest of the door.
-- **`open`** → the full experience, unless a gate applies (see "Gallery access"). The OG description is one invitation
-  for every open event, "Photos and videos from the day. Add yours.", and never warns about the email step: the gate
-  stays honest where it happens, at the door, at the known cost of some guests bouncing there.
+- **`open`** → the full experience, unless a gate applies (see "Gallery access"). The link's title and line say what
+  the album is right now (`card/words.ts`): one that takes photos invites ("Add photos to <name>", "Photos and videos
+  from the day. Add yours."), one whose host closed `accepting_uploads` is the album to look through ("Photos from
+  <name>", "... Take a look."), whatever its identity switch; neither warns about the email step: the gate stays honest
+  where it happens, at the door, at the known cost of some guests bouncing there.
 - **The link's image** is the event's card, drawn by [`card/route.tsx`](<../../src/app/(guest)/e/[token]/card/route.tsx>)
   at `/e/<token>/card` (a private or unknown event draws the generic card) and named by `generateMetadata` from
   [`event-card.ts`](../../src/lib/guest/event-card.ts). ★ **One answer per address, whoever asks:** the card is public
   for an hour and the edge serves its copy to everyone, so it follows the event's own visibility, read with no caller
   (`getEventCardName`, the anon client), never the request's session, cookie or ticket, and every closed door (a
   private album, a viewer a block masks) names the private album's card instead (`?private`, generic by its address
-  alone), so the two pages carry the same image. `/e/<token>?photo=<id>` (read with the viewer's own
-  `readPhotoParam`) unfurls as that photograph (a preview or the original, presigned server-side; a video as its
+  alone), so the two pages carry the same image. ★ **Its foot follows the album by its address too** (`?add`): the plain
+  card says "See the photos & videos on Partyreel", true of every album, and only an open album's page that takes photos
+  right now names the inviting one ("Add your photos & videos"), which the route honours only where an album's name is
+  public, so the edge's hour never keeps inviting after the host closes uploads. `/e/<token>?photo=<id>` (read with the
+  viewer's own `readPhotoParam`) unfurls as that photograph (a preview or the original, presigned server-side; a video as its
   poster), but only on an album anyone may open (`resolveGalleryDecision` for an identity-less visitor is `full`) and
   only for an approved item of this event (`getOpenAlbumItemForCard`): a gated album, any other id, a video with no
   poster and a failed presign all keep the event card, with no sign the id exists. It is a route, not an

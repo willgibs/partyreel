@@ -1855,12 +1855,13 @@ function ReelDock({
             )}
           </div>
 
-          {/* The timeline, again: in the dock it is the way back to the bar. */}
+          {/* The timeline, again: in the dock it is the way back to the bar. ★ Its keyboard focus is the house's halo like
+              every other control in the dock (red-team 56b's LOW: it took focus with no mark at all). */}
           <button
             type="button"
             onClick={onToggleDock}
             aria-label="Hide the controls"
-            className="group mx-1 flex h-4 items-center outline-none"
+            className="group mx-1 flex h-4 focus-halo items-center rounded-full outline-none"
           >
             <Timeline progress={progress} />
           </button>

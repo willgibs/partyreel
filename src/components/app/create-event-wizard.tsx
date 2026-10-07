@@ -168,6 +168,15 @@ export function CreateEventWizard({
   const [pricingOpen, setPricingOpen] = useState(false);
   const [, startTransition] = useTransition();
   const creating = useRef(false);
+  /**
+   * ★ THE KEY OF THIS CREATE, MADE AT ITS FIRST PRESS AND SENT WITH EVERY TRY (20261007120000, `events.create_key`): a Create
+   * whose answer is lost after the server made the event is held as failed, and a Try again that made a second event spent a
+   * Free host's one event on a duplicate. The server returns the event the first try made for the key it has seen, so the
+   * key is one for the whole room, never one per press, and it survives a Back and a change of her answers: a retry after she
+   * changed the name still gets the first event (she renames it in Settings) rather than a duplicate or a plan's-limit
+   * refusal over the event that stands on her dashboard. A new Create is a new room, which is a new key.
+   */
+  const attempt = useRef<string | null>(null);
   const room = useRef<HTMLDivElement | null>(null);
   const carry = useCarry();
   const questionId = useId();
@@ -276,6 +285,8 @@ export function CreateEventWizard({
     }
     const values = parsed.data;
     creating.current = true;
+    // Made once, here, after her answers have passed: a press the schema refused made no key.
+    const key = (attempt.current ??= crypto.randomUUID());
     setHeld(null);
     setLeft(readiness(newEventFacts(values, storagePct)));
     if (step !== "beat") {
@@ -288,7 +299,7 @@ export function CreateEventWizard({
     startTransition(async () => {
       // ★ A DROPPED CONNECTION REJECTS THE ACTION RATHER THAN ANSWERING IT, and the beat must never
       // develop for ever over a promise that failed: no answer at all is held as the failure it is.
-      const result = await create(values).then(
+      const result = await create(values, key).then(
         (answer) => answer,
         () => null,
       );

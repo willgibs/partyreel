@@ -6,7 +6,9 @@
  *   - a named profile, a reserved, profane or overlong name, and a value that is not a string are
  *     never written;
  *   - the stored copy is cleared in every one of those cases, and left alone when there is none;
- *   - it never throws: a failure is captured and the sign-in goes on.
+ *   - it never throws: a failure is captured and the sign-in goes on;
+ *   - ★ it answers the name her photographs now carry (crumbs-88), for the album to tell her as the in-page confirm does:
+ *     the one it adopted, or the one the account already had, whichever won, and only where she typed one here.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -88,7 +90,8 @@ beforeEach(() => {
 
 describe("adoptDoorName", () => {
   it("names a nameless profile, only while it is still nameless, then clears the copy", async () => {
-    await adoptDoorName();
+    // ★ And answers the name it adopted, which is the name her photographs now carry.
+    await expect(adoptDoorName()).resolves.toBe("Maya J.");
     expect(state.updates).toEqual([
       {
         values: { display_name: "Maya J." },
@@ -103,7 +106,8 @@ describe("adoptDoorName", () => {
 
   it("never overwrites a name, and still clears the copy", async () => {
     state.profile = { display_name: "Already Named" };
-    await adoptDoorName();
+    // ★ The name told is the one that won: she typed one here, and the account's own is what her photographs carry.
+    await expect(adoptDoorName()).resolves.toBe("Already Named");
     expect(state.updates).toEqual([]);
     expect(state.cleared).toEqual([CLEAR]);
   });
@@ -117,7 +121,8 @@ describe("adoptDoorName", () => {
     "refuses %s the way the account form would, and clears it",
     async (_, name) => {
       state.user = { id: "user-1", user_metadata: { door_name: name } };
-      await adoptDoorName();
+      // A nameless account that took nothing carries no name: there is nothing to tell.
+      await expect(adoptDoorName()).resolves.toBeNull();
       expect(state.updates).toEqual([]);
       expect(state.cleared).toEqual([CLEAR]);
     },
@@ -125,23 +130,25 @@ describe("adoptDoorName", () => {
 
   it("refuses a value that is not a string (the metadata is client-writable)", async () => {
     state.user = { id: "user-1", user_metadata: { door_name: { name: "x" } } };
-    await adoptDoorName();
+    await expect(adoptDoorName()).resolves.toBeNull();
     expect(state.updates).toEqual([]);
     expect(state.cleared).toEqual([CLEAR]);
   });
 
-  it("does nothing at all without a stored name, or without a user", async () => {
+  it("does nothing at all without a stored name, or without a user, and tells nothing", async () => {
     state.user = { id: "user-1", user_metadata: { full_name: "Google Name" } };
-    await adoptDoorName();
+    // ★ She typed no name here (a named account's own is not hers to be told): nothing to say, whatever the profile holds.
+    state.profile = { display_name: "Already Named" };
+    await expect(adoptDoorName()).resolves.toBeNull();
     state.user = null;
-    await adoptDoorName();
+    await expect(adoptDoorName()).resolves.toBeNull();
     expect(state.updates).toEqual([]);
     expect(state.cleared).toEqual([]);
   });
 
   it("captures a failed read instead of throwing, and leaves the copy for a later link", async () => {
     state.readError = { message: "connection reset" };
-    await expect(adoptDoorName()).resolves.toBeUndefined();
+    await expect(adoptDoorName()).resolves.toBeNull();
     expect(state.updates).toEqual([]);
     expect(state.cleared).toEqual([]);
     expect(state.captureError).toHaveBeenCalledTimes(1);
