@@ -224,6 +224,43 @@ describe("where she has no choice", () => {
   });
 });
 
+describe("★ the week's tally counts the stage's own event (crumbs-87, the gap audit)", () => {
+  const tally = () =>
+    document.querySelector("[data-week] p.text-xs")?.textContent ?? null;
+  /** Lena's page with `id` asking for review: nine uploads wait on it. */
+  const waitingOn = (id: string) =>
+    LENA.map((e) => (e.id === id ? { ...e, pending: 9 } : e));
+
+  it("says the week's party on the stage asks, never that nothing does", () => {
+    // The lunch leads under Newest and is one of the week's two: the 40th beside it is quiet.
+    page({ hosted: waitingOn("lunch") });
+    expect(stage()).toBe("Team lunch");
+    expect(tally()).toBe("1 of 2 needs you");
+  });
+
+  it("is the same count whichever party a rule leads with, since the week's set does not move", async () => {
+    const user = userEvent.setup();
+    page({ hosted: waitingOn("lunch") });
+    expect(tally()).toBe("1 of 2 needs you");
+    await chooseRule(user, "photos");
+    expect(stage()).toBe("Lena's 40th");
+    // The lunch left the stage for the cards, where it asks as itself: still one of the week's two.
+    expect(tally()).toBe("1 of 2 needs you");
+  });
+
+  it("says 'else' when the stage is not the week's, still asks, and nothing in the week does", () => {
+    // The old wedding is what she opened last, so it leads under that rule; it is months from this week.
+    page({ rule: "opened", hosted: waitingOn("wedding") });
+    expect(stage()).toBe("The Okafor wedding");
+    expect(tally()).toBe("Nothing else needs you");
+  });
+
+  it("says nothing needs her when nothing does, the stage included", () => {
+    page();
+    expect(tally()).toBe("Nothing needs you");
+  });
+});
+
 describe("where she has a choice", () => {
   it("draws the stage the server drew, its reason the control, and the week and her events around it", () => {
     page();

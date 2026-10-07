@@ -1,7 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { WeekRow } from "./week-row";
+import { WeekRow, weekTally } from "./week-row";
+import type { Item } from "@/lib/dashboard/attention";
 import type { WeekCard } from "@/lib/dashboard/home-view";
 
 /**
@@ -104,5 +105,78 @@ describe("WeekRow", () => {
   it("says nothing needs her when nothing does", () => {
     render(<WeekRow cards={[card({})]} />);
     expect(screen.getByText("Nothing needs you")).toBeInTheDocument();
+  });
+
+  it("★ counts the stage's own event among the week's parties, which stands above the cards and so is not one", () => {
+    render(
+      <WeekRow
+        cards={[card({}), card({ id: "e2", name: "Christening" })]}
+        stage={{ inWeek: true, needsYou: true }}
+      />,
+    );
+    // Three parties this week, one of them on the stage, and it is the one asking: never "Nothing needs you".
+    expect(screen.getByText("1 of 3 needs you")).toBeInTheDocument();
+    expect(screen.queryByText("Nothing needs you")).toBeNull();
+  });
+});
+
+describe("weekTally", () => {
+  const asks: Item = {
+    kind: "review",
+    eventId: "x",
+    line: "9 uploads to review",
+    short: "9 to review",
+    act: "Review",
+    to: "review",
+    tone: "waiting",
+  };
+  const quiet = card({});
+  const asking = card({ id: "e2", item: asks });
+
+  it.each([
+    // The cards alone, as before the stage was counted.
+    ["no stage, nobody asks", [quiet], null, "Nothing needs you"],
+    ["no stage, one asks", [quiet, asking], null, "1 of 2 needs you"],
+    ["no stage, two ask", [asking, asking], null, "2 of 2 need you"],
+    // The stage is one of the week's parties: counted, and counted as asking only where it does.
+    [
+      "the week's stage, quiet",
+      [quiet],
+      { inWeek: true, needsYou: false },
+      "Nothing needs you",
+    ],
+    [
+      "the week's stage asks, nobody else does",
+      [quiet],
+      { inWeek: true, needsYou: true },
+      "1 of 2 needs you",
+    ],
+    [
+      "the week's stage asks, and so does a card",
+      [asking, quiet],
+      { inWeek: true, needsYou: true },
+      "2 of 3 need you",
+    ],
+    // A stage that is not the week's (a far party, an undated album busy today) is not counted, but it still asks.
+    [
+      "a stage outside the week asks, the cards are quiet",
+      [quiet],
+      { inWeek: false, needsYou: true },
+      "Nothing else needs you",
+    ],
+    [
+      "a stage outside the week asks, and a card does",
+      [asking, quiet],
+      { inWeek: false, needsYou: true },
+      "1 of 2 needs you",
+    ],
+    [
+      "a stage outside the week, quiet",
+      [quiet],
+      { inWeek: false, needsYou: false },
+      "Nothing needs you",
+    ],
+  ] as const)("%s", (_name, cards, stage, words) => {
+    expect(weekTally(cards, stage)).toBe(words);
   });
 });

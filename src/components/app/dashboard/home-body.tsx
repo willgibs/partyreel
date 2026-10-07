@@ -17,7 +17,8 @@ import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-tease
 import { EventsSection } from "@/components/app/dashboard/events-section";
 import { Stage } from "@/components/app/dashboard/stage";
 import { StageLead } from "@/components/app/dashboard/stage-lead";
-import { WeekRow } from "@/components/app/dashboard/week-row";
+import { type StageTally, WeekRow } from "@/components/app/dashboard/week-row";
+import { itemFor, weekEvents } from "@/lib/dashboard/attention";
 import {
   type Display,
   RECENT_FROM,
@@ -154,6 +155,13 @@ export function HomeBody({
   }
 
   const { rows, week } = around;
+  // ★ THE WEEK'S TALLY COUNTS THE STAGE'S OWN EVENT, which stands above the cards and so is not among them (`WeekRow`).
+  const stageTally: StageTally | null = shown
+    ? {
+        inWeek: weekEvents([shown.event], ctx.today).length > 0,
+        needsYou: itemFor(shown.event, ctx) !== null,
+      }
+    : null;
   // From seven events (hers hosted and added to, the stage's included) the Recent row is worth its place.
   const total =
     rows.filter((r) => r.kind !== "deleted").length + (stage ? 1 : 0);
@@ -186,7 +194,7 @@ export function HomeBody({
             qrToken={shown.event.qrToken}
           />
         ))}
-      <WeekRow cards={week} />
+      <WeekRow cards={week} stage={stageTally} />
       {notes}
       {hasAny ? (
         <EventsSection
