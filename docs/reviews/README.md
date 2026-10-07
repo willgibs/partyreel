@@ -8,7 +8,8 @@
 > ids, never the text), and his picks once built: production is their only record, and a pick is never kept as a
 > rule.
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
-> Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
+> Orchestrator keeps the paste verbatim in `batches/<date>-<build>.txt`, committed before a word of it
+> is transcribed, then runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
 > lab never writes this directory itself. Never owned by a track.
 
