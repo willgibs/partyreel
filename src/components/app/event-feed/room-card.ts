@@ -2,15 +2,16 @@
  * THE DOORS' WORDS: what each door into her rooms says, worded in ONE place so the page's first paint, the row's live
  * counts and every drawing of the row can never word a door two ways. Server-safe on purpose (no "use client"): the hub's
  * page builds each face from this and hands it to the row, and `reviewCardFace` and `reelCardFace` are read by the
- * Library, the event-header and identity boards and the help center's and the marketing mocks' tests besides.
+ * Library and the help center's and the marketing mocks' tests besides.
  *
  * The doors themselves (the card at rest, the pill under the bar) are `room-card-door.tsx`'s; the row is
  * `event-cards-row.tsx`'s.
  *
- * ★ A FACE IS A LINE AND, WHERE SOMETHING WAITS ON HER, A COUNT. Review's held uploads and the people at her door are the
- * only needs-action counts: today's waiting light stands beside a numeral and the line keeps the word it counts. Settings'
- * steps left are hers to act on but wait on nobody, so they are plain words in the ink, never the waiting light; and a
- * paused upload door says Paused, the uploads' own word (`uploadsLabel`), never Closed, which is a door's.
+ * ★ A FACE IS A LINE AND, WHERE SOMETHING WAITS ON HER, A COUNT (event-header r6, Will's `card=shoulder`). Review's held
+ * uploads and the people at her door are the only counts that need her: each rides its glyph's shoulder as a badge in the
+ * one status token (`--needs-you`, his `attention=tally`) and the line keeps the word it counts. Settings' steps left are
+ * hers to act on but wait on nobody, so they are plain words in the ink, never that status; and a paused upload door says
+ * Paused, the uploads' own word (`uploadsLabel`), never Closed, which is a door's.
  */
 import type { Door } from "@/lib/event/door/door";
 import { photosToGo, type ReelState } from "@/lib/event/reel-progress";
@@ -45,13 +46,13 @@ export const ROOM_SHORT: Record<DoorRoomId, string> = {
 export type RoomFace = {
   /** The line under the title: "8 waiting", "31 guests", "2 left", "Paused". */
   value: string;
-  /** Something waits on her (uploads in Review, people at her door): the waiting light and a numeral. */
-  amber?: boolean;
+  /** Something waits on her (uploads in Review, people at her door): its count rides the glyph in the needs-you status. */
+  needs?: boolean;
   /** That waiting count, so a return from the room ticks it down. */
   count?: number;
-  /** Settings' steps left (event-ready): the line reads in the foreground ink, a count to act on, never amber. */
+  /** Settings' steps left (event-ready): the line reads in the foreground ink, a count to act on, never a status. */
   strong?: boolean;
-  /** Settings' steps left as a number, for a pill too small for its words: an unlit mark, never amber. */
+  /** Settings' steps left as a number, for a door with no line to say it in (a hand's tile, a pill): a quiet badge. */
   left?: number;
   /** Uploads are paused (Settings, once its steps are done): the line reads Paused, the pill wears a pause. */
   paused?: boolean;
@@ -65,6 +66,18 @@ export type RoomFace = {
 export function countWord(value: string, count: number): string {
   const lead = formatCount(count);
   return value.startsWith(lead) ? value.slice(lead.length).trimStart() : value;
+}
+
+/** The most a badge says before it says "99+". */
+export const BADGE_CAP = 99;
+
+/**
+ * A COUNT AS ITS BADGE SAYS IT: whole to 99, then "99+" (Will, event-header r5: "Can max at 99+ so it never overflows into
+ * card title"). ★ THE CAP IS THE BADGE'S OWN, never the count's format: the door's accessible name and the room it opens
+ * keep the whole number ("Review: 140 waiting").
+ */
+export function badgeCount(n: number): string {
+  return n > BADGE_CAP ? `${BADGE_CAP}+` : formatCount(n);
 }
 
 /**
@@ -94,7 +107,7 @@ export function reelCardFace(
 export function reviewCardFace(
   moderationOn: boolean,
   pending: number,
-): { value: string; amber: boolean; count: number | undefined } {
+): { value: string; needs: boolean; count: number | undefined } {
   const waiting = moderationOn && pending > 0;
   return {
     value: moderationOn
@@ -102,13 +115,13 @@ export function reviewCardFace(
         ? `${formatCount(pending)} waiting`
         : "All caught up"
       : "Off",
-    amber: waiting,
+    needs: waiting,
     count: waiting ? pending : undefined,
   };
 }
 
 /**
- * THE GUESTS CARD'S FACE: who waits at her door first, in the needs-action light, since letting her in is done in that room
+ * THE GUESTS CARD'S FACE: who waits at her door first, in the needs-you status, since letting her in is done in that room
  * (event-settings r1, `queue=room`); else how many are in.
  *
  * ★ A SEALED ROLL IS SAID, NEVER READ AS NOBODY (crumbs-81, the Guests room's own line). A guest whose only approved shots
@@ -132,7 +145,7 @@ export function guestsCardFace({
   if (waiting > 0)
     return {
       value: `${formatCount(waiting)} waiting`,
-      amber: true,
+      needs: true,
       count: waiting,
     };
   if (guests === 0 && shots > 0)
@@ -146,8 +159,9 @@ export function guestsCardFace({
 
 /**
  * THE SETTINGS CARD'S FACE: what a guest still needs, counted, while its steps are not all ticked (event-ready); then, once
- * they are, uploads paused in their own word (the carried call G4: "Paused", plain and never amber, in place of the door's
- * word, the code's corner keeping its pause); then the door, in the one function that words it everywhere.
+ * they are, uploads paused in their own word (the carried call G4, taken again at event-header r6: "Paused", plain and
+ * never a status, in place of the door's word, the code's corner keeping its pause); then the door, in the one function
+ * that words it everywhere.
  */
 export function settingsCardFace({
   left,

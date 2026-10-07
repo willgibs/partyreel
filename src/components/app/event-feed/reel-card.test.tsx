@@ -128,14 +128,16 @@ describe("a door among the doors", () => {
     ).toBeInTheDocument();
   });
 
-  it("wears the row's door hooks, and its violet glyph is its one mark of its own", () => {
+  // ★ RESHAPED ON PURPOSE (event-header r6's carried `reel-ink`): this pinned the reel's violet glyph as its one mark of its
+  // own; every glyph is the ink now, the reel's too, since Afterglow paints no hue on a control.
+  it("wears the row's door hooks, and its glyph is the ink like every door's", () => {
     render(
       <ReelCard eventId="e1" reel={{ ...base, state: "live", have: 2 }} />,
     );
     const door = screen.getByRole("link");
     expect(door).toHaveAttribute("data-hub-door", "reel");
     expect(door).toHaveClass("hub-door");
-    expect(door.querySelector(".hub-door-reel")).not.toBeNull();
+    expect(door.querySelector(".hub-door-reel")).toBeNull();
     // Both forms' pieces are in the one element: the fold carries them (`event-cards-row-fold.ts`).
     for (const piece of ["skin", "disc", "glyph", "title", "text", "word"]) {
       expect(
