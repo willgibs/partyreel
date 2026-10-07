@@ -1,6 +1,6 @@
 ---
 track: signature-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e6fa3cc8"            # the launch-prep SHA the branch was cut from
 board: signature
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -40,45 +40,65 @@ working.
 
 **Verify on.** The board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke --base http://localhost:<port>` (it crawls what your change reaches, the board and the desk; `--all` for the whole lab); `pnpm lab:demo --board <board> --base http://localhost:<port>` pressing every step.
 
-## Where I stopped (paused 2026-10-07 for the account's usage window; deleted at the handoff)
-
-- Built: the whole board, five asks on production's surfaces (album, add, door, clip, create), every option drawn at
-  375 and 1440, in the room and on paper; typecheck, lint and `test:rules` green at the WIP commit.
-- Next, in order: (1) sync once event-header-wiring-2 is on launch-prep and draw the hub's Seam as
-  `event-feed/event-hub-head-light.tsx` and `event-hub-head-edge.ts` have it (its proposal: the guest cover ends on
-  that same Seam past its actions, which is this board's `seam`/`follow`); (2) the creative director's ten
-  refinements (its report: the clip's Seam clipped to the picture, the Add's rest still with each landing lifting it,
-  the door's paper Seam raised into the dimmed album rather than a strip on the sheet, the Seam spent before every
-  word, the Seam as emitted light (a cream core, a fast fall), 48/64 px reaches, a lighter puck, a softer seed Bloom,
-  one-hue Rings, `party` capped, and `chosen` drawn so it differs); (3) the light gate (`lab:smoke`, `lab:demo`) and
-  the handoff.
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- Scope: five asks, the app's alone (the Orchestrator's narrowing); the gradient word waits with marketing. Recommended
-  and built.
-- The hub is drawn, never asked: beside the guest's album at a laptop, its Seam as wired, so the album question is
-  read against the light the host already has. Recommended and built.
+- Scope: five asks, the app's alone (the Orchestrator's narrowing); the gradient word, the footer's lit edge and the
+  privacy hero's runners-up wait with marketing on their ROADMAP lines. Recommended and built.
+- The hub is drawn, never asked: production's own `HubCover`, resting cards and `HubLight` beside the guest's album at
+  a laptop, so the album question is read against the light the host already has. Recommended and built.
+- The guest cover's Seam (album `seam`, `follow`) is the hub's own, composed from production's maths and classes
+  (event-header-wiring-2's proposal: a guest's first screen wears the hub's one light). Recommended and built.
+- The Ring in every new option wears the album's one key light lit from the top-left, today's three hues only on the
+  options that are today (the creative director's pass: two hues sweeping round it read as the spectrum creeping
+  back); the board's carried call `ring`. Recommended and built.
 - The Add's face stays production's (white in the room, ink on paper, in a dark puck on paper); the icon is
   brand-marks'. Recommended and built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`, the /design lab's frame line: "Still the lab's" gains an `IntersectionObserver` with
+  no root (its root is the lab's viewport, so the hub's cards row folds in a frame; a board draws the resting row from
+  its parts), met drawing the hub here (`hub.tsx`'s header).
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- none new: the marketing half stays on its ROADMAP lines (the footer's lit edge, the aurora that answers and its
+  gradient word, the privacy hero's runners-up).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Commits on `lp/signature-r1`, pushed: `c5dc814ae` (the board, WIP at the pause), `e18f5f581` (sync: launch-prep
+  with event-header-wiring-2), `ce94d16a6` (the hub's Seam as production draws it, the creative director's
+  refinements, the lab's frame fact), `c4fc1524a` (sync: launch-prep with brand-marks-r1 and album-moments-wiring,
+  clean); this manifest's commit is the head.
+- Gates on `c4fc1524a` (the synced tree), each on its own exit code (logs in the lane's scratch):
+  `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test:rules` 0 (85 files, 1467 tests), `pnpm lab:smoke --base
+  http://localhost:3139` 0 (23 checks, 0 failing; the board 800 words of 1200), `pnpm lab:demo --board signature
+  --base http://localhost:3139` 0 (5 steps, 0 failing, every option drawn at 1440 by 900 and 375 by 812); and on
+  `ce94d16a6`, `lab:demo --state screen=1440 --state ground=paper` 0. A board's light gate (no full test run, no build).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/signature/` (15 files)
+  + this file + `docs/systems/design-system.md` (the one in-place fact above, CLAUDE.md's "Record subtractively").
+- album: where a guest album's one light lives: the Add's Ring (today's placement), the cover's Seam (the hub's own,
+  the Add unlit), or the Seam then the Ring (recommended); three frames at a phone (its first screen, as the Add docks,
+  scrolled in), and the host's hub as built beside them at a laptop.
+- add (staged after album): how the Ring rests and answers: today's breath, still with one flare, the envelope on
+  each of her photos (recommended: a halo, quick to rise, about two seconds to settle), or the envelope on everyone's;
+  a playing frame, four held beats and a trace of the glow over the night's clock.
+- door: the sheet's light: today's three lamps, one Seam at the album's edge (recommended: the cover's key light rising
+  into the album's dark, never on the sheet, the same in both themes), the Seam growing with her steps, or none.
+- clip: the camera while a clip rolls: today's red alone, a Seam under the picture answering the sound (recommended;
+  flat when the microphone is refused), or the picture blooming, lit once whatever the sound.
+- create: Create's room: today's floor field, dark until her code (recommended: the code lit once in the event's seed),
+  or her chosen style's card lit by its photographs.
+- Assets requested from Will: none (the bootstrap stills stand in).
+- Board ideas: the Seam drawn as emitted light (the creative director's pass on the wired Seam: a cream core, a faster
+  fall spending half its light in the first quarter, the edge's hues pulled toward the photograph's key; at a desk it
+  read as brown fog with an olive stain at the left) · the kit lending a portalled frame an observer root, so a
+  production component that folds on scroll (the hub's cards row) draws itself in a frame.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule (the board's carried calls): `ring` (the new options' Ring in the album's one key light), `face`
+  (the Add's face stays production's), `colour` (every colour production's own read), `hub` (drawn as built, never
+  asked).
+- Look at first: the album step at a phone (`?session=signature.album`: the Seam at the top, the Add unlit as it docks,
+  lit once the Seam has gone), then the door on paper (`?session=signature.door&ground=paper`: the light at the album's
+  edge, the sheet clean).
