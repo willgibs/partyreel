@@ -941,12 +941,47 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
   keys off the channel state and whether anyone is at the page. While `SUBSCRIBED` it is a safety net at **60 s**,
   resting at **5 minutes** after ten untouched minutes and **stopping** after two untouched hours (a press, a scroll, a
   key or a return wakes it, asking at once; the reel's `?reel=screen` rests but never stops); with the socket down it
-  is **12 s**, slowing to 60 s after a minute with nothing new and back on a change. It stops while the tab is hidden
-  (and never starts in a tab that opens hidden) and polls once, at once, when it is shown, the hidden tab's one
-  catch-up. ★ A stopped net leaves the links on screen to age (`refreshAged` rides each sync): the next ring's sync,
-  or a touch's, re-mints them. Every poll sends `If-None-Match`; a quiet album answers a **bare 304** having
-  read one row, its version; a change answers the DELTA since the version this device holds, merged by id and checked
-  against the server's count read in the same snapshot (a mismatch heals at once with a fresh manifest, never drawn).
+  is **12 s**, slowing to 60 s after a minute with nothing new and back on a change, and to **20 s** instead while
+  someone is looking (a touch in ten minutes, or the reel's screen) where the CDN answers its quiet asks from its cache
+  (below: a device asking alone fills its own windows, each a call, so it keeps the minute). It stops while the tab is
+  hidden (and never starts in a tab that opens hidden) and polls once, at once, when it is shown, the hidden tab's one
+  catch-up. ★ A stopped net leaves the links on screen to age (`refreshAged` rides each sync and each quiet answer):
+  the next ring's sync, or a touch's, re-mints them. Every poll sends `If-None-Match`; a quiet album answers a **bare
+  304** having read one row, its version; a change answers the DELTA since the version this device holds, merged by id
+  and checked against the server's count read in the same snapshot (a mismatch heals at once with a fresh manifest,
+  never drawn).
+- ★ **An open album's "has anything changed?" is the CDN's to answer** (X5,
+  [`lib/album/edge-version.ts`](../../src/lib/album/edge-version.ts)). Where everyone holding the link sees the album
+  whole (`albumIsOpenToAnyone`, [`sync/edge.server.ts`](../../src/app/api/album/guest/sync/edge.server.ts): the door
+  open and the gallery's own decision for a stranger with nothing `full`, so never a password, a gated door, an email or
+  an upload asked first, even where that gate fails open), each full answer of the sync, a 304's included, names the
+  album's key at the CDN (`x-album-edge`, a digest of the token, never it), and a cadence poll that only checks (the net,
+  a quiet fallback, a touch's wake; never the return's catch-up, the moving fallback, a ring, her upload or Try again)
+  asks `GET /api/album/guest/sync/version?k=<key>&w=<window>` first, the token in a header: the album's full-access
+  validator alone, the sync's own ETag by one recipe (`fullAlbumEtag`), kept by Vercel's CDN for its 5 s window
+  (`Vercel-CDN-Cache-Control: max-age=5`; the browser `public, max-age=0, must-revalidate`) and by nothing else. The
+  same validator as the one held is the whole answer (no sync; what aged re-mints); anything else asks the album itself.
+  ★ **Nothing that route answers can be one viewer's:** it reads the event with no identity
+  (`getEventByQrTokenForAnyone`, `anon.ts`: no block masks it, no owner unmasks it), reads no cookie or session, writes
+  no `Set-Cookie`, and the browser sends it none (`credentials: "omit"`); every other album, an unknown one, a refused
+  read and a window off the server's clock answer `ask` or `clock`, `private, no-store`, saying nothing of which, and a
+  key that is not the token's is a 400, so no one fills one album's key with another's answer. ★ **Each window is its
+  own URL**: Vercel serves an expired entry stale while it revalidates, so on one fixed URL a quiet album's every poll
+  read the previous poll's fill; the window (`w`, the device's clock, calibrated by a `clock` answer; the server fills
+  only its own or a neighbour) keeps an entry asked for only inside its own few seconds, so an album turning private
+  stops answering open at the next window and the device asks the album at once (walked 2026-10-07: the next ask
+  answered `ask`, the sync locked). ★ **An ordinary request** (`cache: "default"`): a `no-store` fetch sends `Pragma:
+  no-cache` (the sync's POST does), which sends the CDN back to the function. ★ **What a version cannot say** (a block
+  on her, her ticket's heal) still reaches a lit page: a check stands in for the album's own answer only within
+  `ALBUM_EDGE_TRUST_MS` (5 minutes, the resting net's step) of the last real one, and a blocked viewer's cached answer
+  tells her only "unchanged" (any change asks the album, which shuts her). The route stays outside the proxy (an
+  invocation before the CDN: `proxy.test.ts`). ★ **The cost** (`usher/kit/cost-model/`'s `sync304` and `cdnReq`): a
+  lit phone's poll is one CDN request either way; the function sees at most one fill a window per region (≤ 720 an hour
+  an album) plus a real ask every 5 minutes a phone, against one call a poll before: a room of 100 lit phones on the
+  net 6,000 calls an hour → about 1,900 (on a quiet blocked line too, its phones then at 20 s, ~16,500 CDN requests an
+  hour), 10 lit phones 600 → about 470, one phone the same 60 (a lone phone's asks each fill a window, which is why the
+  livelier step waits for the cache's word, `x-vercel-cache: HIT`). A moving blocked line is unchanged (every 12 s ask
+  is the album's own). The live check (a MISS then a HIT on the alias, `x-vercel-cache`) is the milestone's.
   ★ A version below the album's WATERMARK answers a fresh manifest too: the purge cron prunes a purged item's change
   row and raises the watermark to its version in one transaction ([lifecycle-recovery.md](lifecycle-recovery.md)),
   so a device parked below it may have missed the row, and is sent the album whole, never a delta with a gap.
