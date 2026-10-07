@@ -1356,3 +1356,33 @@ Sentry line naming who, whom and both figures) plus a closed run of the check on
 **CF2. A night's check that runs out of time reads Needs a look,** as the backup's reconcile does; at today's size it
 takes about 30 ms.
 - *Push back if* a partial pass should read clean until it finishes.
+
+## CG. Small things you could hit, made right (crumbs-87)
+
+The door's email gate gives a names-only door back, a link unfurls as what the album is, the dashboard's tally and
+marks agree with the hub, a far party's hub names its clocks, the invite list sleeps where it is not the door, Follow
+is never offered across a block, and Settings' rings are whole. These are the calls built into it, yours to overrule.
+
+**CG1. Leaving a gate gives her names-only door back on the device that held it.** When the door leaves the state
+that forced "An email first", the switch goes back off and a toast says it was only on while she let each person in;
+on another device the switch stays on, one tap from off (the database remembering it is a later migration).
+- *Push back if* the switch should stay on until she turns it off herself.
+
+**CG2. A link's words follow the album:** "Add photos to <name>" while it takes photos, "Photos from <name>" ("Take a
+look.") once she closes adding; the card's foot says "See the photos & videos" or, for an open album, "Add your photos
+& videos".
+- *Push back if* any of the four sentences reads wrong to you.
+
+**CG3. The week's tally counts the stage's own event** when it is one of the week's parties ("2 of 4 need you").
+- *Push back if* the stage's event should stand apart from the week.
+
+**CG4. The stage's waiting figures stay white with a red dot beside their label,** not red type over a photograph;
+every other needs-you mark is the hub's one red.
+- *Push back if* the stage's figures should be red too.
+
+**CG5. An invite list nobody is on, under a door that is not the list, sleeps:** one line saying what it does, that
+it sends nothing, and the way to the door's page; a list that holds addresses stays awake under any door.
+- *Push back if* it should be hidden instead.
+
+**CG6. No Follow is offered across a block either way,** and the page never says which side blocked.
+- *Push back if* a Follow should stay offered and fail quietly, as before.

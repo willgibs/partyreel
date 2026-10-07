@@ -61,16 +61,20 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
    and these three: once they land, refresh his desk to the tip (`desk-refresh.sh`, never while a red-team walks it) and
    tell him it is ready.
 2. **Milestone 39 on Will's yes** (one walk, both waves): everything it holds is merged and red-team 57 found nothing
-   above LOW. The Orchestrator's before his yes: the FULL gate (gate 67) and `pnpm compute:model` at the tip; a lane
-   merged after them means the FULL gate again at the new tip before the merge to `main`.
+   above LOW, but `crumbs-87` merged after 57's build (`b1e219f26`), so **red-team 57b** walks its eight fixes and the
+   type change on a desk refreshed to the tip (its brief `../partyreel-wt/_scratch/redteam-57b/brief.md`, `<SHA>` filled
+   at the cut), cut at the 11:10Z reset. The FULL gate is green at `7572c6360` (gate 67, 579 s, red steps 0); a code
+   merge after it means the FULL gate again at the new tip before the merge to `main` (about ten minutes), and
+   `pnpm compute:model` runs once before his yes. Production lanes cut now (`crumbs-88`) integrate after 39 is on
+   `main`, so 39 is exactly what 57 and 57b walked; boards may merge meanwhile (lab only).
    **Drive goes live with 39** (Will, 2026-10-07): just before 39's production deploy, from this Mac (`wrangler` is
    logged in as P3), `workers/drive`'s `npm ci`, its two queues (README), `DRIVE_APP_URL` partyreel.com, its secret from
    `.env.local` by stdin, `wrangler deploy`, then `DRIVE_WORKER_URL` on production; his Drive walk follows (P3's
    consent; drive-crumbs' Handoff lists what to press).
-3. **Wave 2's open seats, paced by the 5-hour window** (six to eight agents, `get_usage` at every cut): `crumbs-88` on
-   Immediate's app lines (red-team 57's LOW first, then the hub's, Create's and the guest door's); then boards from the
-   gap audit's design gaps (the album after its party first, then a party with no signal), each brief from the audit's
-   ledger. The audit's nine decisions wait on Will (X9 to X17); a board draws a decision's surfaces once he picks its
+3. **Wave 2's open seats, paced by the 5-hour window** (six to eight agents, `get_usage` at every cut), each spec
+   written in the session scratchpad's `specs/wave3/` (cut with `cut-lane.py`): `crumbs-88` (Sonnet, 3131) on
+   Immediate's app lines (red-team 57's LOW and NIT first, Create's retry key with a migration, the docs crumbs-87 left
+   stale); `after-party-r1` (Opus, 3135) and `no-signal-r1` (Opus, 3136), the gap audit's first two design gaps. The audit's nine decisions wait on Will (X9 to X17); a board draws a decision's surfaces once he picks its
    model. Lanes take ports 3131 to 3139 only (R2's CORS). The desk's old leftovers: drive-export's unclear `exit` and
    `naming`, reworded or retired.
 4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
