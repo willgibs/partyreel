@@ -58,6 +58,13 @@ the lines he holds stay his. Nothing here or anywhere lives only in an agent's m
   lanes come first while cloud credit lasts: from a cloud seat, each lane is a cloud session of its own ("Cut a
   lane", step 4); from a desktop session the Agent tool's remote flag runs on the Mac, so the route there is a
   claude.ai routine (a saved item: his yes first).
+- **Token efficiency is the compounding win** (Will, 2026-10-07): slowing down spends the same tokens later, while
+  spending fewer on the same work buys more work a week, so never at the cost of depth or creativity. A follow-up to a
+  lane's own work goes to that lane by SendMessage while its context has room (it keeps everything it read), never a
+  fresh lane re-reading it all; related small items share one lane, since each boot pays its reading again; a file map
+  is `git grep` and a targeted read, never an Explore agent (one reads whole files: a map cost about 200k tokens where
+  greps cost a few); a Handoff is read from its Questions down, never the whole diff. The lanes' own rule is the spawn
+  prompt's "Context is the cost".
 - **Who does the work** (Will, 2026-10-07): an Opus Orchestrator costs what an Opus lane costs, so a lane is cut for
   the focus it buys, never to save tokens. Explorations, reviews of critical work, red-teams and multi-hour wiring stay
   lanes, their depth the point. A small, well-specified change already in the Orchestrator's context (a fix met at an
@@ -156,8 +163,9 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    3139, as many lanes as measured memory allows (`memory_pressure` first, `free -g` on Linux: six to eight on the
    36 GB Mac, at 60% free or more, paced by the 5-hour window: "Working with Will"), their production builds taking
    turns through
-   `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
-   big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
+   `scripts/build-lock.sh`. The model is your call on every spawn: Sonnet wherever the brief already holds the
+   thinking (a fully specified wiring, a crumbs lane), since it draws the weekly limit down far more slowly per token;
+   Opus where judgment or creativity is the work (a board, a security or data design, an ambiguous system).
    **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,
    `source_revision` `launch-prep`, `outcome_branch` `lp/<track>`, the tag `partyreel-lane`, `permission_mode` `auto` (a
    child is born in `default` otherwise), the model, and `spawn-prompt-cloud.txt` filled: `{track}`); its session id is

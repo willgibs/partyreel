@@ -27,7 +27,16 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   all and Keep all private apply once, to the events she has at Finish: later ones start private.
 - **Follows are open any-to-any, and the graph is owner-private:** lists and counts render only to their owner,
   `get_public_profile` returns no follow data, and no public count exists. Blocking is mutual severance, private, and
-  prevents a re-follow.
+  prevents a re-follow. ★ **A first follow says so once:** "Only you see who you follow. Maya just sees one more
+  follower." stands under the button of her first follow, and every follow after is the button alone. The Server
+  Function reads it before the write (`followProfileAction`: whether her list is empty, `queries/first-follow.ts`, one
+  `limit 1` read of her own edges; a read that fails is "not her first" and is recorded, never a failed follow) and
+  answers `first`; nothing is stored, so unfollowing her only follow and following again says it again. The control
+  draws the line (`first-follow-line.tsx`) in a row of its own, announced from a standing live region, and takes it
+  away the moment she unfollows; the row that holds the button wraps while it stands (one `:has()` rule, so no seat's
+  file changed), and her page draws it under the head through a scope and a slot, since the head's actions are a narrow
+  box at a desk. The sentence is true only while a follow tells its person nothing but a number: there is no follow
+  email, and a notification for one would make it false.
 
 ## Who is listed and counted
 
@@ -38,6 +47,14 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   (`event_blocked_guest_ids`) leave before the rows become people, so a blocked person is in no count and on no list,
   even with a photograph the host restored. Every caller runs these AFTER its own access gate (the host: ownership;
   the album: full access, never demo).
+- ★ **A person's card shows nothing the album does not** (`social/guest-peek.tsx`, guests-room r1 `card=standing`):
+  every name opens it (the Guests room, the album's list, a photograph's credit, Connections), and its four photographs
+  and See all (the album filtered to them, a page of 24) are approved and visible only, read through `guest-look.ts`:
+  the host's by Block's own name for the person on her own RLS read, a guest's behind the album's own gate
+  (`resolveAlbumViewer` at `full`, never the demo) and its gated minter, never an address. The album's card learns its
+  album from the page's own address (`/e/<token>`); anywhere else it shows no photographs. The host's lines (how they
+  stand tonight, its act, Block) come only from her own surfaces (`room-rules.test.ts`), and a Follow landed from a
+  card stays its answer for the page's life, one per person.
 - **Profile cards hydrate by an explicit id list** (the PGRST201 landmine:
   [database-security.md](database-security.md)) through `inChunks`, selecting exactly the card's columns (the row also
   holds the account's email). Nothing in `queries/social.ts` reads an address, and its outputs are pinned
@@ -100,7 +117,14 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **`/me` is her page before it is public** (`(app)/me`): the public page's own head (`u/[slug]/profile-head.tsx`: her
   photo, name and joined month, no handle) marked "Only you can see this page.", then the standing invitation (no Not
   now) and the same `OwnerSections`, in the app shell behind the sign-in gate and the name gate (`name-gate.test.ts`
-  holds every (app) route to one). Going public changes who sees the page, never what it is. It names nobody (no
+  holds every (app) route to one). Going public changes who sees the page, never what it is. ★ **The invitation is one
+  compact lit plate** (`dashboard/page-invite-card.tsx`, also the dashboard's): the one dark piece of her paper page
+  (`.surface-ink`; in the room, the room's card), its top edge lit in her own photographs' colours. A Server Function
+  hands it her newest six photograph previews and her seed (`readInviteLightAction`: one `get_my_uploads` read, six
+  hand-signed presigns), and the colours are read on her device (`page-invite-read.ts`: six preview GETs of about 16KB
+  from R2, never through Vercel): a key and at most one answer a quarter turn away, else her seed's hue, else the house
+  ember, so it is always lit and a read that fails says so once a page (`invite_light_unread`). It promises and never
+  claims: nothing on it says the page is public. It names nobody (no
   segment, no param), so there is no `isSelf` to get wrong, and `owner-mode.test.ts` reads it beside the profile. Once
   a handle exists it redirects to `/u/<handle>`, a real 307, so it has no `loading.tsx` either (a stream would start
   before the redirect), and it is noindex. The line that marks the private half ("Only you can see the sections
@@ -149,7 +173,10 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   shows it (a row's button, the look's Follow). Deriving them from props after mount would take the row out from
   under her again. A name opens `GuestPeek` (never a second card), whose Follow is offered only where the row's own
   action is not the Follow, she does not block them and they have not blocked her (`followBarred`); a follow from it
-  joins Following, and a block that lands takes the person's Following row (it severs the follow).
+  joins Following, and a block that lands takes the person's Following row (it severs the follow). The list keeps the
+  line a first follow said, standing above Following ("Each of them just sees one more follower"), so a row's own Follow
+  never says it again (`privateLine={false}`). ★ **Her own page's Connections chips** (`/me`, `/u/<handle>`'s owner mode:
+  `u/[slug]/connection-chips.tsx`) open the same look, with no Follow in it (she follows every one of them).
 - **Email preferences follow the consent tiers:** transactional mail always sends and has no column by design;
   relationship and service mail default on with a per-category opt-out, for account holders only (a guest without an
   account receives none of it); marketing stays explicit opt-in. Every send resolves them through

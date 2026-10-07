@@ -22,6 +22,10 @@
  * venue: the key is the user's id (HMAC'd in the store, `accountAbuseHashes`), so no NAT is shared and no
  * breadth applies, and the gate (`checkAccountAbuseRate`) fails CLOSED, because for this abuse the limiter is
  * the only bound (the kind's comment below says why).
+ *
+ * ★ A GUEST'S OWN BUDGET (`presign`) keys on her session token the same way (`sessionAbuseHashes`), never on an
+ * address: a venue's guests share one, and a guest who leaves its Wi-Fi is still the one guest. It fails OPEN
+ * like every guest kind, since her ticket and `create_media` are the real gates.
  */
 
 export type AbuseKind =
@@ -32,6 +36,7 @@ export type AbuseKind =
   | "capture"
   | "export"
   | "reel_clip_add"
+  | "presign"
   | "contact"
   | "careers"
   | "email_change"
@@ -40,7 +45,13 @@ export type AbuseKind =
   | "drive_send";
 
 /** The kinds keyed on a signed-in account rather than an IP (see the header's second ★). */
-export type AccountAbuseKind = Extract<AbuseKind, "email_change" | "drive_connect" | "drive_send">;
+export type AccountAbuseKind = Extract<
+  AbuseKind,
+  "email_change" | "drive_connect" | "drive_send"
+>;
+
+/** The kinds keyed on a guest's own session token rather than an IP (see the header's third ★). */
+export type SessionAbuseKind = Extract<AbuseKind, "presign">;
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -141,6 +152,21 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: Infinity,
     scopeWindowMin: 1440,
     scopeMax: 10,
+  },
+  // A GUEST'S PRESIGNS (POST /api/r2/presign-upload), counted a FILE at a time, scope = her OWN session token (the
+  // header's third ★). The meter's hourly breaker (`meter_upload`: 20,000 files a clock hour across every album of the
+  // host's) is one envelope for every guest she has, so without a bound of each guest's own, one script holding one
+  // ticket could spend the whole hour and refuse everybody else's photographs until it ends. Breadth is off, as for
+  // `reel_clip_add`: one ticket is one album. 1,000 an hour is a twentieth of the breaker, so spending it takes twenty
+  // tickets rather than one, and it sits far above a real guest's hour: a week's trip roll sent at once is a few
+  // hundred. A burst (up to 20 files, one request) is counted whole when it asks, so an hour can end one burst past
+  // the line; past it she waits for the window, told so in her own words. The host's own uploads never reach this:
+  // they ride the host's routes, under her plan.
+  presign: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 60,
+    scopeMax: 1_000,
   },
   // The public /contact form. Unauthenticated and unthrottled until now: every accepted submission is
   // one service-role insert plus one Resend send, so a few thousand requests drain the monthly email

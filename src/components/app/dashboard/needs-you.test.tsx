@@ -10,9 +10,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { EventCard } from "@/components/app/event-card";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
-import { Mark, StateDot } from "@/components/app/dashboard/marks";
+import { LiveDot, Mark, StateDot } from "@/components/app/dashboard/marks";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 
 const NEEDS_YOU = "bg-(--needs-you)";
@@ -47,21 +46,31 @@ describe("the waiting dot", () => {
   });
 });
 
-describe("the hosted card's review chip", () => {
-  it("is the needs-you status, solid, with its own figures' token", () => {
+/**
+ * ★ LIVE SHARES THE ONE RED (brand-marks r1's status set): a fault, a count that needs her and live are the one red,
+ * and live alone breathes. The dashboard's live dot was the success green with a ping, which read as done.
+ */
+describe("the live dot", () => {
+  it("is the recording red, one point that breathes, never Ready's green", () => {
+    const { container } = render(<LiveDot />);
+    const dot = container.querySelector("[data-live-dot]");
+    expect(dot?.className).toContain("bg-(--signal)");
+    expect(dot?.className).toContain("motion-safe:animate-live-signal");
+    expect(dot?.className).not.toContain("success");
+    expect(dot?.className).not.toContain("ping");
+    // One point: no ring of light rung out beside it.
+    expect(dot?.children).toHaveLength(0);
+  });
+
+  it("is the one a live mark carries", () => {
     render(
-      <EventCard
-        variant="hosted"
-        href="/dashboard/e1"
-        name="Maya and Jay"
-        coverUrl={null}
-        dateLabel="June 14"
-        pendingCount={3}
-      />,
+      <Mark tone="live" on="page">
+        Live
+      </Mark>,
     );
-    const chip = screen.getByText("3 to review");
-    expect(chip.style.background).toBe("var(--needs-you)");
-    expect(chip.style.color).toBe("var(--needs-you-foreground)");
+    const mark = screen.getByText("Live").closest("[data-mark]");
+    expect(mark?.querySelector("[data-live-dot]")).not.toBeNull();
+    expect(markup(mark)).not.toContain("success");
   });
 });
 

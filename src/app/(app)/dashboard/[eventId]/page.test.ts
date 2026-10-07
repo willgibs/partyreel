@@ -33,6 +33,15 @@ describe("the hub's ready wiring", () => {
     expect(/opened: views,/.test(PAGE)).toBe(true);
   });
 
+  it("★ tells the checklist on the first paint that she dismissed it for this event (Will's call, 2026-10-07)", () => {
+    // Read from her browser's cookie on the event's own pages, so a dismissed line is never drawn, never flashed.
+    expect(
+      /dismissed=\{jar\.get\(CHECKLIST_OFF_COOKIE\)\?\.value === "1"\}/.test(
+        PAGE,
+      ),
+    ).toBe(true);
+  });
+
   it("hands the checklist and Settings' steps the same facts", () => {
     expect(/facts=\{readyFacts\}/.test(PAGE)).toBe(true);
     expect(/ready=\{readyFacts\}/.test(PAGE)).toBe(true);

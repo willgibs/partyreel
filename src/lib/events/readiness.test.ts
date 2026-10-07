@@ -7,24 +7,24 @@ import { createEventSchema } from "@/lib/validation/event";
 
 import {
   checklistOver,
-  CODE_STILL_NEEDED,
+  CODE_LINE,
   doorLetsGuestsIn,
   newEventFacts,
   type ReadyFacts,
   readiness,
   readyHead,
+  readyNext,
   settingsReadiness,
   settingsSteps,
   stepsLeft,
   stepWants,
-  stillNeeded,
   storageUsedPct,
 } from "./readiness";
 
 /**
- * READY FOR GUESTS (Will's `event-ready` picks, 2026-10-02): what the hub's checklist, Settings' rail and
- * Create's close all read. These are the claims the three make, held on the one function, so a tick in
- * one is a tick in all of them.
+ * READY FOR GUESTS (Will's `event-ready` picks, 2026-10-02; create-wizard r5's `arrival=done`, 2026-10-07): what the
+ * hub's checklist, Settings' rail, the Settings card and the dashboard's stage all read. These are the claims they
+ * make, held on the one function, so a tick in one is a tick in all of them.
  */
 
 const FRESH: ReadyFacts = {
@@ -46,19 +46,40 @@ const FRESH: ReadyFacts = {
 const ids = (f: ReadyFacts) => readiness(f).left.map((i) => i.id);
 
 describe("ready", () => {
-  it("is not ready an hour after Create: the code has never been opened", () => {
+  // ★ RESHAPED ON PURPOSE (create-wizard r5's `arrival=done`, Will 2026-10-07): this read "is not ready an hour after
+  // Create: the code has never been opened", and a made event met her as "2 of 3", the halfway his trial run felt.
+  // Ready answers whether a guest who scanned now could get in and add, so the code's first open, which Create can
+  // never make, is worth doing and no longer a need. The scar it keeps: a door nobody can pass or paused uploads still
+  // hold ready back (below), and the code still ticks at its first open.
+  it("★ is ready the minute Create makes it: a guest who scanned now could get in and add", () => {
     const r = readiness(FRESH);
-    expect(r.ready).toBe(false);
+    expect(r.ready).toBe(true);
     expect(ids(FRESH)).toEqual(["code", "photos", "welcome"]);
     expect(r.done).toBe(2);
     expect(r.total).toBe(5);
-    expect(r.needed).toEqual({ done: 2, of: 3 });
+    expect(r.needed).toEqual({ done: 2, of: 2 });
   });
 
-  it("waits only on what a guest needs: the note, the date and the photos never hold it back", () => {
-    const r = readiness({ ...FRESH, opened: 1 });
-    expect(r.ready).toBe(true);
-    expect(r.left.map((i) => i.id)).toEqual(["photos", "welcome"]);
+  it("waits only on what a guest needs: the code, the note, the date and the photos never hold it back", () => {
+    for (const r of [readiness(FRESH), readiness({ ...FRESH, opened: 1 })])
+      expect(r.ready).toBe(true);
+    expect(readiness({ ...FRESH, opened: 1 }).left.map((i) => i.id)).toEqual([
+      "photos",
+      "welcome",
+    ]);
+  });
+
+  it("★ leads what is worth doing with the code's share, ahead of the first photos and the welcome", () => {
+    const r = readiness(FRESH);
+    expect(r.items.map((i) => [i.id, i.essential])).toEqual([
+      ["door", true],
+      ["adds", true],
+      ["code", false],
+      ["photos", false],
+      ["welcome", false],
+    ]);
+    // Said as what it is for, never as what it lacks.
+    expect(r.items.find((i) => i.id === "code")?.line).toBe(CODE_LINE);
   });
 
   // ★ RESHAPED ON PURPOSE (the wiring, 2026-10-02): the board's code row read Print then Share. Its door
@@ -201,11 +222,12 @@ describe("ready", () => {
     expect(short.left.map((i) => i.id)).toEqual(["room", "photos", "welcome"]);
     expect(short.ready).toBe(true);
     const full = readiness({ ...FRESH, opened: 1, storagePct: 100 });
+    // A full shelf is a need, so it stands with the door and the uploads, ahead of what is worth doing.
     expect(full.items.map((i) => i.id).slice(0, 4)).toEqual([
       "door",
       "adds",
-      "code",
       "room",
+      "code",
     ]);
     expect(full.ready).toBe(false);
   });
@@ -213,13 +235,20 @@ describe("ready", () => {
 
 describe("the head every home reads", () => {
   it("counts what guests still need, then says ready and what is worth doing", () => {
+    // A new event is ready, its share the first of three things worth doing.
     expect(readyHead(readiness(FRESH))).toEqual({
+      title: "Ready for guests",
+      line: "3 things still worth doing.",
+    });
+    expect(readyHead(readiness({ ...FRESH, door: "private" }))).toEqual({
       title: "Before guests arrive",
       line: "Guests still need one more thing.",
     });
-    expect(readyHead(readiness({ ...FRESH, door: "private" })).line).toBe(
-      "Guests still need 2 more things.",
-    );
+    expect(
+      readyHead(
+        readiness({ ...FRESH, door: "private", acceptingUploads: false }),
+      ).line,
+    ).toBe("Guests still need 2 more things.");
     expect(readyHead(readiness({ ...FRESH, opened: 1 }))).toEqual({
       title: "Ready for guests",
       line: "2 things still worth doing.",
@@ -251,11 +280,14 @@ describe("Settings' rail", () => {
     expect(stepsLeft(full)).toBe(0);
   });
 
+  // ★ RESHAPED ON PURPOSE (r5's `arrival=done`): a new event's Settings card read "1 left", the code it could not
+  // finish. It counts only what a guest needs (a door she can pass, uploads open), so a made event's card says its door.
   it("counts for the hub's Settings card what a guest still needs, 0 once ready", () => {
-    expect(stepsLeft(FRESH)).toBe(1);
+    expect(stepsLeft(FRESH)).toBe(0);
     expect(
       stepsLeft({ ...FRESH, door: "private", acceptingUploads: false }),
-    ).toBe(3);
+    ).toBe(2);
+    expect(stepsLeft({ ...FRESH, door: "password" })).toBe(1);
     expect(stepsLeft({ ...FRESH, opened: 4 })).toBe(0);
   });
 
@@ -291,6 +323,7 @@ describe("Settings' rail", () => {
     expect(stepWants("welcome", { ...FRESH, description: "Hi" })).toBe(
       "No date yet.",
     );
+    expect(stepWants("code", FRESH)).toBe("Nobody has opened it yet.");
     expect(stepWants("code", { ...FRESH, opened: 2 })).toBeNull();
   });
 });
@@ -358,6 +391,8 @@ describe("a new event, as Create hands it over", () => {
       "photos",
       "welcome",
     ]);
+    // ★ Made, and ready: Create finishes the event (PRD's core loop, r5's `arrival=done`).
+    expect(readiness(f).ready).toBe(true);
   });
 
   it("never reads a password it could not have stored", () => {
@@ -396,10 +431,10 @@ describe("a new event, as Create hands it over", () => {
 });
 
 /**
- * CREATE'S CLOSE, ONE LINE (create-wizard r4's `close=next`): what guests still need, read off the readiness, so it is
- * true of a new event by construction and of any other event by the same reading.
+ * THE CHECKLIST'S ONE LINE (create-wizard r5's `arrival=done`): what a guest still needs while anything is, else the
+ * next thing worth doing, said as what it brings, its door the item's own.
  */
-describe("what guests still need, in one line (Create's close)", () => {
+describe("the checklist's one line (readyNext)", () => {
   const born = (storagePct?: number) =>
     readiness(
       newEventFacts(
@@ -408,15 +443,24 @@ describe("what guests still need, in one line (Create's close)", () => {
       ),
     );
 
-  it("★ names the code on every new event: the one essential Create leaves, which Print and Share do", () => {
-    expect(stillNeeded(born())).toBe(CODE_STILL_NEEDED);
-    // A full shelf makes room essential too, and the code still leads: room is said beside the line, never in it.
-    expect(
-      born(100)
-        .left.filter((i) => i.essential)
-        .map((i) => i.id),
-    ).toEqual(["code", "room"]);
-    expect(stillNeeded(born(100))).toBe(CODE_STILL_NEEDED);
+  it("★ names the code's share on every new event, Invite its door: the thing worth doing first", () => {
+    const next = readyNext(born())!;
+    expect(next.item.id).toBe("code");
+    expect(next.words).toBe("Your code is all they need.");
+    expect(next.item.actions[0]).toEqual({ label: "Invite", to: "invite" });
+  });
+
+  it("then the first photos, then the welcome, each said as what it brings", () => {
+    const opened = readiness({ ...FRESH, opened: 1 });
+    expect(readyNext(opened)).toMatchObject({
+      item: { id: "photos" },
+      words: "A few photos of yours invite theirs.",
+    });
+    const seeded = readiness({ ...FRESH, opened: 1, approved: 2, playable: 2 });
+    expect(readyNext(seeded)).toMatchObject({
+      item: { id: "welcome" },
+      words: "Add the date and a note guests read first.",
+    });
   });
 
   it.each([
@@ -426,15 +470,36 @@ describe("what guests still need, in one line (Create's close)", () => {
       "door",
     ],
     ["paused uploads say their own line", { acceptingUploads: false }, "adds"],
-  ] as const)("%s, ahead of the code", (_, patch, id) => {
+  ] as const)("%s, ahead of anything worth doing", (_, patch, id) => {
     const r = readiness({ ...FRESH, ...patch });
-    expect(stillNeeded(r)).toBe(r.items.find((i) => i.id === id)?.line);
+    const item = r.items.find((i) => i.id === id)!;
+    expect(readyNext(r)).toEqual({ item, words: item.line });
   });
 
-  it("says the checklist's head once a guest can reach the album: nothing essential is left to name", () => {
-    const r = readiness({ ...FRESH, opened: 1 });
-    expect(r.ready).toBe(true);
-    expect(stillNeeded(r)).toBe(readyHead(r).line);
+  it("says room running short in its own words, and a full shelf as the need it is", () => {
+    expect(readyNext(born(92))?.item.id).toBe("code");
+    expect(
+      readyNext(readiness({ ...FRESH, opened: 1, storagePct: 92 })),
+    ).toMatchObject({
+      item: { id: "room" },
+      words: "92% of your storage is used.",
+    });
+    expect(readyNext(born(100))).toMatchObject({
+      item: { id: "room", essential: true },
+      words: "Your storage is full, so new uploads are refused.",
+    });
+  });
+
+  it("is nothing once nothing is left", () => {
+    const done: ReadyFacts = {
+      ...FRESH,
+      opened: 1,
+      approved: 3,
+      playable: 3,
+      eventDate: "2026-10-10",
+      description: "Bring everything",
+    };
+    expect(readyNext(readiness(done))).toBeNull();
   });
 });
 

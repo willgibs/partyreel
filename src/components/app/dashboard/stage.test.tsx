@@ -113,9 +113,10 @@ describe("before the day", () => {
       ["Welcome", true],
       ["Code", false],
     ]);
-    // The checklist's own head says what a guest still needs, and the rail says Ready, so no second tick does.
+    // The checklist's own head: a made event is ready (create-wizard r5's `arrival=done`, reshaped on purpose: it said
+    // "Before guests arrive" while the code was unopened), and the rail says it, so no second tick does.
     expect(rail).toHaveTextContent(
-      "Before guests arrive. Guests still need one more thing.",
+      "Ready for guests. 2 things still worth doing.",
     );
     expect(screen.queryByText("Ready for guests")).toBeNull();
     expect(document.querySelector("[data-stage-ticks]")).toBeNull();

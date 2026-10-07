@@ -55,13 +55,18 @@ afterAll(() => {
   for (const r of roots) rmSync(r, { recursive: true, force: true });
 });
 
-/** A scratch repo root holding `data` as its calls file, with every home the real file names as a stub. */
+/**
+ * A scratch repo root holding `data` as its calls file, with every home the real file names as a stub, and the test
+ * call's own home beside them. ★ Scar (2026-10-07): only the real file's homes were stubbed, so the day Will's answers
+ * retired the last call naming `billing-caps.md`, the door refused the test call for a missing home.
+ */
 function scratch(data: unknown): string {
   const root = mkdtempSync(join(tmpdir(), "calls-door-"));
   roots.push(root);
   mkdirSync(join(root, "docs", "systems"), { recursive: true });
   for (const e of REAL.entries)
     if (e.kind === "call") writeFileSync(join(root, e.home), "# stub\n");
+  writeFileSync(join(root, A_CALL.home), "# stub\n");
   writeFileSync(
     join(root, "docs", "calls.json"),
     `${JSON.stringify(data, null, 2)}\n`,
@@ -191,7 +196,19 @@ describe("the words a call is answered in", () => {
 
 describe("the door, usher/kit/calls.py", () => {
   it("refuses the 31st entry, and writes nothing", () => {
-    const root = scratch(copy());
+    // A full list, the real entries first: the real file empties as Will answers (scar, 2026-10-07: it held 30 the
+    // day this was written and 8 once he answered, and the 31st was then the 9th).
+    const full = copy();
+    // Padded in the last entry's theme, so the list keeps the themes' order.
+    const theme = full.entries.at(-1)?.theme ?? A_CALL.theme;
+    for (let n = 0; full.entries.length < CALLS_CAP; n++)
+      if (!full.retired.includes(`ZY${n}`))
+        full.entries.push({
+          ...A_CALL,
+          id: `ZY${n}`,
+          theme,
+        } as CallsFile["entries"][number]);
+    const root = scratch(full);
     const before = fileOf(root);
     const r = door(root, "add", entryFile(root, A_CALL));
     expect(r.status).not.toBe(0);
@@ -321,8 +338,15 @@ describe("the door, usher/kit/calls.py", () => {
     };
     const firstCall = (d: CallsFile) =>
       d.entries.find((e) => e.kind === "call")!;
-    const firstQuestion = (d: CallsFile) =>
-      d.entries.find((e) => e.kind === "question")!;
+    // A question to bend, the real file's first or the test's own once Will has answered every one (scar, 2026-10-07).
+    const firstQuestion = (d: CallsFile) => {
+      if (!d.entries.some((e) => e.kind === "question"))
+        d.entries.push({
+          ...A_QUESTION,
+          id: "ZZ7",
+        } as CallsFile["entries"][number]);
+      return d.entries.find((e) => e.kind === "question")!;
+    };
     const cases: [string, CallsFile][] = [
       ["the real file", copy()],
       [

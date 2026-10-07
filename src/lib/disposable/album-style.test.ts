@@ -18,7 +18,6 @@ import {
   styleSwitchConsequence,
 } from "@/lib/disposable/album-style";
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
-import { guestAlbumOrder } from "@/lib/shared/album-order";
 
 const NOW = Date.parse("2026-10-10T20:00:00Z");
 const AHEAD = "2026-10-11T16:00:00.000Z";
@@ -131,25 +130,24 @@ describe("patchForStyle: one save of all three columns, so no half-state is ever
 });
 
 describe("patchForStyle takes the party's zone directly (crumbs-85: the seeding retired in its home)", () => {
-  it("★ offers 9 am the morning after in the PARTY's zone, the very instant its album turns, never the browser's", () => {
+  // ★ Reshaped by crumbs-91 (call AY1; scar kept: the party's 9 am, never the browser's). The expired reason: the album
+  // turning at that same instant, which it no longer does (it turns at her close, or at this develop itself).
+  it("★ offers 9 am the morning after in the PARTY's zone, the default develop's own rule, never the browser's", () => {
+    const facts = { eventDate: "2026-10-09", eventEndDate: "2026-10-11" };
+    const nowMs = Date.parse("2026-10-05T22:00:00Z");
     const fresh = patchForStyle(
       "disposable",
       { capture: "upload", review: false, developsAt: null },
-      {
-        eventDate: "2026-10-09",
-        eventEndDate: "2026-10-11",
-        nowMs: Date.parse("2026-10-05T22:00:00Z"),
-        zone: "Pacific/Auckland",
-      },
+      { ...facts, nowMs, zone: "Pacific/Auckland" },
     );
-    // Monday 12 October, 9:00 NZDT: the morning its album turns.
+    // Monday 12 October, 9:00 NZDT.
     expect(fresh.developsAt).toBe("2026-10-11T20:00:00.000Z");
-    expect(Date.parse(fresh.developsAt!)).toBe(
-      guestAlbumOrder({
-        facts: { eventDate: "2026-10-09", eventEndDate: "2026-10-11" },
+    expect(fresh.developsAt).toBe(
+      defaultDevelopAt({
+        ...facts,
+        now: new Date(nowMs),
         zone: "Pacific/Auckland",
-        chosen: null,
-      }).morningAfter,
+      }).toISOString(),
     );
   });
 

@@ -147,54 +147,27 @@ const CREATE_FAILED = {
   message: "Couldn't create the event. Please try again.",
 };
 
-/**
- * ★ A CREATE'S KEY, AS THE DATABASE HOLDS IT (`events.create_key`, 20261007120000): a nullable uuid the generated types do
- * not name until the Orchestrator regenerates them after the apply, and postgrest-js refuses a column it does not know, on
- * a filter and on an insert's excess property alike. THE TYPED SEAM, two places to retire with the apply (the migration's
- * header says so): the filter's name, spelled as a column the types do know (`id`, also a uuid), and the insert's
- * `Object.assign`, which the generated row type never sees.
- */
-const CREATE_KEY = "create_key" as "id";
-
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
-// Postgres undefined_column: what a filter on a column the schema does not hold yet answers.
-const UNDEFINED_COLUMN = "42703";
-
 /**
- * THE EVENT A CREATE'S KEY ALREADY NAMES, HERS ALONE (`events_host_create_key_unique`: at most one a host). The filter on
- * `host_id` is her own id beside RLS's, for the index's own sake. A read that fails is `read: false`, never "no event":
- * a Create that cannot tell whether its first try landed must not make a second.
- *
- * ★ EXCEPT A BUILD AHEAD OF ITS MIGRATION (`missing`): the column not being in the schema yet is the one failure that
- * says the first try could not have been keyed, so Create must not go down with it (it is the host's whole product, and
- * the apply is the Orchestrator's, after a deploy that may come first). It makes the event it always made, keyless, and says
- * so where failures are read; THE TYPED SEAM's other half, retired with the apply.
+ * THE EVENT A CREATE'S KEY ALREADY NAMES, HERS ALONE (`events.create_key`, 20261007120000; `events_host_create_key_unique`:
+ * at most one a host). The filter on `host_id` is her own id beside RLS's, for the index's own sake. A read that fails is
+ * `read: false`, never "no event": a Create that cannot tell whether its first try landed must not make a second.
  */
 async function eventUnderKey(
   supabase: ServerClient,
   hostId: string,
   key: string,
-): Promise<
-  { read: true; event: EventRow | null } | { read: false; missing: boolean }
-> {
+): Promise<{ read: true; event: EventRow | null } | { read: false }> {
   const { data, error } = await supabase
     .from("events")
     .select("*")
     .eq("host_id", hostId)
-    .eq(CREATE_KEY, key)
+    .eq("create_key", key)
     .maybeSingle();
   if (error) {
-    if (error.code === UNDEFINED_COLUMN) {
-      captureWarning(
-        "db",
-        "events.create_key is missing: a Create ran without its key (the migration is not applied)",
-        { seam: "create_key_read" },
-      );
-      return { read: false, missing: true };
-    }
     captureError("db", error, { seam: "create_key_read" });
-    return { read: false, missing: false };
+    return { read: false };
   }
   return { read: true, event: data };
 }
@@ -231,11 +204,9 @@ export async function createEvent(
   let key = attempt;
   if (key) {
     const prior = await eventUnderKey(supabase, user.id, key);
-    if (!prior.read) {
-      // Not knowing is a failure (a second event is worse), but a schema with no key's column says it could not have one.
-      if (!prior.missing) return CREATE_FAILED;
-      key = undefined;
-    } else if (prior.event) {
+    // Not knowing is a failure: a second event is worse.
+    if (!prior.read) return CREATE_FAILED;
+    if (prior.event) {
       if (prior.event.deleted_at === null)
         return { ok: true, data: prior.event };
       key = undefined;
@@ -279,8 +250,9 @@ export async function createEvent(
   // insert with no zone names no column.
   const zone = storedZone(values.captured_zone, "create");
   if (zone !== null) insert.time_zone = zone;
-  // The key rides the insert only where one stands, so a Create with none names no column (the seam above).
-  if (key) Object.assign(insert, { create_key: key });
+  // The key rides the insert only where one stands: a Create that sent none, or whose key is spent on an event she has
+  // since deleted (the index spans it), names no column, the insert it always was.
+  if (key) insert.create_key = key;
 
   const { data, error } = await supabase
     .from("events")
@@ -312,7 +284,7 @@ export async function createEvent(
       };
     }
     // What nothing above names is unexpected, and said where failures are read (a build ahead of its migration meets
-    // PGRST204 here, the key's column unknown): the host's words stay the catch-all.
+    // PGRST204 here, a column unknown): the host's words stay the catch-all.
     captureError("db", error, { seam: "create_event" });
     return CREATE_FAILED;
   }

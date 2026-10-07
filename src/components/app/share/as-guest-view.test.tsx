@@ -207,7 +207,7 @@ describe("its header", () => {
     expect(
       screen.queryByRole("link", { name: /back to your hub/i }),
     ).toBeNull();
-    const start = screen.getByRole("button", { name: /start for free/i });
+    const start = screen.getByRole("button", { name: /make one like this/i });
     expect(start.closest("[inert]")).not.toBeNull();
   });
 
@@ -402,35 +402,46 @@ describe("★ the cover's Add says what a newcomer's does", () => {
   });
 });
 
-/* ★ THE ORDER EVERY GUEST MEETS (event-zone; the ROADMAP's "as-guest-view.tsx hands LiveGallery no order"): the album is
-   handed the guest page's own order over the server's word, the turn an instant, and turns with it while she looks;
-   nothing here can choose one, so a choice writes nothing on her device. */
+/* ★ THE ORDER EVERY GUEST MEETS (album-order, AY1; the ROADMAP's "as-guest-view.tsx hands LiveGallery no order"): the
+   album is handed the guest page's own order over the server's word, read off the album's state, and turns with it while
+   she looks; nothing here can choose one, so a choice writes nothing on her device. RESHAPED ON PURPOSE (crumbs-91; scar
+   kept: the guests' order handed to the album, and a choice that writes nothing). The expired reason: the party's
+   morning after as the turn (`morningAfter`), gone with the date's part in it. */
 describe("★ the album in the order every guest meets", () => {
-  const MORNING = Date.parse("2026-10-03T20:00:00Z");
+  const sortOf = () =>
+    (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort;
 
-  it("after the party's morning the album is handed the night in order", () => {
+  it("an album she has closed is handed the night in order", () => {
     view({
-      albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+      event: { ...EVENT, accepting_uploads: false },
+      albumOrder: { own: "oldest", chosen: null },
     });
-    const order = (live.gallery.at(-1) as { order?: { sort: string } }).order;
-    expect(order?.sort).toBe("oldest");
+    expect(sortOf()).toBe("oldest");
   });
 
-  it("before it, newest first; and with no word from the server, newest first as before", () => {
-    view({
-      albumOrder: {
-        morningAfter: Date.now() + 86_400_000,
-        own: "newest",
-        chosen: null,
-      },
-    });
-    expect(
-      (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort,
-    ).toBe("newest");
+  it("an open album newest first; and with no word from the server, newest first as before", () => {
+    view({ albumOrder: { own: "newest", chosen: null } });
+    expect(sortOf()).toBe("newest");
     view();
-    expect(
-      (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort,
-    ).toBe("newest");
+    expect(sortOf()).toBe("newest");
+  });
+
+  it("★ a develop reached turns the open album while she looks, as every guest's", () => {
+    vi.useFakeTimers();
+    try {
+      const develop = Date.now() + 60_000;
+      view({
+        event: { ...EVENT, develops_at: new Date(develop).toISOString() },
+        albumOrder: { own: "newest", chosen: null },
+      });
+      expect(sortOf()).toBe("newest");
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(sortOf()).toBe("oldest");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("a choice from the inert album writes nothing: no guest's remembered order lands on her device", () => {
@@ -439,7 +450,8 @@ describe("★ the album in the order every guest meets", () => {
     try {
       document.cookie = "pr_album_sort=; Path=/e; Max-Age=0";
       view({
-        albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+        event: { ...EVENT, accepting_uploads: false },
+        albumOrder: { own: "oldest", chosen: null },
       });
       const order = (
         live.gallery.at(-1) as { order: { choose: (s: string) => void } }
@@ -453,5 +465,56 @@ describe("★ the album in the order every guest meets", () => {
       document.cookie = "pr_album_sort=; Path=/e; Max-Age=0";
       window.history.replaceState(null, "", "/");
     }
+  });
+});
+
+/* ★ SEE IT AS A GUEST'S TWO FACTS OF THE GUEST PAGE (crumbs-86, pinned here by crumbs-91): what waits is known before the
+   first paint (`waitingOnArrival`, the server's `albumWaits`), so the cover's Add says a newcomer's words from the first
+   byte, never "the first photo" over shots that wait; and the party's zone rides into every develop time the view says
+   (`PartyZoneContext`, `waitWords`), so a far party's sheet reads on the party's clock, as its guests read it. */
+describe("★ the guest page's own first byte", () => {
+  const AHEAD = new Date(Date.now() + 6 * 3_600_000).toISOString();
+  const add = () => screen.getByRole("button", { name: /photo/i });
+  const nothingVisible = { approvedTotal: 0, guestCount: 4 };
+
+  it("★ what waits on arrival holds the Add off the first photo before the live source has a word", () => {
+    live.waiting = null;
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      stats: nothingVisible,
+      waitingOnArrival: true,
+    });
+    expect(add()).toHaveTextContent(/^Take photos$/);
+    expect(screen.queryByText(/first photo/i)).toBeNull();
+  });
+
+  it("and with nothing waiting on arrival, an empty album's Add is the first photo", () => {
+    live.waiting = null;
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      stats: nothingVisible,
+      waitingOnArrival: false,
+    });
+    expect(add()).toHaveTextContent(/^Take the first photo$/);
+  });
+
+  it("★ the sheet says the party's clock: its develop time carries the party's zone", () => {
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      partyZone: "Pacific/Auckland",
+    });
+    expect((live.wait.at(-1) as { clock: unknown }).clock).toEqual({
+      kind: "develop",
+      developsAt: AHEAD,
+      zone: "Pacific/Auckland",
+    });
+  });
+
+  it("with no zone handed (a lock, the demo), the sheet's time is the reader's own clock", () => {
+    view({ event: { ...EVENT, capture: "camera", develops_at: AHEAD } });
+    expect((live.wait.at(-1) as { clock: unknown }).clock).toEqual({
+      kind: "develop",
+      developsAt: AHEAD,
+    });
   });
 });

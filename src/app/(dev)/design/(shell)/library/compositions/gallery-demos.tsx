@@ -3,7 +3,6 @@ import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-tease
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { EventCard } from "@/components/app/event-card";
-import { EventCardQr } from "@/components/app/event-card-qr";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { RecentlyDeletedGrid } from "@/components/app/recently-deleted-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
@@ -71,19 +70,6 @@ import {
  * into the gallery as a mock of themselves.
  */
 
-// One share chip, rendered in two entries: as the hosted card's `qrSlot` and as
-// the Share suite's own specimen. Shared deliberately, so the two can never
-// drift into demonstrating different props.
-const qrSlot = (
-  <EventCardQr
-    eventId="demo"
-    eventName={SAMPLE.eventName}
-    qrToken={SAMPLE.qrToken}
-    qrStyle={SAMPLE.qrStyle}
-    siteUrl={SAMPLE.siteUrl}
-  />
-);
-
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   /* CREATE'S ROOM (library-specimens-2): the real wizard over the stand-in its `create` prop is for, in a real viewport
      (the room is the whole screen, `fixed` and read against the viewport), so every screen can be pressed through with no
@@ -97,7 +83,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     test: "src/components/app/create-event-wizard.test.tsx",
     title: "Create's room",
     for: "the whole screen a host makes an event in: her event's name, the album's style, the code's look, then her code developing, one question and one button to a screen, and the door before it at a plan's limit",
-    lede: "The real wizard in a real viewport, over the stand-in its `create` prop is for: Create event answers after a round trip with an event nobody wrote, so every screen can be pressed through with no session. Type a name and it rises into the head; the album's style plays its night once as the step opens (Live, Review and Disposable, each a small album moving through it), and Disposable adds its own screen, when the photos develop and the roll; the code's look dresses her phone and the room's screen; Create event develops the sample into her code, with Print and Share and one line beneath saying what guests still need. The frame is the viewport, so the room reads its width and height: a phone and a laptop are the room each is. Get it ready, See Pro and the close are held, since each leaves the room, and the name's field does not take focus as the room opens, which production's does.",
+    lede: "The real wizard in a real viewport, over the stand-in its `create` prop is for: Create event answers after a round trip with an event nobody wrote, so every screen can be pressed through with no session. Type a name and it rises into the head; the album's style rests its three cards on the moment they differ and plays the picked one's story once (Live, Review and Disposable, each a small album), and Disposable adds its own screen, when the photos develop and the roll; the code's look dresses her phone and the room's screen; Create event develops the sample into her code, lit in the event's seed, with the line saying share it, her link as guests receive it, and Print and Share. The frame is the viewport, so the room reads its width and height: a phone and a laptop are the room each is. Go to your event, See Pro and the close are held, since each leaves the room, and the name's field does not take focus as the room opens, which production's does.",
     specimens: [
       {
         label: "At a phone",
@@ -375,14 +361,14 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         prop: "variant",
         source: "prop",
         fallback: "hosted",
-        options: ["hosted", "guest", "trash"],
-        note: "What the chrome carries: hosted takes the QR slot and the needs-you review chip, guest (an event you added photos to) the profile's Guest marker and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
+        options: ["hosted", "guest"],
+        note: "What the chrome carries: hosted its pills alone, guest (an event you added photos to) the Guest marker and a byline. No sample row, because the specimens below already show both.",
       },
     ],
     specimens: [
       {
         label: "Hosted",
-        hint: "QR chip + review chip",
+        hint: "a password album: its door's pill",
         node: (
           <EventCard
             variant="hosted"
@@ -390,10 +376,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             name={SAMPLE.eventName}
             coverUrl={SAMPLE.cover}
             dateLabel={SAMPLE.dateLabel}
-            itemsLabel="128 items"
-            statusLabel="Open"
-            pendingCount={3}
-            qrSlot={qrSlot}
+            statusLabel="Password"
           />
         ),
       },
@@ -407,9 +390,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             name="Office Summer Party"
             coverUrl={null}
             dateLabel="Aug 2"
-            itemsLabel="0 items"
-            statusLabel="Open"
-            pendingCount={0}
           />
         ),
       },
@@ -424,20 +404,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             coverUrl={SAMPLE.cover2}
             dateLabel="May 30"
             byline="Hosted by Priya"
-          />
-        ),
-      },
-      {
-        label: "Deleted",
-        hint: "dimmed + countdown",
-        node: (
-          <EventCard
-            variant="trash"
-            href={null}
-            name="Old Test Event"
-            coverUrl={SAMPLE.cover3}
-            dateLabel="Mar 11"
-            statusLabel="6 days left"
           />
         ),
       },
@@ -521,28 +487,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Two doors",
         hint: "the meter's popover · a refused price in the plan",
         node: <StorageListDemo />,
-      },
-    ],
-  },
-  {
-    id: "event-card-qr",
-    family: "compositions",
-    section: "Share suite",
-    file: "src/components/app/event-card-qr.tsx",
-    title: "EventCardQr",
-    lede: "The card's top-left chip. It is a sibling of the card link, so tapping it goes to the event's share sheet and never to the event itself.",
-    specimens: [
-      {
-        label: "Share chip",
-        hint: "tap to open the share sheet",
-        node: (
-          <div className="flex items-center gap-3">
-            {qrSlot}
-            <span className="text-sm text-muted-foreground">
-              Opens the share sheet
-            </span>
-          </div>
-        ),
       },
     ],
   },

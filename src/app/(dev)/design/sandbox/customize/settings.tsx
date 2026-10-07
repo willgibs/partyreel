@@ -735,7 +735,7 @@ export function FirstScreen({
 
 /* ── a choice's own radio card, the page's idiom ──────────────────────── */
 
-/** One radio card, `camera-settings.tsx`'s `Choice` quoted: the whole card the choice, its name and one line. */
+/** One radio card, after `radio-cards.tsx`'s `RadioCard`: the whole card the choice, its name and one line. */
 export function ChoiceCard({
   on,
   label,

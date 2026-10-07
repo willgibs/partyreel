@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-10-07
+**Updated:** 2026-10-07 19:45Z
 
 ## The era
 
@@ -13,26 +13,26 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, milestone 39 live, milestone 40 forming
+## The current round: round 15, milestone 39 live, desk 8's wave 1 running
 
 - **Milestone 39 is live** (`0333cd705`, 2026-10-07 16:15Z, tagged; its merge commit says what it holds): desk 7's
-  moments wired, the storage sums proven nightly, a names-only door the database remembers, the site brought to
-  today's product, and Send to Google Drive live (its Worker deployed with it). Red-teamed locally by 57, 57b and 57c
-  (nothing above LOW open); the FULL gate green at `3ec66b8fe`. Milestone 38 (`90ab891c2`) before it; the legal text
-  is rewritten once, right before launch. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90 and the calls lab
-  moved into the desk (calls-desk); Will's next desk batch comes next.
-- **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
-  hi@willgibs.com's wound down; its lanes run in local worktrees, paced by the 5-hour window.
-- **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and
-  red-teams moved to the Mac (about 2,000 calls a day, from 20,000 to 57,000); under the REFUSE line around 2026-10-16.
-  Nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
+  moments, the storage sums proven nightly, a names-only door, the site brought to today's product, and Send to Google
+  Drive live. Red-teamed by 57, 57b and 57c (nothing above LOW open). Milestone 40 forms on `launch-prep`: crumbs-88,
+  crumbs-90, calls-desk, and desk 8's wave 1 as it merges.
+- **Desk 8 answered, wave 1 running** (2026-10-07): the event page redrawn from the ground up (Will's idea 1 led: the
+  head's UI on a glow sampled from the album, no slideshow), the bespoke icon, and six wirings (the marks and status
+  tiers, Create, the offline send, the Guests room, following and her page's plate, the crumbs with AY1's turn at her
+  close). The Orchestrator sits on Will's Mac; its lanes run in local worktrees, paced by the 5-hour window.
+- **Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days, under the REFUSE line around
+  2026-10-16; nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
 
 ## The desk
 
 Will's desk (`localhost:3000/design/lab?key=fiesta`; refreshed by `S=<scratch> zsh usher/kit/desk-refresh.sh <sha>`)
-answered brand r2 (Aperture), event-header r6 and desk 7's four moments boards on 2026-10-06 (`docs/reviews/`), all but
-account-moments' follow. The next desk, all merged: brand-marks r1, signature r1, account-moments r2, create-wizard r5,
-guests-room r1 and presence r1; his desk serves the tip (`b0eb89bc9`, refreshed 2026-10-07 17:20Z), with the Calls place.
+answered desk 8 on 2026-10-07 (`docs/reviews/batches/2026-10-07-b0eb89bc9.txt`): brand-marks, signature, presence,
+after-party, no-signal, guests-room, account-moments r2 and create-wizard r5, three asks unclear (atmosphere, recap,
+card), now the event-page board's. It serves `b0eb89bc9` until event-page r1 and brand-marks r2 land; the Calls place
+holds 29 entries.
 
 ## Live state
 
@@ -41,7 +41,7 @@ guests-room r1 and presence r1; his desk serves the tip (`b0eb89bc9`, refreshed 
   leases from partyreel.com every 15 minutes; `DRIVE_WORKER_URL` is set on production; Will's Drive walk is next.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
-- **The shared database** runs every migration through `event_create_key` (2026-10-07), each by protocol (the
+- **The shared database** runs every migration through `crumbs_91` (2026-10-07, applied as 20261007230050), each by protocol (the
   Advisor's read, the file's md5 matched), each an expand the older build ran beside; no build reads a dropped thing.
   Advisors stand at 27 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
@@ -76,5 +76,5 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 - His Drive walk on partyreel.com (P3's consent; drive-crumbs' Handoff lists what to press); the calls lab's (the
   desk's Calls place) open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare
   analytics token, X5 the CDN-cached album, X6 the operator's uploads credit, X9 to X17 the gap audit's product
-  decisions) and its 16 built calls he cannot see by using the product; the two backup copies with old EXIF to delete
+  decisions) and its 15 built calls he cannot see by using the product; the two backup copies with old EXIF to delete
   and the six retired Stripe price names to drop; the walks only he can drive (`tracks/orchestrator.md`).

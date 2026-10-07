@@ -94,6 +94,27 @@ describe("FollowButton", () => {
     );
   });
 
+  // `follow=once` (account-moments r2): the line a first follow says names the person where the seat does, and says "They"
+  // where it does not; `relation-toggle.test.tsx` holds when it is drawn and what it is.
+  it("★ names whom it follows in the line her first follow says, where it knows them", async () => {
+    follow.mockResolvedValue({ ok: true, first: true });
+    render(
+      <FollowButton
+        profileId="host-1"
+        initialFollowing={false}
+        quiet
+        size="xs"
+        name="Tom Okafor"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Follow Tom Okafor" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Tom just sees one more follower.",
+      ),
+    );
+  });
+
   it("the page's own Follow stays the filled one", () => {
     render(<FollowButton profileId="host-1" initialFollowing={false} />);
     expect(screen.getByRole("button", { name: "Follow" })).toHaveAttribute(

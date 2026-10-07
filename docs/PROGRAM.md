@@ -98,7 +98,8 @@ its options, never on proving them. Its handoff gate is the light one: typecheck
 test:rules` (every repo-wide rule: the tests that read the tree through `src/testing/source-tree.ts`, about 50 s),
 `lab:smoke` and `lab:demo --board <id>` (every option renders, fits the lab and differs, at a desk and a phone). There
 is no full test run, no production build and no multi-theme capture round unless the question is about a theme; the
-Orchestrator's merge gate is the one full check. The helpers per option and the fresh-eyes pass stay: they are the
+Orchestrator's merge gate is the one full check. The helpers per option and the fresh-eyes pass stay (each starting from
+one context pack the lane writes: the production files, tokens and fixtures the board draws on): they are the
 thinking. A bug found at the desk is fixed then. Wiring lanes keep the whole gate and a local red-team: they ship.
 
 - Build a board as the toolbox page (`/design/lab/kit`) teaches:

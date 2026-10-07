@@ -265,13 +265,15 @@ function AlbumAsGuest({
   );
   // The reel's round, on the guest page's own first guess (the host's switch and two photographs).
   const reelRound = event.show_reel && mediaCount >= 2;
-  /* ★ THE ORDER EVERY GUEST MEETS (album-order, event-zone): the guest page's own hook over the server's word, so the
-     album turns at the party's morning after (an instant, the same for every reader) and the view turns with it while
-     she looks. Nothing here is hers to choose: the album is inert, and a choice would write a guest's remembered order
-     on her own device, so Sort shows the turn's order and answers nothing. */
+  /* ★ THE ORDER EVERY GUEST MEETS (album-order, AY1): the guest page's own hook over the server's word, so the album
+     reads in order once she has closed adding, as her guests' does, and turns at a develop's instant (the same for every
+     reader) while she looks. Her word on adding is the view's own read of the album (the closed line and the Add above
+     say it too), so the order and they never disagree. Nothing here is hers to choose: the album is inert, and a choice
+     would write a guest's remembered order on her own device, so Sort shows the album's own and answers nothing. */
   const order = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
+    open: event.accepting_uploads,
     developsAt: event.develops_at ?? null,
     isDemo: false,
   });
@@ -473,7 +475,7 @@ function AlbumAsGuest({
 
 /**
  * THE GUEST'S HEADER, AS A GUEST WITH NO ACCOUNT SEES IT (`guest-header.tsx`, drawn still): the wordmark, white on the
- * cover with no rule, and the quiet "Start for free" the anonymous majority meets. Inert like the album. Where the
+ * cover with no rule, and the quiet "Make one like this" the anonymous majority meets. Inert like the album. Where the
  * view is its own page, her way back to the hub stands in that slot instead, the one live control on it.
  */
 function GuestBar({
@@ -503,7 +505,7 @@ function GuestBar({
         ) : (
           <span inert>
             <Button variant="ghost" size="sm" tabIndex={-1}>
-              Start for free
+              Make one like this
             </Button>
           </span>
         )}

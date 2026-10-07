@@ -11,10 +11,10 @@ import { formatCount } from "@/lib/format/count";
 import { formatEventDate } from "@/lib/utils";
 
 /**
- * READY FOR GUESTS, AS ONE PURE FUNCTION (Will's `event-ready` picks, 2026-10-02): what an event still
- * needs before guests arrive, read by the hub's checklist at its head (`list=head`), Settings' rail of
- * steps (`guide=steps`) and Create's close (create-wizard r4's `close=next`), so a tick in one of them is a
- * tick in all.
+ * READY FOR GUESTS, AS ONE PURE FUNCTION (Will's `event-ready` picks, 2026-10-02; create-wizard r5's `arrival=done`,
+ * 2026-10-07): what an event still needs before guests arrive, and what is worth doing, read by the hub's checklist at
+ * its head (one line, `checklist.tsx`), Settings' rail of steps (`guide=steps`), the hub's Settings card and the
+ * dashboard's stage, so a tick in one of them is a tick in all.
  *
  * ★ EVERY ITEM IS STATE THE APP ALREADY HOLDS, AND READY IS NEVER STORED NOR SHOWN TO A GUEST. The door
  * and its counts, `accepting_uploads`, the album's count and the reel's playable count, `event_date` and
@@ -22,18 +22,20 @@ import { formatEventDate } from "@/lib/utils";
  * account's storage. Nothing asks a host to tick a box, and nothing here gates anything: a host who fixes
  * a thing anywhere (Settings, the album, a scan) sees it ticked everywhere at once.
  *
- * ★ READY WAITS ONLY ON WHAT A GUEST NEEDS (the board's carried `ready` call): a door that lets guests
- * in, uploads open, the code opened once, and room once the shelf is full. The welcome and the first
- * photos are worth doing and are listed, but never hold ready back: a host who skips a note has not
- * failed to set up an event, and a readiness that waited on it would turn a suggestion into an
- * obligation.
+ * ★ READY ANSWERS ONE QUESTION: COULD A GUEST WHO SCANNED NOW GET IN AND ADD (r5's `arrival=done`, Will: a new event
+ * "counts as ready, since guests can get in and add"). So ready waits on a door she can pass, uploads open, and room
+ * once the shelf is full, and a new event is ready the minute Create makes it (PRD's core loop: Create finishes the
+ * event). The code's first open, which Create can never make, stopped being a need: its share leads what is worth
+ * doing, ticking at its first open as it always did. The welcome and the first photos are worth doing too, and none
+ * of the three ever holds ready back: a readiness that waited on them would turn a suggestion into an obligation, and
+ * met her made event as "2 of 3", the halfway her trial run felt.
  *
  * ★ THE CODE TICKS AT ITS FIRST OPEN. The app cannot see a printer, but it sees the link opened: every
  * visit to `/e/<token>` counts (`recordLinkHit`, bot-filtered), the host's own test scan included, so
- * "scan it once from your phone" (the help's own advice) is how it learns the code is out and works.
+ * "scan it once yourself" (the help's own advice) is how it learns the code is out and works.
  *
- * ★ WHAT A GUEST NEEDS COMES FIRST, THEN WHAT IS WORTH DOING: on a phone the one row a new event is
- * missing, the code, stands above the fold rather than under two suggestions.
+ * ★ WHAT A GUEST NEEDS COMES FIRST IN THE LIST, THEN WHAT IS WORTH DOING, THE CODE'S SHARE LEADING IT: on a phone a
+ * door nobody can pass stands above the fold, and once she is ready the share is the first thing worth doing.
  *
  * The `needs` ask's derivations (one job per event on the dashboard, a ready count per card) stayed with
  * the retired board: Will asked for that band to be rethought whole (host-dashboard r1).
@@ -235,19 +237,18 @@ function welcomeItem(f: ReadyFacts): ReadyItem {
 }
 
 /**
- * The code. ★ ITS DOOR TO THE CODE CARD READS INVITE (`popups` r1, `share=card`, Will 2026-09-27:
- * "open 'Invite' then 'Share'"): every door onto the card does, and its Share is the phone's own sheet.
+ * The code: worth doing, the first of it (r5's `arrival=done`), said as what it is for rather than what it lacks.
+ * ★ ITS DOOR TO THE CODE CARD READS INVITE (`popups` r1, `share=card`, Will 2026-09-27: "open 'Invite' then 'Share'"):
+ * every door onto the card does, and its Share is the phone's own sheet.
  */
 function codeItem(f: ReadyFacts): ReadyItem {
   const done = f.opened > 0;
   return {
     id: "code",
-    essential: true,
+    essential: false,
     done,
     title: "The code",
-    line: done
-      ? `Opened ${times(f.opened)}.`
-      : "Nobody has opened it yet. Send it or print it, then scan it once yourself.",
+    line: done ? `Opened ${times(f.opened)}.` : CODE_LINE,
     actions: done
       ? []
       : [
@@ -257,12 +258,9 @@ function codeItem(f: ReadyFacts): ReadyItem {
   };
 }
 
-/**
- * The code, as Create's close says what guests still need (`stillNeeded`): the two rounds right above the line, Print
- * and Share, are how it reaches them, so the line names both.
- */
-export const CODE_STILL_NEEDED =
-  "Guests still need your code: print it, or share it.";
+/** The code's line until its first open: what it is for, and how to know it works (create-wizard r5's words). */
+export const CODE_LINE =
+  "Guests join with it. Send it or print it, then scan it once yourself.";
 
 /** Room, only once the shelf runs short (the dashboard's own threshold); essential only when it is full. */
 function roomItem(f: ReadyFacts): ReadyItem | null {
@@ -281,23 +279,20 @@ function roomItem(f: ReadyFacts): ReadyItem | null {
 }
 
 /**
- * The checklist and whether a guest could arrive now: what a guest needs first (the door, uploads, the
- * code, and room once the shelf is full), then what is worth doing (the first photos, the welcome, room
- * running short).
+ * The checklist and whether a guest could arrive now: what a guest needs first (the door, uploads, and room once the
+ * shelf is full), then what is worth doing, the code's share leading it (the code, room running short, the first
+ * photos, the welcome).
  */
 export function readiness(f: ReadyFacts): Readiness {
   const room = roomItem(f);
-  const all = [
+  const items = [
     doorItem(f),
     addsItem(f),
+    ...(room?.essential ? [room] : []),
     codeItem(f),
-    ...(room ? [room] : []),
+    ...(room && !room.essential ? [room] : []),
     photosItem(f),
     welcomeItem(f),
-  ];
-  const items = [
-    ...all.filter((i) => i.essential),
-    ...all.filter((i) => !i.essential),
   ];
   const left = items.filter((i) => !i.done);
   const essentials = items.filter((i) => i.essential);
@@ -333,23 +328,33 @@ export function readyHead(r: Readiness): { title: string; line: string } {
   };
 }
 
+/** The checklist's one line, after its head: the item it names and the words it says of it. */
+export type ReadyNext = {
+  item: ReadyItem;
+  /** The line's words after its head: what a guest still needs, or what the next thing worth doing brings. */
+  words: string;
+};
+
 /**
- * WHAT GUESTS STILL NEED, IN ONE LINE: the line Create closes on, under Print and Share (create-wizard r4's
- * `close=next`, Will 2026-10-07: "I do like the subtlety versus the steps ... Rather than shouting about what's done and
- * what's to come, we should simply continue naturally guiding them through"). It names the first essential still open,
- * never a count to decode.
- *
- * ★ TRUE BY CONSTRUCTION, NEVER WRITTEN FOR CREATE: a new event is born with its door and its adds done
- * (`newEventFacts`), and the photos and the welcome are never essential, so its one essential left is the code, which
- * the two rounds above the line do. Read off the readiness like every other surface, the line follows whatever the event
- * holds: another essential says its own line, and an event a guest can already reach says the checklist's head. On the
- * beat, room is said beside the line where the account runs short (`BeatClose`), since it is the plan's.
+ * WHAT THE CHECKLIST'S ONE LINE SAYS AFTER ITS HEAD (r5's `arrival=done`, as the board drew it): while a guest still
+ * needs something, the first of it, in its own line; once she is ready, the next thing worth doing, said as what it
+ * brings (the code first: "Your code is all they need", true before and after she has sent it). Null once nothing is
+ * left. Its door is the item's own first action: the share's Invite for the code.
  */
-export function stillNeeded(r: Readiness): string {
+export function readyNext(r: Readiness): ReadyNext | null {
   const need = r.left.find((i) => i.essential);
-  if (!need) return readyHead(r).line;
-  return need.id === "code" ? CODE_STILL_NEEDED : need.line;
+  if (need) return { item: need, words: need.line };
+  const next = r.left[0];
+  if (!next) return null;
+  return { item: next, words: WORTH_WORDS[next.id] ?? next.line };
 }
+
+/** What each thing worth doing brings, said on the line (create-wizard r5's board, its `done` answer). */
+const WORTH_WORDS: Partial<Record<ReadyItemId, string>> = {
+  code: "Your code is all they need.",
+  photos: "A few photos of yours invite theirs.",
+  welcome: "Add the date and a note guests read first.",
+};
 
 /**
  * ★ SETTINGS HOLDS WHAT SETTINGS CAN FINISH. Its rail is the four groups and the code; room is the
@@ -409,19 +414,17 @@ export function stepWants(
           : "No date yet.";
     }
     case "code":
-      return f.opened > 0
-        ? null
-        : "Nobody has opened it yet. Send it or print it, then scan it once yourself.";
+      return f.opened > 0 ? null : "Nobody has opened it yet.";
   }
 }
 
 /**
- * ★ BEFORE GUESTS ARRIVE IS MOOT ONCE THEY HAVE: the checklist steps aside from the day after the event's
- * date, done or not (an album a host pauses once the party is over, as the help advises, is finished, not
- * unready), and from the day after a range's LAST day (lane `event-dates`: a weekend's checklist stands
- * through its Sunday). An undated event keeps it until it is done. `today` is the viewer's calendar day
- * (`viewer-day.ts`), every day a `YYYY-MM-DD`, so the comparison is the strings'. It only hides a list:
- * nothing about the event changes on its last day.
+ * ★ GETTING READY IS MOOT ONCE THE PARTY HAS HAPPENED: the checklist's line steps aside from the day after the event's
+ * date, done or not (an album a host pauses once the party is over, as the help advises, is finished, not unready),
+ * and from the day after a range's LAST day (lane `event-dates`: a weekend's checklist stands through its Sunday). An
+ * undated event keeps it until nothing is left, worth doing included. `today` is the viewer's calendar day
+ * (`viewer-day.ts`), every day a `YYYY-MM-DD`, so the comparison is the strings'. It only hides a line: nothing about
+ * the event changes on its last day.
  */
 export function checklistOver(
   eventDate: string | null,
@@ -433,11 +436,30 @@ export function checklistOver(
 }
 
 /**
+ * ★ SHE MAY DISMISS IT, AND IT STAYS GONE FOR THAT EVENT (Will at the desk's calls, 2026-10-07: "provide a way to
+ * dismiss it ... power user hosts who know how to set it up don't always have to stare at a pending checklist if they
+ * feel confident in their settings"). A return each visit would show a confident host the same line every time, and
+ * anything that truly needs her already says so as its own needs-you state (the door's corner, Review's count, a paused
+ * code), never as the checklist coming back. It is advice that blocks nothing, so it is remembered in her browser and
+ * never in a column: a cookie on the event's own pages (`Path=/dashboard/<id>`), so the hub's first paint already knows
+ * and the album never jumps up under her once a script has read a store the server cannot.
+ */
+export const CHECKLIST_OFF_COOKIE = "pr_checklist_off";
+
+/** The pages the dismissal rides: the event's own, and nothing else. */
+export function checklistOffPath(eventId: string): string {
+  return `/dashboard/${encodeURIComponent(eventId)}`;
+}
+
+/** How long a dismissal is kept: as long as a browser keeps a cookie (400 days, Chrome's ceiling). */
+export const CHECKLIST_OFF_SECONDS = 400 * 24 * 60 * 60;
+
+/**
  * A NEW EVENT'S FACTS, from what Create sent (the create schema's defaults filled): nothing in it yet,
- * nobody in, never opened. Create's close says what guests still need from these (`stillNeeded`). ★ The
- * account's storage is the route's to read and hand over (create-wizard r2's carried `room`, taken): past
- * the dashboard's own threshold room joins what is left on the beat, as it does on the hub, said beside
- * the close's line because it is the plan's.
+ * nobody in, never opened, and ready (r5's `arrival=done`: its door and its uploads are open from birth). ★ The
+ * account's storage is the route's to read and hand over (create-wizard r2's carried `room`, taken): past the
+ * dashboard's own threshold room is said on the beat under its two rounds, as the hub's checklist says it, because it
+ * is the plan's.
  */
 export function newEventFacts(
   created: {
@@ -489,10 +511,10 @@ export function storageUsedPct(
 
 /**
  * SETTINGS' FIVE STEPS, IN ITS RAIL'S ORDER (event-ready `guide=steps`): each step is the checklist item it
- * finishes (who can get in, what guests can add, the reel's first photos, the welcome), then the code. A
- * surface that draws them (the dashboard's stage, `stage.ts`) reads them here, titled as Settings titles its
- * rows, so the rail a host is shown is the rail Settings opens onto. Room is never a step: it is the plan's,
- * said beside them.
+ * finishes (who can get in, what guests can add, the reel's first photos, the welcome), then the code. Settings'
+ * rail (`settings-rows.tsx`) and the dashboard's stage (`stage.ts`) both read them here, titled as Settings titles its
+ * rows, so the rail a host is shown is the rail Settings opens onto. Room is never a step: it is the plan's, said
+ * beside them.
  */
 export const SETTINGS_STEP_ITEMS = [
   { item: "door", group: "door" },

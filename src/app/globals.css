@@ -181,19 +181,49 @@
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
 
-  /* State colors (feedback always colored; punctuation, never a wash). */
-  --success: oklch(0.6 0.16 150);
+  /* ─── THE STATES: FOUR TIERS, EACH A POINT AND ITS WORD (brand-marks r1,
+     Will's `status=amber`: "green for clear success ... a bit of distinction
+     between failure and warning states, so less intense states feel less
+     intimidating ... a clearer hierarchy of states rather than simply red or
+     not red"). design-system.md maps every state production shows to its
+     tier; the tokens keep their names, so every reader moved with its value.
+       STANDBY  `--info`: half-lit, no hue. Waiting on us or the line (sending,
+                running, checking): nothing for her to do. The ground's own
+                muted ink, so its words read at AA and a point half-lit in it
+                (the Badge's) needs no colour of its own.
+       READY    `--success`: a clear green. Done.
+       WARNING  `--warning`: amber, deepening toward orange on paper so it
+                stands as a point. Look soon, nothing lost: near a limit, a
+                reconnect, a pause.
+       FAULT    `--destructive`: the one red, which also means a count that
+                needs her (`--needs-you`) and live (`--signal`), the only point
+                that breathes.
+     Feedback always colored; punctuation, never a wash. ─── */
+  /* A camera's green, a step deeper and purer than the minty one it replaced:
+     3.68:1 on the body, 3.43:1 on the mat (a point, a check's disc), its white
+     check 3.88:1 on it. */
+  --success: oklch(0.58 0.165 148);
   --success-foreground: oklch(0.99 0 0);
-  --warning: oklch(0.8 0.14 80);
+  /* ★ AN AMBER THAT STANDS ON WHITE MUST TURN ORANGE: a point needs 3:1, and
+     an amber that dark is either the mustard Will called dull (the old 0.8
+     amber stood at 1.75:1, never a point) or, leaning its hue toward orange,
+     a vivid burnt amber: 3.24:1 on the body, 3.44:1 on a card, 3.02:1 on the
+     mat. The room keeps a true amber lamp. Dark words on it hold 4.59:1. */
+  --warning: oklch(0.64 0.15 60);
   --warning-foreground: oklch(0.25 0.05 70);
-  /* THE WARNING'S WORDS (a11y-halo): the amber is a light, so on paper it is a
-     dot, a fill or a glyph and never a line of text (1.75:1 on the body). Its
-     words (`text-warning` reads this, theme.css's `--text-color-warning`) are
-     the same hue taken down to a bronze: 4.95:1 on the body, 5.3:1 on a card,
-     4.61:1 on the mat. A dark ground reads its own bright amber as words
-     (12.6:1 in the room), so every ground that turns dark restates it. */
-  --warning-ink: oklch(0.53 0.12 70);
-  --info: oklch(0.62 0.15 250);
+  /* THE STATES' WORDS (a11y-halo): Ready's green and the warning's amber are
+     lights, so on paper each is a point, a fill or a glyph, never a line of
+     text. Their words (`text-success` and `text-warning` read these, theme.css's
+     `--text-color-*`) are the same hues taken down to AA: the green 4.98:1 on
+     the body, 5.29:1 on a card, 4.64:1 on the mat; the amber a burnt bronze,
+     5.04:1, 5.36:1 and 4.69:1. A dark ground reads its own bright lights as
+     words, so every ground that turns dark restates both. */
+  --success-ink: oklch(0.51 0.14 148);
+  --warning-ink: oklch(0.53 0.12 62);
+  /* Standby is the ground's muted ink (7.48:1 on the body). A var() in a
+     custom property resolves where it is declared, so every ground that
+     declares its own muted restates this line. */
+  --info: var(--muted-foreground);
   --info-foreground: oklch(0.99 0 0);
   --like: oklch(0.63 0.21 15);
   /* save/download = the one NON-state action hue (blue): feature recognizability
@@ -231,9 +261,10 @@
      value (0.155) doing two jobs: the media well AND the footer leaf. Graphite
      separates them - the well drops to 0.065, the deepest thing in the system
      and the least tinted value in the set, so on an OLED panel a photograph is
-     the only light on it; the leaf lifts to 0.165 and lives in .surface-ink
-     below. An always-dark MEDIA surface is still --gallery*; a dark LEAF on a
-     paper page is .surface-ink. They are no longer the same colour. */
+     the only light on it; the leaf lives in .surface-ink below, the room's
+     own black (0.085) since brand-marks r1's `plate=room`. An always-dark
+     MEDIA surface is still --gallery*; a dark LEAF on a paper page is
+     .surface-ink. They are no longer the same colour. */
   --gallery: oklch(0.065 0.0045 286);
   --gallery-foreground: oklch(0.965 0.0045 286);
   --gallery-muted: oklch(0.715 0.0105 286);
@@ -243,8 +274,8 @@
      room's own grade is room=graphite, identity r3). The camera's own screen
      every quick layer is made of (a menu, a popover, a select, a tooltip, a
      toast, the Add's rows): `.surface-display` below reads these. On paper it
-     is near-black, which is what parts it from the silver body; the room
-     declares its own, in `.dark`.
+     is the room's own black, which is what parts it from the silver body; the
+     room declares its own, in `.dark`.
 
      ★ A GROUND'S TOKENS, DECLARED IN WHOLE ON BOTH: a layer reads whichever
      ground it stands in, so a value declared once on `:root` could never
@@ -257,11 +288,17 @@
      (its wash is `--accent` inside the ground), and `--display-light` the
      bright edge's light on the screen: every pop-out and toast wears it in
      place of a hairline (edge=floating, THE BRIGHT EDGE's `lit-display`). */
-  --display: oklch(0.165 0.004 286);
-  --display-step: oklch(0.235 0.004 286);
+  /* ★ ON PAPER THE SCREEN IS THE ROOM'S OWN BLACK (brand-marks r1, Will's
+     `plate=room`: "the contrast feels a lot richer, almost vibrant ... The
+     deeper black also makes the color ... pop much more"): a menu or a toast
+     on a light page is a piece of the room, a window onto it, its light as
+     bright as there. The screen is the room's body (0.085) and a held row
+     stands on the room's dialog (0.175), where it stood a step lifted. */
+  --display: oklch(0.085 0.003 286);
+  --display-step: oklch(0.175 0.004 286);
   --display-foreground: oklch(0.975 0.002 286);
   --display-muted: oklch(0.72 0.005 286);
-  /* The screen's caption grey at AA (a11y-halo, from 0.56): 5.31:1 on it, 4.58:1 on its step. */
+  /* The screen's caption grey at AA (a11y-halo, from 0.56): 5.69:1 on it, 5.2:1 on its step. */
   --display-faint: oklch(0.62 0.005 286);
   --display-edge: oklch(1 0 0 / 11%);
   --display-input: oklch(1 0 0 / 20%);
@@ -298,6 +335,29 @@
   --lamp-3: oklch(0.72 0.14 155);
   --lamp-4: oklch(0.7 0.14 255);
   --lamp-5: oklch(0.68 0.16 305);
+
+  /* ─── THE HOUSE EMBER (brand-marks r1): the light where there is no
+     photograph, one gradient in one direction from one key light: amber, then
+     coral, then a deep ember, never lamps side by side. The icon is lit by it
+     (`src/lib/brand/ring.ts`, its one home: `ring.test.ts` holds these to it).
+     Light, never UI, out of `@theme` like the lamp set, so no utility reaches
+     it. Production's grade is unchanged; the ember's four stops join it.
+
+     The five lamps relit as the ember (the carried `lamps` call): five points
+     along the four stops, which light what read the five house lamps where
+     there is no photograph: the foot's seam (`.surface-ink` relights its
+     lamps with these, below) and the confetti (marketing.css). A photo-less
+     event's lamp on the dashboard keeps its own hue (`--lamp-*`): the house
+     ember on every event "will get very boring". ─── */
+  --ember-1: oklch(0.87 0.15 80);
+  --ember-2: oklch(0.77 0.17 52);
+  --ember-3: oklch(0.65 0.18 34);
+  --ember-4: oklch(0.5 0.15 24);
+  --ember-lamp-1: oklch(0.87 0.15 80);
+  --ember-lamp-2: oklch(0.799 0.164 60);
+  --ember-lamp-3: oklch(0.715 0.175 44);
+  --ember-lamp-4: oklch(0.617 0.173 32);
+  --ember-lamp-5: oklch(0.5 0.15 24);
 }
 
 /* THEME-INDEPENDENT TOKENS, on :root ONLY (the rounding round, 2026-09-14): the
@@ -435,13 +495,17 @@
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
 
-  /* State colors brighten so they still pop against near-black. */
-  --success: oklch(0.7 0.16 150);
+  /* The states in the room (THE STATES, see :root), lit brighter so each is a
+     lamp on near-black and reads as its own words: Ready a camera's green
+     (9.6:1 on the room), a warning a true amber lamp (10:1), Standby the
+     room's muted ink. */
+  --success: oklch(0.74 0.17 148);
   --success-foreground: oklch(0.13 0 0);
-  --warning: oklch(0.84 0.14 82);
+  --success-ink: oklch(0.74 0.17 148);
+  --warning: oklch(0.78 0.165 68);
   --warning-foreground: oklch(0.25 0.05 70);
-  --warning-ink: oklch(0.84 0.14 82);
-  --info: oklch(0.72 0.14 250);
+  --warning-ink: oklch(0.78 0.165 68);
+  --info: var(--muted-foreground);
   --info-foreground: oklch(0.13 0 0);
   --like: oklch(0.68 0.2 15);
   --save: oklch(0.72 0.15 252);
@@ -512,8 +576,9 @@
   --faint: oklch(0.525 0.006 286);
 }
 
-/* `.surface-ink` (the library phase, 2026-09-11): the always-dark slab set in
-   ONE class. A leaf that paints dark needs the same re-mapping every time
+/* `.surface-ink` (the library phase, 2026-09-11): a piece of the room on
+   paper, set in ONE class: the foot's slab, a picture of the app on a paper
+   chapter. A leaf that paints dark needs the same re-mapping every time
    (--ring, --border, --foreground, --muted-foreground and --brand are not in
    the gallery family, so under paper they keep their LIGHT values and a focus
    ring lands at 1.43:1 on the slab); the ink footer used to spray nine of these
@@ -521,13 +586,16 @@
    hand-assembled dark set is for a LEAF). Declared AFTER .surface-paper and
    .surface-mat so an ink leaf inside a paper chapter or on a mat wins.
 
-   ★ WRITTEN OUT RATHER THAN DERIVED, since the palette's round eight. Every
-   line here used to read var(--gallery*), because the slab and the media well
-   were one value. Graphite splits them (the well at 0.065, the slab at 0.165),
-   so deriving would drag this leaf down to the well with it and a footer at the
-   bottom of a paper page would read as a hole rather than as a step. This is
-   the slab's own register, a step above the room (the room went deeper with
-   viewfinder's body; a leaf on paper did not need to).
+   ★ IT IS THE ROOM'S OWN BLACK (brand-marks r1, Will's `plate=room`: "the
+   contrast feels a lot richer, almost vibrant ... The deeper black also makes
+   the color in the footer (top glow, media) pop much more"). The slab was a
+   step lifted above the room (0.165, so it read as an object set on the page
+   rather than a hole in it); it is now a window onto the one room, `.dark`'s
+   ladder value for value, so its light reads exactly as bright as there. Its
+   states are the room's lights too, and its lamps the house ember (below).
+   Written out rather than derived: a var() here would resolve to whatever
+   ground the leaf stands on, and the media well (--gallery*, 0.065) is still
+   a register deeper than the room, so a footer on it would be a hole.
 
    --brand is redeclared DIRECTLY here, and via --primary declared in this same
    block: a var() inside a custom property is substituted where it is DECLARED,
@@ -535,29 +603,45 @@
    and inherits down already resolved. Overriding --primary alone leaves the
    mark inverted on paper. */
 .surface-ink {
-  --background: oklch(0.165 0.0053 286);
-  --foreground: oklch(0.965 0.0045 286);
-  --card: oklch(0.225 0.006 286);
-  --card-foreground: oklch(0.965 0.0045 286);
-  --popover: oklch(0.27 0.006 286);
-  --popover-foreground: oklch(0.965 0.0045 286);
-  --primary: oklch(0.965 0.0045 286);
-  --primary-foreground: oklch(0.165 0.0053 286);
-  --secondary: oklch(0.315 0.006 286);
-  --secondary-foreground: oklch(0.965 0.0045 286);
-  --muted: oklch(0.225 0.006 286);
-  --muted-foreground: oklch(0.715 0.0105 286);
-  /* At AA on the slab (a11y-halo, from 0.565): 5.18:1 on it, 4.62:1 on its card. */
-  --faint: oklch(0.615 0.0075 286);
-  /* A dark slab on paper reads the bright amber as words, as the room does (see :root's --warning-ink). */
-  --warning-ink: oklch(0.8 0.14 80);
-  --accent: oklch(0.315 0.006 286);
-  --accent-foreground: oklch(0.965 0.0045 286);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.965 0.0045 286);
+  --background: oklch(0.085 0.003 286);
+  --foreground: oklch(0.97 0.002 286);
+  --card: oklch(0.15 0.004 286);
+  --card-foreground: oklch(0.97 0.002 286);
+  --popover: oklch(0.175 0.004 286);
+  --popover-foreground: oklch(0.97 0.002 286);
+  --primary: oklch(0.97 0.002 286);
+  --primary-foreground: oklch(0.1 0.003 286);
+  --secondary: oklch(0.21 0.004 286);
+  --secondary-foreground: oklch(0.97 0.002 286);
+  --muted: oklch(0.125 0.004 286);
+  --muted-foreground: oklch(0.71 0.006 286);
+  /* The room's caption grey: 5.04:1 on the slab, 4.78:1 on its card. */
+  --faint: oklch(0.59 0.006 286);
+  --accent: oklch(0.245 0.004 286);
+  --accent-foreground: oklch(0.97 0.002 286);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.97 0.002 286);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
+  /* The room's lights, in whole pairs (THE STATES, see :root): on a paper page
+     the leaf would otherwise read paper's darker states on its black. */
+  --destructive: oklch(0.68 0.2 24);
+  --signal: var(--destructive);
+  --needs-you: oklch(0.585 0.2 26);
+  --needs-you-foreground: oklch(1 0 0);
+  --success: oklch(0.74 0.17 148);
+  --success-foreground: oklch(0.13 0 0);
+  --success-ink: oklch(0.74 0.17 148);
+  --warning: oklch(0.78 0.165 68);
+  --warning-foreground: oklch(0.25 0.05 70);
+  --warning-ink: oklch(0.78 0.165 68);
+  --info: var(--muted-foreground);
+  --info-foreground: oklch(0.13 0 0);
+  --like: oklch(0.68 0.2 15);
+  --save: oklch(0.72 0.15 252);
+  --save-foreground: oklch(0.13 0 0);
+  --reel: oklch(0.72 0.18 300);
   /* The focus halo's ground: the room's, on a leaf that may stand on paper. */
   --halo-gap: initial;
   --halo-bloom: oklch(1 0 0 / 18%);
@@ -568,13 +652,25 @@
     0 1px 2px oklch(0 0 0 / 0.5), 0 4px 12px -2px oklch(0 0 0 / 0.6);
   --shadow-layer:
     0 2px 8px oklch(0 0 0 / 0.55), 0 16px 36px -6px oklch(0 0 0 / 0.75);
+  /* ★ ITS LAMPS ARE THE HOUSE EMBER (the carried `lamps` call): where a piece
+     of the room on paper has no photograph, its light is the ember, so the
+     foot's seam glows as one warm family. The glow engine reads --lamp-* by
+     inheritance (`[data-glw]`'s fallback), so relighting them here relights
+     every unsampled lamp inside the leaf and nothing outside it: a photo-less
+     event's lamp on the dashboard keeps its own hue. */
+  --lamp-1: var(--ember-lamp-1);
+  --lamp-2: var(--ember-lamp-2);
+  --lamp-3: var(--ember-lamp-3);
+  --lamp-4: var(--ember-lamp-4);
+  --lamp-5: var(--ember-lamp-5);
 }
 
 /* `.surface-display` (identity r2, layers=display, wired 2026-10-03): THE
    DISPLAY, the camera's own screen, which every quick layer is made of: a menu
    and its submenu, a select's list, a popover, the Add's rows, a tooltip, a
-   toast (`floatingDisplay` in `ui/floating-layer.ts`). Near-black on paper, lit
-   graphite in the room (the `--display*` set of each ground, declared above),
+   toast (`floatingDisplay` in `ui/floating-layer.ts`). The room's own black on
+   paper, lit graphite in the room (the `--display*` set of each ground,
+   declared above),
    so a quick choice opens the same object on both grounds: on paper it gets
    attention by contrast, in the room by its light. A work layer (a dialog, a
    panel, a sheet) is not this: a host works there, in the body's own material.
@@ -621,12 +717,14 @@
   --halo-bloom: oklch(1 0 0 / 15%);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
-  --success: oklch(0.7 0.16 150);
+  --success: oklch(0.74 0.17 148);
   --success-foreground: oklch(0.13 0 0);
-  --warning: oklch(0.84 0.14 82);
+  --success-ink: oklch(0.74 0.17 148);
+  --warning: oklch(0.78 0.165 68);
   --warning-foreground: oklch(0.25 0.05 70);
-  --warning-ink: oklch(0.84 0.14 82);
-  --info: oklch(0.72 0.14 250);
+  --warning-ink: oklch(0.78 0.165 68);
+  /* Standby on the screen: its own muted grey (the line above resolves it here). */
+  --info: var(--muted-foreground);
   --info-foreground: oklch(0.13 0 0);
   color-scheme: dark;
 }
@@ -1677,10 +1775,12 @@
 /* A TOAST IS THE DISPLAY, AND ITS STATE IS A LIGHT (layers=display with
    status=lights, identity r2, wired 2026-10-03): every toast is the camera's
    own screen (`ui/sonner.tsx` hands sonner the display's colours and dresses
-   each toast in `.surface-display`), and a success, a warning or a failure
-   speaks as its glyph lit in the state's colour, never as a filled green,
-   amber or red slab: colour where it means something, nothing else. The words
-   stay the screen's ink. An error still waits for a press (sonner.tsx).
+   each toast in `.surface-display`), and its state speaks as its glyph lit in
+   its tier's colour (THE STATES, see :root): a success Ready's green, a
+   warning the amber, a failure the red, and an info the screen's muted grey,
+   Standby, never a hue; never a filled slab: colour where it means something,
+   nothing else. The words stay the screen's ink. An error still waits for a
+   press (sonner.tsx).
    THREE ATTRIBUTES DEEP, for the reason the layer's rule below gives: sonner
    appends its sheet after ours, and its own (0,2,0) rules win a tie. */
 [data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-icon] {

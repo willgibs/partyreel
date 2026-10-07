@@ -31,9 +31,10 @@ import { FitToWell } from "../device-frames";
  * height, so the room is what a host meets at 375 and at 1440, and the frame swallows every link, so the close and Print
  * go nowhere.
  *
- * ★ TWO PRESSES THAT ARE NOT LINKS ARE HELD HERE (`HELD`): Get it ready pushes to Settings' first step through the
- * router and See Pro opens the plans' sheet, whose Checkout is a real door. Both are marked for the analytics' listener
- * (`data-track-cta`), so the hold names them by what they are and a press does nothing; nothing else in the room is held.
+ * ★ TWO PRESSES THAT LEAVE THROUGH THE ROUTER ARE HELD HERE (`HELD`): Go to your event pushes into her event through
+ * the router (the room opening into it) and See Pro opens the plans' sheet, whose Checkout is a real door. Both are
+ * marked for the analytics' listener (`data-track-cta`), so the hold names them by what they are and a press does
+ * nothing; nothing else in the room is held.
  *
  * ★ THE ROOM NEVER TAKES THE PAGE'S FOCUS WHEN IT OPENS. The name's field is `autoFocus`: the moment a frame mounts, as
  * the reader scrolls toward it, it would take the Library's keyboard focus (and raise a phone's keyboard, and scroll the
@@ -86,8 +87,8 @@ export const standInCreate: Create = (input) =>
 /** The events holding a Free host's one slot, as the door names them. */
 const CAPPED = [{ id: "library-maya-jay", name: "Maya & Jay's Wedding" }];
 
-/** What would leave the room for the app: Get it ready (into Settings) and See Pro (the plans' sheet). */
-const HELD = '[data-track-cta="get-it-ready"], [data-track-cta="upgrade"]';
+/** What would leave the room for the app: Go to your event (into the hub) and See Pro (the plans' sheet). */
+const HELD = '[data-track-cta="go-to-event"], [data-track-cta="upgrade"]';
 
 function hold(event: MouseEvent) {
   if ((event.target as Element | null)?.closest?.(HELD)) {
@@ -171,7 +172,7 @@ export function CreateRoomDemo({
         <p className="text-caption text-muted-foreground">
           {atCap
             ? "See Pro and the close are held: they go nowhere here."
-            : "Get it ready and the close are held: they go nowhere here."}
+            : "Go to your event and the close are held: they go nowhere here."}
         </p>
       </div>
     </div>

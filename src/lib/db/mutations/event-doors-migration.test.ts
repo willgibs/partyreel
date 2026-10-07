@@ -1,11 +1,15 @@
 /**
- * ★ AN EMAIL FIRST REMEMBERS HER NAMES-ONLY DOOR, THE SQL FACTS (crumbs-89, 20261007140000), pinned latest-wins across the
- * whole migration set through the one reader (`testing/migrations.ts`), beside the call that reads them (`event-doors.ts`).
+ * ★ AN EMAIL FIRST REMEMBERS HER NAMES-ONLY DOOR, THE SQL FACTS (crumbs-89, 20261007140000; crumbs-91, 20261008030000),
+ * pinned latest-wins across the whole migration set through the one reader (`testing/migrations.ts`), beside the call
+ * that reads them (`event-doors.ts`).
  *
  * Letting each person in and the invite list hold "An email first" on. A gate that turns it on from off is remembered by
  * the event (`events.email_held`), and the gate's leaving gives her names only back, on every path that moves a gate and
- * from every device: red-team 57b found the page's own note (crumbs-87) lost to a load. What these hold:
- *   1. ★ one trigger owns the memory both ways, on every write of the gate, and nothing else writes it;
+ * from every device: red-team 57b found the page's own note (crumbs-87) lost to a load. And her own word on the step ends
+ * the memory: red-team 57c turned it on from a page loaded before a hold, and the gate's leaving turned it off again.
+ * What these hold:
+ *   1. ★ one trigger owns the memory both ways, on every write of the gate or the step, her own write of the step
+ *      clearing it before any gate's rule, and nothing else writes it;
  *   2. ★ set_event_door answers what the gate gave back from the row its update left, its update and every pin of
  *      today's body kept;
  *   3. no client role reaches the column's writes or the trigger's function.
@@ -18,6 +22,8 @@ import {
 } from "@/lib/db/testing/migrations";
 
 const FILE = "20261007140000_email_first_memory.sql";
+/** Where her own word on the step entered the trigger (red-team 57c). */
+const HER_WORD = "20261008030000_crumbs_91.sql";
 const held = () => liveFunction("events_email_held");
 const door = () => liveFunction("set_event_door");
 
@@ -48,21 +54,38 @@ describe("1. the memory, owned by one trigger", () => {
     expect(giveBack).toBeGreaterThan(remember);
   });
 
-  it("★ fires before every write of the gate, the one column every move of a gate writes, and is never dropped", () => {
-    let standing = false;
+  it("★ her own write of the step clears the memory before any gate's rule, and touches nothing else", () => {
+    const { code, file } = held();
+    expect(file >= HER_WORD, file).toBe(true);
+    // A client role's write (her Settings, through PostgREST under her column grant) is her word on the step; it never
+    // moves a gate, which no client role is granted (migration-guards.test.ts, "never grants the gate"). A definer
+    // body's write runs as the owner and meets the gate's rule: a door's move, the password's first set, a block.
+    const herWord = at(
+      code,
+      "begin if current_user in ('authenticated', 'anon') then new.email_held := false; return new; end if;",
+    );
+    expect(herWord).toBeLessThan(
+      at(code, "if new.gate in ('approve', 'invite') then"),
+    );
+  });
+
+  // ★ RESHAPED ON PURPOSE (crumbs-91, 20261008030000; scar kept: one trigger, before every write of the gate, never
+  // dropped). The expired reason: the gate as its one column ("the one column every move of a gate writes"). A write of
+  // the step under a standing hold fired nothing, so her own word left the memory set and the gate's leaving undid it
+  // (red-team 57c): the trigger hears the step too, and its client arm above tells her word from a definer's write.
+  it("★ fires before every write of the gate or the step, and is never dropped", () => {
+    let standing: string | null = null;
     for (const { file, sql } of executableMigrations()) {
       for (const [statement, verb] of sql.matchAll(
-        /\b(create|drop) trigger (?:if exists )?events_email_held\b[^;]*;/g,
+        /\b(create(?: or replace)?|drop) trigger (?:if exists )?events_email_held\b[^;]*;/g,
       )) {
-        standing = verb === "create";
-        if (verb === "create") {
-          expect(statement, file).toContain(
-            "before update of gate on public.events for each row execute function public.events_email_held();",
-          );
-        }
+        standing = verb === "drop" ? null : `${file}: ${statement}`;
       }
     }
-    expect(standing).toBe(true);
+    expect(standing, "no events_email_held trigger stands").not.toBeNull();
+    expect(standing).toContain(
+      "before update of gate, require_verified_email on public.events for each row execute function public.events_email_held();",
+    );
   });
 
   it("★ no client role writes the memory: no grant names it, and no body but the trigger's writes it", () => {

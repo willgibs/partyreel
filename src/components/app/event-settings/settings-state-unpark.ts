@@ -19,34 +19,59 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
  * with photographs), the longer the stream and the likelier the race (3 of 6 on an album of 8; rarely on an empty one).
  *
  * So once a save has answered, a caller still waiting on the server's row (`stillWaiting`, as its newest render reads
- * it) is nudged with one empty
- * update at 1, 2.5, 5 and 9 seconds: a parked transition renders and commits on the first, and one that is still
- * streaming simply tries again and waits as before, so the nudge costs a re-render of the caller and never moves a
- * value. It writes no address (`lib/history-entry.ts`'s hazards are writes of the URL) and asks the server nothing.
+ * it) is nudged with one empty update at 1, 2.5, 5 and 9 seconds, then every 4 seconds while it still waits: a parked
+ * transition goes on rendering at the next nudge, and one that is still streaming simply tries again and waits as
+ * before, so a nudge costs a re-render of the caller and never moves a value. It writes no address
+ * (`lib/history-entry.ts`'s hazards are writes of the URL) and asks the server nothing.
+ *
+ * ★ UNTIL THE COMMIT LANDS, NEVER FOR A WINDOW AFTER THE ANSWER (red-team 57c's LOW). The revalidated tree commits only
+ * when the action's response stream ends, and on a slow desk build that stream ran up to 38 s past the answer, so the
+ * four early nudges all fell inside it and a commit parked after the last stood with nothing to wake it: an invite
+ * remove's "Saving… 1 on the list" for 90 s, and a door save's row for 2 minutes, each until her next keystroke or
+ * press. So the nudges go on at a steady step (the last early gap, held), and they end at the first that finds the
+ * caller no longer waiting, at its unmount, or at the ceiling, five minutes after the answer: far past any stream
+ * seen, and what keeps a caller that waits on something no nudge can bring (a stream that never ends) from
+ * re-rendering for good. A newer save starts them over, its ceiling with them.
+ *
  * Retire it when the bundled React no longer drops that ping (a ROADMAP line).
  */
-const NUDGES_MS = [1000, 2500, 5000, 9000] as const;
+const EARLY_MS = [1000, 2500, 5000, 9000] as const;
+const STEADY_MS = 4000;
+const CEILING_MS = 5 * 60_000;
+
+/** Every nudge's time after the answer: the early four, then one each steady step, to the ceiling. */
+const NUDGES_MS: readonly number[] = (() => {
+  const at: number[] = [...EARLY_MS];
+  for (let t = at[at.length - 1] + STEADY_MS; t <= CEILING_MS; t += STEADY_MS)
+    at.push(t);
+  return at;
+})();
 
 export function useUnparkAfterSave(stillWaiting: boolean): () => void {
   const [, nudge] = useReducer((n: number) => n + 1, 0);
-  const timers = useRef<number[]>([]);
-  // The newest render's reading of what the caller waits on: read when a timer fires, never captured at the save.
+  // The one nudge due, if any: each schedules the next, so a save holds a single timer at a time.
+  const timer = useRef<number | undefined>(undefined);
+  // The newest render's reading of what the caller waits on: read when a nudge falls due, never captured at the save.
   const waiting = useRef(stillWaiting);
   useEffect(() => {
     waiting.current = stillWaiting;
   });
-  useEffect(
-    () => () => {
-      for (const id of timers.current) window.clearTimeout(id);
-    },
-    [],
-  );
+  useEffect(() => () => window.clearTimeout(timer.current), []);
   return useCallback(() => {
-    for (const id of timers.current) window.clearTimeout(id);
-    timers.current = NUDGES_MS.map((ms) =>
-      window.setTimeout(() => {
-        if (waiting.current) nudge();
-      }, ms),
-    );
+    window.clearTimeout(timer.current);
+    const arm = (i: number) => {
+      // Past the ceiling: the caller waits on what no nudge can bring, and nothing loops for good.
+      if (i >= NUDGES_MS.length) return;
+      timer.current = window.setTimeout(
+        () => {
+          // The commit landed (or nothing waits): the nudges end here, and the next save starts them over.
+          if (!waiting.current) return;
+          nudge();
+          arm(i + 1);
+        },
+        NUDGES_MS[i] - (i === 0 ? 0 : NUDGES_MS[i - 1]),
+      );
+    };
+    arm(0);
   }, []);
 }

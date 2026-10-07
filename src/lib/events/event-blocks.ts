@@ -163,7 +163,7 @@ export type BlockedPerson = {
   avatarUrl: string | null;
   /** The person's colour (`seedFor`, never a raw id): an account's, or a typed name's own row's. */
   seed: string | null;
-  /** "Blocked Sep 28", in the viewer's own zone, formatted by the server. */
+  /** When the block landed, in the viewer's own zone, said by the server: tonight's time ("9:12 PM") or its day ("Sep 28"). */
   since: string;
   /** Uploads this block moved to Deleted that can still come back. */
   restorable: number;
