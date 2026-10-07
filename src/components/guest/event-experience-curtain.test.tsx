@@ -185,7 +185,8 @@ describe("the ceiling", () => {
     expect(close()).toBeTruthy();
   });
 
-  it("keeps Tab inside the curtain's own keys, as a dialog does", async () => {
+  it("★ is a modal: Tab loops inside it, and the page under it is hidden from a screen reader", async () => {
+    render(<button type="button">Under the curtain</button>);
     await mount(createHeadBridge());
     act(() => {
       vi.advanceTimersByTime(REEL_CURTAIN_CEILING_MS);
@@ -194,13 +195,15 @@ describe("the ceiling", () => {
       name: REEL_CURTAIN_WORDS.again,
     });
     expect(document.activeElement).toBe(curtain());
-    fireEvent.keyDown(curtain(), { key: "Tab" });
+    // Past the last of its keys, Tab comes round to the first; and back.
+    act(() => again.focus());
+    fireEvent.keyDown(again, { key: "Tab" });
     expect(document.activeElement).toBe(close());
-    fireEvent.keyDown(curtain(), { key: "Tab" });
+    fireEvent.keyDown(close(), { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(again);
-    fireEvent.keyDown(curtain(), { key: "Tab" });
-    expect(document.activeElement).toBe(close());
-    fireEvent.keyDown(curtain(), { key: "Tab", shiftKey: true });
-    expect(document.activeElement).toBe(again);
+    // What stood on the page when it opened is out of a screen reader's reach.
+    expect(
+      screen.queryByRole("button", { name: "Under the curtain" }),
+    ).toBeNull();
   });
 });

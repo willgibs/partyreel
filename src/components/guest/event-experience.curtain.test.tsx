@@ -84,16 +84,22 @@ vi.mock("@/components/guest/gallery-live", async () => {
     useGalleryLive: () => useContext(Live),
   };
 });
-// The view is a dialog that closes through the controller's own `onClose` (its own file pins the engine).
-vi.mock("@/components/guest/reel/live-reel-view", () => ({
-  LiveReelView: ({ onClose }: { onClose: () => void }) => (
-    <div role="dialog" aria-label="Highlight reel" data-testid="reel-view">
-      <button type="button" onClick={onClose}>
-        Close the view
-      </button>
-    </div>
-  ),
-}));
+// The view is a dialog that closes through the controller's own `onClose` (its own file pins the engine), portaled to
+// the body as the real one is (Radix's Portal): the curtain under it is a modal that hides what stood when it opened.
+vi.mock("@/components/guest/reel/live-reel-view", async () => {
+  const { createPortal } = await import("react-dom");
+  return {
+    LiveReelView: ({ onClose }: { onClose: () => void }) =>
+      createPortal(
+        <div role="dialog" aria-label="Highlight reel" data-testid="reel-view">
+          <button type="button" onClick={onClose}>
+            Close the view
+          </button>
+        </div>,
+        document.body,
+      ),
+  };
+});
 vi.mock("@/components/guest/reel/creator-seam", () => ({
   REEL_CREATOR: null,
   preloadReelCreator: () => {},

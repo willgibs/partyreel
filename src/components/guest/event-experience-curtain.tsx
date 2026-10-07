@@ -20,18 +20,23 @@
  * (a plain navigation before any script runs, the router's after), and once the album's controller stands it closes
  * the reel as the view's own Close does (the head's bridge: the owner back where she came from). Escape is Close.
  *
+ * ★ A MODAL, AS THE VIEW IS: the view's own Radix dialog, drawn in place rather than in a portal (a portal draws nothing
+ * before the page hydrates, and the curtain is the page's first byte), so once it hydrates the page under it is locked
+ * (its Overlay's scroll lock), hidden from a screen reader and out of Tab's reach, where the curtain was a black any
+ * scroll or Tab went straight through. She starts on the curtain itself, as the view starts her on its picture.
+ *
  * ★ A CEILING, SO A REEL THAT NEVER COMES IS A STATE, NEVER A STRANDING (ROADMAP's second curtain line: a seed or a view
  * chunk that never lands left the owner on black until Back). Past `REEL_CURTAIN_CEILING_MS` the curtain says so at its
  * foot, with Try again (the page asked again) beside Close; under a view that did arrive it is never seen.
  */
 import Link from "next/link";
 import { X } from "lucide-react";
+import { Dialog as DialogPrimitive } from "radix-ui";
 import {
   useCallback,
   useEffect,
   useRef,
   useState,
-  type KeyboardEvent,
   type MouseEvent,
 } from "react";
 
@@ -93,11 +98,6 @@ export function ReelCurtain({
     const t = setTimeout(() => setLate(true), REEL_CURTAIN_CEILING_MS);
     return () => clearTimeout(t);
   }, []);
-  // She starts inside it, on the curtain itself as the view puts her on its own picture: Tab reaches Close, and no halo
-  // stands on Close for an arrival that pressed nothing (a page's first focus draws one on a link).
-  useEffect(() => {
-    rootRef.current?.focus({ preventScroll: true });
-  }, []);
 
   const onClose = useCallback(
     (e: MouseEvent<HTMLAnchorElement>) => {
@@ -111,92 +111,89 @@ export function ReelCurtain({
     [bridge, onClosed],
   );
 
-  // Escape is Close; Tab keeps to the curtain's own keys, as a dialog's does.
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeRef.current?.click();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const keys = [
-      ...(rootRef.current?.querySelectorAll<HTMLElement>("a[href], button") ??
-        []),
-    ];
-    if (keys.length === 0) return;
-    const at = keys.indexOf(document.activeElement as HTMLElement);
-    const next = e.shiftKey
-      ? at <= 0
-        ? keys.length - 1
-        : at - 1
-      : at === keys.length - 1
-        ? 0
-        : at + 1;
-    e.preventDefault();
-    keys[next]!.focus();
-  };
-
   return (
-    <div
-      ref={rootRef}
-      data-reel-curtain=""
-      role="dialog"
-      aria-modal="true"
-      aria-label={REEL_CURTAIN_WORDS.name}
-      tabIndex={-1}
-      data-surface="photo"
-      onKeyDown={onKeyDown}
-      // Over everything on the page and under the view's own overlay (z-50), which lands on the same picture.
-      className="dark fixed inset-0 z-[49] touch-none overflow-hidden bg-black text-white outline-none"
+    <DialogPrimitive.Root
+      open
+      // Escape (the dialog's own dismissal) is Close: the same press, so the same way out.
+      onOpenChange={(open) => {
+        if (!open) closeRef.current?.click();
+      }}
     >
-      <OpeningStill
-        seed={seed}
-        bridge={bridge}
-        pin={pin}
-        eventId={eventId}
-        className="pointer-events-none absolute inset-0 size-full object-cover"
-      />
-      <div aria-hidden className={REEL_TOP_WHISPER} />
-      <div className={REEL_CLOSE_SPOT}>
-        <Link
-          ref={closeRef}
-          href={albumHref}
-          replace
-          scroll={false}
-          // Never fetched on sight: the album's page is a whole server render, asked for only if she presses.
-          prefetch={false}
-          onClick={onClose}
-          aria-label={REEL_CURTAIN_WORDS.close}
-          title={REEL_CURTAIN_WORDS.close}
-          data-reel-curtain-close=""
-          className={cn(REEL_KEY, REEL_KEY_HOVER, GLASS)}
+      <DialogPrimitive.Overlay
+        data-reel-curtain=""
+        // Over everything on the page and under the view's own overlay (z-50), which lands on the same picture.
+        className="fixed inset-0 z-[49] bg-black"
+      >
+        <DialogPrimitive.Content
+          ref={rootRef}
+          tabIndex={-1}
+          aria-describedby={undefined}
+          data-surface="photo"
+          onOpenAutoFocus={(e) => {
+            // She starts on the curtain itself, as the view starts her on its picture: Tab reaches Close, and no halo
+            // stands on Close for an arrival that pressed nothing.
+            e.preventDefault();
+            rootRef.current?.focus({ preventScroll: true });
+          }}
+          // Nothing outside closes it: the curtain covers the screen, so "outside" is only ever another layer.
+          onInteractOutside={(e) => e.preventDefault()}
+          className="dark fixed inset-0 touch-none overflow-hidden text-white outline-none"
         >
-          <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
-        </Link>
-      </div>
-      {late && (
-        <div className="absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4">
-          <div
-            role="status"
-            data-reel-curtain-late=""
-            className={cn(
-              "flex max-w-full items-center gap-3 rounded-full py-1.5 pr-1.5 pl-4 text-sm text-white",
-              GLASS,
-            )}
-          >
-            <span className={GLASS_MARK_LIT}>{REEL_CURTAIN_WORDS.late}</span>
-            <Button
-              type="button"
-              variant="on-photo"
-              size="sm"
-              className="shrink-0 rounded-full"
-              onClick={() => window.location.reload()}
+          <DialogPrimitive.Title className="sr-only">
+            {REEL_CURTAIN_WORDS.name}
+          </DialogPrimitive.Title>
+          <OpeningStill
+            seed={seed}
+            bridge={bridge}
+            pin={pin}
+            eventId={eventId}
+            className="pointer-events-none absolute inset-0 size-full object-cover"
+          />
+          <div aria-hidden className={REEL_TOP_WHISPER} />
+          <div className={REEL_CLOSE_SPOT}>
+            <Link
+              ref={closeRef}
+              href={albumHref}
+              replace
+              scroll={false}
+              // Never fetched on sight: the album's page is a whole server render, asked for only if she presses.
+              prefetch={false}
+              onClick={onClose}
+              aria-label={REEL_CURTAIN_WORDS.close}
+              title={REEL_CURTAIN_WORDS.close}
+              data-reel-curtain-close=""
+              className={cn(REEL_KEY, REEL_KEY_HOVER, GLASS)}
             >
-              {REEL_CURTAIN_WORDS.again}
-            </Button>
+              <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
+            </Link>
           </div>
-        </div>
-      )}
-    </div>
+          {late && (
+            <div className="absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4">
+              <div
+                role="status"
+                data-reel-curtain-late=""
+                className={cn(
+                  "flex max-w-full items-center gap-3 rounded-full py-1.5 pr-1.5 pl-4 text-sm text-white",
+                  GLASS,
+                )}
+              >
+                <span className={GLASS_MARK_LIT}>
+                  {REEL_CURTAIN_WORDS.late}
+                </span>
+                <Button
+                  type="button"
+                  variant="on-photo"
+                  size="sm"
+                  className="shrink-0 rounded-full"
+                  onClick={() => window.location.reload()}
+                >
+                  {REEL_CURTAIN_WORDS.again}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Overlay>
+    </DialogPrimitive.Root>
   );
 }
