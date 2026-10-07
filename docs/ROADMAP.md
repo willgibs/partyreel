@@ -53,8 +53,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
 - Host: on the hub, once the band folds, the Review pill's 99+ badge sits over its icon (event-header-wiring-2's shoulder badge): at 375, where the pill shows no word, it reads only "99+", and at 1440 the word stays but the badge still covers the icon; anchor the badge at the glyph's shoulder so it grows outward (red-team 57, LOW).
 - Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
-- Settings: the gate's hold remembers her choice in the database (a column set when `set_event_door` turns "An email first" on from off, given back by one `before update of gate` trigger on `events`, answered as `email_restored`), so every device, every load and the password's first set get her names-only door back, and `settings-state-email.ts`'s device note goes (crumbs-87's Q1; red-team 57b's MEDIUM: the device note's restore waits on the hub's row and misses after a load).
-- Settings' door page: a move onto "You let each person in" or the invite list turns An email first on for everyone, so a name-only guest already in meets "Confirm your email to see everything", while the door's inside note says "A gate stops newcomers; everyone in keeps adding" and the line before the move says nothing of it (`door-page.tsx`'s `consequenceOf` and `data-door-inside`) (crumbs-87).
 - Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
 
 ### Admin and operations
@@ -192,6 +190,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Hub: the Reel card shows nothing while its soft navigation is pending (13 s to the curtain on a 120 KB/s line); `useLinkStatus` could dim it (album-moments-wiring; the curtain's ceiling closed the other half).
 - Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
 - Guests room: a guest let in who adds nothing is on no list (guest-flow.md's one definition of a guest), so after Let in she leaves the room until a photo lands; the room's wiring holds her as in with nothing added yet (guests-room r1).
+- Settings' door menu (`settings-rows.tsx`'s `doorConsequence`) says an address gate "Turns An email first on" but not what it asks of the guests in by name, which the door page now says before the move (crumbs-89).
 
 ### Admin and operations
 
@@ -287,6 +286,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `DemoTicket` (`marketing/system/demo-ticket.tsx`) exists only for its Library specimen, which could draw it in the lab, and `components/lab/scene.tsx`'s header still lists twelve retired boards.
 - Code hygiene: rename what is named for a surface it no longer is: `DestructiveSheet`, `GuardedSwitch`'s `sheet`, `PricingSheet`, `QrDesignerDialog`, `UploadIntentSheet`, `EventShareSheet`, `EventSettingsSheet`, and a test name in `create-flow.test.tsx`.
 - Code hygiene: `MarketingNotFound`'s `strip` prop has one caller left, which passes `false`, so its strip branch can go (the help palette and the 500 screen import `MissingFrameStrip` themselves) (marketing-crumbs).
+- Code hygiene: React 19.3's canary bundled with Next 16.2.6 drops a ping that answers synchronously while a suspended-with-delay render unwinds (`pingSuspendedRoot`'s render-context branch, React #25851), parking a revalidating Server Action's commit until another update; Settings and the invite list nudge it (`settings-state-unpark.ts`), while the hub's other revalidating acts (the password control, At the door, Blocked) can still meet it: give the nudge one hub-wide home, report upstream, and after any Next upgrade re-read that branch in the bundled `react-dom-client.production.js`, retiring the nudge once it records the lanes (crumbs-89's Q2; the Advisor's Q44).
 
 ## Before launch
 
