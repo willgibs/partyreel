@@ -34,6 +34,20 @@ describe("the dormant setting", () => {
   })
 
   /**
+   * ★ A FOLDED LINE TAKES NO PRESS (crumbs-89, red-team 57b's LOW). The clip box stands a halo's reach outside its fold (the
+   * test below), so an awake setting's folded line, invisible and in a layer of its own, showed through the box's 12px
+   * under the fold and took the taps meant for the control drawn there: the "A photo first" label and "Max size" did
+   * nothing at 1440 and 375. Folded, the line is inert, as the controls are while asleep; shown, it is not.
+   */
+  it("★ awake, the folded line is inert, so the control under its box takes the press; asleep, the line is live", () => {
+    const awake = mount(true)
+    expect(screen.getByText("Its look and its hold.").closest("[inert]")).not.toBeNull()
+    awake.unmount()
+    mount(false)
+    expect(screen.getByText("Its look and its hold.").closest("[inert]")).toBeNull()
+  })
+
+  /**
    * ★ A HALO NEEDS ROOM (crumbs-87, red-team 56b's LOW). The fold clips with `overflow: hidden`, and a focus halo is drawn
    * outside its control, so a control that touched the box (the door's two switches at the card's edge, the size select, the
    * first look and the first hold: measured at 0px) lost the side of its halo that touched it. Layout has no size in

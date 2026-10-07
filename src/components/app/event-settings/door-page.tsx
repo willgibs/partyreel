@@ -119,6 +119,18 @@ export function passwordGroups(counts: { in: number; waiting: number }): {
 const GROUP_ICON = { in: UsersRound, waiting: KeyRound } as const;
 
 /**
+ * What a gate does to everyone already in, said under the gates (`data-door-inside`). ★ TRUE OF THE GUESTS IN BY NAME
+ * TOO (crumbs-89): while An email first is on, a guest in on a name alone confirms an email before she adds again, so
+ * "everyone in keeps adding" says when for them, where any are in.
+ */
+export function insideNote(inByName: number, emailOn: boolean): string {
+  if (!emailOn || inByName <= 0) {
+    return "A gate stops newcomers; everyone in keeps adding.";
+  }
+  return `A gate stops newcomers; everyone in keeps adding, the ${formatCount(inByName)} in by name once they confirm an email.`;
+}
+
+/**
  * The two groups, said above the field before she types (the board's drawn lines, in the inside note's own flat
  * note: the track's tone, never a field or a card). ★ ANNOUNCED AS THEY OPEN, as the consequence line is: a host
  * on a screen reader picks A password and hears what it does to her guests before she reaches the field.
@@ -159,11 +171,30 @@ function PasswordGroups({
   );
 }
 
-/** A consequential door: what the line says, and what its button does. */
-function consequenceOf(
+/**
+ * A consequential door: what the line says, and what its button does. `emailOn` is whether An email first is on now.
+ */
+export function consequenceOf(
   next: Door,
-  counts: { in: number; waiting: number },
+  counts: { in: number; inByName: number; waiting: number },
+  emailOn: boolean,
 ): { line: string; confirm: string } | null {
+  // ★ AN ADDRESS GATE TURNS AN EMAIL FIRST ON FOR EVERYONE ALREADY IN TOO (crumbs-89; crumbs-87's walk: a guest on a
+  // phone). Letting each person in and the invite list match a confirmed address, so choosing either from names only
+  // asks every guest in on a name alone to confirm an email before they see everything or add again ("Confirm your
+  // email to see everything"), the people a gate otherwise leaves alone. So the move says so first, with their count,
+  // as a first password says what it does to each group; only where the step is off now (her own step on already asked
+  // them) and someone is in by name. Her names-only door comes back when the gate goes (the event remembers it).
+  if (
+    (next === "approve" || next === "invite") &&
+    !emailOn &&
+    counts.inByName > 0
+  ) {
+    return {
+      line: `${people(counts.inByName, "guest is", "guests are")} in on a name alone. ${next === "approve" ? "Letting each person in" : "Your invite list"} asks them to confirm an email too, before they see everything or add more.`,
+      confirm: "Ask for an email",
+    };
+  }
   if (next === "private" && counts.in > 0) {
     return {
       line: `${people(counts.in, "guest is", "guests are")} already in. Only me closes them out completely, until you open it again.`,
@@ -290,14 +321,16 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
       return;
     }
     setSettingPassword(false);
-    if (consequenceOf(next, counts)) {
+    if (consequenceOf(next, counts, v.requireVerifiedEmail)) {
       setPending(next);
       return;
     }
     void apply(next);
   }
 
-  const consequence = pending ? consequenceOf(pending, counts) : null;
+  const consequence = pending
+    ? consequenceOf(pending, counts, v.requireVerifiedEmail)
+    : null;
   // ★ WHAT THE LIST WOULD DO, said on its row before it is chosen (crumbs-23, build 26's NIT-C): the
   // people waiting whom it names come straight in, in the words the door menu says it in.
   const listedLine = listedWouldComeInLine(counts.waitingListed);
@@ -485,12 +518,16 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                                     eventId={s.eventId}
                                     hasPassword={v.hasPassword}
                                     locked={passwordLocked}
-                                    onPasswordSet={() =>
-                                      setSettingPassword(false)
-                                    }
-                                    onPasswordCleared={() =>
-                                      setSettingPassword(false)
-                                    }
+                                    // Its success is the door's answer (it writes the door itself): the provider lays
+                                    // what it did, a held step given back included, never left to the hub's next read.
+                                    onPasswordSet={() => {
+                                      setSettingPassword(false);
+                                      s.passwordSet();
+                                    }}
+                                    onPasswordCleared={() => {
+                                      setSettingPassword(false);
+                                      s.passwordCleared();
+                                    }}
                                   />
                                 </>
                               )}
@@ -538,7 +575,10 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                           {`${people(counts.in, "guest is", "guests are")} already in.`}
                         </span>{" "}
                         <span className="text-muted-foreground">
-                          {"A gate stops newcomers; everyone in keeps adding."}
+                          {insideNote(
+                            counts.inByName,
+                            v.requireVerifiedEmail || Boolean(heldEmail),
+                          )}
                         </span>
                       </span>
                     </p>
