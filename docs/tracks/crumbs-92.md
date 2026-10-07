@@ -15,11 +15,35 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx
   - src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts
   - src/app/(dev)/design/(shell)/lab/_desk/review-session.tsx
+  # Claimed at boot (the brief: "claim any mirror's file"). K5's mirrors, each stating the old window in words or fixtures:
+  - src/lib/email/templates.ts
+  - src/lib/email/templates.test.ts
+  - src/app/admin/jobs/catalog.ts
+  - src/app/admin/jobs/catalog.test.ts
+  - src/components/marketing/sections/pricing/pricing-faq-data.ts
+  - src/lib/lifecycle/sweeps/inactivity.ts
+  - src/lib/lifecycle/sweeps/inactivity.test.ts
+  - src/lib/constants/events.ts
+  - src/lib/constants/events.test.ts
+  - src/components/marketing/faq-data.test.ts
+  - src/lib/content/blog-keep-lines.test.ts
+  - content/help/AUTHORING.md
+  - content/blog/AUTHORING.md
+  # X6's reads and writes of the credit (typed seams until the types regenerate) and the guards its SQL reshapes:
+  - src/lib/db/queries/uploads-credits.ts
+  - src/lib/db/queries/uploads-credits.test.ts
+  - src/lib/db/mutations/uploads-credit.ts
+  - src/lib/db/mutations/uploads-credit.test.ts
+  - src/lib/db/uploads-credit-sql.test.ts
+  - src/lib/constants/tiers-sql.test.ts
+  # The desk's Clear, its component test:
+  - src/app/(dev)/design/(shell)/lab/_desk/clear-held.test.tsx
+  # The Record (CLAUDE.md "Record subtractively"): the two system docs' lines for these items.
+  - docs/systems/lifecycle-recovery.md
+  - docs/systems/admin-observability.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/ROADMAP.md
   - docs/PRD.md
-  - docs/systems/lifecycle-recovery.md
-  - docs/systems/admin-observability.md
   - docs/systems/database-security.md
   - docs/systems/billing-caps.md
 ---
@@ -52,7 +76,13 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule.
+
+1. **How the two-year window reads on pages.** Built: `INACTIVE_DAYS = 730` (two 365-day years), so the one derivation (`INACTIVE_MONTHS`) makes every page say "about 24 months"; the 14-day warning stays. "About 2 years" would read warmer but needs one phrase export and an edit in each of about a dozen consumers outside this lane (the FAQ, llms, the event constants and their tests): a Deferred line, not a blocker.
+2. **The Terms and the Privacy Policy say no figure for the idle removal, nor the warning's lead time.** Built: "after a long period with no activity", "a length we may change", "we email you a warning first" (PRD's legal-text principle: never a number that would box out a later choice; the 14 days is the same tunable policy). Help, marketing and the warning mail keep stating the live figure, derived from the one home.
+3. **What the uploads credit is.** Built: extra room in her current uploads window (the calendar month for Free and Pro, her live passes' year for a pass), ending with that window; one press is one credit with a required reason (at most 500 characters) and a whole-MB amount from 1 MB; together her live credits never pass one more of her plan's own allowance and number at most 10 (so the page reads them whole); refused for a Pro with no cap on record (unmetered: nothing to lift) and for a lapsed pass (no credit lifts that; the nightly recompute does). Additive: `storage_ledger` and the passes' counts are never written, so the spend watch's meter does not move.
+4. **A press is idempotent.** Built: the sheet mints a key as it opens and the RPC answers a replayed key with the credit it already made, so a double press or a retry after a dropped answer never credits twice.
+5. **No Undo this round.** A mistaken credit is bounded by one allowance and ends with its window; an operator's Revoke (one more RPC, audit row and control) is a Deferred line.
 
 ## System-doc edits (in place, owned facts only)
 
