@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useId } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useId } from "react";
 
 import type { Appearance } from "./light";
 import { EmberMono, EmberRing, SQUIRCLE, type Take, TILE } from "./parts";
@@ -95,7 +95,15 @@ export function RingIcon({
   );
 }
 
-/** The bare symbol in one colour, no tile: the press kit's mono mark. */
+/**
+ * The bare symbol in one colour, no tile: the press kit's mono mark.
+ *
+ * ★ EVERY TAKE'S MARK FILLS THE SAME BOX (the creative director's pass): the
+ * takes drew their marks at their own reach (today's ring to 322 of the 1024
+ * box, the reel's to 444), so a watermark compared the takes partly on size.
+ * The mark is measured once drawn and its box cut square round the centre at
+ * its own furthest reach, so every take meets the footage at one size.
+ */
 export function MonoMark({
   id,
   size,
@@ -108,6 +116,28 @@ export function MonoMark({
   read?: string;
 }) {
   const take = TAKES[id];
+  // A ref, never state: the measure is the drawing's own, and writing the box
+  // straight onto the element costs no second render.
+  const fit = useCallback(
+    (g: SVGGElement | null) => {
+      const svg = g?.ownerSVGElement;
+      if (!g || !svg || !id) return;
+      const b = g.getBBox();
+      if (!b.width) return;
+      const half =
+        Math.max(
+          512 - b.x,
+          b.x + b.width - 512,
+          512 - b.y,
+          b.y + b.height - 512,
+        ) * 1.02;
+      svg.setAttribute(
+        "viewBox",
+        `${512 - half} ${512 - half} ${2 * half} ${2 * half}`,
+      );
+    },
+    [id],
+  );
   return (
     <svg
       role="img"
@@ -119,7 +149,9 @@ export function MonoMark({
       data-bm-read={read}
       data-bm-says={read ? `${size}×${size}` : undefined}
     >
-      <take.Mono color={color} />
+      <g ref={fit}>
+        <take.Mono color={color} />
+      </g>
     </svg>
   );
 }

@@ -149,9 +149,7 @@ export function EmberRing({
     const c = 512;
     const glow = (deg: number) => light.glow(deg, "room");
     return {
-      corona: o.coronaOp
-        ? wedges(c, rD, r1 + o.band * 1024 * 4, 48, glow)
-        : [],
+      corona: o.coronaOp ? wedges(c, rD, r1 + o.band * 1024 * 4, 48, glow) : [],
       glow: o.glow ? wedges(c, r0, r1 + o.band * 1024 * 0.5, 64, glow) : [],
       // ★ THE BAND'S SEAMS OVERLAP BY A PIXEL AT THE DRAWN SIZE: a fixed 0.35
       // degrees is a hundredth of a pixel at 16 to 32 px, so the tile showed
@@ -237,4 +235,3 @@ export function EmberMono({ color }: { color: string }) {
     />
   );
 }
-

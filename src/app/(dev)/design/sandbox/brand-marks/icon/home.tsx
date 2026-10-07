@@ -294,7 +294,11 @@ export const NIGHT: Wall = {
   ],
 };
 
-/** A day: the wedding's arch, cropped into its flowers, the icon on the white drape. */
+/**
+ * A day: the wedding's arch, cropped into its flowers, the icon on the bright
+ * ground at the foot of its first column (★ the creative director's pass: its
+ * slot had drifted onto the dark foliage, where a dark tile meets no day).
+ */
 export const DAY: Wall = {
   name: "day",
   still: "wedding-arch",
@@ -315,12 +319,12 @@ export const DAY: Wall = {
     N.health,
     N.books,
     N.reminders,
-    null,
+    N.contacts,
     N.settings,
     N.podcasts,
-    N.home,
+    null,
     N.stocks,
-    N.contacts,
+    N.home,
     N.passwords,
   ],
 };
@@ -471,15 +475,25 @@ const LAUNCHER: readonly (Neighbour | null)[] = [
   N.home,
 ];
 
+/** The maskable icon's safe zone: the circle of 80% of its width every launcher keeps. */
+const SAFE = 0.8;
+
 /**
  * A LAUNCHER'S HOME, 375 BY 812: every icon masked to a circle, as the
- * manifest's maskable icon is (`icon-512-maskable.png`). ★ THE RING SITS IN
- * THE MASK'S SAFE ZONE BY CONSTRUCTION: its outer edge is 62% of the tile's
- * width, inside the 80% circle a mask always keeps, and the dark tile fills
- * the circle whole, so no launcher's mask can cut the light.
+ * manifest's maskable icon is (`icon-512-maskable.png`).
+ *
+ * ★ AT THE HARSHEST CROP A LAUNCHER MAY TAKE (the creative director's pass):
+ * a maskable icon promises only its safe zone, the centre circle of 80% of
+ * its width, and a launcher may show exactly that, scaled up to fill its
+ * slot; masked at the tile's own edge, the kindest crop, a take that spills
+ * past the safe zone looked whole when a phone may cut it. So the icon is
+ * drawn at 1/0.8 of the slot and cut at the slot's circle.
+ *
+ * ★ NO MIRROR BALL ON THE WALL: the DJ still hung a real one over the grid,
+ * beside a take that is one.
  */
 export function Launcher({ icon }: { icon: IconId }) {
-  const still = marketingImage("party-dj");
+  const still = marketingImage("festival-crowd");
   return (
     <div
       className="relative overflow-hidden"
@@ -519,7 +533,11 @@ export function Launcher({ icon }: { icon: IconId }) {
                     overflow: "hidden",
                   }}
                 >
-                  <RingIcon id={icon} size={SIZE} />
+                  <RingIcon
+                    id={icon}
+                    size={SIZE / SAFE}
+                    style={{ margin: (SIZE - SIZE / SAFE) / 2 }}
+                  />
                 </span>
               </Slot>
             )}

@@ -137,9 +137,7 @@ export function PressKit({ id, screen }: { id: IconId; screen: ScreenId }) {
         </Tile>
         <figure
           className="m-0 flex min-w-0 flex-col gap-2.5"
-          style={
-            phone ? undefined : { gridColumn: 3, gridRow: "1 / span 2" }
-          }
+          style={phone ? undefined : { gridColumn: 3, gridRow: "1 / span 2" }}
         >
           <Footage id={id} phone={phone} />
           <figcaption className="text-label font-semibold text-muted-foreground uppercase">

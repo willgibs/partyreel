@@ -23,26 +23,32 @@ function Cap({ children }: { children: string }) {
 }
 
 /**
- * A SIZE ENLARGED PIXEL FOR PIXEL: the icon drawn at its true size on a
- * device pixel grid of 2, copied into a canvas and shown larger with no
- * smoothing, so a reader sees the pixels a tab lights.
+ * A SIZE ENLARGED PIXEL FOR PIXEL: the icon drawn at its size's cut on a grid
+ * of `dpr` device pixels a CSS pixel, copied into a canvas and shown larger
+ * with no smoothing, so a reader sees the pixels a tab lights.
+ *
+ * ★ A TAB AT 1X AND A SHARP ONE, SIDE BY SIDE (the creative director's
+ * pass): this was drawn at 2x alone, which flattered every take; a 16 pixel
+ * tab on an ordinary screen lights 16 device pixels, where a take's detail
+ * fuses. Both are shown, each labelled.
  */
 function Pixels({
   id,
   size,
+  dpr,
   zoom,
   ground,
   read,
 }: {
   id: IconId;
   size: number;
+  dpr: 1 | 2;
   zoom: number;
   ground: string;
   read?: string;
 }) {
   const source = useRef<HTMLSpanElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
-  const dpr = 2;
   useEffect(() => {
     const svg = source.current?.querySelector("svg");
     const c = canvas.current;
@@ -61,7 +67,7 @@ function Pixels({
     return () => {
       alive = false;
     };
-  }, [id, size, ground]);
+  }, [id, size, dpr, ground]);
   return (
     <span className="flex flex-col items-start gap-2">
       <span ref={source} hidden>
@@ -72,10 +78,12 @@ function Pixels({
         width={size * dpr}
         height={size * dpr}
         data-bm-read={read}
-        data-bm-says={read ? `${size}px enlarged ${zoom}×` : undefined}
+        data-bm-says={
+          read ? `${size}px at ${dpr}x, enlarged ${zoom}×` : undefined
+        }
         style={{
-          width: size * zoom,
-          height: size * zoom,
+          width: size * dpr * zoom,
+          height: size * dpr * zoom,
           imageRendering: "pixelated",
           display: "block",
         }}
@@ -116,17 +124,28 @@ function Sizes({ id, phone }: { id: IconId; phone: boolean }) {
           </Sized>
         </div>
         <div className="flex flex-wrap items-end" style={{ gap }}>
-          <Sized label="32, enlarged 4×">
-            <Pixels id={id} size={32} zoom={4} ground="#09090b" />
-          </Sized>
-          <Sized label="16, enlarged 8×">
+          <Sized label="16 at 1x, 8×">
             <Pixels
               id={id}
               size={16}
+              dpr={1}
               zoom={8}
               ground="#09090b"
-              read="the favicon at a tab's size, enlarged"
+              read="the favicon in a tab at 1x, enlarged"
             />
+          </Sized>
+          <Sized label="16 sharp, 4×">
+            <Pixels
+              id={id}
+              size={16}
+              dpr={2}
+              zoom={4}
+              ground="#09090b"
+              read="the favicon in a sharp tab, enlarged"
+            />
+          </Sized>
+          <Sized label="32 at 1x, 4×">
+            <Pixels id={id} size={32} dpr={1} zoom={4} ground="#09090b" />
           </Sized>
         </div>
         <MiniTabs icon={id} tone="dark" />
@@ -142,8 +161,8 @@ function Sizes({ id, phone }: { id: IconId; phone: boolean }) {
               <RingIcon id={id} size={180} read="the icon on paper" />
             </OnPaper>
           </Sized>
-          <Sized label="16 on a light tab, 8×">
-            <Pixels id={id} size={16} zoom={8} ground="#ffffff" />
+          <Sized label="16 on a light tab at 1x, 8×">
+            <Pixels id={id} size={16} dpr={1} zoom={8} ground="#ffffff" />
           </Sized>
         </div>
         <MiniTabs icon={id} tone="light" />
@@ -167,7 +186,11 @@ export function IconSheet({ id, screen }: { id: IconId; screen: ScreenId }) {
         <RingIcon
           id={id}
           size={phone ? 343 : 1024}
-          read={phone ? "the master, drawn at a phone's width" : "the master at 1024"}
+          read={
+            phone
+              ? "the master, drawn at a phone's width"
+              : "the master at 1024"
+          }
         />
       </div>
       <Sizes id={id} phone={phone} />
