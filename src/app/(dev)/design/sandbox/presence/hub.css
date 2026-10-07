@@ -1,0 +1,17 @@
+/* THE HUB'S OWN SHEET (`hub.tsx`): the Guests door wearing its faces in its
+   glyph's place, at rest and as a pill. Production's door sheet
+   (`room-card.css`) draws everything else. */
+
+/* The glyph's place holds the faces: as wide as they need, as tall as the glyph. */
+.pr-door-faces {
+  width: auto;
+  min-width: 40px;
+  place-items: center start;
+}
+.pr-row-door {
+  gap: 0;
+}
+/* On a card the faces part on the card's own face, as the badge does. */
+.hub-door .pr-row-door .pr-face {
+  box-shadow: 0 0 0 2px var(--door-face);
+}

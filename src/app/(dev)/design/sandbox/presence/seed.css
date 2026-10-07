@@ -1,0 +1,64 @@
+/* A PARTY'S SEED BEFORE ITS FIRST PHOTOGRAPH (`seed.tsx`): the lamp and the
+   field, in the room a cover always is. */
+
+.pr-seed {
+  overflow: hidden;
+}
+/* The room's own dark over the house light, so the seed is the only light. */
+.pr-seed-room {
+  position: absolute;
+  inset: 0;
+  background: var(--background);
+}
+
+/* THE LAMP: the orb whole, its glow round it; up and to the right of the words,
+   where a light hangs over a room. */
+.pr-seed-lamp {
+  position: absolute;
+  aspect-ratio: 1;
+}
+[data-pr-side="album"] .pr-seed-lamp {
+  height: 17%;
+  top: 15%;
+  right: 12%;
+}
+[data-pr-side="hub"] .pr-seed-lamp {
+  height: 26%;
+  top: 18%;
+  right: 20%;
+}
+/* The lamp's light fills the room a little: wide and low, never a fog over the words. */
+.pr-seed-glow {
+  position: absolute;
+  inset: -320%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    var(--pr-lamp-near),
+    var(--pr-lamp-wide) 18%,
+    color-mix(in oklab, var(--pr-lamp-wide) 30%, transparent) 46%,
+    transparent 80%
+  );
+}
+.pr-seed-orb {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 0 28px 4px var(--pr-lamp-wide);
+}
+
+/* THE FIELD: the mesh edge to edge, dimmed into the room. */
+.pr-seed-field {
+  position: absolute;
+  inset: -12%;
+  opacity: 0.55;
+}
+
+/* The words' own dark at the cover's foot, as a photograph's scrim. */
+.pr-seed-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.6), transparent 58%);
+}

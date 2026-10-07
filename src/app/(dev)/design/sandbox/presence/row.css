@@ -1,0 +1,243 @@
+/* THE GUEST ROW'S SHEET (`row.tsx`): the faces' slots, the newest's ring and
+   its light, a face joining the head, and the pointer's lift. Production's
+   components keep their own classes; nothing here reaches one of theirs but
+   the parting ring round the `Avatar` each slot holds. */
+
+/* ── the row ─────────────────────────────────────────────────────────────── */
+
+.pr-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pr-faces {
+  display: flex;
+  isolation: isolate;
+  cursor: pointer;
+}
+
+/* A face's slot: the overlap is a quarter of the face (`AvatarGroup`'s rule),
+   and the lift a pointer gives it rides two variables, written with their
+   timing function first (transitions.dev's trick). */
+.pr-face {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  transform-origin: center;
+  transform: translateY(var(--shift, 0px)) scale(var(--scale-active, 1));
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pr-face + .pr-face {
+  margin-inline-start: calc(var(--pr-size) * -0.25);
+}
+
+/* The ground parts each face from the next: on a photograph the scrim's own
+   dark, on the page its ground. On the slot, so a face's own drawing keeps
+   its box-shadow. */
+.pr-row[data-pr-row="photo"] .pr-face {
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0.5);
+}
+.pr-row[data-pr-row="page"] .pr-face {
+  box-shadow: 0 0 0 2px var(--background);
+}
+
+/* ── the newest's ring ───────────────────────────────────────────────────── */
+
+.pr-ring,
+.pr-glow,
+.pr-puck {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+/* The ring stands just past the parting ring: the light's own line, painted
+   as light falls (brightest at the top-left, a little spent round the far
+   side), cut to a 2px band by a mask. */
+.pr-ring {
+  inset: -4px;
+  z-index: 2;
+}
+.pr-ring[data-wears="held"],
+.pr-ring[data-wears="flare"] {
+  padding: 2px;
+  background: var(--pr-paint);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+/* The fine ring: the newest marked at rest, a line and no light (white on a
+   photograph, the page's ink on the page). */
+.pr-ring[data-wears="fine"] {
+  inset: -3.5px;
+  box-shadow: inset 0 0 0 1.25px rgb(255 255 255 / 0.88);
+}
+.pr-row[data-pr-row="page"] .pr-ring[data-wears="fine"] {
+  box-shadow: inset 0 0 0 1.25px var(--foreground);
+}
+
+/* The light round it: a soft bloom behind the face, the light's own colour
+   spent within a few pixels of the ring. */
+.pr-glow {
+  inset: calc(var(--pr-size) * -0.42);
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    var(--pr-glow) 58%,
+    transparent 100%
+  );
+}
+.pr-glow[data-wears="fine"] {
+  display: none;
+}
+
+/* A landing: the light flares as the photo lands and is spent over two
+   seconds, the ring settling from the light into the fine line. */
+.pr-row:not([data-pr-held]) .pr-glow[data-wears="flare"] {
+  animation: pr-flare 2000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.pr-row:not([data-pr-held]) .pr-ring[data-wears="flare"] {
+  animation: pr-settle 2000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes pr-flare {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+/* The band of light thins into the fine line as the light is spent. */
+@keyframes pr-settle {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.pr-row:not([data-pr-held]) .pr-face:has(.pr-ring[data-wears="flare"])::after {
+  content: "";
+  position: absolute;
+  inset: -3.5px;
+  z-index: 1;
+  border-radius: 9999px;
+  box-shadow: inset 0 0 0 1.25px rgb(255 255 255 / 0.88);
+  pointer-events: none;
+  animation: pr-fine-in 2000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.pr-row[data-pr-row="page"]:not([data-pr-held])
+  .pr-face:has(.pr-ring[data-wears="flare"])::after {
+  box-shadow: inset 0 0 0 1.25px var(--foreground);
+}
+@keyframes pr-fine-in {
+  0%,
+  45% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ON PAPER A LIGHT KEEPS ITS DARK (Aperture): the lit face stands in a small
+   puck of the room, the light inside it and never on the page. */
+.pr-puck {
+  inset: -7px;
+  z-index: -2;
+  background: #0c0c0e;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    inset 0 0 7px 1px var(--pr-glow);
+}
+.pr-row[data-pr-row="page"] .pr-puck ~ .pr-glow {
+  display: none;
+}
+.pr-row[data-pr-row="page"] .pr-face:has(.pr-puck) {
+  box-shadow: 0 0 0 2px #0c0c0e;
+}
+
+/* ── a face joining the head (the playing loop) ──────────────────────────── */
+
+.pr-face[data-pr-joining] {
+  animation: pr-join 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pr-join {
+  from {
+    margin-inline-end: calc(var(--pr-size) * -0.75);
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* ── the pointer ─────────────────────────────────────────────────────────── */
+
+.pr-name {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: pr-name-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pr-name-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 3px);
+  }
+}
+.pr-row[data-pr-held] .pr-name {
+  animation: none;
+}
+
+.pr-pointer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  pointer-events: none;
+  transition: transform 520ms cubic-bezier(0.45, 0, 0.2, 1);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+}
+
+.pr-count {
+  white-space: nowrap;
+}
+
+/* Nothing moves for a reader who asked for less motion; a held beat is a
+   drawing of an instant and keeps its pose. */
+@media (prefers-reduced-motion: reduce) {
+  .pr-row:not([data-pr-held]) .pr-face {
+    transform: none;
+  }
+  .pr-glow,
+  .pr-ring,
+  .pr-face,
+  .pr-name {
+    animation: none;
+  }
+  /* A landing with no motion is its end: the fine ring, the light spent. */
+  .pr-row:not([data-pr-held]) .pr-glow[data-wears="flare"],
+  .pr-row:not([data-pr-held]) .pr-ring[data-wears="flare"] {
+    opacity: 0;
+  }
+  .pr-row:not([data-pr-held])
+    .pr-face:has(.pr-ring[data-wears="flare"])::after {
+    animation: none;
+    opacity: 1;
+  }
+}
