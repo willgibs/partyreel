@@ -30,28 +30,18 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### The guest's album
 
-- Reel: the live reel's "Hide the controls" takes focus with no visible indicator, and Tab stops moving at "Make your own" (Shift+Tab still moves) (red-team 56b, LOW).
 - Guests: in a 45-photo send the in-flight recorder counted the album's direct tiles dipping (21, then 18, then 21) mid-run, on the builds before and after uploads-bursts alike: a red-team look (uploads-bursts). [unsure: red-team 56b's burst walk counted 92 rows, each once, but named no tile dip]
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts).
 - Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
-- Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
 - Album: an album tile shows no keyboard focus: its open button's `focus-halo halo-inset` is an inset shadow painted under the button's own photograph (`shared/album-tile.tsx`); carry the halo on an overlay that wears `data-halo` while the button holds the keyboard's focus, as the guests-room board's strip `Tile` does (guests-room r1).
 - Share: a photo link's `og:image:width` and `og:image:height` declare the original's dimensions, not the 480x640 preview it serves (red-team 57b, NIT).
 - Album: the failure sheet offers Retry on a roll refusal (`upload-refusal.ts` has no `roll_spent` case, so `retryCanPass` is true): Retry both and each row's Retry over shots the roll refuses again, under a Not now that promises a later go; class it as the file's own (no Retry, "Take another to add one."), as the camera already does (`shots.ts:121`) (no-signal r1).
 - Album: the send's toast ("Your photo joined Maya's album.") fires beside the failure sheet at one run's end (`useSendToast`'s `quiet` leaves the sheet out), a "joined" over "2 of 3 didn't upload"; quiet it while the sheet stands, or let the sheet say what joined (no-signal r1).
 
-### Accounts and profiles
-
-- Account: a magic link that signs Create account into an existing address says nothing, where the code says so (`auth/account-door.tsx`); a one-line banner on `/dashboard` from `(auth)/auth/callback/route.ts`, on `checkExistingAccount`'s test.
-
 ### The host app
 
-- Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
-- Host: the dashboard's stage wall shows a disposable album's sealed photographs (`getStagePhotos` in `lib/db/queries/dashboard.ts`) while the hub covers them until the develop; hold the wall to what guests see (`hubCovered`, `host-cover.ts`).
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
-- Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
-- Host: on the hub, once the band folds, the Review pill's 99+ badge sits over its icon (event-header-wiring-2's shoulder badge): at 375, where the pill shows no word, it reads only "99+", and at 1440 the word stays but the badge still covers the icon; anchor the badge at the glyph's shoulder so it grows outward (red-team 57, LOW).
 - Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
 - Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
 - Create: the name field draws a box at rest though NameStep means one field on a rule, never in a box: Input's `field-well` keeps its rim in `--tw-inset-ring-shadow`, which `shadow-none` leaves; give `.cr-name-field` `background-color: transparent; box-shadow: none` (`create-room.css`, unlayered) (after-party r1; app-gaps-r1's shots 02 and 24).
@@ -63,9 +53,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Design system and accessibility
 
-- Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
-- Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
-- Design: the hub cover's address link wears the browser's own focus outline, the one stop there without the house ring (red-team 57, NIT).
 - Design: the Guests room's focus stragglers: "Manage in Guests" wears the browser's outline, the invite field's focus is a 1 px border, and removing an invite by keyboard drops focus to the sheet; each the house halo, focus kept in the list (red-team 57b, NIT).
 - Design: Settings' radio cards are each a Tab stop and ignore the arrow keys; one stop a group, arrows between its cards (red-team 57b, NIT).
 
@@ -82,6 +69,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
 - Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
+- Code hygiene: retire crumbs-88's typed seam in `lib/db/mutations/events.ts` now `types.ts` carries `events.create_key` (applied 20261007111050): `CREATE_KEY`'s cast and the filter spelled as a known column become the plain column, the `Object.assign` putting the key on the insert becomes a field, and `eventUnderKey`'s 42703 branch goes with the tests that pin it (crumbs-88).
 
 ## Upcoming
 
@@ -169,6 +157,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Profiles: the owner mode's Connections chips (`/me`, `/u/<handle>`) link to pages where Account's names now open the look; the same look could serve them (account-moments-wiring).
 - Profiles: the look (`social/guest-peek.tsx`) sets the face inside the sheet's title, so a screen reader hears "P Priya Shah", and in a hand hangs its line and address under the face; one head grid with the face `aria-hidden` (the guests-room board's `card-parts.tsx`) is the fix any card pick's wiring carries (guests-room r1).
 - Profiles: a look's Follow in the album's guest list reads Follow again on its next open (the look remounts its own button); one answer per person for every face of a relation on a page, as Connections' island keeps for its card (crumbs-87).
+- Account: the "signed you into the account <email> already had" line reads three lines at 375 (its sentence, Not you?, the dismiss); a lighter form would sit quieter (crumbs-88, NIT).
 
 ### The host app
 
@@ -196,6 +185,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests room: a guest let in who adds nothing is on no list (guest-flow.md's one definition of a guest), so after Let in she leaves the room until a photo lands; the room's wiring holds her as in with nothing added yet (guests-room r1).
 - Settings' door menu (`settings-rows.tsx`'s `doorConsequence`) says an address gate "Turns An email first on" but not what it asks of the guests in by name, which the door page now says before the move (crumbs-89).
 - Hub: the Live mark (`EventLive`) reads only the realtime connection, so a closed album's hub says LIVE beside its paused code; it gives way to the album's phase (after-party r1's `over` answer) (after-party r1).
+- Host: her dashboard's tile covers and stills (`event_covers`, `event_stills`) and the stage's "in the album" count (`event_card_stats`) are exempt from a disposable album's seal for her own session, so sealed photographs and the full count show there while the hub and the stage's wall cover them; hold the three SQL homes to the guests' view, or say on the cards why they are hers (a migration) (crumbs-88).
 
 ### Admin and operations
 

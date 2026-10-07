@@ -44,9 +44,9 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `event_create_key` APPLIED (20261007111050, md5 8a1e9e56 = the file's; the Advisor's Q43: APPLY; the column, index and insert-only grant as proved; advisors 27/4/36), the file reaching `launch-prep` with the merge; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
+| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key, Immediate's app lines, the docs crumbs-87 left stale | MERGED at `7224261b3` (gate 75 green), for milestone 40; its ten Immediate lines retired; its typed seam an Immediate Code hygiene line; crumbs-89's stale `host-app.md` lines refined at this record; PREMISE checked (its touches are the retry key, refined doc lines and the folded badge's anchor: the boards' asks stand); pruned | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
 | `redteam-57b` | the second half of the walk before milestone 39, on the desk build `cd38cf21a` | DONE 11:50Z: one MEDIUM (crumbs-87's names-only restore misses after a load: 7 of 12; production's 38 never restores, so 39 improves but does not close it) to `crumbs-89`, with its two LOWs (Settings' rows after a load, dormant's 12 px tap band); its six NITs Immediate lines; its four RT57b events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57b/ledger.txt` | Opus | `a81cf69c76e8039ff` |
-| `crumbs-89` | milestone 39's last MEDIUM at its source, the door page's consequence line, Settings' rows after a load (a React canary bug, nudged), dormant's tap band | MERGED at `cab0dc0ac` (gate 72 green); migration `email_first_memory` APPLIED (20261007135056, md5 4836beb3 = the file's; the Advisor's Q44: APPLY, the nudge SHIP; hashes as the proof's; advisors 27/4/36); types regenerated with `create_key` and its `heldOf` seam dropped; its stale `host-app.md` lines wait for crumbs-88's merge (both edit that doc): "An email first" (the event remembers the hold, every path gives names only back, `email_restored`), "A setting with no effect right now" (a folded side is inert), and a gotcha (a revalidating save's commit can be parked by React; `settings-state-unpark.ts`); PREMISE: guests-room's asks name `invited-section.tsx`, touched only by the save's nudge, so they stand; pruned | Opus, 3131 | `a02926c18b226cb2f` |
+| `crumbs-89` | milestone 39's last MEDIUM at its source, the door page's consequence line, Settings' rows after a load (a React canary bug, nudged), dormant's tap band | MERGED at `cab0dc0ac` (gate 72 green); migration `email_first_memory` APPLIED (20261007135056, md5 4836beb3 = the file's; the Advisor's Q44: APPLY, the nudge SHIP; hashes as the proof's; advisors 27/4/36); types regenerated with `create_key` and its `heldOf` seam dropped; its stale `host-app.md` lines refined at crumbs-88's record; PREMISE: guests-room's asks name `invited-section.tsx`, touched only by the save's nudge, so they stand; pruned | Opus, 3131 | `a02926c18b226cb2f` |
 | `after-party-r1` | board (desk place 12): the album after its party (over, recap, keepsake, card, bridge) | MERGED at `8e55608e6` (gate 73 green), for the desk after next with no-signal r1; its Deferred and board ideas placed, its lab line retired; pruned | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
 | `crumbs-90` | the guest's send and album: Immediate's upload and album lines | HANDED OFF at `9a78cd146` (gates green on `6e8aee8ee`; no migration); merges after milestone 39 and crumbs-88; its test events in Deleted | Opus, 3132 | `a792a2c5719fc2ca0` |
@@ -66,22 +66,15 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 1. **The next desk is whole** (brand-marks r1, signature r1, account-moments r2, create-wizard r5, guests-room r1,
    presence r1, all merged): his desk refreshed to the tip at 10:30Z for red-team 57b's walk, which serves his next
    sitting too; tell him it is ready when he is back (never refreshed while a red-team walks it).
-2. **Milestone 39 on Will's yes** (one walk, both waves): red-teams 57, 57b and 57c walked it, nothing above LOW open;
-   the FULL gate is green at `3ec66b8fe` (gate 74, 1,228 s, red steps 0) and the compute budget ran (every production
-   scenario within budget). On his yes: Drive's Worker first (below), then the merge to `main` (`git merge --no-ff
-   launch-prep`, the subject naming what 39 ships), the tag, production READY at the merge, a verification pass on
-   partyreel.com, `launch-prep` fast-forwarded; then `crumbs-88` and `crumbs-90` merge.
-   **Drive goes live with 39** (Will, 2026-10-07): just before 39's production deploy, from this Mac (`wrangler` is
-   logged in as P3), `workers/drive`'s `npm ci`, its two queues (README), `DRIVE_APP_URL` partyreel.com, its secret from
-   `.env.local` by stdin, `wrangler deploy`, then `DRIVE_WORKER_URL` on production; his Drive walk follows (P3's
-   consent; drive-crumbs' Handoff lists what to press).
-3. **Wave 2's open seats, paced by the 5-hour window** (six to eight agents, `get_usage` at every cut), each spec
-   written in the session scratchpad's `specs/wave3/` (cut with `cut-lane.py`): `crumbs-88` RUNNING (In flight);
-   `after-party-r1` and `no-signal-r1` RUNNING (In flight); next by leverage, the audit's other design gaps
-   (turned-away demand, the host's picks, duplicates, video playback) once the desk after this one has room. The
-   audit's nine decisions wait on Will (X9 to X17); a board draws a decision's surfaces once he picks its model. Lanes
-   take ports 3131 to 3139 only (R2's CORS). The desk's old leftovers: drive-export's unclear `exit` and `naming`,
-   reworded or retired.
+2. **Milestone 39 is live** (Will's yes, 2026-10-07): `main` at `0333cd705`, tagged `milestone-39`, both projects
+   READY at 16:15Z, partyreel.com verified (200s, the login page serving the build); Drive's Worker deployed first
+   (`partyreel-drive` version `96513f29`, its two queues made, its secret from `.env.local`, `DRIVE_APP_URL`
+   partyreel.com) and `DRIVE_WORKER_URL` set on production. Next: `crumbs-90`'s integration (crumbs-88 merged at
+   `7224261b3`, gate 75); his Drive walk on partyreel.com (P3's consent; drive-crumbs' Handoff lists what to press).
+3. **Wave 2's open seats, paced by the 5-hour window and the week** (six to eight agents, `get_usage` at every cut):
+   `calls-desk` RUNNING; the gap audit's other design gaps (turned-away demand, the host's picks, duplicates, video
+   playback) wait for room on a desk; a crumbs lane on Immediate (40 of 40) once crumbs-88 and crumbs-90 retire their
+   lines. Lanes take ports 3131 to 3139 only (R2's CORS).
 4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
    app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6 (his r5 note
    on `stage`, kept in its ledger, is that round's brief for the home's hero), marketing's light, N4, N7, N9, and the
@@ -105,8 +98,7 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 
 ## Waiting on Will
 
-- **Milestone 39's yes** (Next 2): everything merged; red-teams 57, 57b and 57c walked it, nothing above LOW open; the
-  compute budget ran; the FULL gate re-runs at the tip before the merge to `main`.
+- **His Drive walk** on partyreel.com, now Drive is live (P3's consent; drive-crumbs' Handoff lists what to press).
 - **The calls lab** (`docs/calls.md`, reshaped 2026-10-07 at his word: only what he cannot see by using the product):
   the open questions X1, X2, X3, X5, X6 and X9 to X17, then 16 built calls by theme; X8 settled by the Orchestrator.
   He asks direct questions in chat; answer in chat, never only in a file.

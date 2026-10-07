@@ -62,12 +62,14 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 - **"An email first" is `require_verified_email`**, on by default and free on every tier (a verified email is safer and
   captures a real address); turning it off confirms the consequence through `ConfirmSwitch` (`ui/confirm-switch.tsx`),
   the one primitive for a consequential switch. ★ Letting each person in and the invite list hold it on
-  (`events_gate_needs_email`), because both key on a confirmed address, and the switch says why. ★ **A gate that lets go
-  gives her names-only back:** the database keeps no memory of what she had, so where a gate turned the step on from
-  off the page notes it on this device (`settings-state-email.ts`, `localStorage`, never another device's), and when
-  the row's door leaves that gate the switch goes back to off and the row says so; her own touch on the switch ends
-  the note, and a move from one gate to another never does. What each side means
-  for a guest, and its enforcement, is [guest-flow.md](guest-flow.md)'s.
+  (`events_gate_needs_email`), because both key on a confirmed address, and the switch says why. ★ **A gate that lets
+  go gives her names-only back, on every path:** the event remembers a hold (`events.email_held`, written only by the
+  `events_email_held` trigger on a change of `gate`: an address gate that turns the step on from off sets it, any
+  other gate gives names-only back and clears it), so every door move, the password's first set and every device give
+  it back, said from the save's own answer (`set_event_door`'s `email_restored`), never from a later read of the hub;
+  a move from one address gate to the other keeps the first hold's memory, and her own step on before any gate is
+  never touched. The door page says what an address gate asks of the guests in by name before the move. What each side
+  means for a guest, and its enforcement, is [guest-flow.md](guest-flow.md)'s.
 - **"A photo first"** (`require_upload_to_view`, off by default, free on every tier) holds the full album until one of
   the guest's own uploads completes, and confirms on its ON edge (`confirmWhen`), the direction that asks something of
   guests. What counts and why it fails open are [guest-flow.md](guest-flow.md)'s; its one read is the service-role-only
@@ -291,9 +293,13 @@ hub and closes back to it.
   there and the name it answered by; a pick is the one save of the zone. Her browser's answers, so drawn once
   hydrated.
 - **A setting with no effect right now stays in view** as one quiet line under the switch that governs it
-  (`ui/dormant.tsx`, `inert` while asleep; the box that folds it clips, so it is padded a halo's reach and pulled back
-  by the same, or a control touching it would lose the side of its focus halo that does), and a change that affects
-  people already in says so in its own place before it happens (`ui/consequence-line.tsx`).
+  (`ui/dormant.tsx`, `inert` while asleep, and its folded side inert too, so the hidden line never takes a tap meant
+  for the label above it; the box that folds it clips, so it is padded a halo's reach and pulled back by the same, or
+  a control touching it would lose the side of its focus halo that does), and a change that affects people already in
+  says so in its own place before it happens (`ui/consequence-line.tsx`). ★ **A save answers for itself:** React's
+  canary bundled with Next 16.2.6 can park a revalidating Server Action's commit after a hard load until another
+  update, so Settings and the invite list say a save from its own answer and nudge React while its commit has not
+  landed (`settings-state-unpark.ts`; the Code hygiene line names its retirement).
 - **The QR mini-modal** (`share/event-code-modal.tsx`) takes no URL: a look at the code is a beat, not a destination. It
   grows out of the head's code on the native View Transitions API, name-scoped in `share/share.css`, and exactly one
   of the head's code, the band's chip and the modal carries the name at a time (a duplicate makes the browser skip the
