@@ -14,7 +14,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/dashboard/page-invite-card.tsx
   - src/components/app/dashboard/page-invite-card.test.tsx
   - src/app/(guest)/u/[slug]/
-  - supabase/migrations/20261008040000_first_follow.sql
   # New files beside the owned ones (a lane may add its own siblings before editing: crumbs-17's rule); nothing is
   # shared with a live lane, and no live lane claims any of them.
   - src/components/social/private-line.tsx
@@ -70,14 +69,15 @@ working.
 
 Each is built as its recommended answer and is Will's to overrule.
 
-1. **The press line where no name is known** (the guest list's Follow, the moment card's, claims'). With a name: "Only you see who you follow. Maya just sees one more follower." (the board's words; the name's first word). Without one: "Only you see who you follow. They just see one more follower." Connections keeps "…Each of them just sees one more follower." *Overrule:* one name-free sentence everywhere.
-2. **Where the line stands.** Her page: under the head exactly as drawn (flush left in a hand, flush right under the button at a desk). Every other seat: under the button in its own row, the row wrapping to hold it while it stands (one `:has()` rule in the line's sheet, so no host file is edited). Never a toast or a bubble (a bubble is the board's `mark`). *Overrule:* a floating note at tight rows.
-3. **"Once" needs no migration.** `followProfileAction` asks, before the write, whether her list is empty (one `limit 1` read of her own follows under owner RLS: `lib/db/queries/first-follow.ts`); nothing is stored, no RPC changes, so `20261008040000_first_follow.sql` is not written and nothing waits on the Orchestrator. A read that fails says nothing and never fails the follow; two first follows at one instant on two devices may both say it. *Overrule:* `follow_user` answering it (one round trip, atomic; a migration and `types.ts` regenerated).
-4. **Unfollow her only follow, then follow again, says it again** (her list is empty before the press: `once-memory`, as carried). *Overrule:* a stored flag.
-5. **The plate reads her photographs through a Server Function on mount** (`(app)/me/actions.ts`: her newest six previews, presigned), so `PageInviteCard`'s props and both mount sites stay as they are (the dashboard's page is create-wizard-wiring-2's). A view costs one action and six preview GETs of about 16KB (R2 Class B; no database beyond the one RPC read). She gets the plate lit by her photographs, else her seed, else the house ember. *Overrule:* props from each page's server render (one line in the dashboard) to save the action.
-6. **The plate's words**, as drawn: "Your page, when you're ready" / "Nothing is public until you finish." / "Choose what shows"; the dashboard's Not now is a ghost key after it. *Overrule:* the old card's words.
-7. **Connections chips open the look** (the ROADMAP line): a chip is a button opening `GuestPeek` (her face, name, `@handle`, Open full profile); a chip with no page opens it too (face and name alone; it used to be a dead span).
+1. **The press line where no name is known** (the guest list's Follow, the moment card's, the look's). With a name: "Only you see who you follow. Maya just sees one more follower." (the board's words; the name's first word). Without one: "Only you see who you follow. They just see one more follower." Connections keeps "…Each of them just sees one more follower." *Overrule:* one name-free sentence everywhere.
+2. **Where the line stands.** Her page: under the head exactly as drawn (flush left in a hand, flush right under the button at a desk). Every other seat: under the button in its own row, the row wrapping to hold it while it stands (one `:has()` rule in the line's sheet, so no host file is edited; checked live in the guest list's chip, the moment card, a claim's follow-up and the look). Never a toast or a bubble (a bubble is the board's `mark`). The one edge: a host row so full that its button only just fits (a very long host name in the moment card) sends the button to the next line while the line stands. *Overrule:* a floating note at tight rows.
+3. **"Once" needs no migration.** `followProfileAction` asks, before the write, whether her list is empty (one `limit 1` read of her own follows under owner RLS: `lib/db/queries/first-follow.ts`); nothing is stored and no RPC changes, so `20261008040000_first_follow.sql` is not written (released from `owns`) and nothing waits on the Orchestrator or on `types.ts`. A read that fails says nothing, never fails the follow, and is recorded (`first_follow_read`); two first follows at one instant on two devices may both say it. *Overrule:* `follow_user` answering it (one round trip, atomic; a migration and `types.ts` regenerated).
+4. **Unfollow her only follow, then follow again, says it again** (her list is empty before the press: `once-memory`, as carried). Connections' rows stay quiet at that moment (the list stands the line itself). *Overrule:* a stored flag.
+5. **The plate reads her photographs through a Server Function on mount** (`(app)/me/actions.ts`: her newest six photograph previews, presigned, and her seed), so `PageInviteCard`'s props and both mount sites stay as they are (the dashboard's page is create-wizard-wiring-2's). A view costs one action (one RPC read, six hand-signed presigns) and six preview GETs of about 16KB from R2 (Class B; never Vercel); `invite_light_unread` warns once a page where none could be read. She gets the plate lit by her photographs, else her seed's hue, else the house ember, so it is never dark. *Overrule:* props from each page's server render (one line in the dashboard) to save the action, or a per-session cache keyed by her seed.
+6. **The plate's words**, as drawn: "Your page, when you're ready" / "Nothing is public until you finish." / "Choose what shows"; the dashboard's Not now is a ghost key after it (under it at 320). *Overrule:* the old card's words.
+7. **Connections chips open the look** (the ROADMAP line): a chip is a button opening `GuestPeek` (her face, name, `@handle`, Open full profile); a chip with no page opens it too (face and name alone; it used to be a dead span), and no chip offers a Follow (she follows every one).
 8. **`.surface-ink` is still the slab's graphite in this tree** (brand-marks-wiring deepens it this wave). The plate wears the class and reads the room's own card in the dark theme from a wrapper token, so it needs no edit when the class deepens; until then the paper plate reads a step lighter than the board's.
+9. **`/me`'s own line is the shared private line** (`PrivateLine`): one lock-and-muted-words object for her page, a first follow and Connections, where `/me` hand-drew its own.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -85,7 +85,8 @@ Each is built as its recommended answer and is Will's to overrule.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Design, Library: RelationToggle's catalog entry could show her first follow (a specimen whose write answers `first: true`), the one state production shows only to an account that follows nobody (`library/components/gallery-demos.tsx` and `interactive-demos.tsx`, then `collect-specimens.mjs`'s `specimens.generated.json`).
+- Cost, Profiles: the invitation plate's Server Function (`readInviteLightAction`) could be saved by passing her six previews from the dashboard's own render (one line in `dashboard/page.tsx`) or by keeping its answer per tab session, keyed by her seed.
 
 ## Handoff (replaces the chat report)
 
