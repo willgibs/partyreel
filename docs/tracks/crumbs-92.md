@@ -36,6 +36,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/mutations/uploads-credit.test.ts
   - src/lib/db/uploads-credit-sql.test.ts
   - src/lib/constants/tiers-sql.test.ts
+  - src/lib/db/queries/accounts-migration.test.ts
+  - src/lib/upload/uploads-line-migration.test.ts
+  - src/app/admin/record-not-found.test.tsx
   # The desk's Clear, its component test:
   - src/app/(dev)/design/(shell)/lab/_desk/clear-held.test.tsx
   # The Record (CLAUDE.md "Record subtractively"): the two system docs' lines for these items.

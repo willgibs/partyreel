@@ -16,9 +16,10 @@
  *      link another event took while it sat in Deleted, instead of failing on the unique index.
  *   4. THE UPLOADS ALLOWANCE IS ONE NUMBER OVER ONE WINDOW (Ladder A, 20261004100000): every body
  *      that judges an upload reads her plan's own number (`upload_allowance`, its numbers held by
- *      the parity test) against the same window (`uploads_used`: the month's ledger, or a pass's
- *      year counted on the pass), and only the two completes ever count a pass's year. A reader
- *      left on the retired multiplier would let the presign admit what the complete refuses.
+ *      the parity test) against the same window (`uploads_gross`: the month's ledger, or a pass's
+ *      year counted on the pass, plus her operator's live credit, crumbs-92), and only the two
+ *      completes ever count a pass's year. A reader left on the retired multiplier would let the
+ *      presign admit what the complete refuses.
  *
  * Same method as the parity test: TEXT-parsed (Vitest has no Postgres), the newest definition wins
  * (filenames sort in apply order), and anything unreadable throws rather than passing quietly.
@@ -196,13 +197,17 @@ describe("the uploads allowance is one number over one window", () => {
     },
   );
 
-  it("the one home reads her plan's own number over its window, a strict line, or a lapsed pass", () => {
+  // ★ Reshaped by crumbs-92 (20261008060000; scar kept: a strict line over her plan's own number over its window, or a
+  // lapsed pass, NULL unmetered failing open): the count is the window's gross one and the allowance carries her
+  // operator's live credit. The expired reason: the line asked `uploads_used`, which now takes the credit off and
+  // clamps at zero, so a credit larger than the count (a file bigger than the plan's own number) was refused.
+  it("the one home reads her plan's own number plus her live credit over its window, a strict line, or a lapsed pass", () => {
     const flat = newestBody("uploads_refused").body.replace(/\s+/g, " ");
     expect(flat).toContain(
       "from (select public.upload_allowance(p_tier, p_storage_cap_bytes) as allowance) a",
     );
     expect(flat).toContain(
-      "when a.allowance is null then false else public.uploads_used(p_host_id, p_tier) + p_bytes > a.allowance end or public.pass_lapsed(p_host_id, p_tier)",
+      "when a.allowance is null then false else public.uploads_gross(p_host_id, p_tier) + p_bytes > a.allowance + public.uploads_credit(p_host_id) end or public.pass_lapsed(p_host_id, p_tier)",
     );
   });
 
@@ -245,8 +250,10 @@ describe("the uploads allowance is one number over one window", () => {
     }
   });
 
+  // ★ Reshaped by crumbs-92 (20261008060000; scar kept: the month's ledger for Free and Pro, a pass holder's live passes
+  // for her year): that read moved, verbatim, to `uploads_gross`; `uploads_used` is now that count less the credit.
   it("reads the month's ledger for Free and Pro, and a pass holder's live passes for her year", () => {
-    const flat = newestBody("uploads_used").body.replace(/\s+/g, " ");
+    const flat = newestBody("uploads_gross").body.replace(/\s+/g, " ");
     expect(flat).toContain(
       "when p_tier = 'event_pass' then (select coalesce(sum(p.uploaded_bytes), 0)::bigint from public.event_passes p where p.profile_id = p_host_id and p.consumed_at is null and p.start_at <= now() and p.expires_at > now())",
     );
@@ -255,13 +262,22 @@ describe("the uploads allowance is one number over one window", () => {
     );
   });
 
-  it("keeps both new functions the service role's alone", () => {
+  it("the figure held against her allowance is the gross count less her credit, never below zero", () => {
+    const flat = newestBody("uploads_used").body.replace(/\s+/g, " ");
+    expect(flat.trim()).toBe(
+      "select greatest(public.uploads_gross(p_host_id, p_tier) - public.uploads_credit(p_host_id), 0);",
+    );
+  });
+
+  it("keeps the allowance, the counts and the credit the service role's alone", () => {
     const all = readMigrations()
       .map(({ sql }) => sql.replace(/--[^\n]*/g, ""))
       .join("\n");
     for (const sig of [
       "public.upload_allowance(public.tier_type, bigint)",
       "public.uploads_used(uuid, public.tier_type)",
+      "public.uploads_gross(uuid, public.tier_type)",
+      "public.uploads_credit(uuid)",
     ]) {
       expect(all).toContain(
         `revoke all on function ${sig} from public, anon, authenticated;`,
