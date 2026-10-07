@@ -29,8 +29,8 @@ from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on
 Merged since, gates 56 to 66, each recorded and pruned, each one's calls his to overrule in `docs/calls.md` (BZ to CF):
 the six wirings (`account-moments-wiring` `1fdeca5e0`, `create-wizard-wiring` `0617cac99`, `event-header-wiring-2`
 `273a911ac`, `camera-wiring` `770efb29d`, `host-moments-wiring` `a78930d9c`, `album-moments-wiring` `3eace21ad`),
-`storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and three boards for the next desk (`brand-marks-r1`
-`3d2c9d1de`, `signature-r1` `556ad4dc1`, `account-moments-r2` `857376f49`). Three migrations live by protocol
+`storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and four boards for the next desk (`brand-marks-r1`
+`3d2c9d1de`, `signature-r1` `556ad4dc1`, `account-moments-r2` `857376f49`, `create-wizard-r5` `7f228e58a`, gate 68). Three migrations live by protocol
 (`reshoots`, `let_in`, `storage_sums_signal`; the Advisor's Q40 to Q42), the types regenerated after them and the three
 typed seams dropped (`7600c223e`). The gap audit (`app-gaps-r1`, done): its nine product decisions are the calls lab's
 X9 to X17, its design gaps ROADMAP lab lines, its bugs closed by crumbs-87 (ledger
@@ -42,7 +42,6 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `create-wizard-r5` | board round 5: Create's close as the payoff of a made event (the code's share as the one next step, the hub's first arrival), the styles' previews, perhaps a kind of event | RUNNING (cut at `6d216dd9`; its fresh-eyes pass `a7e3bcaf5d1e59ac1` is its own) | Opus, 3133 | `a6a93a37363af5099` |
 | `guests-room-r1` | board (desk place 42): the Guests room's person rows and a person's card, polished from Will's let-back note, on the room as wired | RUNNING (cut at `2dd9fe79`) | Opus, 3132 | `a89956235b6492e91` |
 | `presence-r1` | board (desk place 10): the guest row of faces (the newest ringed in light) and the hashvatar wherever they earn a place, in Aperture, inside the guest rules | RUNNING (cut at `3569b33b`) | Opus, 3134 | `a90f8538ce0861d2b` |
 
@@ -56,9 +55,8 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 
 ## Next, in order
 
-1. **Integrate the three boards** as each hands off (create-wizard r5, guests-room r1, presence r1), one at a time;
-   at each record, its calls into `docs/calls.md`. The next desk serves brand-marks r1, signature r1, account-moments r2
-   and these three: once they land, refresh his desk to the tip (`desk-refresh.sh`, never while a red-team walks it) and
+1. **Integrate the two boards** as each hands off (guests-room r1, presence r1), one at a time. The next desk serves
+   brand-marks r1, signature r1, account-moments r2, create-wizard r5 and these two: once they land, refresh his desk to the tip (`desk-refresh.sh`, never while a red-team walks it) and
    tell him it is ready.
 2. **Milestone 39 on Will's yes** (one walk, both waves): everything it holds is merged and red-team 57 found nothing
    above LOW, but `crumbs-87` merged after 57's build (`b1e219f26`), so **red-team 57b** walks its eight fixes and the

@@ -52,6 +52,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
 - Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
 - Host: on the hub, once the band folds, the Review pill's 99+ badge sits over its icon (event-header-wiring-2's shoulder badge): at 375, where the pill shows no word, it reads only "99+", and at 1440 the word stays but the badge still covers the icon; anchor the badge at the glyph's shoulder so it grows outward (red-team 57, LOW).
+- Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
@@ -180,6 +181,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: the storage meter's door to the size list (`dashboard/storage-meter.tsx`) leaves her plan's name off its fit goal, so its list says "Fits your plan once these go" where the banner's says "Fits Pro 50 GB once these go"; pass `plan: planWithCap(tier, storageCap)` (`grace-banner.tsx`) there too (host-moments-wiring).
 - Host: the door's quick choice (`settings-rows.tsx`'s `doorConsequence`) moves to a password already set while people wait and says nothing of their asks ending there (`events_door_to_password`), where the steps page asks first; say it, and ask, as the page does (host-moments-wiring).
 - Hub: the Reel card shows nothing while its soft navigation is pending (13 s to the curtain on a 120 KB/s line); `useLinkStatus` could dim it (album-moments-wiring; the curtain's ceiling closed the other half).
+- Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
 
 ### Admin and operations
 
@@ -260,6 +262,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Library: Create's room specimen never fails (its stand-in always makes the event), so the held beat is pressed nowhere in the lab; a stand-in that fails once (`create-room-demo.tsx`) draws it (create-wizard-wiring).
 - Library: the hub-cover specimen (`HubCoverDemo`) draws the cover without its row, so the foot's clearance for the cards reads as an empty band; draw it with the row, as `HubBandDemo` does (event-header-wiring-2).
 - The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
+- The lab: a portalled frame's `IntersectionObserver` (the hub's cards row) watches the lab's viewport rather than the frame's, so the row reads stuck whenever its frame leaves the lab's screen (a beyond-viewport capture flips it); a `FrameWindow` observer shim, or a line in `traps.ts` (create-wizard r5).
 
 ### Code hygiene
 
