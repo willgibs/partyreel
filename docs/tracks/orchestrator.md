@@ -44,7 +44,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale; integrates after 39 is on `main` | RUNNING (cut at `5cf32baf`) | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
+| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `20261007120000_event_create_key.sql` (md5 8a1e9e56) with the Advisor (Q43), applied on its answer; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
 | `redteam-57b` | the second half of the walk before milestone 39: crumbs-87's eight fixes and the type change, on the desk build `cd38cf21a` (refreshed 10:26Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57b/brief.md` | RUNNING (from 10:28Z) | Opus, its own headless Chrome (never Will's) | `a81cf69c76e8039ff` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
