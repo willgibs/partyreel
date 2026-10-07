@@ -243,7 +243,7 @@ export type StageRail = {
 };
 
 /**
- * SETTINGS' FIVE STEPS LAID FLAT under an empty stage's name (Create's last beat draws the same rail): the steps are
+ * SETTINGS' FIVE STEPS LAID FLAT under an empty stage's name: the steps are
  * Settings' own (`settingsSteps`, room left out), the head is the checklist's (`readyHead`), so a tick here is a tick in
  * the hub and in Settings. Null where readiness's own reads were not made for this event.
  */

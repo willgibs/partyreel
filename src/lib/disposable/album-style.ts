@@ -29,7 +29,7 @@
  */
 import type { Capture } from "@/lib/disposable/facts";
 import { defaultDevelopAt, developState } from "@/lib/disposable/reveal";
-import { ROLL_SHOTS } from "@/lib/disposable/roll";
+import { ROLL_SHOTS, rollShots } from "@/lib/disposable/roll";
 
 export const ALBUM_STYLES = ["live", "approval", "disposable"] as const;
 export type AlbumStyle = (typeof ALBUM_STYLES)[number];
@@ -51,7 +51,7 @@ export function styleLine(
   if (style === "live") return "Every photo shows the moment it's added.";
   if (style === "approval")
     return "You let each photo in before anyone sees it.";
-  return `The album's camera, ${input.rollSize ?? ROLL_SHOTS} shots each. Everyone's develop at once.`;
+  return `The album's camera, ${rollShots(input.rollSize ?? ROLL_SHOTS)} each. Everyone's develop at once.`;
 }
 
 /** The columns a style is drawn over, as Settings holds them. */

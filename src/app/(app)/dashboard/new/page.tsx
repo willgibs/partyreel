@@ -39,7 +39,7 @@ export const viewport: Viewport = { themeColor: "#040405" };
 // RENDERING decision rather than a redirect: the cap facts go to the island,
 // which SNAPSHOTS them at mount so that same post-create refresh cannot swap the
 // beat for the door. The server's `enforce_event_limit` trigger stays the guard
-// behind both (the wizard toasts and returns on `limit_reached`).
+// behind both (the wizard holds its beat on `limit_reached`, with Upgrade).
 //
 // The page draws nothing of its own around the room: the room is the whole screen, and its close is the
 // way back to the events.

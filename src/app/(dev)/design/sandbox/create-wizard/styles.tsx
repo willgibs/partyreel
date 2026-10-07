@@ -196,23 +196,26 @@ function QuietStyles({
                 </span>
                 <Mark on={on} />
               </RadioGroupPrimitive.Item>
-              {s === "disposable" ? (
-                <DevelopRow
-                  open={on}
-                  developsAt={choice.developsAt}
-                  draft={choice.draft}
-                  refusal={choice.refusal}
-                  onDraft={choice.type}
-                  onFinish={() => void choice.finish()}
+              {/* Production's row stands on its own screen since `styles=focused`: here it is shown with its pick. */}
+              {s === "disposable" && on ? (
+                <div
+                  data-develop-slot=""
+                  data-open=""
                   className="cw-quiet-develop"
-                  after={
-                    <RollField
-                      roll={choice.roll}
-                      onRoll={choice.setRoll}
-                      className="mt-4"
-                    />
-                  }
-                />
+                >
+                  <DevelopRow
+                    developsAt={choice.developsAt}
+                    draft={choice.draft}
+                    refusal={choice.refusal}
+                    onDraft={choice.type}
+                    onFinish={() => void choice.finish()}
+                  />
+                  <RollField
+                    roll={choice.roll}
+                    onRoll={choice.setRoll}
+                    className="mt-4"
+                  />
+                </div>
               ) : null}
             </div>
           );
@@ -241,21 +244,14 @@ export function DevelopScreen({ choice }: { choice: AddChoice }) {
         className="cw-focus-pic"
       />
       <DevelopRow
-        open
         developsAt={choice.developsAt}
         draft={choice.draft}
         refusal={choice.refusal}
         onDraft={choice.type}
         onFinish={() => void choice.finish()}
         className="cw-focus-row"
-        after={
-          <RollField
-            roll={choice.roll}
-            onRoll={choice.setRoll}
-            className="mt-6"
-          />
-        }
       />
+      <RollField roll={choice.roll} onRoll={choice.setRoll} className="mt-6" />
     </div>
   );
 }

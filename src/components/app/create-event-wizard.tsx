@@ -11,14 +11,12 @@ import {
   useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 import {
   createEventInWizard,
   type CreatedEvent,
 } from "@/app/(app)/dashboard/actions";
 import { DEFAULT_QR_PRESET, type QrStyleKey } from "@/lib/constants/qr-presets";
-import { DEFAULT_ERROR_MESSAGE } from "@/lib/errors/codes";
 import { type Tier } from "@/lib/constants/tiers";
 import {
   newEventFacts,
@@ -34,9 +32,19 @@ import { settingsPageHref } from "@/components/app/event-settings/settings-pages
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 
 import { AddStep, useAddChoice } from "./create-event-wizard/add-step";
-import { BeatActs, BeatCode, BeatSteps } from "./create-event-wizard/beat";
+import { BeatActs, BeatClose, BeatCode } from "./create-event-wizard/beat";
 import { CapDoor, type CappedEvent } from "./create-event-wizard/cap-door";
 import { useCarry } from "./create-event-wizard/carry";
+import {
+  DEVELOP_QUESTION,
+  DEVELOP_SUB,
+  DevelopStep,
+} from "./create-event-wizard/develop-step";
+import {
+  type Held,
+  HELD_QUESTION,
+  heldFailure,
+} from "./create-event-wizard/held";
 import { rememberJustMade } from "./create-event-wizard/just-made";
 import { LookStep } from "./create-event-wizard/look-step";
 import { NameStep } from "./create-event-wizard/name-step";
@@ -51,12 +59,29 @@ import {
 
 export type { CappedEvent };
 
+type Step = "name" | "add" | "develop" | "look" | "beat";
+
 /**
  * CREATE'S SCREENS, IN ORDER: the name, the album's style (the add step, create-wizard r3's `add=styles`), the
- * code's look and the beat. Every hairline, Back and the carry count from this list.
+ * code's look and the beat; and while Disposable is picked, its own screen after the style (r4's `styles=focused`),
+ * so the steppers grow by one when she picks it. Every hairline, Back and the carry count from the list in force.
  */
-const STEPS = ["name", "add", "look", "beat"] as const;
-type Step = (typeof STEPS)[number];
+const STEPS: readonly Step[] = ["name", "add", "look", "beat"];
+const DISPOSABLE_STEPS: readonly Step[] = [
+  "name",
+  "add",
+  "develop",
+  "look",
+  "beat",
+];
+
+/** Where a field the create refused is answered, so a refusal sends her to the screen that holds it. */
+const FIELD_SCREENS: Partial<Record<string, Step>> = {
+  name: "name",
+  qr_style: "look",
+  develops_at: "develop",
+  roll_size: "develop",
+};
 
 type CreateEventWizardProps = {
   siteUrl: string;
@@ -79,7 +104,7 @@ type CreateEventWizardProps = {
 };
 
 /**
- * THE CREATE FLOW, AS A ROOM OF ITS OWN (create-wizard r1 and r2, Will 2026-10-02/03, over the
+ * THE CREATE FLOW, AS A ROOM OF ITS OWN (create-wizard r1 to r4, Will 2026-10-02 to 07, over the
  * `first-event` board's verdicts of 2026-09-21).
  *
  * What his picks made of it, each in its own file beside this one:
@@ -88,14 +113,20 @@ type CreateEventWizardProps = {
  *    question just under them in one place, the answer in the centre, one button at the foot.
  *  ★ `flow=carry` (`carry.ts`): each answer rises into the head, above hairlines that press back; the
  *    name she typed titles the room from then on, and the head is the way back.
- *  ★ `add=styles` (`add-step.tsx`, create-wizard r3, Will 2026-10-04): the album's style, between the name
- *    and the look: Live, Review and Disposable as three cards, each a small album moving through the night,
- *    the Disposable's develop time directly under its card. The event is born with the style's three columns
- *    in the one insert (`createFieldsOf`), so Create and Settings say and write one thing.
+ *  ★ `add=styles` (`add-step.tsx`, r3) and `styles=focused` (r4): the album's style, between the name and the
+ *    look: Live, Review and Disposable as three cards, each a small album moving through the night, nothing
+ *    opening under them; picking Disposable adds its own screen after it, when the photos develop and the roll
+ *    (`develop-step.tsx`). The event is born with the style's three columns in the one insert
+ *    (`createFieldsOf`), so Create and Settings say and write one thing.
  *  ★ `look=places` (`look-step.tsx`): her code where guests meet it, her phone and the room's screen,
  *    four swatches re-dressing both (`qr-preset-picker.tsx`).
- *  ★ `beat=develop` (`beat.tsx`): the sample develops into her code where it stands while Create runs;
- *    Print and Share as rounds; Settings' steps beneath, kept minimal; Get it ready at the foot.
+ *  ★ `beat=develop` (`beat.tsx`) and `wait=breath` (r4, as built): the sample develops into her code where it
+ *    stands while Create runs; Print and Share as rounds; Get it ready at the foot.
+ *  ★ `close=next` (r4, `beat.tsx`'s `BeatClose`): under Print and Share, one line saying what guests still need,
+ *    read off the new event's readiness, where Settings' five marks stood.
+ *  ★ `failed=held` (r4, `held.ts`): a failed Create holds the beat she is watching, says nothing was lost and the
+ *    way to put it right, and the foot becomes that way (Try again, or Upgrade at the plan's limit), with Back for
+ *    a change. A toast never carries a failure here.
  *
  * And the verdicts it keeps: `asks=one` (the name alone), `style=step` (the look a step of its own, on
  * samples), `landing=beat` (Create ends on ONE screen, once in an event's life, by construction: only
@@ -121,17 +152,19 @@ export function CreateEventWizard({
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const [look, setLook] = useState<QrStyleKey>(DEFAULT_QR_PRESET);
-  // The album's style and its develop time: held here so a Back and a Continue never lose them.
+  // The album's style, its develop time and its roll: held here so a Back and a Continue never lose them.
   const add = useAddChoice();
   // The add step's night plays once in a Create, as the step first opens.
   const [nightPlayed, setNightPlayed] = useState(false);
   const onNightPlayed = useCallback(() => setNightPlayed(true), []);
   const [created, setCreated] = useState<CreatedEvent | null>(null);
+  // A Create that made nothing, held on the beat with its words and its way out until she tries again or goes back.
+  const [held, setHeld] = useState<Held | null>(null);
   // What is left on the new event, read from what Create sent (the schema's defaults filled) and the
   // account's storage, known the moment Create is pressed.
   const [left, setLeft] = useState<Readiness | null>(null);
-  // The cap refusal's Upgrade and room's See plans open the sheet here (`first=trigger`), knowing the
-  // host ran out of room; a toast's action has no element to hang a trigger on, so this one is controlled.
+  // The plans' sheet, opened by the cap door's See Pro, the close's room line and a held limit's Upgrade
+  // (`first=trigger`), each knowing the host ran out of room.
   const [pricingOpen, setPricingOpen] = useState(false);
   const [, startTransition] = useTransition();
   const creating = useRef(false);
@@ -171,11 +204,12 @@ export function CreateEventWizard({
       room.current
         ?.querySelector<HTMLInputElement>("[data-room-name-input]")
         ?.focus({ preventScroll: true });
-    } else if (step === "add" || step === "look") {
+    } else if (step !== "beat") {
       document.getElementById(questionId)?.focus({ preventScroll: true });
     }
   }, [step, questionId]);
-  // The beat's question takes focus once it is true, not while the code develops.
+  // The beat's question takes focus once it is true, not while the code develops. A held failure leaves focus
+  // where it is: the foot's key she pressed is the same key, now Try again (a working key keeps its focus).
   useEffect(() => {
     if (created) {
       document.getElementById(questionId)?.focus({ preventScroll: true });
@@ -184,10 +218,13 @@ export function CreateEventWizard({
 
   const trimmed = name.trim();
   const sampleUrl = previewJoinUrl(siteUrl);
+  const steps = add.style === "disposable" ? DISPOSABLE_STEPS : STEPS;
+  // Where a Disposable's time is answered: its own screen, while it is picked.
+  const timeStep: Step = add.style === "disposable" ? "develop" : "add";
 
   function goTo(next: Step) {
     if (next === step) return;
-    take(room.current, STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1);
+    take(room.current, steps.indexOf(next) > steps.indexOf(step) ? 1 : -1);
     moved.current = true;
     setStep(next);
   }
@@ -209,7 +246,7 @@ export function CreateEventWizard({
     goTo("add");
   }
 
-  function onAdd() {
+  function onDevelop() {
     // A Disposable's develop time is judged here, once she has finished it: it says why under its row and stays.
     if (!add.confirm()) return;
     goTo("look");
@@ -217,9 +254,9 @@ export function CreateEventWizard({
 
   function onCreate() {
     if (creating.current) return;
-    // A time she picked may have passed while she stood on the look: back to it, with the words under its row.
+    // A time she picked may have passed while she stood on a later screen: back to its row, with the words under it.
     if (!add.confirm()) {
-      goTo("add");
+      goTo(timeStep);
       return;
     }
     const parsed = createEventSchema.safeParse({
@@ -229,55 +266,41 @@ export function CreateEventWizard({
     });
     if (!parsed.success) {
       const issue = parsed.error.issues[0];
-      if (issue?.path[0] === "name" || !issue) {
-        goTo("name");
-        setNameError(issue?.message ?? null);
-      } else {
-        // Nothing of hers is wrong but what the add step holds: its own words stand there already.
-        goTo("add");
-      }
+      // Nothing of hers is wrong but what that screen holds: its own words stand there already.
+      const at = issue
+        ? (FIELD_SCREENS[String(issue.path[0])] ?? "add")
+        : "name";
+      goTo(at === "develop" ? timeStep : at);
+      if (at === "name") setNameError(issue?.message ?? null);
       return;
     }
     const values = parsed.data;
     creating.current = true;
-    // The beat lands at once, the sample developing while the event is made: the change into it is the
-    // code's own arrival, never a carry.
-    settle();
-    moved.current = true;
+    setHeld(null);
     setLeft(readiness(newEventFacts(values, storagePct)));
-    setStep("beat");
+    if (step !== "beat") {
+      // The beat lands at once, the sample developing while the event is made: the change into it is the
+      // code's own arrival, never a carry. A held failure's Try again is already on it.
+      settle();
+      moved.current = true;
+      setStep("beat");
+    }
     startTransition(async () => {
       // ★ A DROPPED CONNECTION REJECTS THE ACTION RATHER THAN ANSWERING IT, and the beat must never
-      // develop for ever over a promise that failed: a throw reads as the failure it is.
-      const result = await create(values).catch(
-        (): Awaited<ReturnType<typeof create>> => ({
-          ok: false,
-          code: "unknown",
-          message: DEFAULT_ERROR_MESSAGE,
-        }),
+      // develop for ever over a promise that failed: no answer at all is held as the failure it is.
+      const result = await create(values).then(
+        (answer) => answer,
+        () => null,
       );
       creating.current = false;
-      if (result.ok) {
+      if (result?.ok) {
         // Her dashboard's lit stage ignites its lamp once, the first time it draws this event (`just-made.ts`).
         rememberJustMade(result.event.id);
         setCreated(result.event);
         return;
       }
-      // Nothing was made: back to the look, her name and her look as she left them.
-      setStep("look");
-      if (result.code === "limit_reached") {
-        // The server's enforce_event_limit stays the guard BEHIND the door: a
-        // second tab, a slot spent elsewhere, a page left open for an hour.
-        toast.error(`Event limit reached on the ${planName} plan.`, {
-          description: "Delete an event or upgrade to add more.",
-          action: { label: "Upgrade", onClick: () => setPricingOpen(true) },
-        });
-        router.push("/dashboard");
-        return;
-      }
-      toast.error("Couldn't create the event.", {
-        description: result.message,
-      });
+      // Nothing was made: the beat holds, her name, style and look as she left them, and says so.
+      setHeld(heldFailure(result, { planName, maxEvents }));
     });
   }
 
@@ -306,11 +329,13 @@ export function CreateEventWizard({
     );
   }
 
-  const at = STEPS.indexOf(step) + 1;
-  // The name titles the room from the second screen until the event exists; Back and the hairlines are the way back.
-  const titled = step === "add" || step === "look";
+  const at = steps.indexOf(step) + 1;
+  // The name titles the room from the second screen until the event exists (and over a held failure, whose
+  // question does not name her event); Back and the hairlines are the way back.
+  const titled = step === "add" || step === "develop" || step === "look";
   const onBeat = step === "beat";
   const arrived = onBeat && created !== null;
+  const heldNow = onBeat && !arrived ? held : null;
   const eventName = created?.name ?? trimmed;
   const realUrl = created ? eventUrl(siteUrl, created.qr_token) : null;
 
@@ -349,8 +374,35 @@ export function CreateEventWizard({
         <AddStep choice={add} played={nightPlayed} onPlayed={onNightPlayed} />
       </RoomPage>
     );
+    // A Disposable goes on to its own screen, where its time is judged; Live and Review have nothing to judge.
     foot = (
-      <Button type="button" size="cta" onClick={onAdd} className={footButton}>
+      <Button
+        type="button"
+        size="cta"
+        onClick={() => goTo(add.style === "disposable" ? "develop" : "look")}
+        className={footButton}
+      >
+        Continue
+      </Button>
+    );
+  } else if (step === "develop") {
+    page = (
+      <RoomPage
+        key="develop"
+        question={DEVELOP_QUESTION}
+        questionId={questionId}
+        sub={DEVELOP_SUB}
+      >
+        <DevelopStep choice={add} />
+      </RoomPage>
+    );
+    foot = (
+      <Button
+        type="button"
+        size="cta"
+        onClick={onDevelop}
+        className={footButton}
+      >
         Continue
       </Button>
     );
@@ -385,12 +437,12 @@ export function CreateEventWizard({
     page = (
       <RoomPage
         key="beat"
-        question={`${eventName} is live`}
+        question={heldNow ? HELD_QUESTION : `${eventName} is live`}
         questionId={questionId}
-        questionHidden={!arrived}
+        questionHidden={!arrived && !heldNow}
       >
         <div
-          data-beat={arrived ? "arrived" : "developing"}
+          data-beat={arrived ? "arrived" : heldNow ? "failed" : "developing"}
           className="flex w-full flex-col items-center"
         >
           <BeatCode
@@ -399,20 +451,31 @@ export function CreateEventWizard({
             sampleUrl={sampleUrl}
             realUrl={realUrl}
           />
-          {/* Held, unseen and out of reach, until the event exists: its place kept, so the code never
-              moves when the doors and the steps arrive under it. */}
-          <div
-            aria-hidden={arrived ? undefined : true}
-            inert={!arrived}
-            className="cr-beat-below mt-9 flex w-full flex-col items-center gap-7 md:mt-11 md:gap-9"
-          >
-            <BeatActs
-              eventId={created?.id ?? ""}
-              eventName={eventName}
-              joinUrl={realUrl ?? sampleUrl}
-            />
-            {left ? (
-              <BeatSteps r={left} onPlans={() => setPricingOpen(true)} />
+          {/* ★ WHAT STANDS UNDER THE CODE SHARES ONE CELL, so the code never moves between the wait, a held
+              failure and the arrival: the doors and the close keep their place unseen and out of reach until
+              the event exists, and a failure's words stand in that same place while it is held. */}
+          <div className="cr-beat-under mt-9 w-full md:mt-11">
+            <div
+              aria-hidden={arrived ? undefined : true}
+              inert={!arrived}
+              className="cr-beat-below flex w-full flex-col items-center gap-7 md:gap-9"
+            >
+              <BeatActs
+                eventId={created?.id ?? ""}
+                eventName={eventName}
+                joinUrl={realUrl ?? sampleUrl}
+              />
+              {left ? (
+                <BeatClose r={left} onPlans={() => setPricingOpen(true)} />
+              ) : null}
+            </div>
+            {heldNow ? (
+              <p
+                data-beat-held=""
+                className="cr-beat-held mx-auto max-w-[19rem] text-center text-working text-pretty text-muted-foreground"
+              >
+                {heldNow.line}
+              </p>
             ) : null}
           </div>
         </div>
@@ -420,23 +483,38 @@ export function CreateEventWizard({
     );
     // ★ WORKING = WORDS (identity r5): while the event is made the foot is the key it becomes, working
     // ("Creating your event", with the arc), and it turns to Get it ready in place when the event exists,
-    // holding the wider of its two faces throughout, so nothing in the foot moves.
+    // holding the wider of its faces throughout, so nothing in the foot moves. A held failure turns the same
+    // key into its way out, so the focus a press left on it is already on Try again (or Upgrade at the limit).
+    const upgrade = heldNow?.way === "upgrade";
     foot = (
       <Button
         type="button"
         size="cta"
-        onClick={() => {
-          if (created) router.push(settingsPageHref(created.id, "door"));
-        }}
-        working={!arrived}
+        onClick={
+          heldNow
+            ? upgrade
+              ? () => setPricingOpen(true)
+              : onCreate
+            : () => {
+                if (created) router.push(settingsPageHref(created.id, "door"));
+              }
+        }
+        working={!arrived && !heldNow}
         workingLabel="Creating your event"
         className={cn(footButton, arrived && "cr-beat-go")}
-        {...trackAttrs("cta_click", {
-          cta: "get-it-ready",
-          location: "create-beat",
-        })}
+        {...(heldNow
+          ? upgrade
+            ? trackAttrs("cta_click", {
+                cta: "upgrade",
+                location: "create-held",
+              })
+            : {}
+          : trackAttrs("cta_click", {
+              cta: "get-it-ready",
+              location: "create-beat",
+            }))}
       >
-        Get it ready
+        {heldNow ? (upgrade ? "Upgrade" : "Try again") : "Get it ready"}
       </Button>
     );
   }
@@ -450,17 +528,20 @@ export function CreateEventWizard({
         }}
         screen={step}
         light={onBeat ? "low" : "floor"}
-        busy={onBeat && !arrived}
+        busy={onBeat && !arrived && !heldNow}
       >
         <RoomHead
-          step={{ at, of: STEPS.length }}
-          name={titled ? trimmed : undefined}
+          step={{ at, of: steps.length }}
+          name={titled || heldNow ? trimmed : undefined}
           onBack={
             titled
-              ? () => goTo(STEPS[STEPS.indexOf(step) - 1] ?? "name")
-              : undefined
+              ? () => goTo(steps[steps.indexOf(step) - 1] ?? "name")
+              : heldNow
+                ? // Back is there for a change: the look, everything she chose as she left it.
+                  () => goTo("look")
+                : undefined
           }
-          onStep={titled ? (n) => goTo(STEPS[n - 1]) : undefined}
+          onStep={titled ? (n) => goTo(steps[n - 1] ?? "name") : undefined}
           onName={titled ? () => goTo("name") : undefined}
           close={
             arrived
@@ -480,7 +561,9 @@ export function CreateEventWizard({
           {onBeat
             ? arrived
               ? `${eventName} is live`
-              : `Creating ${trimmed}…`
+              : heldNow
+                ? `${HELD_QUESTION}. ${heldNow.line}`
+                : `Creating ${trimmed}…`
             : ""}
         </span>
       </RoomGround>
