@@ -206,6 +206,8 @@
     display: none;
   }
   .pic-plate {
+    /* No light to leave room for: the words start near the edge. */
+    --pic-reach: 32px;
     border: 1px solid CanvasText;
   }
 }

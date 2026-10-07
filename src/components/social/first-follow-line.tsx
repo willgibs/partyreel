@@ -34,7 +34,7 @@ import { followWords, PrivateLine } from "./private-line";
  */
 
 type Scope = {
-  /** Whom the slot names, from the page that knows (her first name); null says "They". */
+  /** Whom the slot names, from the page that knows (the person's name, said by its first word); null says "They". */
   name: string | null;
   /** Whether the line stands now. */
   said: boolean;
