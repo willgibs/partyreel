@@ -1,6 +1,6 @@
 ---
 track: cdn-version
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5ed23311"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -57,25 +57,84 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **How long a cached "nothing changed" may stand in for the album's own answer** (what a version cannot say: a
+  block on her, her ticket's heal). Built: **5 minutes** (`ALBUM_EDGE_TRUST_MS`, the resting net's step). A blocked
+  guest's lit page on an album that does not change learns the block within it (today: within the attended net's
+  minute); any change asks the album, which shuts her at once. 100 lit phones, quiet: about 1,920 calls an hour at 5
+  minutes, 1,120 at 15, 720 with none. Will's to overrule (a Call: moderation).
+- **The window: 5 s** (`ALBUM_EDGE_WINDOW_MS`). Built: at most 12 fills a minute an album a region; 3 s would be 20,
+  10 s six, and the window is the staleness a quiet check can carry.
+- **The capability stays out of the URL.** Built: the URL names the album by a digest key (`k`, handed over by the
+  sync's `x-album-edge`), the token rides `x-album-token`, and the route checks the two agree before it fills. The
+  token in the query is simpler, but every poll would write it into the CDN's and Vercel's request logs.
+- **AB5's livelier version.** Built: a quiet blocked fallback asks every **20 s** while someone is looking (a touch in
+  ten minutes, or the party screen) **and** the CDN answered its last ask from its cache (`x-vercel-cache: HIT`, a room
+  asking too); otherwise today's minute; moving, today's 12 s (each such ask finds a change, the function's however it
+  is asked); the net under a live doorbell unchanged. Not always: a lone phone's 20 s asks each fill a window (three
+  times today's calls; simulated). The price is CDN requests, not calls: a quiet blocked room of 100 lit phones makes
+  about 16,500 an hour against 6,000 ($2 a million; 40 s would match today's dollars).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`, "Live gallery: the hybrid doorbell": the conditional poll's fallback line gains the
+  20 s step and its condition (`refreshAged` rides each quiet answer too), and one new bullet beside it: an open
+  album's "has anything changed?" at the CDN, its rule (who may be cached, the key, the window, nothing per viewer, the
+  trust window), its proof (the walk) and its cost against `usher/kit/cost-model/`'s `sync304` and `cdnReq`.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Safety · album: a block moves an open album's CDN answer (a blocks fingerprint beside the validator, or the block
+  rings the doorbell as a moment), so a blocked guest's lit page shuts at the next window and `ALBUM_EDGE_TRUST_MS`
+  can lengthen (cdn-version; needs a migration or a ring from the block's RPC).
+- Cost · kit: `usher/kit/cost-model/model.mjs`'s `liveEvent` counts every net poll as a `sync304`; since X5 a lit
+  room's polls are CDN requests plus at most 12 fills a minute an album plus one real ask a phone each 5 minutes, and
+  `vercelCall` still charges the sync a proxy invocation it no longer pays (`NO_PROXY`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- **Commits, pushed:** the work `890c33f3d`; the sync `2c4edb98b` (a merge of `origin/launch-prep` at `e239105ea`:
+  crumbs-91, no-signal-wiring, crumbs-92 and brand-marks-r2 had landed, `guest-flow.md` among my reads; clean); the
+  claim at boot `92344f1c7`; this manifest is the head.
+- **Gates on the synced tree (`2c4edb98b`), each its own exit code** (logs `_scratch/cdn-version/gate2-*.log`):
+  typecheck 0, lint 0, test 0 (1,126 files, 14,454 tests), build 0, `lab:smoke --base http://localhost:3131` 0 (189
+  checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the owned paths (claimed at boot: the client's
+  ask, the anon event read, `proxy.test.ts`'s one line) + this file + `docs/systems/guest-flow.md` (the record).
+- **X5, built:** `GET /api/album/guest/sync/version?k=&w=`, the token in `x-album-token`
+  (`src/app/api/album/guest/sync/version/route.ts`): an album everyone with the link sees whole
+  (`albumIsOpenToAnyone`, `sync/edge.server.ts`) answers its full-access validator alone, the sync's ETag by one recipe
+  (`fullAlbumEtag`), `Vercel-CDN-Cache-Control: max-age=5`; everything else `ask`/`clock` or a 400, `private, no-store`.
+  It reads the event with no identity (`getEventByQrTokenForAnyone`), no cookie or session, writes no `Set-Cookie`.
+- **The sync names the key** (`x-album-edge`, a digest of the token) on every full answer of such an album, 304s
+  included; never on a teaser, lock, refusal, password, gated door, email or upload asked first (`route.test.ts`).
+- **The client:** the store's `poll()` (`lib/album/store.ts`) asks the CDN first where named and vouched for within 5
+  minutes; the held validator is the whole answer, anything else asks the album; rings, her upload, Try again and the
+  return's catch-up stay exact (`use-live-poll.ts`'s `onPoll({ exact })`). The browser sends no cookie
+  (`credentials: "omit"`) and no `Pragma` (`cache: "default"`: a `no-store` fetch's `Pragma: no-cache` sends the CDN
+  back to the function). Each window is its own URL, since Vercel serves an expired entry stale.
+- **AB5, built:** a quiet blocked fallback asks every 20 s while someone looks and the CDN answered its last ask from
+  its cache (`x-vercel-cache: HIT`); otherwise as today. A lone phone's 20 s asks would each fill a window (simulated:
+  three times today's calls), hence the condition.
+- **Proof, local** (`_scratch/cdn-version/walk-{dev,prod,synced}.log`, the real database, disposable events): the
+  version equals the POST's ETag and the POST 304s against it; password, email-first and unknown answer `ask`
+  no-store; another album's token under a key 400; a far window `clock`; the production build keeps the handler's
+  headers, no `Set-Cookie`. Headless Chrome at 375 and 1440: the first poll a POST naming the key, the net's next a
+  version GET with the token header and no cookie (a probe cookie rode the POST, never the GET) and no POST after;
+  the album turned private, the next ask answered `ask` and the sync locked at once; a tab's return asked the POST.
+- **Numbers, a 100-guest party of 5 hours** (`_scratch/cdn-version/scripts/{cost,sim}.mjs`; model per-call lines):
+  doorbell live, 10 lit phones: 3,000 calls before, ~2,350 after, 3,000 CDN requests either way; 100 lit: 30,000
+  before, ~9,600 after (3,600 window fills + 6,000 real asks of the 5-minute trust). Blocked and quiet, 100 lit:
+  30,000 before, ~9,600 after, CDN requests ~82,500 against 30,000 (the 20 s step); 10 lit: 3,000 before, ~2,850
+  after. Blocked and moving: unchanged (every 12 s ask is the album's). One phone alone: 60 an hour, as today.
+- **Test data, listed for deletion** (willg97's, no media; tokens only in my scratch): events
+  `3f9d0520-24c1-4e3e-8758-008e48e088d4`, `32d25011-b5e9-493a-b9ae-68d7aff6cbc0`,
+  `5b3f209d-c286-400e-8c53-8f403ba467b6`, named "cdn-version (disposable) …".
+- Assets requested from Will: none.
+- Board ideas: a block shuts a lit page at once (the block rings the album's doorbell as a moment, or moves its CDN
+  answer), rather than at the album's next change or within the trust window.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none (the CDN rule is the response's own header).
+- Calls for Will: how soon a block reaches a lit page whose album does not change: within 5 minutes, built (today the
+  attended net's minute; 15 minutes or never would save more calls: the first Question).
+- **Look at first:** the live check after the merge (two asks inside one window on the alias: `x-vercel-cache` MISS
+  then HIT; Next adds `Vary: rsc, next-router-*` to every response, absent on these fetches, so it should key once);
+  ROADMAP's X5 line (22) is done; the kit's cost model still counts a net poll as a `sync304` (Deferred).
