@@ -15,6 +15,7 @@ import {
   find,
   findAll,
   inView,
+  LAYER,
   parts,
   type Reader,
   Scene,
@@ -128,7 +129,7 @@ const TITLES: Record<RollWay, readonly [string, string, string]> = {
 
 /** Reads whichever surface the frame holds: the album's sheet, his shots, or the camera. */
 const readRoll: Reader = (root, win) => {
-  const sheet = find(root, "[role='dialog']");
+  const sheet = find(root, LAYER);
   if (sheet && inView(sheet, win)) {
     const rows = [...sheet.querySelectorAll("[data-upload-failures] li")];
     const said = [

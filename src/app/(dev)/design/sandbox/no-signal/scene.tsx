@@ -113,6 +113,13 @@ export function Story({
 export const textOf = (el: Element | null | undefined) =>
   ((el as HTMLElement | null)?.innerText ?? "").replace(/\s+/g, " ").trim();
 
+/**
+ * AN OPEN LAYER IN THE FRAME (a sheet, a popup), by its slot: a reader looks in the frame's own document, so
+ * `layerIsUp()` (the page's one role list, which reads the lab's document) cannot answer it, and a role written by
+ * hand is what `layer-is-up.test.tsx` refuses.
+ */
+export const LAYER = "[data-slot='sheet-content'], [data-slot='popup-content']";
+
 /** A first element matching, in the frame's whole document. */
 export const find = (root: HTMLElement, selector: string) =>
   root.ownerDocument.querySelector<HTMLElement>(selector);

@@ -33,6 +33,7 @@ import {
   find,
   findAll,
   inView,
+  LAYER,
   parts,
   type Reader,
   Scene,
@@ -127,7 +128,7 @@ function readAdd(root: HTMLElement): string | undefined {
 const readDrop: Reader = (root, win) => {
   const toast = find(root, "[data-ns-toast]");
   const said = toast ? `a toast: "${textOf(toast)}"` : undefined;
-  const sheet = find(root, "[data-slot='sheet-content'], [role='dialog']");
+  const sheet = find(root, LAYER);
   if (sheet && inView(sheet, win)) {
     const heading = textOf(sheet.querySelector("h2, [data-door-line]"));
     return parts(`a sheet over the album: "${heading.slice(0, 80)}"`, said);
@@ -158,7 +159,7 @@ const readDrop: Reader = (root, win) => {
 const readList: Reader = (root, win) => {
   const rows = findAll(root, "[data-ns-row]");
   if (rows.length === 0) return readDrop(root, win);
-  const title = textOf(find(root, "[role='dialog'] h2"));
+  const title = textOf(find(root, LAYER)?.querySelector("h2"));
   return `${title ? `"${title}": ` : ""}${rows.length} rows, ${rows.map((r) => `"${textOf(r)}"`).join(", ")}`;
 };
 

@@ -16,6 +16,7 @@ import type { Ground } from "./knobs";
 import {
   find,
   inView,
+  LAYER,
   parts,
   type Reader,
   Scene,
@@ -73,7 +74,7 @@ const LANDED_WORDS = keepSentLine({
 /* ── what the frames read ──────────────────────────────────────────────── */
 
 const readCarry: Reader = (root, win) => {
-  const sheet = find(root, "[role='dialog']");
+  const sheet = find(root, LAYER);
   if (sheet && inView(sheet, win))
     return `today's sheet still over the album: "${textOf(sheet.querySelector("h2")).slice(0, 60)}"`;
   const hers = root.ownerDocument.querySelectorAll("[data-ns-hers]").length;
