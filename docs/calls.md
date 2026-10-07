@@ -1268,3 +1268,29 @@ pills would run an upright iPad's band off its edges.
 
 **CB5. A tablet's tile line truncates from 640 to 739 px,** the whole line kept in the card's name.
 - *Push back if* the tile should wrap instead.
+
+## CC. The camera's roll, wired (camera-wiring)
+
+Your picks on two boards are in production: a develop time added mid-party asks about fresh rolls first, a guest
+meets her fresh roll once, a flat 3 re-shoots (27 shots in all on a roll of 24, the server's own ceiling now), and the
+reel's newest frame taking a shot back beside Your shots' X. These are the calls built into them, yours to overrule.
+
+**CC1. "The first time" on a fresh roll is known by the album's period against her device's,** so a second device may
+say it once more, and a guest who never shot there is never told her roll is fresh.
+- *Push back if* it should be said once per guest across devices (a server memory).
+
+**CC2. The fresh-rolls question is asked on every running camera,** guests or none, since Settings holds no count of
+the guests' rolls and the line is true either way.
+- *Push back if* it should ask only while guests are in.
+
+**CC3. The reel's newest frame is a door only while it holds this visit's newest shot,** on an album that keeps shots
+out of sight; an earlier visit's frames stay glass, and Your shots' X takes those back.
+- *Push back if* every frame of the reel should open its shot.
+
+**CC4. A host's removal spends a guest's shots as her own take-back does** (the Advisor's note): the roll counts every
+shot taken, so a guest whose host removed five of her 24 can take only 3 more, and is refused with frames free.
+- *Push back if* a host's removal should give her frames back (the ledger would then tell removals apart).
+
+**CC5. Past the ceiling the server says "You've used all 3 re-shoots on your roll.",** and once her 3 are spent both
+doors still take a shot back and say it frees no frame.
+- *Push back if* a spent roll should hide the take-back.

@@ -238,6 +238,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Help: `help/step-screens/desk-screens.tsx`'s `ReelCardPicture` still draws the retired tile and the living reel card (`mock-parity.test.ts` and `step-screens.test.ts` pin its "Live for guests" against `room-card.ts`, while the picture still types the line; redrawn, it takes `reelCardFace`); redraw it as the cards' reel card once the polish pick lands, then drop `ROOM_CARD_BASE` and `ROOM_CARD_QUIET` from `room-card.ts` (kept only for it) (event-header-wiring).
 - Nav: tabbing into the hidden header scrolls the page about 482 px (Chrome scrolls focus into view against the sticky bar, `chrome/header-shell.tsx`); revealing the bar on a Tab keydown, before focus moves, would pre-empt it.
 - Nav: `ui/navigation-menu.tsx`'s content spells its cross-slide inline (`data-[motion=…]`); move it onto `floatingCrossSlide` (`ui/floating-layer.ts`), the same slide, which also holds it to `motion-safe`.
+- Help: `content/help/the-disposable-camera.mdx` says "A roll allows only so many retakes"; name the 3 re-shoots and the reel's newest frame (Take it back, Keep it), in `lib/guest/camera/words.ts`'s words (camera-wiring).
 
 ### The lab and the kit
 
@@ -315,6 +316,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: when the door is next drawn, its pace is an ask beside today's (its held steps carry no X and swallow Escape, `entry-shell.tsx`; the walk through the doorway takes one second, `stage-walk.ts`'s `WALK_MS`; Keep your photos is left by Maybe later or the back arrow): an X and Escape that close a step, and a shorter walk, drawn as options.
 - Guests: when the camera is next drawn, its words are an ask ("Take the first photo" then "Take photos", "Shot 6 taken." never for a refused shot: `lib/guest/camera/words.ts`; the Reel card's develop line, `reel-card.tsx`), drawn as options in the board's own camera.
 - Guests: a way to ask the host to take a photo down, short of a report; the help center tells a guest to ask the host first, and nothing in the product lets her ask (a board for the viewer's actions, `media-lightbox-parts/actions.tsx`).
+- Privacy: the notice's local-storage inventory (`lib/constants/legal-privacy.tsx`'s comment) names neither `pr_develop:<eventId>` nor `pr_roll:<qrToken>` (the period a device last held shots on); its paragraph's "small flags" covers both in words (camera-wiring).
 
 ### The host app
 
