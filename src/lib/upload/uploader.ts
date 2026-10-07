@@ -173,10 +173,21 @@ const SOMETHING_WRONG =
 /**
  * HOW LONG BYTES MAY STOP MOVING before the upload is ended as a dropped connection. A phone on a weak link still
  * moves bytes every few seconds; a socket that has gone quiet for this long is not coming back (the OS would wait
- * minutes more), and a fresh request beats waiting on it. Generous on purpose: the clock restarts on every byte,
- * and on a page that has been in the background (a phone's browser freezes its timers there).
+ * minutes more), and a fresh request beats waiting on it. Generous on purpose: the clock restarts on every byte, and
+ * a page that comes back from the background gets its grace (`RETURN_GRACE_MS`).
  */
 export const UPLOAD_STALL_MS = 45_000;
+
+/**
+ * ★ A PAGE LOOKED AT AGAIN GETS A GRACE, NEVER A NEW CLOCK (crumbs-90, red-team 56b's NIT: a complete hung about two
+ * minutes before its retry). A phone freezes a hidden page's timers, so a request that finished while the page was
+ * away must not be ended by a timer that fires late: on its return every clock here (a PUT's stall, a presign's and a
+ * complete's ceiling) stands at least this long more, so what arrived meanwhile is read first. It used to restart
+ * whole, which gave a request the line had killed a fresh minute at every glance back: one look near the end of a
+ * complete's ceiling made it two minutes before the file could go again. Now the clock keeps its own end where that
+ * end is further off, and a dead request ends within this of her return, which is when its retry can go.
+ */
+export const RETURN_GRACE_MS = 10_000;
 
 /** After the last byte, how long R2 may take to answer (a big object is finalised there) before it is a drop. */
 export const UPLOAD_ANSWER_MS = 90_000;
@@ -184,8 +195,8 @@ export const UPLOAD_ANSWER_MS = 90_000;
 /**
  * HOW LONG A PRESIGN MAY TAKE before it is a dropped connection (uploads-idempotent, the head note). Measured on a
  * local build against the real database, a burst's presign answers within a second; one unanswered at thirty is a line
- * that died under it. The clock restarts when the page comes back to the screen (a phone freezes a hidden page's
- * timers, and a request that finished meanwhile must not be ended by a timer that fires late).
+ * that died under it. A page that comes back to the screen gets its grace (`RETURN_GRACE_MS`: a phone freezes a hidden
+ * page's timers, and a request that finished meanwhile must not be ended by a timer that fires late).
  */
 export const PRESIGN_CEILING_MS = 30_000;
 
@@ -203,8 +214,8 @@ export const PRESIGN_REASK_MS = 8_000;
 
 /**
  * HOW LONG A COMPLETE MAY TAKE before it is a dropped connection. Measured, a burst's complete records its files in a
- * few seconds (their copies landed four at a time, their rows one after another); a minute is a line that died. Its
- * clock restarts as the presign's does. Ending it is safe only because the complete is kept for the next try
+ * few seconds (their copies landed four at a time, their rows one after another); a minute is a line that died. A page
+ * looked at again gets the presign's grace. Ending it is safe only because the complete is kept for the next try
  * (`UNANSWERED`): a row it wrote meanwhile answers that try, and is never written twice.
  */
 export const COMPLETE_CEILING_MS = 60_000;
@@ -360,23 +371,31 @@ function putWithProgress(args: {
     const xhr = new XMLHttpRequest();
     const progress = perFrame(onProgress);
     // ★ A STALLED TRANSFER IS A DROPPED CONNECTION, SAID (E6): the clock restarts on every byte the browser reports
-    // sent, and on the page coming back to the screen (a background tab's timers freeze); once the last byte is
-    // out it waits for R2's answer instead. A silence that long ends the transfer the way a drop would.
+    // sent, and stands at least `RETURN_GRACE_MS` more when the page comes back to the screen (a background tab's
+    // timers freeze); once the last byte is out it waits for R2's answer instead. A silence that long ends the
+    // transfer the way a drop would.
     let quiet: ReturnType<typeof setTimeout> | undefined;
     let stalled = false;
-    const wait = (ms: number) => {
+    let quietEnds = 0;
+    const waitUntil = (at: number) => {
       clearTimeout(quiet);
-      quiet = setTimeout(() => {
-        stalled = true;
-        xhr.abort();
-      }, ms);
+      quietEnds = at;
+      quiet = setTimeout(
+        () => {
+          stalled = true;
+          xhr.abort();
+        },
+        Math.max(0, at - Date.now()),
+      );
     };
     let answering = false;
-    const seen = () => wait(answering ? UPLOAD_ANSWER_MS : UPLOAD_STALL_MS);
+    const seen = () =>
+      waitUntil(Date.now() + (answering ? UPLOAD_ANSWER_MS : UPLOAD_STALL_MS));
     const onAbort = () => xhr.abort();
     const page = pageEvents();
     const onShow = () => {
-      if (page?.visibilityState === "visible") seen();
+      if (page?.visibilityState === "visible")
+        waitUntil(Math.max(quietEnds, Date.now() + RETURN_GRACE_MS));
     };
     const done = () => {
       clearTimeout(quiet);
@@ -468,19 +487,24 @@ async function postJson<T>(
   const { signal, ceilingMs } = opts;
   const text = JSON.stringify(body);
   // ★ THE CEILING (the head note): a request still unanswered past it is ended as the dropped line it is, its clock
-  // restarting whenever the page is looked at again. Beside her signal, never in its place: hers says cancelled.
+  // standing a grace more whenever the page is looked at again. Beside her signal, never in its place: hers says
+  // cancelled.
   const ceiling = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const arm = () => {
+  let ends = 0;
+  const armUntil = (at: number) => {
     clearTimeout(timer);
-    timer = setTimeout(() => ceiling.abort(), ceilingMs);
+    ends = at;
+    timer = setTimeout(() => ceiling.abort(), Math.max(0, at - Date.now()));
   };
   const page = pageEvents();
+  // Looked at again: its own end where that is further off, else the grace (`RETURN_GRACE_MS`), never a new ceiling.
   const onShow = () => {
-    if (page?.visibilityState === "visible") arm();
+    if (page?.visibilityState === "visible")
+      armUntil(Math.max(ends, Date.now() + RETURN_GRACE_MS));
   };
   const either = eitherSignal(signal, ceiling.signal);
-  arm();
+  armUntil(Date.now() + ceilingMs);
   page?.addEventListener("visibilitychange", onShow);
   // Hers if her signal ended it; anything else that ended it (the ceiling, the line) is the connection's.
   const ended = () =>
@@ -1165,7 +1189,8 @@ async function runBurst(
   // A page leaving the screen records what landed now (a phone may never come back to it).
   const onVisibility = () => {
     hidden = page?.visibilityState === "hidden";
-    // The page is looked at again: the presign in the air is out from now (the ceiling's own clock restarts the same way).
+    // The page is looked at again: the presign in the air is out from now for its re-ask, a few seconds, the same
+    // grace the ceiling stands (`RETURN_GRACE_MS`).
     if (!hidden && out) out.began = Date.now();
     poke();
   };

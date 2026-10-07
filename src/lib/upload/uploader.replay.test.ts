@@ -29,6 +29,7 @@ const {
   UPLOAD_WORDS,
   PRESIGN_CEILING_MS,
   COMPLETE_CEILING_MS,
+  RETURN_GRACE_MS,
 } = await import("./uploader");
 
 type Entry = Record<string, unknown>;
@@ -275,7 +276,11 @@ describe("★ a request never hangs: past its ceiling it is the dropped line it 
     expect(await going).toEqual(DROPPED);
   });
 
-  it("the ceiling's clock restarts when the page comes back to the screen (a hidden page's timers freeze)", async () => {
+  /* ★ RESHAPED ON PURPOSE (crumbs-90, red-team 56b's NIT: a complete hung about two minutes before its retry). Scar
+     kept: a page looked at again never has its request ended at once by a timer that fired late (a hidden page's
+     timers freeze), so what arrived meanwhile is read first. Reason expired: "a whole ceiling from now", which gave a
+     request the line had killed a fresh minute at every glance back: one look near the end made it two. */
+  it("★ a page looked at again near the ceiling's end gets a grace, never a whole new ceiling", async () => {
     completeWith = () => "hang";
     const going = uploadFile({
       file: photo(),
@@ -287,8 +292,26 @@ describe("★ a request never hangs: past its ceiling it is the dropped line it 
     await vi.advanceTimersByTimeAsync(COMPLETE_CEILING_MS - 5_000);
     page.turn("hidden");
     page.turn("visible");
-    // Looked at again: a whole ceiling from now, not the five seconds that were left.
-    await vi.advanceTimersByTimeAsync(COMPLETE_CEILING_MS - 1_000);
+    // Five seconds were left: the grace stands instead, and no more.
+    await vi.advanceTimersByTimeAsync(RETURN_GRACE_MS - 1_000);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(await going).toEqual(DROPPED);
+  });
+
+  it("a page looked at again early keeps its own ceiling: a glance never shortens it", async () => {
+    completeWith = () => "hang";
+    const going = uploadFile({
+      file: photo(),
+      endpoints: ENDPOINTS,
+      identity: { session_token: "t" },
+    });
+    let settled = false;
+    void going.then(() => (settled = true));
+    await vi.advanceTimersByTimeAsync(5_000);
+    page.turn("hidden");
+    page.turn("visible");
+    await vi.advanceTimersByTimeAsync(COMPLETE_CEILING_MS - 5_000 - 1_000);
     expect(settled).toBe(false);
     await vi.advanceTimersByTimeAsync(2_000);
     expect(await going).toEqual(DROPPED);

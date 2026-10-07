@@ -261,8 +261,11 @@ spells no focus ring or active scale of its own (`ui/identity-traits.test.ts`, w
 - **An atom whose own light stands outside its box** (the shutter's ring) sets `--halo-at` and `--halo-band` to stand
   beyond it (`ui/shutter.css`); an element that stands for a focus it does not hold (the code field's caret slot) pins
   the halo with `data-halo`; a control filling a box that clips (a row's stretched button, an overlay, a field's eye)
-  draws it inside with `halo-inset`. An atom's error is drawn inside it (a key's and a switch's `inset-ring`, a
-  field's well rim), never in the ring slot, where it would replace the halo.
+  draws it inside with `halo-inset`. ★ An inset halo is painted under the control's own content, so a control a
+  picture fills (the album tile's open button) wears it on a layer over the picture, pinned with `data-halo` while
+  it holds the keyboard's focus (`TileHalo`), its outline drawn inside the edge where colours are forced. An atom's
+  error is drawn inside it (a key's and a switch's `inset-ring`, a field's well rim), never in the ring slot, where it
+  would replace the halo.
 - ★ **A trigger a layer hands its focus back to after a pointer's choice wears no halo** (`ui/quiet-focus.ts`, worn
   by DropdownMenu and ResponsiveMenu: Chrome reads that programmatic focus as the keyboard's); a new layer that gives
   focus back calls it too.
@@ -421,9 +424,10 @@ production build with `scripts/album-perf.mjs` at `/design/album-scale` (the gri
   whole tile, and every action lives in the viewer. At a desk the surface's `tileActions` ride one glass pane (the
   host's verbs: [host-app.md](host-app.md)), `display:none` until the tile is hovered or the keyboard is inside it
   (`data-kbd-focus`, written by the grid), since even a pane collapsed to zero width composites one blur a photograph.
-- **A tile renders only when what it draws changes**: it is memoized on its data, holds no handler (the grid answers
-  every control from one delegated click and one long-press) and reads its like per id (`useIsLiked`), so a per-tile
-  closure or JSX prop (`renderOverlay` is compared by identity) re-renders the whole album.
+- **A tile renders only when what it draws changes**: it is memoized on its data, holds no handler of the grid's (the
+  grid answers every control from one delegated click and one long-press; the tile hears only its open button's own
+  keyboard focus, for its halo) and reads its like per id (`useIsLiked`), so a per-tile closure or JSX prop
+  (`renderOverlay` is compared by identity) re-renders the whole album.
 - **A tile never changes parent**, since a tile that changes parent remounts, dropping its decoded image to the
   shimmer and replaying its entrance: the measured columns are places in one box (`placeColumns`), the rows one flex
   container broken by hand, and items go to explicit columns (`distributeColumns`) rather than CSS columns, which
