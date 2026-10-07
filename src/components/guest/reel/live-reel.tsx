@@ -53,7 +53,10 @@ import {
   COVER_SLOTS,
   type HeadBridge,
   type HeadStill,
+  type OpeningPin,
+  openingStillOf,
   pickCoverIds,
+  useOpeningPin,
 } from "@/components/guest/event-experience-head";
 import {
   useGalleryLive,
@@ -131,6 +134,12 @@ export type LiveReelProps = {
    * the reel's door (`event-experience-head.tsx`). Absent where no head listens.
    */
   headBridge?: HeadBridge | null;
+  /**
+   * While the page's curtain stands, the photograph it stands (`OpeningPin`): the view opens on that very one, never
+   * on the cover's own first still, which leads with her own newest once the album knows them. Absent or empty, the
+   * view opens on the cover's first still.
+   */
+  openingPin?: OpeningPin | null;
   children: ReactNode;
 };
 
@@ -149,6 +158,7 @@ export function LiveReel({
   welcomePending = false,
   isOwner = false,
   headBridge = null,
+  openingPin = null,
   children,
 }: LiveReelProps) {
   const live = useGalleryLive();
@@ -236,6 +246,8 @@ export function LiveReel({
         open: () => open("hand"),
         preload: preloadView,
         viewAsked: reelOfAddress() !== null,
+        // The page's curtain's Close: the view's own (the owner back where she came from).
+        close: closeView,
       },
     });
   }, [
@@ -245,7 +257,41 @@ export function LiveReel({
     available,
     open,
     viewAsked,
+    closeView,
   ]);
+  // ★ THE REEL OPENS ON THE PHOTOGRAPH ALREADY STANDING (guest-moments r1, `opening=still`), handed to the view to
+  // stand until its first frame and to lead its take with: the curtain's, while it stands (`OpeningPin`; until it has
+  // pinned one, the same pick it makes, the album's first still with nothing of hers leading, as the server drew it),
+  // else the cover's own first still, which is what she pressed play beside.
+  const pinned = useOpeningPin(openingPin);
+  const curtainPickId = useMemo(
+    () =>
+      openingPin
+        ? (pickCoverIds(playable, {
+            eventId,
+            ownIds: null,
+            reelOn: available,
+          })[0] ?? null)
+        : null,
+    [openingPin, playable, eventId, available],
+  );
+  // Its link is read every render (a link that lands, or is re-minted, reaches it), as the cover's stills read theirs.
+  const curtainItem = curtainPickId
+    ? playable.find((it) => it.id === curtainPickId)
+    : undefined;
+  const curtainTile = curtainItem
+    ? stillUrlFor(linkedStill(curtainItem, live.clips))
+    : "";
+  const opening = useMemo(() => {
+    if (
+      pinned &&
+      playable.some((it) => it.id === pinned.id && isReelEligible(it))
+    )
+      return pinned;
+    if (curtainPickId && curtainTile)
+      return { id: curtainPickId, tile: curtainTile };
+    return openingStillOf(stills);
+  }, [pinned, playable, curtainPickId, curtainTile, stills]);
   // And it goes with the album: a remount (an access flip) or a page left takes its word with it.
   useEffect(() => () => headBridge?.set(null), [headBridge]);
 
@@ -266,6 +312,7 @@ export function LiveReel({
         moderated,
         isOwner,
         onSetForEveryone: isOwner && !isDemo ? setForEveryone : undefined,
+        opening,
         onClose: closeView,
       }
     : null;

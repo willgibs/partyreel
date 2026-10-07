@@ -279,7 +279,7 @@ describe("a head arrival while the reader is deep moves nothing they can see", (
     expect(tiles(container)).not.toContain("new0");
   });
 
-  it("lets a reader at the head watch it arrive: no scroll, and it pushes in", () => {
+  it("lets a reader at the head watch it arrive: no scroll, and it settles in", () => {
     const { container, rerender } = render(
       <MasonryColumns items={album} layout="rows" />,
     );
@@ -289,7 +289,7 @@ describe("a head arrival while the reader is deep moves nothing they can see", (
     expect(scrollBy).not.toHaveBeenCalled();
     const tile = container.querySelector('[data-media-id="new0"]')!;
     expect(tile.hasAttribute("data-entering")).toBe(true);
-    // Its neighbours were here before: they glide, they do not push.
+    // Its neighbours were here before: they glide, they do not settle.
     expect(
       container
         .querySelector('[data-media-id="a0"]')!
@@ -297,7 +297,7 @@ describe("a head arrival while the reader is deep moves nothing they can see", (
     ).toBe(false);
   });
 
-  it("stops the push once the glide is over, so a remount never replays it", () => {
+  it("ends the settle once the glide is over, so a remount never carries it", () => {
     vi.useFakeTimers();
     try {
       const { container, rerender } = render(

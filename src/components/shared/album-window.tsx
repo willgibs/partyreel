@@ -54,8 +54,10 @@
  * proportion to its shape), and a spacer estimates the rest; the engine's rows
  * replace it in a layout effect, moving breaks and never remounting a tile.
  *
- * Arrivals push (`album-columns` r2, `arrival=push`): a photograph new to the
- * rows is revealed from its left edge (`data-entering`, `arrival.css`) while
+ * Arrivals settle (guest-moments r1, Will's `batch=settle`, refining
+ * `album-columns` r2's `arrival=push`): a photograph new to the rows stands
+ * whole in its place from the first frame its place opens (`data-entering`,
+ * `arrival.css`, which lifts it over the neighbours leaving that place) while
  * every tile the reflow moved glides from where it stood, only those a reader
  * can see (`--arrival-glide-ms`). A step change glides the same way; a resize,
  * a filter and the first layout land at once, and reduced motion lands
@@ -172,7 +174,7 @@ export type RowTileBox = {
 export type RowTile = RowTileBox & {
   /** The album has not settled yet: a tile mounting now may take the album's entrance. */
   fresh: boolean;
-  /** New to the rows this moment (an arrival, a late approval): it pushes in. */
+  /** New to the rows this moment (an arrival, a late approval): it stands whole over the glide. */
   entering: boolean;
   /** In the album's first row: fetched first. */
   eager: boolean;
@@ -444,7 +446,7 @@ type RowsLaid = {
   version: number;
   /** Whether this change glides (an arrival, a hide, a step), or lands at once. */
   glide: boolean;
-  /** Photographs new to the rows, pushing in until the glide is over. */
+  /** Photographs new to the rows, standing over the neighbours' glide until it is over. */
   entering: ReadonlySet<string>;
   /** The scroll that keeps what the reader was looking at on its pixel. */
   shift: number;
@@ -804,7 +806,7 @@ export function AlbumRows<
             r.kind === "local" ||
             (r.kind === "full" &&
               ((r.reason === "params" && sameWidth) || r.reason === "tiny")),
-          // Still pushing from a moment ago, and now these too.
+          // Still standing over a glide from a moment ago, and now these too.
           entering:
             fresh.size > 0 || (laid && laid.entering.size > 0)
               ? new Set([...(laid?.entering ?? []), ...fresh])
@@ -872,8 +874,8 @@ export function AlbumRows<
     });
   }, [laid, appliedVersion, readViewAt]);
 
-  // The push lasts the glide, then the attribute goes (a tile scrolled out and
-  // back must not replay it).
+  // The settle lasts the glide, then the attribute goes (a tile scrolled out
+  // and back must not carry it).
   useEffect(() => {
     if (!laid || laid.entering.size === 0) return;
     const v = laid.version;
@@ -1041,7 +1043,7 @@ export function AlbumRows<
     [slots],
   );
   // Only the first paint's photographs take the album's opening entrance: once
-  // rows are laid, a tile mounts still (a window's scroll) or pushes in (an
+  // rows are laid, a tile mounts still (a window's scroll) or settles in (an
   // arrival), never with a page that opened minutes ago.
   const fresh = !laid;
 
@@ -1341,7 +1343,9 @@ export function AlbumRows<
           } as CSSProperties
         }
         className={cn(
-          "flex w-full flex-wrap gap-x-[var(--gap-gallery)]",
+          // `isolate`: an arrival's lift over its gliding neighbours (`arrival.css`'s settle) stays inside the
+          // album, so a tile never rises over a bar stuck to the screen.
+          "isolate flex w-full flex-wrap gap-x-[var(--gap-gallery)]",
           "gap-y-0",
           !layout && ROWS_FIRST_PAINT,
           layout?.tiny && "justify-center",

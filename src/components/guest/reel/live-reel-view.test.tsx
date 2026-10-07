@@ -53,6 +53,8 @@ const h = vi.hoisted(() => ({
   },
   viewerMounted: false,
   support: "yes" as "checking" | "yes" | "no",
+  // The stand-in player holds its first clip back (a slow phone's first window) until a test lets it on screen.
+  holdFirst: false,
 }));
 
 vi.mock("@/components/guest/gallery-live", () => ({
@@ -67,7 +69,7 @@ vi.mock("@/lib/reel/engine/player-live", () => ({
       props.source as { itemFor: (id: string) => LiveMediaItem }
     ).itemFor("m1");
     useEffect(() => {
-      if (first) onClipChange(first);
+      if (first && !h.holdFirst) onClipChange(first);
       // Once, as the first clip reaches the screen.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -220,10 +222,75 @@ beforeEach(() => {
   h.wake.release.mockClear();
   h.fullscreenListeners.length = 0;
   h.support = "yes";
+  h.holdFirst = false;
 });
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+/**
+ * ★ THE REEL OPENS ON ITS FIRST PHOTOGRAPH (guest-moments r1, Will's `opening=still`): it was a black with no mark until
+ * the player's first window drew (about a second on a slow phone), which at the very start read as broken. The
+ * cover's first still stands edge to edge from the view's first frame with Close beside it, the reel's take leads with
+ * it, and the first clip on screen crossfades it away; with no still (the hub's own reel before its develop), a quiet
+ * dark with Close.
+ */
+describe("the opening", () => {
+  const opening = { id: "m2", tile: "https://r2.test/p/2.webp" };
+  const still = () =>
+    document.querySelector<HTMLImageElement>("[data-reel-opening]");
+  const closeKey = () => screen.getByRole("button", { name: "Close" });
+
+  it("★ stands the first photograph with Close while the player loads, the dock waiting with it", () => {
+    h.holdFirst = true;
+    renderView({ opening });
+    expect(still()?.getAttribute("src")).toBe(opening.tile);
+    expect(still()?.dataset.reelOpening).toBe("in");
+    expect(closeKey().closest(".lr-follow")).toHaveAttribute(
+      "data-state",
+      "up",
+    );
+    expect(dock()).toBeNull();
+  });
+
+  it("★ the reel's take leads with it, so the reel starts from the picture standing", () => {
+    h.holdFirst = true;
+    renderView({ opening });
+    const source = h.player!.source as {
+      windowAt: (i: number, look: unknown) => { ids: string[] } | null;
+    };
+    expect(
+      source.windowAt(0, { styleId: "classic", surface: "wall" })?.ids[0],
+    ).toBe("m2");
+  });
+
+  it("★ the first clip on screen crossfades it away and brings the controls up for their first beat", () => {
+    vi.useFakeTimers();
+    h.holdFirst = true;
+    renderView({ opening });
+    const onClipChange = h.player!.onClipChange as (item: unknown) => void;
+    act(() => onClipChange(h.live && (h.live as GalleryLive).items[1]));
+    expect(still()?.dataset.reelOpening).toBe("out");
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(300));
+    expect(still()).toBeNull();
+    // The controls' first-sight beat runs from the first frame, not from the press a second before it.
+    act(() => vi.advanceTimersByTime(2000));
+    expect(dock()).toHaveAttribute("data-state", "up");
+    act(() => vi.advanceTimersByTime(600));
+    expect(dock()).toHaveAttribute("data-state", "rest");
+  });
+
+  it("is a quiet dark with Close where there is no photograph to stand (the hub's own reel)", () => {
+    h.holdFirst = true;
+    renderView();
+    expect(still()).toBeNull();
+    expect(closeKey().closest(".lr-follow")).toHaveAttribute(
+      "data-state",
+      "up",
+    );
+  });
 });
 
 describe("the chrome (the thin bar)", () => {

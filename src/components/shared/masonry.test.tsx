@@ -262,19 +262,16 @@ describe("the arrival marks ride the tile box", () => {
     expect(tiles[1].hasAttribute("data-arrived")).toBe(true);
   });
 
-  it("writes data-landed on exactly the ids the surface names", () => {
+  // ★ RESHAPED (album-moments-wiring): this pinned a second set, `landedIds`, written as `data-landed` (the sweep
+  // a guest's own newest took). Guest-moments r1's `own=glow` retired the sweep: hers takes the one light, so
+  // the scar kept is that no tile wears a second mark.
+  it("draws none when a surface names none, and never a second mark", () => {
     const { container } = render(
-      <MasonryColumns items={items} landedIds={new Set(["a"])} />,
+      <MasonryColumns items={items} arrivedIds={new Set(["a"])} />,
     );
-    const tiles = container.querySelectorAll("[data-media-tile]");
-    expect(tiles[0].hasAttribute("data-landed")).toBe(true);
-    expect(tiles[1].hasAttribute("data-landed")).toBe(false);
-  });
-
-  it("draws neither when a surface names neither", () => {
-    const { container } = render(<MasonryColumns items={items} />);
-    expect(container.querySelector("[data-arrived]")).toBeNull();
     expect(container.querySelector("[data-landed]")).toBeNull();
+    const bare = render(<MasonryColumns items={items} />);
+    expect(bare.container.querySelector("[data-arrived]")).toBeNull();
   });
 });
 
@@ -1386,7 +1383,6 @@ describe('layout="rows": the justified album on the one grid', () => {
         items={album}
         layout="rows"
         arrivedIds={new Set(["r0"])}
-        landedIds={new Set(["r1"])}
       />,
     );
     const tile = (id: string) =>
@@ -1396,7 +1392,6 @@ describe('layout="rows": the justified album on the one grid', () => {
     expect(tile("r3").querySelector("svg.lucide-play")).not.toBeNull();
     expect(tile("r2").querySelector('[data-tile-mark="like"]')).not.toBeNull();
     expect(tile("r0").hasAttribute("data-arrived")).toBe(true);
-    expect(tile("r1").hasAttribute("data-landed")).toBe(true);
     expect(tile("r4").hasAttribute("data-lit")).toBe(true);
   });
 

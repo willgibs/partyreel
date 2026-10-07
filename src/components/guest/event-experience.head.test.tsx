@@ -221,7 +221,7 @@ const publish = (reelWord: { available: boolean; viewAsked: boolean }) =>
     bridge().set({
       stills: [],
       reportExpiry: () => {},
-      reel: { ...reelWord, open: () => {}, preload: () => {} },
+      reel: { ...reelWord, open: () => {}, preload: () => {}, close: () => {} },
     });
   });
 

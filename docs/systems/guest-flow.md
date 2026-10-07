@@ -221,6 +221,15 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
     dismissed failure never comes back at a later run's end. While the door's upload step shows, it owns the run's
     failures (`suppressFailures`).
+  - **The send's toast** ([`upload/send-toast.ts`](../../src/components/guest/upload/send-toast.ts), guest-moments
+    r1's `own=glow` note): once, as a run's last file lands (never at its start: the stack shows a send while it
+    runs), one short toast says what of the run landed, in the keep's words (`keepSentLine`: hers "joined Maya's
+    album", or how they develop, as the host lets them in or with everyone's), with Show yours: the album's Yours view
+    and the album brought into view (`live-gallery-lens.ts`), or her uploads where they wait. Heard at the page, whose
+    queue outlives the slot, so a run's own files are counted (a Retry's included, an earlier run's never). A refused
+    file stays the failure sheet's (the toast counts the rest); a run that landed nothing says nothing; and it is
+    spent, never said later, where another surface says the landing: the keep, the door's upload step, the camera
+    (`quiet`), or the reel's view. The demo's has no press (its photographs are nobody's).
   - **The flip, mid-run**: a host turning An email first on answers 403 `verification_required`, one of the refusals
     the queue reads as the session's, never one file's (its header names them). A confirmed viewer re-joins silently
     once (the queue reads its ticket per file); a name-only guest's queued files fail in place with the server's
@@ -983,28 +992,35 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
     Review; no confirm, since nothing else in the list asks one. It leaves her list through the page's own record
     (`removedIds`, which also takes it out of what is in flight, so an emptied album asks for its first photo again and
     a require-an-upload album asks the server whether its door stands), and stays with Try again when refused.
-- **The arrival, one grammar for a guest and a host alike**: `data-arrived`, the glow of a photograph that appeared by
-  itself, and `data-landed`, the one pass of light a guest's own landing takes. The one grid
-  ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)) writes both from two sets the surface hands down,
-  [`shared/arrival.css`](../../src/components/shared/arrival.css) draws both, and their timing has one home,
-  [`lib/shared/arrival.ts`](../../src/lib/shared/arrival.ts). `newArrivalIds(prev, next)`
+- **The arrival, one grammar for a guest and a host alike, and one light** (guest-moments r1, Will's `own=glow`):
+  `data-arrived`, a rim and a wash that fade (2 s), on every photograph new to the album, hers on her own phone as
+  anyone's (the pass of light her own newest took, `data-landed`, retired with that pick: the send's toast says hers
+  are in). The one grid ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)) writes it from the set the
+  surface hands down, [`shared/arrival.css`](../../src/components/shared/arrival.css) draws it, and its timing has one
+  home, [`lib/shared/arrival.ts`](../../src/lib/shared/arrival.ts). `newArrivalIds(prev, next)`
   ([`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts)) reports the ids not on screen a moment
   ago, the one definition that catches every route in (a doorbell arrival, a held item approved an hour later, a burst
   after a hidden tab wakes), through the grammar's one diff (`newIds`, which the host's grid reads too) plus the guest's
   seed rule (a last answer that was no album, a teaser's, a lock's or an unread album's, names no arrival:
-  `albumOnScreen`), and `arrivalMarks()` (pure, pinned by its tests) takes her own landings out of the glow and gives
-  the newest the sweep. The diff is by id, so a rolled presign never glows; nor does the seed render, an album opening
-  under a mounted provider, or her own upload (it sweeps).
+  `albumOnScreen`), and `arrivalMarks()` (pure, pinned by its tests) takes her own landings out of what waits at the
+  door: the poll hands hers in a beat after her own tile stood, and held there it would vanish for the hold. The diff
+  is by id, so a rolled presign never glows; nor does the seed render or an album opening under a mounted provider.
   **An arrival lands complete, or not until it can** (`shared/use-arrival-gate.ts`, in `GalleryRows`, which takes
-  `arrivals` rather than the glow's set and writes the glow itself; the host's album runs the same gate,
-  [host-app.md](host-app.md)). A delta brings an arrival before anything has fetched or decoded its photograph, so an
-  arrival pushed at once would draw a shimmer and fade its photograph in after the wipe was over. The gate holds each
-  arrival out of the rows, asks for its link (`onNeedLinks`, `ensureLinks`), fetches and decodes its photograph at the
-  tile's own address (`decodeTileImage`, `tileImageSrc`), and lets it in when that is done, so `MediaTile` finds it
-  complete (`data-instant`). It waits at most `ARRIVAL_DECODE_WAIT_MS` and holds at most `ARRIVAL_HOLD_MAX` at once (a
-  failed decode is let in at once), waits for a video with no preview's link alone, and never holds the seed, a
-  filter's or step's toggle, an arrival the Yours filter hides, this device's own landing or anything under reduced
-  motion. The glow is lit when it is let in.
+  `arrivals` and her own landings (`own`) rather than the glow's set and writes the glow itself; the host's album runs
+  the same gate, [host-app.md](host-app.md)). A delta brings an arrival before anything has fetched or decoded its
+  photograph, so an arrival laid at once would draw a shimmer and fade its photograph in. The gate holds each arrival
+  out of the rows, asks for its link (`onNeedLinks`, `ensureLinks`), fetches and decodes its photograph at the tile's
+  own address (`decodeTileImage`, `tileImageSrc`), and lets it in when that is done, so `MediaTile` finds it complete
+  (`data-instant`). ★ **A batch lands whole** (Will's `batch=settle`): what one answer brings is one batch, let in
+  together at its slowest photograph, so the rows open once; past `ARRIVAL_DECODE_WAIT_MS` (from its intake) it goes
+  in as it stands, and a failed decode holds it no longer. At most `ARRIVAL_HOLD_MAX` are fetched at once; the rest
+  wait unfetched with their batch (the window asks their links). It waits for a video with no preview's link alone,
+  never holds the seed, a filter's or step's toggle, an arrival the Yours filter hides or this device's own landing
+  (lit the moment it stands), and holds under reduced motion as anywhere (the hold moves nothing; let in there, a batch
+  stood as grey places). The glow is lit when each is let in. ★ **The newcomer stands whole in its place** from the
+  first frame its place opens (`data-entering`, which the rows write in the render that lands it and keep for the
+  glide): it is lifted over the neighbours gliding out of that place (each glides on a transform, which would paint
+  over it), inside the grid's own stacking (`isolate`), never clipped or faded in.
   **One she cannot see is said, never shown by moving her** (album-order,
   [`album-window-news.tsx`](../../src/components/shared/album-window-news.tsx); the hub's album too, its arrivals off
   the hub's store, `event-gallery-news.ts`). The rows already hold her place (the anchoring); the surface also hands
@@ -1131,12 +1147,23 @@ view's Make your own), and the welcome, like any step a guest still owes, comes 
 included. **A viewer who owes no door arriving on `?reel` meets the reel, never her album** (the owner from her hub's
 Reel card, by a soft navigation; a returning guest on a shared reel link): the view is a lazy chunk that opens after
 the page mounts, so the album would paint first and flash under it. The page's server knows who asked (`reelAsked`:
-the door's first byte, `doorArrival`, drew no stage and no scrim, at full access), so the view's own black stands from
-the first byte of a hard load and the first commit of a soft one (`data-reel-curtain`) and the view opens over it; the
-curtain goes the moment the address stops asking (the view closed, or the reel turned out not to play) and never
-comes back for that visit. It stands on the album's word to the head, which is the address as it stands when told
+the door's first byte, `doorArrival`, drew no stage and no scrim, at full access), so the reel's curtain
+([`event-experience-curtain.tsx`](../../src/components/guest/event-experience-curtain.tsx), `data-reel-curtain`)
+stands from the first byte of a hard load (the page's first child, before the head) and the first commit of a soft
+one, and the view opens over it. ★ **The curtain is the reel's first photograph, with Close** (guest-moments r1,
+Will's `opening=still`): the cover's own slot 0 from the seed, in a boundary of its own, then pinned (`OpeningPin`) so
+the view stands that very photograph and its take opens on it ([reel.md](reel.md)), a quiet dark where the album has
+none (a sealed album). Close is a link to the album (it works before the page hydrates) that closes the reel as the
+view's own Close does once the album stands; Escape is Close. It is the view's own kind of modal, drawn in place (a
+portal draws nothing before hydration): the page under it locked, hidden from a screen reader and out of Tab's reach;
+she starts on the curtain itself. Past `REEL_CURTAIN_CEILING_MS` (12 s) with nothing over it (a seed or a view chunk
+that never lands) it says "The reel is taking a while." with Try again (the page asked again). The curtain goes the
+moment the address stops asking (the view closed, the reel turned out not to play, or its own Close) and never comes
+back for that visit. It stands on the album's word to the head, which is the address as it stands when told
 ([reel.md](reel.md)'s address: a soft navigation's first render reads the address it left);
-`event-experience.curtain.test.tsx` pins both orders.
+`event-experience.curtain.test.tsx` pins both orders. ★ **A seed's boundary (the cover's ground, the curtain's still)
+is memoized and reads a seed already in hand at once**: a page render reaching it before it hydrated drew it afresh
+from its fallback, and the photographs the server drew vanished for 100 to 450 ms on a slow line.
 
 ## See also
 
