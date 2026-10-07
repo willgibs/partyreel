@@ -2,12 +2,10 @@
 
 import type { CSSProperties, ReactNode } from "react";
 
-import { fitChroma, orbFor } from "@/lib/avatar/gradient";
+import { fitChroma } from "@/lib/avatar/gradient";
 import { cn } from "@/lib/utils";
 
 import {
-  EDGE,
-  HOUSE,
   INTENSITY,
   type Lamp,
   type Light,
@@ -16,9 +14,12 @@ import {
 } from "./fixtures";
 
 /**
- * APERTURE'S LIGHT, AS THIS BOARD PLACES IT: the three forms (the Ring, the
- * Seam, the Bloom) in the room, and on paper the pieces of the room they live
- * in (the puck, the strip, the plate), drawn beside production's surfaces.
+ * APERTURE'S LIGHT, AS THIS BOARD PLACES IT: the light's colour from its
+ * sources, the Seam (where production's own is not the one drawn: the door's,
+ * the camera's) and the Ring's puck on paper, drawn beside production's
+ * surfaces. The hub's Seam and the guest cover's are production's own
+ * (`hub.tsx`, `cover-light.tsx`); the Blooms are drawn where they stand
+ * (`camera.tsx`, `create.tsx`).
  *
  * ★ RETYPED FROM BRAND R2'S DECK, NEVER IMPORTED (`brand/afterglow/system.tsx`
  * and `brand/aperture/light.tsx`): a board's folder is deleted the day it
@@ -32,10 +33,8 @@ import {
  * the edge itself, lit.
  *
  * ★ STILL UNTIL SOMETHING HAPPENS: nothing here animates by itself. A form
- * takes its strength as a number (`strength`, `lift`), so a held beat is a
- * light at that instant; the one motion a form owns (a Bloom igniting once)
- * runs only with motion allowed, its resting style the still frame
- * (`signature.css`).
+ * takes its strength as a number (`strength`, `--sg-lift`), so a held beat is
+ * a light at that instant (`signature.css`).
  */
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
@@ -80,10 +79,6 @@ export function lampColor(lamp: Lamp, register: Register): string {
   const fit = fitChroma({ l, c, h });
   return `oklch(${r3(l)} ${r3(fit.c)} ${Math.round(h)})`;
 }
-
-/** A colour at an alpha, mixed in oklab (never through a grey). */
-export const alpha = (c: string, pct: number) =>
-  `color-mix(in oklab, ${c} ${pct}%, transparent)`;
 
 /** Each lamp's centre along its light, 0 to 1, by its share. */
 function centres(light: Light): number[] {
@@ -138,13 +133,6 @@ function depths(h: number, c?: number): Light {
 const withDepth = (light: Light): Light =>
   light.length === 1 ? depths(light[0]!.h, light[0]!.c) : light;
 
-/** A still's light: its own sampled hues, the three heaviest, at its own intensity. */
-export function stillLight(id: StillId): Light {
-  const c = chromaOf(id);
-  const top = [...SAMPLED[id]].sort((a, b) => b.w - a.w).slice(0, 3);
-  return withDepth(top.map((x) => ({ ...x, c })));
-}
-
 /**
  * A still's ONE light: its heaviest hue, weighted by its intensity, read at
  * three depths (the hashvatar's way to be rich). Where a surface takes a
@@ -155,12 +143,25 @@ export function keyLight(id: StillId): Light {
   return depths(top.h, chromaOf(id));
 }
 
-/** A still's bottom edge, sixth by sixth, where its Seam is born (its sampled light where none was read). */
-export function edgeLight(id: StillId): Light {
-  const hues = EDGE[id];
-  if (!hues) return stillLight(id);
-  const c = chromaOf(id);
-  return hues.map((h) => ({ h, w: 1, c }));
+/**
+ * AN ALBUM'S ONE LIGHT: the heaviest hue across its photographs, each lamp
+ * weighted by its share and its photograph's intensity (a laser show outvotes a
+ * daylight arch), read at three depths: Aperture's Ring, lit by one key.
+ */
+export function albumKeyLight(ids: readonly StillId[]): Light {
+  const votes: { h: number; w: number }[] = [];
+  for (const id of ids)
+    for (const lamp of SAMPLED[id]) {
+      const w = lamp.w * INTENSITY[id];
+      const near = votes.find((v) => hueGap(v.h, lamp.h) < 24);
+      if (near) {
+        const d = ((lamp.h - near.h + 540) % 360) - 180;
+        near.h = (near.h + d * (w / (near.w + w)) + 360) % 360;
+        near.w += w;
+      } else votes.push({ h: lamp.h, w });
+    }
+  const best = votes.sort((a, b) => b.w - a.w)[0]!;
+  return depths(best.h, Math.max(...ids.map(chromaOf)));
 }
 
 /** The light of several photographs at once: each an equal vote, near hues merged, three kept. */
@@ -180,12 +181,6 @@ export function albumLight(ids: readonly StillId[]): Light {
   const top = merged.sort((a, b) => b.w - a.w).slice(0, 3);
   return withDepth(top.sort((a, b) => a.h - b.h).map((x) => ({ ...x, c })));
 }
-
-/** Before the first photograph: the event's seed, its one hue at three depths. */
-export const seedLight = (seed: string): Light => depths(orbFor(seed).hue);
-
-/** Where there is neither: the house ember. */
-export const houseLight = (): Light => HOUSE;
 
 /** A light's hue angles, the three heaviest, for an atom that takes hues (production's shutter). */
 export function huesOf(light: Light): number[] {
@@ -247,40 +242,6 @@ export function Seam({
   );
 }
 
-/**
- * THE SEAM ON PAPER (Aperture's rebate): a strip of the room under the
- * photograph's edge, the light born inside it at the room's own strength, so
- * nothing is ever laid on the paper itself. At least 30 px, or the light has
- * no room to fall.
- */
-export function Strip({
-  light,
-  height = 32,
-  edge = "top",
-  className,
-  style,
-  children,
-}: {
-  light: Light;
-  height?: number;
-  edge?: Edge;
-  className?: string;
-  style?: CSSProperties;
-  children?: ReactNode;
-}) {
-  const side = edge === "left" || edge === "right";
-  return (
-    <span
-      data-sg-strip={edge}
-      className={cn("sg-strip", className)}
-      style={side ? { width: height, ...style } : { height, ...style }}
-    >
-      <Seam light={light} edge={edge} reach={height} strength={1.05} />
-      {children}
-    </span>
-  );
-}
-
 /* ── the Ring's piece of the room ─────────────────────────────────────── */
 
 /**
@@ -298,112 +259,20 @@ export function Puck({
   size: number;
   children: ReactNode;
 }) {
-  const out = Math.round(size * 0.22);
+  // The ring's band stands 5 px out from the face; the puck is the ring and 6 px more (the creative director's pass:
+  // any wider and a flat black disc reads as a tyre, the heaviest thing on the page).
+  const out = 11;
   return (
     <span
       data-sg-puck=""
       className="sg-puck-holder dark"
       style={{ width: size, height: size }}
     >
-      <span aria-hidden className="sg-puck" style={{ inset: -out }} />
+      <span aria-hidden className="sg-puck" style={{ inset: -out }}>
+        {/* The envelope's halo, inside the puck's own dark: on paper the light never leaves it. */}
+        <span className="sg-puck-halo" />
+      </span>
       {children}
     </span>
-  );
-}
-
-/* ── the Bloom ────────────────────────────────────────────────────────── */
-
-/**
- * THE BLOOM IN THE ROOM: light behind the one live subject, born at its own
- * edges (a blurred frame of its light, never a centred blob). It ignites once
- * and rests lit; `strength` is its level at this instant, for a Bloom that
- * follows a signal.
- */
-export function Bloom({
-  light,
-  spread = 6,
-  blur = 40,
-  radius = 2,
-  strength = 0.9,
-  ignite = false,
-  className,
-  style,
-  children,
-}: {
-  light: Light;
-  spread?: number;
-  blur?: number;
-  radius?: number;
-  strength?: number;
-  ignite?: boolean;
-  className?: string;
-  style?: CSSProperties;
-  children: ReactNode;
-}) {
-  const vars: Vars = {
-    "--sg-conic": conicOf(light, "room"),
-    "--sg-spread": `${spread}px`,
-    "--sg-blur": `${blur}px`,
-    "--sg-radius": `${radius}px`,
-    "--sg-o": strength,
-    ...style,
-  };
-  return (
-    <div
-      data-sg-bloom={ignite ? "ignite" : "rest"}
-      className={cn("sg-bloom", className)}
-      style={vars}
-    >
-      <span aria-hidden className="sg-bloom-light" />
-      <div className="sg-bloom-subject">{children}</div>
-    </div>
-  );
-}
-
-/**
- * THE BLOOM ON PAPER (Aperture's plate): the subject on a black mount a ninth
- * of its size wider all round, hot at the subject's edge and black by the
- * mount's, so the light is spent inside the dark it brought.
- */
-export function Plate({
-  light,
-  size,
-  radius = 4,
-  className,
-  children,
-}: {
-  light: Light;
-  /** The subject's larger side, px: the mount and its light scale from it. */
-  size: number;
-  radius?: number;
-  className?: string;
-  children: ReactNode;
-}) {
-  const out = Math.max(16, Math.round(size * 0.11));
-  const halo = Math.min(40, Math.round(out * 0.62));
-  const vars: Vars = {
-    "--sg-core": conicOf(light, "seam"),
-    "--sg-conic": conicOf(light, "room"),
-    "--sg-core-in": `${out - 2}px`,
-    "--sg-core-blur": `${Math.max(3, Math.round(out * 0.08))}px`,
-    "--sg-in": `${out - Math.round(halo * 0.3)}px`,
-    "--sg-blur": `${Math.round(halo * 0.42)}px`,
-    "--sg-radius": `${radius + 2}px`,
-  };
-  return (
-    <div data-sg-plate="" className={cn("sg-plate", className)} style={vars}>
-      <span
-        aria-hidden
-        className="sg-plate-mount"
-        style={{
-          inset: -out,
-          borderRadius: Math.max(6, radius + Math.round(out * 0.4)),
-        }}
-      >
-        <span className="sg-plate-light" />
-        <span className="sg-plate-core" />
-      </span>
-      <div className="sg-plate-subject">{children}</div>
-    </div>
   );
 }

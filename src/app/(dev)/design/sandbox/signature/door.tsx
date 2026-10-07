@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type RefObject, useEffect, useState } from "react";
 
 import { DoorHeading } from "@/components/guest/door/heading";
 import { EntryShell } from "@/components/guest/entry-shell";
@@ -14,7 +14,7 @@ import { publishDoorHues } from "@/lib/guest/door-light";
 import { GuestAlbum } from "./album";
 import { ALBUM, COVER } from "./fixtures";
 import type { Ground, Screen } from "./knobs";
-import { albumLight, huesOf, keyLight, Seam, Strip } from "./light";
+import { albumLight, huesOf, keyLight, Seam } from "./light";
 import { useNoFocus } from "./live";
 
 /**
@@ -26,13 +26,16 @@ import { useNoFocus } from "./live";
  * ★ TODAY'S LAMP IS PRODUCTION'S (`DoorLamp`, the shell's own), lit with the
  * album's three hues as the page's sampler hands them (`publishDoorHues`, here
  * the stills' reads). Every other option stands it down in the frame's own
- * document and draws its light inside the sheet, behind every word.
+ * document.
  *
- * ★ THE SEAM IS SPENT BEFORE THE WORDS (Afterglow's "never behind words"):
- * the sheet's free edge is its top in a hand and its left at a desk, and the
- * light falls only as far as the sheet's own margin before the first line.
- * On paper it sits in a strip of the room along that edge, and the sheet's
- * words step past the strip.
+ * ★ THE ONE LIGHT LIVES AT THE ALBUM'S EDGE, IN ITS DARK, NEVER ON THE SHEET
+ * (the creative director's pass): the dimmed album over the sheet is already
+ * the room, so the cover's light is born where the album meets the sheet's
+ * free edge (its top in a hand, its left at a desk) and rises into the album
+ * a little way, the scrim darkened under it so the light has its dark. The
+ * sheet stays clean, its words untouched, and the answer is one construction
+ * in the room and on paper alike (on paper the light never touches the
+ * page: here it never even touches the sheet).
  *
  * ★ STAND-INS, SAID ONCE: the name step is drawn from production's atoms with
  * its words (the component itself posts to the server), the album behind is
@@ -51,10 +54,10 @@ export type DoorStep = "name" | "photo";
  */
 const COVER_LIGHT = keyLight(COVER.id);
 
-/** How far the Seam falls into the sheet before its first line, per edge. */
-const REACH = { top: 44, left: 24 } as const;
-/** The strip of the room on paper: the brand's minimum, so the light has room to fall. */
-const STRIP = 30;
+/** How far the light rises into the album from the sheet's edge, at her last step (the creative director's 28 px). */
+const REACH = 30;
+/** How far the album's scrim is darkened over the edge, so the light stands in its own dark. */
+const DARK = 44;
 
 /** Production's own stand-down of today's lamp, in the frame's document alone. */
 const NO_LAMP = "[data-door-lamp] { display: none !important; }";
@@ -108,80 +111,71 @@ function PhotoBody() {
   );
 }
 
-/** The option's light on the sheet's free edge, behind every word (the sheet is its own stacking context). */
-function EdgeLight({
+/** The sheet's box in the frame, read once it has risen (the panel portals a commit after it mounts, then slides in). */
+function useSheetBox(ref: RefObject<HTMLElement | null>) {
+  const [box, setBox] = useState<DOMRect | null>(null);
+  useEffect(() => {
+    const doc = ref.current?.ownerDocument;
+    const win = doc?.defaultView;
+    if (!doc || !win) return;
+    const read = () => {
+      const sheet = doc.querySelector<HTMLElement>("[data-entry-sheet]");
+      if (sheet) setBox(sheet.getBoundingClientRect());
+    };
+    const timers = [60, 400, 900, 1600].map((ms) => win.setTimeout(read, ms));
+    return () => timers.forEach((t) => win.clearTimeout(t));
+  }, [ref]);
+  return box;
+}
+
+/**
+ * THE LIGHT AT THE ALBUM'S EDGE: a Seam born on the sheet's free edge and
+ * rising into the album (the album's side of the edge, never the sheet's), over
+ * a darkening of the scrim along that edge. Above the scrim, never over the
+ * sheet: it stands wholly outside the panel's box.
+ */
+function AlbumEdgeLight({
   way,
   step,
   edge,
-  ground,
+  box,
 }: {
   way: DoorWay;
   step: DoorStep;
   edge: "top" | "left";
-  ground: Ground;
+  box: DOMRect | null;
 }) {
-  if (way === "lamps" || way === "none") return null;
-  // ★ IT GROWS WITH HER STEPS: short at the first, its whole reach once she is at the last (here her photo).
-  const share = way === "grows" && step === "name" ? 0.42 : 1;
+  if (way === "lamps" || way === "none" || !box) return null;
+  // ★ IT GROWS WITH HER STEPS: short at her first, its whole reach once she is at the last (here her photo).
+  const reach = way === "grows" && step === "name" ? 12 : REACH;
   const place: CSSProperties =
     edge === "top"
-      ? { position: "absolute", left: 0, right: 0, top: 0, zIndex: -1 }
-      : { position: "absolute", top: 0, bottom: 0, left: 0, zIndex: -1 };
-  if (ground === "paper")
-    return (
-      <span style={place} data-sg-door-light="strip">
-        <Strip
-          light={COVER_LIGHT}
-          edge={edge}
-          height={STRIP}
-          style={{
-            ...(edge === "left" ? { height: "100%" } : null),
-            // On paper the strip keeps its height; growing, its light spreads along it instead.
-            ...(share < 1
-              ? ({
-                  WebkitMaskImage: `linear-gradient(${edge === "top" ? "90deg" : "180deg"}, #000 ${share * 100}%, transparent ${share * 100 + 18}%)`,
-                  maskImage: `linear-gradient(${edge === "top" ? "90deg" : "180deg"}, #000 ${share * 100}%, transparent ${share * 100 + 18}%)`,
-                } as CSSProperties)
-              : null),
-          }}
-        />
-      </span>
-    );
+      ? { left: box.left, width: box.width, top: box.top - DARK, height: DARK }
+      : { top: 0, bottom: 0, left: box.left - DARK, width: DARK };
+  const dark = `linear-gradient(${edge === "top" ? "to top" : "to left"}, rgb(0 0 0 / 0.42) 0, rgb(0 0 0 / 0.16) 55%, transparent 100%)`;
   return (
     <span
-      style={{
-        ...place,
-        ...(edge === "top" ? { height: REACH.top } : { width: REACH.left }),
-      }}
-      data-sg-door-light="seam"
+      aria-hidden
+      data-sg-door-light={way}
+      className="pointer-events-none fixed z-[51] block"
+      style={place}
     >
-      <Seam
-        light={COVER_LIGHT}
-        edge={edge}
-        reach={Math.round(REACH[edge] * share)}
-      />
+      <span className="absolute inset-0 block" style={{ background: dark }} />
+      <span
+        className="absolute block"
+        style={
+          edge === "top"
+            ? { left: 0, right: 0, bottom: 0, height: reach }
+            : { top: 0, bottom: 0, right: 0, width: reach }
+        }
+      >
+        <Seam
+          light={COVER_LIGHT}
+          edge={edge === "top" ? "bottom" : "right"}
+          reach={reach}
+        />
+      </span>
     </span>
-  );
-}
-
-/** On paper the strip takes the sheet's first room, so the words step past it. */
-function Past({
-  ground,
-  edge,
-  way,
-  children,
-}: {
-  ground: Ground;
-  edge: "top" | "left";
-  way: DoorWay;
-  children: ReactNode;
-}) {
-  if (ground !== "paper" || way === "lamps" || way === "none")
-    return <>{children}</>;
-  return (
-    <div style={edge === "top" ? { paddingTop: 22 } : { paddingLeft: 16 }}>
-      {children}
-    </div>
   );
 }
 
@@ -199,10 +193,11 @@ export function DoorScene({
   const edge = screen === "1440" ? "left" : "top";
   const copy = guestNameCopy("join");
   const root = useNoFocus();
+  const box = useSheetBox(root);
   return (
     <div ref={root} data-sg-door={way} data-sg-step={step}>
       {way !== "lamps" ? <style>{NO_LAMP}</style> : null}
-      <GuestAlbum screen={screen} ground={ground} seam={null} scroll={false} />
+      <GuestAlbum screen={screen} ground={ground} seam={false} scroll="top" />
       <EntryShell
         open
         dismissMode="held"
@@ -212,11 +207,9 @@ export function DoorScene({
           step === "name" ? copy.reason : "Add one now, or look around first."
         }
       >
-        <EdgeLight way={way} step={step} edge={edge} ground={ground} />
-        <Past ground={ground} edge={edge} way={way}>
-          {step === "name" ? <NameBody /> : <PhotoBody />}
-        </Past>
+        {step === "name" ? <NameBody /> : <PhotoBody />}
       </EntryShell>
+      <AlbumEdgeLight way={way} step={step} edge={edge} box={box} />
     </div>
   );
 }

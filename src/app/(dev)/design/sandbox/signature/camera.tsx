@@ -19,7 +19,7 @@ import {
 } from "@/lib/guest/camera/words";
 
 import { still, WEDDING } from "./fixtures";
-import { conicOf, edgeLight, Seam, stillLight } from "./light";
+import { conicOf, keyLight, Seam } from "./light";
 import { useLoop } from "./live";
 
 /**
@@ -33,11 +33,16 @@ import { useLoop } from "./live";
  * ★ THE RED STAYS IN EVERY OPTION: the face, its ring and the mark are the
  * camera's recording state, information; an option adds only its light.
  *
- * ★ THE LIGHT ANSWERS THE SOUND THE CLIP IS RECORDING: loud, the room's
- * toast; quiet, a lull; refused, the microphone the guest said no to, so the
- * clip films silence and the light stays dark (the camera already says so in
- * words: "Filming without sound"). The moving frame plays a toast's sound on
- * an envelope (quick to rise, slow to settle).
+ * ★ TWO LIGHTS FOR TWO THINGS. The Seam (`seam`) answers the SOUND the clip
+ * is recording: loud, the room's toast; quiet, a lull; refused, the
+ * microphone the guest said no to, so the clip films silence and the light
+ * stays dark (the camera already says so in words: "Filming without sound").
+ * It is born at the picture's foot, as wide as the picture less its corners,
+ * and spent in the gap above the reel's frames, never over them. The Bloom
+ * (`bloom`) marks the PICTURE as the screen's one live subject: lit once as
+ * the clip starts and resting lit, whatever the sound (a Bloom does not pulse:
+ * the creative director's pass), tight enough to stay off the bar. The moving
+ * frame plays a toast's sound on an envelope (quick to rise, slow to settle).
  *
  * ★ STAND-INS, SAID ONCE: the finder's live picture is a still, the sound is
  * drawn rather than heard, and every press is inert.
@@ -48,9 +53,12 @@ export type ClipMoment = "loud" | "quiet" | "refused";
 
 /** The finder's picture: the toast under the string lights. */
 const FINDER = still("wedding-toast");
-/** The picture's own light (a Bloom round it), and its bottom edge (a Seam under it). */
-const PICTURE_LIGHT = stillLight(FINDER.id);
-const PICTURE_EDGE = edgeLight(FINDER.id);
+/**
+ * The picture's one light, its key at three depths, for both forms: a live
+ * picture's edge changes every frame, and its six sixths would flicker (the
+ * plants' green under the toast read as a hot spot: the creative director's pass).
+ */
+const PICTURE_LIGHT = keyLight(FINDER.id);
 
 /** Four seconds into a thirty-second clip. */
 const ELAPSED_MS = 4_000;
@@ -65,8 +73,8 @@ const LEVEL: Record<ClipMoment, number> = {
   refused: 0,
 };
 
-/** The Seam's reach under the picture at full sound: as far as the reel's foot. */
-const SEAM_REACH = 86;
+/** The Seam's reach under the picture at full sound: the gap above the reel's frames (its 14 px and the frames' 8). */
+const SEAM_REACH = 22;
 
 const none = () => {};
 const HANDLERS = {
@@ -181,16 +189,14 @@ export function CameraFilming({
           </Button>
         </div>
 
-        {way === "bloom" && !silent ? (
-          // The picture's own light behind it: a frame of its colours, born at its edges, as strong as the sound.
+        {way === "bloom" ? (
+          // The picture's own light behind it, born at its edges: lit once as the clip starts, resting lit.
           <span
-            ref={light}
             aria-hidden
             data-sg-bloom="clip"
             className="sg-cam-bloom"
             style={
               {
-                ...vars,
                 "--sg-conic": conicOf(PICTURE_LIGHT, "room"),
               } as CSSProperties
             }
@@ -222,7 +228,7 @@ export function CameraFilming({
               className="sg-clip-seam"
               style={vars}
             >
-              <Seam light={PICTURE_EDGE} edge="top" reach={SEAM_REACH} />
+              <Seam light={PICTURE_LIGHT} edge="top" reach={SEAM_REACH} />
             </span>
           ) : null}
           <CameraReel

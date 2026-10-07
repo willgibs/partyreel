@@ -108,17 +108,24 @@ export const SIGNATURE = defineExploration({
       overrule: "Draw the Add as Aperture's dark disc inside its ring.",
     },
     {
+      id: "ring",
+      question: "What colour is the Ring in a new option?",
+      taken:
+        "The album's one key light, lit from the top-left; today's three hues sweeping round it read as the spectrum creeping back.",
+      overrule: "Keep the album's three hues round the Ring.",
+    },
+    {
       id: "colour",
       question: "Where does each picture's colour come from?",
       taken:
-        "Production's sampler's reads of the stills (brand r2's), the house ember where there is none; never a hue chosen by hand.",
+        "Production's own reads: the cover's edge read live as the hub's is, the stills' sampled light; never a hue chosen by hand.",
       overrule: "Tune a light by eye where the read looks wrong.",
     },
     {
       id: "hub",
       question: "Does the hub get a question of its own?",
       taken:
-        "No: its Seam is wired this wave (event-header r6) and is its one light; it stands beside the guest's album as the host's cover.",
+        "No: its Seam is wired (event-header r6) and is its one light; it is drawn beside the guest's album at a laptop, as built.",
       overrule: "Ask the hub's light again beside the guest's.",
     },
   ],
@@ -134,7 +141,7 @@ export const SIGNATURE = defineExploration({
       lands:
         "The guest's cover and the Add: whether the cover's foot is lit as the hub's is, and when the Add's Ring lights.",
       context:
-        "Maya & Jay's album at a phone or a laptop (Screen), in the room or on paper (Ground): its first screen, then scrolled in, the Add at its foot; at a laptop, the host's hub beside it, its Seam as wired.",
+        "Maya & Jay's album at a phone or a laptop (Screen), in the room or on paper (Ground): its first screen, the moment the Add docks, then scrolled in; at a laptop, the host's hub as built.",
       options: [
         {
           id: "ring",
@@ -150,21 +157,21 @@ export const SIGNATURE = defineExploration({
           id: "seam",
           label: "The cover's Seam alone",
           means:
-            "The cover's foot is lit in its own colours, as the hub's is; the Add rests unlit and lights only while her photos send.",
+            "The hub's own Seam under the guest's cover; the Add rests unlit and lights only while her photos send.",
           gains:
-            "Guest and host covers share one grammar, the light born from the photographs.",
+            "Guest and host covers share one light, born from the photographs.",
           costs:
-            "Scrolled into the album nothing is lit at rest; the Add is quieter.",
+            "Nothing is lit once she is in the album, and the first row starts lower.",
         },
         {
           id: "follow",
           label: "The Seam, then the Ring",
           means:
-            "The cover's Seam while the cover is in view; once it has scrolled away the light passes to the Add's Ring.",
+            "The hub's Seam while the cover is in view; once its foot has scrolled away, the light passes to the Add's Ring.",
           gains:
             "Every view holds exactly one light, where she is looking: the photograph, then the act.",
           costs:
-            "Two forms on one page, so the hand-over between them has to be clean.",
+            "The Add docks unlit while the Seam is still in view; the first row starts lower.",
         },
       ],
       recommended: "follow",
@@ -187,13 +194,13 @@ export const SIGNATURE = defineExploration({
       lands:
         "The shutter's motion at rest, while files send, as they land, and whether other guests' photos move it.",
       context:
-        "The foot of the album at a phone, in the room or on paper (Ground), drawn in your album answer: the Add at rest, two of three sending, the run landed, and another guest's photo landing after.",
+        "The album's foot at a phone, in the room or on paper (Ground), in your album answer: playing, then at rest, a photo landing, the run landed, a guest's photo; the trace under it is the glow over time.",
       options: [
         {
           id: "breath",
           label: "As today: a deep breath at rest",
           means:
-            "The light breathes deeply on a loop at rest, dims and fills round as her files send, then shows a check as they land.",
+            "Today's three hues breathe on a loop at rest, dim and fill round as her files send, then show a check as they land.",
           gains: "Built; the shutter always reads as ready.",
           costs:
             "A deep loop with nothing happening, which 'still until something happens' rules out.",
@@ -202,7 +209,7 @@ export const SIGNATURE = defineExploration({
           id: "still",
           label: "Still, then lit once as they land",
           means:
-            "Rests lit and still; the light fills round as her files send, flares once as the run lands, and settles.",
+            "Rests low and still; the light fills round as her files send, flares once as the run lands, and settles.",
           gains: "Aperture's own motion: light only when something happens.",
           costs: "A quiet album's Add never moves, so it can read as asleep.",
         },
@@ -210,17 +217,16 @@ export const SIGNATURE = defineExploration({
           id: "answer",
           label: "The envelope: each photo lifts it",
           means:
-            "Each of her photos that lands lifts the glow at once and lets it settle slowly; at rest a breath so faint it reads as ready.",
+            "Rests low and still; each of her photos that lands lifts a halo round it at once, which settles over two seconds.",
           gains:
             "A run of twelve reads as twelve beats of light: the Add answers her.",
-          costs:
-            "Its faint idle breath is still a loop, and a long run is lively.",
+          costs: "A long run is lively, and a quiet album's Add never moves.",
         },
         {
           id: "party",
           label: "The envelope, on everyone's photos",
           means:
-            "The same envelope, lifted by every photo landing in the album, hers or another guest's: it glows with the party.",
+            "The same envelope, lifted by every photo landing in the album: hers fully, another guest's at less than half.",
           gains: "The Add glows while others add, inviting her in.",
           costs:
             "Lit most of a busy night, beside each arrival's own glow: two lights.",
@@ -229,7 +235,7 @@ export const SIGNATURE = defineExploration({
       recommended: "answer",
       today: "breath",
       because:
-        "It answers each photo the moment it lands and is all but still otherwise: alive, never asking.",
+        "It answers each of her photos the moment it lands and is still otherwise: alive, never asking.",
       overrule:
         "If nothing may move at rest, Still; if the Add should carry the party's pulse, the envelope on everyone's.",
       after: { ask: "album" },
@@ -241,13 +247,13 @@ export const SIGNATURE = defineExploration({
       question:
         "Where the door's sheet meets the album, what light does it carry?",
       where: ["Guest", "The door", "The sheet over the album"],
-      when: "A new guest has scanned the code: the album waits blurred behind a held sheet asking for her first photo.",
+      when: "A new guest has scanned the code: the album waits blurred behind a held sheet asking her name, then her first photo.",
       matters:
         "It is the first light a guest ever sees, and today it is three lamps side by side.",
       lands:
         "The door's lamp, its pools and lit glyphs, on every sheet of the door's family, in both themes.",
       context:
-        "The door's sheet asking her first photo over Maya & Jay's album, from the foot at a phone or the right at a laptop (Screen), in the room or on paper (Ground).",
+        "The door's sheet over Maya & Jay's album, asking her name, then her first photo: from the foot at a phone, from the right at a laptop (Screen), in the room or on paper (Ground).",
       options: [
         {
           id: "lamps",
@@ -260,18 +266,18 @@ export const SIGNATURE = defineExploration({
         },
         {
           id: "seam",
-          label: "One Seam from the cover's edge",
+          label: "One Seam at the album's edge",
           means:
-            "The sheet's free edge lit by the cover photograph's own edge, still; on paper the light sits in a strip of the room.",
+            "The cover's own light, born where the album meets the sheet and rising into the album's dark; the sheet stays clean.",
           gains:
-            "One light, from the photograph she is about to enter, and it holds on paper.",
-          costs: "Quieter than today; on paper a dark strip tops the sheet.",
+            "One light, from the photograph she is about to enter, the same in both themes.",
+          costs: "Quieter than today's lamps, and it never touches the sheet.",
         },
         {
           id: "grows",
           label: "One Seam that grows with her steps",
           means:
-            "The same Seam, short at her first step and reaching further at each one she clears, whole when she is in.",
+            "The same Seam, short at her first step and reaching further at each step she clears, whole at her last.",
           gains:
             "The light answers her progress: the album's light reaches her as she nears it.",
           costs:
@@ -290,7 +296,7 @@ export const SIGNATURE = defineExploration({
       recommended: "seam",
       today: "lamps",
       because:
-        "One still light from the cover she is about to enter, and the same answer in the room and on paper.",
+        "One still light from the cover she is about to enter, never on the sheet, the same in the room and on paper.",
       overrule:
         "If the light should mark her progress, the Seam that grows; if the blurred album is welcome enough, none.",
       configs: [SCREEN, GROUND],
@@ -329,10 +335,10 @@ export const SIGNATURE = defineExploration({
           id: "bloom",
           label: "The picture lit round its edges",
           means:
-            "The live picture blooms in its own colours while it rolls, its strength following the sound.",
+            "The live picture glows in its own colours from the moment it rolls, lit once and resting, whatever the sound.",
           gains: "Unmistakable: the whole picture reads as recording.",
           costs:
-            "The loudest option: light round the picture crowds the finder.",
+            "It says nothing of the microphone, and light round the finder crowds it.",
         },
       ],
       recommended: "seam",
@@ -367,7 +373,7 @@ export const SIGNATURE = defineExploration({
           id: "dark",
           label: "Dark until her code",
           means:
-            "Every step is still and unlit; the room's first light is the code's Bloom at the close, lit once.",
+            "Every step still and unlit; the room's first light is the code's, lit once in the event's seed at the close.",
           gains:
             "The close becomes the payoff: her event's first light is its code.",
           costs: "The steps read plainer; their pictures carry them.",
@@ -376,7 +382,7 @@ export const SIGNATURE = defineExploration({
           id: "chosen",
           label: "Her answer, lit",
           means:
-            "Each step's chosen answer carries its one light (the style's photographs glowing behind its card); the code blooms at the close.",
+            "The chosen style's card glows in its own photographs' light; the code is lit in the event's seed at the close.",
           gains: "The light follows her choices all the way to the code.",
           costs:
             "A light that moves with every pick, where the choice is already marked.",

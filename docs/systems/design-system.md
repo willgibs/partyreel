@@ -684,9 +684,10 @@ board, its own sheet and scenes), found by the registry and the board route and 
   scene mounts once the frame's copied sheets have loaded; the media hooks read the frame's window
   (`MediaWindowProvider`), so a frame at 375 draws the phone's branch; a layer opens inside it, its scroll lock and
   focus guards on the frame's body; and it carries its own `GlowFilter`. Still the lab's: a direct `window.matchMedia`
-  in production, radix's focus trap, and history (a place popup drawn open at a hand's width costs the tab's Back one
-  press); and a frame's elements wear the frame's own prototypes, so production's `instanceof HTMLElement` answers false
-  there.
+  in production, radix's focus trap, an `IntersectionObserver` with no root (its root is the lab's viewport, so the
+  hub's cards row folds into its pills wherever its frame stands: a board draws the resting row from its parts), and
+  history (a place popup drawn open at a hand's width costs the tab's Back one press); and a frame's elements wear the
+  frame's own prototypes, so production's `instanceof HTMLElement` answers false there.
 - **A frame takes its pane's theme and its option's pause** (`frame-theme.ts`, `frame-pause.ts`). A portalled scene
   wears the class of the nearest `.dark` or `.surface-paper` above its frame (the page's with none) and follows it while
   open, so the Specimen's light and dark split draws it once in each; a routed frame keeps its site's own provider's

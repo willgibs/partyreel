@@ -153,14 +153,16 @@ export function lightsIn(root: HTMLElement, win: Window): string {
         : r.height;
     seen.push(`a Seam, ${Math.round(reach)}px`);
   }
-  for (const s of findAll(root, "[data-sg-strip]"))
-    if (inView(s, win)) seen.push("a strip of the room");
+  // Production's own Seam under the hub's cover (`event-hub-head-light.tsx`).
+  for (const h of findAll(root, "[data-hub-light]"))
+    if (inView(h, win))
+      seen.push(
+        `the hub's Seam, ${Math.round(h.getBoundingClientRect().height)}px (${h.dataset.hubLight})`,
+      );
   for (const r of findAll(root, "[data-sg-ring]"))
     if (inView(r, win)) seen.push(`the Ring ${r.dataset.sgRing}`);
   for (const b of findAll(root, "[data-sg-bloom]"))
     if (inView(b, win)) seen.push("a Bloom");
-  for (const p of findAll(root, "[data-sg-plate]"))
-    if (inView(p, win)) seen.push("a plate");
   for (const l of findAll(root, "[data-door-lamp]"))
     if (inView(l, win) && win.getComputedStyle(l).display !== "none")
       seen.push("the door's lamps");

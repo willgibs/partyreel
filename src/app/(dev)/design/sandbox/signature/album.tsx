@@ -31,9 +31,10 @@ import {
   type RowItem,
 } from "@/lib/shared/album-rows";
 
+import { CoverLight } from "./cover-light";
 import { ALBUM, COVER, type Light, type Still, WEDDING } from "./fixtures";
 import type { Ground, Screen } from "./knobs";
-import { huesOf, Puck, Seam, Strip } from "./light";
+import { conicOf, huesOf, lampColor, Puck } from "./light";
 
 /**
  * MAYA & JAY'S ALBUM AS PRIYA HOLDS IT, PRODUCTION'S: the guest's header on
@@ -45,12 +46,16 @@ import { huesOf, Puck, Seam, Strip } from "./light";
  * born at, below) and the Ring's state round the shutter. Everything else is
  * the album as built, so two options differ where their light does.
  *
- * ★ THE SEAM IS THE HUB'S, UNDER THE GUEST'S COVER (event-header r6's numbers,
- * retyped): 72 px at a phone and 120 at a desk, at full strength, the album
- * standing 8 px past its reach; on paper a strip of the room 30 or 36 px tall.
- * ★ AND THE COVER'S SCRIM LIFTS AT ITS VERY FOOT (r6's correction): the
- * photograph shows its own colours along the edge the light is born at, or the
- * light would seem to come from black. The words above keep their scrim.
+ * ★ THE SEAM IS THE HUB'S OWN, UNDER THE GUEST'S COVER (`cover-light.tsx`:
+ * production's drawing and maths, at the hub's reach), the album standing
+ * 8 px past it. ★ AND THE COVER'S SCRIM LIFTS AT ITS VERY FOOT, as the hub's
+ * does (`signature.css`, after `event-hub-head-seam.css`): the photograph
+ * shows its own colours along the edge the light is born at, or the light
+ * would seem to come from black. The words and the actions keep their scrim.
+ *
+ * ★ THE RING IS PRODUCTION'S SHUTTER: today's three hues where an option is
+ * today, and Aperture's Ring (the album's key light at three depths, lit from
+ * the top-left, its envelope a halo centred on it) where an option is new.
  *
  * ★ STAND-INS, SAID ONCE: the stills are the marketing photographs, the cover
  * holds one still (production dissolves through several), the dock is
@@ -58,14 +63,11 @@ import { huesOf, Puck, Seam, Strip } from "./light";
  * every press is inert.
  */
 
-/** Where the Seam stands under a cover, per screen (event-header r6's, retyped). */
+/** The hub's Seam at each screen (`event-hub-head-seam.css`'s `--hub-reach` and `--hub-strip`), for the scroll's maths. */
 export const SEAM_AT: Record<Screen, { reach: number; strip: number }> = {
   "375": { reach: 72, strip: 30 },
   "1440": { reach: 120, strip: 36 },
 };
-
-/** How far the photograph shows its own colours at the cover's foot. */
-const EDGE_BAND = 22;
 
 /** The album's box: the window less its gutter (`px-3 sm:px-5`), and the gallery's gap. */
 const albumWidth = (frame: number) => frame - (frame >= 640 ? 40 : 24);
@@ -219,62 +221,6 @@ function CoverActions() {
   );
 }
 
-/**
- * THE PHOTOGRAPH AT ITS OWN EDGE: the cover's still again, placed exactly as
- * the cover places it, shown only along the last few pixels over the scrim,
- * so the edge the Seam is born at is seen in its own colours.
- */
-export function EdgeBand({ still }: { still: Still }) {
-  return (
-    <div
-      aria-hidden
-      data-sg-edge=""
-      className="pointer-events-none absolute inset-0"
-      style={{
-        WebkitMaskImage: `linear-gradient(to top, #000 0, rgb(0 0 0 / 0.55) ${EDGE_BAND * 0.45}px, transparent ${EDGE_BAND}px)`,
-        maskImage: `linear-gradient(to top, #000 0, rgb(0 0 0 / 0.55) ${EDGE_BAND * 0.45}px, transparent ${EDGE_BAND}px)`,
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element -- the cover's own still, at its edge */}
-      <img
-        src={still.src}
-        alt=""
-        draggable={false}
-        className="absolute inset-0 size-full object-cover"
-        style={{ objectPosition: still.focus, filter: "brightness(0.82)" }}
-      />
-    </div>
-  );
-}
-
-/**
- * THE SEAM UNDER A COVER: in the room its whole reach in the page, words
- * past it; on paper a strip of the room under the photograph. `edge` is the
- * light of the cover's own bottom edge.
- */
-export function CoverSeam({
-  screen,
-  ground,
-  light,
-}: {
-  screen: Screen;
-  ground: Ground;
-  light: Light;
-}) {
-  const at = SEAM_AT[screen];
-  if (ground === "paper")
-    return <Strip light={light} height={at.strip} className="w-full" />;
-  return (
-    <div
-      className="relative w-full"
-      style={{ height: at.reach }}
-      data-sg-cover-seam=""
-    >
-      <Seam light={light} edge="top" reach={at.reach} />
-    </div>
-  );
-}
-
 /* ── the dock and its Ring ─────────────────────────────────────────────── */
 
 /** The Ring's state at one instant: production's shutter state, and its light's level. */
@@ -290,6 +236,11 @@ export type RingBeat = {
   held?: boolean;
   /** A Ring whose light moves only when something happens: production's breath stood down. */
   still?: boolean;
+  /**
+   * Aperture's Ring (every new option): the album's key light at three depths, lit from the top-left, resting low,
+   * its envelope a halo centred on it. Absent, production's own three hues.
+   */
+  key?: boolean;
 };
 
 /**
@@ -300,11 +251,15 @@ export type RingBeat = {
 export function Ring({
   beat,
   light,
+  keyLight,
   ground,
   wrapRef,
 }: {
   beat: RingBeat;
+  /** The album's light: production's three hues. */
   light: Light;
+  /** The album's key light, for Aperture's Ring (`key` is React's own word, so not that). */
+  keyLight: Light;
   ground: Ground;
   /** A live driver writes the envelope's level on this element itself (`--sg-lift`), never through a render. */
   wrapRef?: Ref<HTMLSpanElement>;
@@ -324,6 +279,12 @@ export function Ring({
     />
   );
   const lifted = beat.lift !== undefined;
+  const vars: CSSProperties & Record<`--${string}`, string | number> = {};
+  if (lifted) vars["--sg-lift"] = beat.lift!;
+  if (beat.key) {
+    vars["--sg-key-conic"] = conicOf(keyLight, "room");
+    vars["--sg-halo"] = lampColor(keyLight[1] ?? keyLight[0]!, "room");
+  }
   return (
     <span
       ref={wrapRef}
@@ -332,8 +293,10 @@ export function Ring({
       data-sg-lift={lifted ? "" : undefined}
       data-sg-held={beat.held ? "" : undefined}
       data-sg-still={beat.still ? "" : undefined}
+      data-sg-key={beat.key ? "" : undefined}
+      data-sg-paper={ground === "paper" ? "" : undefined}
       className="relative inline-flex"
-      style={lifted ? ({ "--sg-lift": beat.lift } as CSSProperties) : undefined}
+      style={vars}
     >
       {ground === "paper" ? <Puck size={64}>{shutter}</Puck> : shutter}
     </span>
@@ -352,22 +315,25 @@ export function Dock({ ring }: { ring: ReactNode }) {
         className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background via-background/70 to-transparent"
       />
       <div className="relative flex items-center justify-center gap-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        {/* The flanks are production's rounds on the page's own ground (`GuestShare look="round"`, the reel's). */}
         <Button
           type="button"
-          variant="glass"
+          variant="outline"
           size="icon-cta"
           tabIndex={-1}
           aria-label="Invite"
+          className="bg-background shadow-layer"
         >
           <QrCode />
         </Button>
         {ring}
         <Button
           type="button"
-          variant="glass"
+          variant="outline"
           size="icon-cta"
           tabIndex={-1}
           aria-label="Watch the highlight reel"
+          className="bg-background shadow-layer"
         >
           <Play className="fill-current" />
         </Button>
@@ -379,10 +345,35 @@ export function Dock({ ring }: { ring: ReactNode }) {
 /* ── the page ──────────────────────────────────────────────────────────── */
 
 /**
+ * Where a frame stands in the album: its first screen; the hand-over, the
+ * cover's actions just gone (so the dock has risen) while the cover's foot and
+ * its Seam are still in view; or in the album, the cover and its Seam gone.
+ */
+export type AlbumScroll = "top" | "handover" | "in";
+
+/** How far below the frame's top the album's box stands, per scroll and screen (the actions stand 24 or 36 px above the cover's foot). */
+function offsetOf(
+  scroll: AlbumScroll,
+  screen: Screen,
+  ground: Ground,
+  seam: boolean,
+): number | null {
+  if (scroll === "top") return null;
+  if (scroll === "in") return screen === "1440" ? 24 : 16;
+  const actions = screen === "1440" ? 36 : 24;
+  const light = seam
+    ? ground === "paper"
+      ? SEAM_AT[screen].strip + 16
+      : SEAM_AT[screen].reach + 8
+    : 20;
+  // The actions' foot 4 px above the frame's top: the row has just left, so the dock stands.
+  return actions - 4 + light;
+}
+
+/**
  * PRIYA'S PAGE: the header, the cover, the cover's Seam where an option lights
- * it, the album's box and its rows, and the dock where the cover has scrolled
- * away. `scroll` scrolls the frame into the album (the cover gone); `dock` is
- * what stands at the foot then.
+ * it, the album's box and its rows, and the dock once the cover's actions have
+ * scrolled away.
  */
 export function GuestAlbum({
   screen,
@@ -393,18 +384,17 @@ export function GuestAlbum({
 }: {
   screen: Screen;
   ground: Ground;
-  /** The cover's Seam: its light, or none. */
-  seam: Light | null;
-  /** Scrolled into the album, the cover gone. */
-  scroll: boolean;
+  /** The cover's Seam: production's, under the cover. */
+  seam: boolean;
+  scroll: AlbumScroll;
   dock?: ReactNode;
 }) {
   const w = screen === "1440" ? 1440 : 375;
-  const box = useScrollTo(scroll ? (screen === "1440" ? 24 : 16) : null);
-  const at = SEAM_AT[screen];
+  const box = useScrollTo(offsetOf(scroll, screen, ground, seam));
   return (
     <div
       data-sg-album={seam ? "seam" : "plain"}
+      data-sg-scroll={scroll}
       className="relative min-h-screen bg-background pb-28 text-foreground"
     >
       <GuestBar />
@@ -413,7 +403,6 @@ export function GuestAlbum({
         ground={
           <div className="absolute inset-0">
             <HeadStills stills={[{ id: COVER.id, tile: COVER.src }]} />
-            {seam ? <EdgeBand still={COVER} /> : null}
           </div>
         }
         name={WEDDING.name}
@@ -428,7 +417,7 @@ export function GuestAlbum({
         guestCount={WEDDING.guests}
         actions={<CoverActions />}
       />
-      {seam ? <CoverSeam screen={screen} ground={ground} light={seam} /> : null}
+      {seam ? <CoverLight still={COVER} /> : null}
       <div
         ref={box}
         className="px-3 sm:px-5"
@@ -452,12 +441,7 @@ export function GuestAlbum({
         </div>
         <Rows tiles={TILES} width={albumWidth(w)} />
       </div>
-      {scroll && dock ? dock : null}
-      {/* The reach the room's Seam takes, so a reader of the frame can say it. */}
-      <span
-        hidden
-        data-sg-reach={seam ? (ground === "paper" ? at.strip : at.reach) : 0}
-      />
+      {scroll !== "top" && dock ? dock : null}
     </div>
   );
 }

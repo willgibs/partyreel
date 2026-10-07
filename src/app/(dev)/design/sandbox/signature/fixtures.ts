@@ -156,34 +156,6 @@ export const INTENSITY: Record<StillId, number> = {
 };
 
 /**
- * A STILL'S BOTTOM EDGE, IN PLACE: the dominant hue of each sixth of its last
- * rows, left to right (the Seam's own colours, read where it is born).
- */
-export const EDGE: Partial<Record<StillId, readonly number[]>> = {
-  "concert-confetti": [9, 294, 308, 309, 293, 277],
-  "wedding-toast": [50, 141, 52, 69, 51, 40],
-  "reception-table": [114, 97, 65, 54, 64, 52],
-  "wedding-arch": [138, 129, 129, 129, 140, 131],
-  "party-balloons": [82, 67, 81, 68, 68],
-  "festival-lights": [233, 246, 233, 220, 233, 247],
-};
-
-/**
- * THE HOUSE EMBER (brand r2, every take): where there is no photograph and no
- * seed, the house lamps lit as one glow from the top-left, amber where the key
- * light falls, warming through coral to a deep ember. Never side by side.
- */
-export const HOUSE: Light = [
-  { h: 80, w: 0.34, dl: 0.06 },
-  { h: 52, w: 0.3 },
-  { h: 34, w: 0.22, dl: -0.04 },
-  { h: 24, w: 0.14, dl: -0.1 },
-];
-
-/** Production's house five, as the door's lamp and the shutter fall back to them (`door-light.ts`). */
-export const HOUSE_FIVE: readonly number[] = [25, 85, 155, 255, 305];
-
-/**
  * THE NIGHT, AS THE HUB'S FACTS STRIP READS ONE (`HubFactsStrip`'s
  * `arrivals`: minutes since the epoch, oldest first): a board has no album
  * store, so the hub is handed the night itself. Each press of Add lands a run

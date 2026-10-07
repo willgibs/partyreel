@@ -8,15 +8,29 @@ import {
   type PreviewsFor,
 } from "@/components/lab";
 
-import { AddBeat, AddPlaying, type AddWay, type Beat, BEAT_TITLE } from "./add";
-import { Dock, GuestAlbum, Ring, type RingBeat } from "./album";
+import {
+  AddBeat,
+  AddPlaying,
+  type AddWay,
+  type Beat,
+  BEAT_TITLE,
+  type Lights,
+  Trace,
+} from "./add";
+import {
+  type AlbumScroll,
+  Dock,
+  GuestAlbum,
+  Ring,
+  type RingBeat,
+} from "./album";
 import { CameraFilming, type ClipMoment, type ClipWay } from "./camera";
 import { CreateScreen, type CreateStep, type CreateWay } from "./create";
 import { DoorScene, type DoorStep, type DoorWay } from "./door";
-import { ALBUM, COVER } from "./fixtures";
+import { ALBUM } from "./fixtures";
 import { HubScreen } from "./hub";
 import { type Ground, groundOf, type Screen, screenOf } from "./knobs";
-import { albumLight, edgeLight } from "./light";
+import { albumKeyLight, albumLight } from "./light";
 import {
   find,
   lightsIn,
@@ -79,14 +93,34 @@ type AlbumWay = "ring" | "seam" | "follow";
 const albumOf = (v: string | undefined): AlbumWay =>
   v === "seam" || v === "follow" ? v : "ring";
 
-/** The album's own light: its photographs', the Ring's colour. */
-const ALBUM_LIGHT = albumLight(ALBUM.slice(0, 6).map((s) => s.id));
-/** The cover's bottom edge: the Seam's colour. */
-const EDGE_LIGHT = edgeLight(COVER.id);
+/** The album's light: production's three hues round today's Ring, and its one key round Aperture's. */
+const LIGHTS: Lights = {
+  light: albumLight(ALBUM.slice(0, 6).map((s) => s.id)),
+  keyLight: albumKeyLight(ALBUM.slice(0, 6).map((s) => s.id)),
+};
 
 /** The Ring's kind in an album answer: unlit at rest where the cover's Seam holds the album's light. */
 const kindOf = (way: AlbumWay): RingBeat["kind"] =>
   way === "seam" ? "unlit" : "lit";
+
+/** The Ring at rest at a place in the album, per answer: today's as built, unlit while a Seam holds the light. */
+function restRing(way: AlbumWay, scroll: AlbumScroll): RingBeat {
+  if (way === "ring") return { kind: "lit", state: "idle", held: true };
+  const unlit = way === "seam" || scroll === "handover";
+  return {
+    kind: unlit ? "unlit" : "lit",
+    state: "idle",
+    lift: 0,
+    held: true,
+    key: true,
+  };
+}
+
+const ALBUM_TITLE: Record<AlbumScroll, string> = {
+  top: "The album's first screen",
+  handover: "As the Add docks",
+  in: "Scrolled in, the cover gone",
+};
 
 function AlbumStory({
   way,
@@ -97,53 +131,41 @@ function AlbumStory({
   screen: Screen;
   ground: Ground;
 }) {
-  const seam = way === "ring" ? null : EDGE_LIGHT;
+  const seam = way !== "ring";
+  // At a laptop a frame is a stage's width: the first screen and the album, then the host's hub.
+  const scrolls: readonly AlbumScroll[] =
+    screen === "1440" ? ["top", "in"] : ["top", "handover", "in"];
   return (
     <Story screen={screen}>
-      <Scene
-        id={`sg-album-top-${way}`}
-        screen={screen}
-        ground={ground}
-        title="The album's first screen"
-        measure={readLights}
-      >
-        <GuestAlbum
+      {scrolls.map((scroll) => (
+        <Scene
+          key={scroll}
+          id={`sg-album-${scroll}-${way}`}
           screen={screen}
           ground={ground}
-          seam={seam}
-          scroll={false}
-        />
-      </Scene>
-      <Scene
-        id={`sg-album-in-${way}`}
-        screen={screen}
-        ground={ground}
-        title="Scrolled in, the Add at the foot"
-        measure={readLights}
-      >
-        <GuestAlbum
-          screen={screen}
-          ground={ground}
-          seam={seam}
-          scroll
-          dock={
-            <Dock
-              ring={
-                <Ring
-                  beat={{
-                    kind: kindOf(way),
-                    state: "idle",
-                    lift: 0,
-                    held: true,
-                  }}
-                  light={ALBUM_LIGHT}
-                  ground={ground}
-                />
-              }
-            />
-          }
-        />
-      </Scene>
+          title={ALBUM_TITLE[scroll]}
+          measure={readLights}
+        >
+          <GuestAlbum
+            screen={screen}
+            ground={ground}
+            seam={seam}
+            scroll={scroll}
+            dock={
+              <Dock
+                ring={
+                  <Ring
+                    beat={restRing(way, scroll)}
+                    light={LIGHTS.light}
+                    keyLight={LIGHTS.keyLight}
+                    ground={ground}
+                  />
+                }
+              />
+            }
+          />
+        </Scene>
+      ))}
       {screen === "1440" ? (
         // At a laptop, where a host runs her party, her hub beside the guest's album: the light she already has.
         <Scene
@@ -153,7 +175,7 @@ function AlbumStory({
           title="The host's hub, its Seam as wired"
           measure={readLights}
         >
-          <HubScreen ground={ground} />
+          <HubScreen />
         </Scene>
       ) : null}
     </Story>
@@ -177,37 +199,40 @@ function AddStory({
 }) {
   const kind = kindOf(album);
   return (
-    <Story screen="375">
-      <Scene
-        id={`sg-add-play-${way}-${album}`}
-        screen="375"
-        ground={ground}
-        height={FOOT_H}
-        title="Playing: her run of three, then the party"
-        measure={readRing}
-      >
-        <AddPlaying way={way} kind={kind} light={ALBUM_LIGHT} ground={ground} />
-      </Scene>
-      {BEATS.map((beat) => (
+    <div className="flex flex-col gap-4">
+      <Story screen="375">
         <Scene
-          key={beat}
-          id={`sg-add-${beat}-${way}-${album}`}
+          id={`sg-add-play-${way}-${album}`}
           screen="375"
           ground={ground}
           height={FOOT_H}
-          title={BEAT_TITLE[beat]}
+          title="Playing: her run of three, then the party"
           measure={readRing}
         >
-          <AddBeat
-            way={way}
-            beat={beat}
-            kind={kind}
-            light={ALBUM_LIGHT}
-            ground={ground}
-          />
+          <AddPlaying way={way} kind={kind} lights={LIGHTS} ground={ground} />
         </Scene>
-      ))}
-    </Story>
+        {BEATS.map((beat) => (
+          <Scene
+            key={beat}
+            id={`sg-add-${beat}-${way}-${album}`}
+            screen="375"
+            ground={ground}
+            height={FOOT_H}
+            title={BEAT_TITLE[beat]}
+            measure={readRing}
+          >
+            <AddBeat
+              way={way}
+              beat={beat}
+              kind={kind}
+              lights={LIGHTS}
+              ground={ground}
+            />
+          </Scene>
+        ))}
+      </Story>
+      <Trace way={way} />
+    </div>
   );
 }
 
