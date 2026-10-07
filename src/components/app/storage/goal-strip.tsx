@@ -163,7 +163,8 @@ function PlanLine({ goal, count }: { goal: FitGoal; count: GoalCount }) {
       data-state={fitStep(count)}
       className="border-b px-4 py-3"
     >
-      <div className="flex min-h-7 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+      {/* Centred, not on the baseline: the check that opens "Fits ..." has none, and would drop its words below the figure. */}
+      <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <p
           aria-live="polite"
           className="min-w-0 text-sm font-medium text-pretty text-foreground"

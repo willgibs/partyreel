@@ -175,9 +175,10 @@ export async function letBackIn(
     liftDb(supabase).rpc("let_back_in", {
       p_block_id: blockId,
       p_restore: options.restore,
-      // ★ SENT ON EVERY LIFT, false where it is no Let in: a call that leaves it out means today's lift, and this
-      // build names it either way, so the migration lands before it does (its header says why).
-      p_let_in: options.letIn,
+      // ★ NAMED ONLY FOR A LET IN: a call that leaves it out means today's lift on either side of the migration
+      // (PostgREST finds the function by the names it is sent), so every other lift keeps working whichever lands
+      // first, and only a Let in waits on 20261007020000 (its header: apply it before this build deploys).
+      ...(options.letIn ? { p_let_in: true } : {}),
     }),
   );
   if (!result.ok) return result;

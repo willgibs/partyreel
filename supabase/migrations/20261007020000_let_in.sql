@@ -20,9 +20,10 @@
 -- `let_back_in(p_block_id, p_restore)`, which now finds this function with p_let_in false: the body it runs is today's
 -- to the letter, and the answer is today's keys plus `let_in` (always 0 for it), which its reader never asks for. So
 -- that build keeps telling its host "back at the door", and keeps doing it. No contract follows: a call that leaves
--- p_let_in out means today's lift for good (this lane's build sends it false for every lift that is not a Let in).
--- ★ APPLY BEFORE THIS LANE'S BUILD DEPLOYS: its `letBackIn` sends p_let_in on every call, and PostgREST finds an RPC by
--- the names it is sent (database-security.md), so without this file every lift from that build is a PGRST202.
+-- p_let_in out means today's lift for good (this lane's build leaves it out of every lift that is not a Let in).
+-- ★ APPLY BEFORE THIS LANE'S BUILD DEPLOYS: its Let in sends p_let_in, and PostgREST finds an RPC by the names it is
+-- sent (database-security.md), so without this file that build's Let in (Blocked's, and the decline toast's) is a
+-- PGRST202, said to the host as "Couldn't let them in."; its every other lift names two and runs on either side.
 --
 -- ★ A DROP, NEVER A SECOND OVERLOAD: PostgREST would find both `let_back_in(uuid, boolean)` and this one for the two
 -- names the deployed build sends and refuse the call (PGRST203). The drop and the create are one transaction, so no
