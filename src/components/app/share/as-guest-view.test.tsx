@@ -207,7 +207,7 @@ describe("its header", () => {
     expect(
       screen.queryByRole("link", { name: /back to your hub/i }),
     ).toBeNull();
-    const start = screen.getByRole("button", { name: /start for free/i });
+    const start = screen.getByRole("button", { name: /make one like this/i });
     expect(start.closest("[inert]")).not.toBeNull();
   });
 

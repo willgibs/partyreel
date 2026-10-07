@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Clock, Images } from "lucide-react";
+import { Clock, ImageUp, Images } from "lucide-react";
 
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
+import { useHostAdd } from "@/components/app/host-add-provider";
 import {
   useHostAlbum,
   useHubLinksRevision,
@@ -16,6 +17,9 @@ import { HostMediaGrid, type HubRows } from "@/components/app/host-media-grid";
 import { type GridMedia } from "@/components/app/media-grid";
 import { LikesProvider, useLikes } from "@/components/likes/likes-provider";
 import type { AlbumHandle } from "@/components/shared/masonry";
+import { Button } from "@/components/ui/button";
+import { Empty } from "@/components/ui/empty";
+import { trackAttrs } from "@/lib/analytics/events";
 import {
   createHubItems,
   hubEntries,
@@ -33,11 +37,10 @@ import { PHOTO_PARAM } from "@/lib/media/share-save";
 // an entry and the links of what the window mounts. So the list here is the WHOLE album, each tile
 // drawn once its window's links land, and nothing on this page is refreshed to show an arrival.
 //
-// ★ THE ZERO STATE IS THE ALBUM'S OWN: no photos yet, and the album fills here.
-// What an event still needs before guests arrive is the checklist's, at the head
-// of the hub (event-ready `list=head`, 2026-10-02), which stays past the first
-// photograph where the launch list that stood here left with it, done or not.
-// The album takes the place back the moment the first photograph lands, live.
+// ★ THE ZERO STATE IS THE ALBUM'S OWN, IN THE HOUSE'S EMPTY VOICE (create-wizard r5's carried `album`, Will's pick for
+// an empty album): "The album starts with you", Add the first photos its one door, the album's own uploader. What an
+// event still needs, and what is worth doing, is the checklist's line at the head of the hub (event-ready `list=head`;
+// r5's `arrival=done`). The album takes the place back the moment the first photograph lands, live.
 //
 // ★ THE PENDING VARIANT STAYS ITS OWN THING. "Everything's in Review" is not an
 // empty event — it is a full one whose host has not looked yet.
@@ -110,11 +113,7 @@ function HubAlbum({
     }
     return (
       <div data-album-empty="">
-        <FeedSectionEmpty
-          icon={Images}
-          title="No photos yet"
-          desc="The album fills here as you and your guests add photos."
-        />
+        <AlbumStartsEmpty />
       </div>
     );
   }
@@ -192,6 +191,44 @@ function HubGrid({
 }
 
 const noop = () => {};
+
+/** The words an empty album says to its host, and the one door it opens (create-wizard r5's carried `album`). */
+export const EMPTY_ALBUM = {
+  title: "The album starts with you",
+  act: "Add the first photos",
+} as const;
+
+/**
+ * THE EMPTY ALBUM, HERS: the one empty place (`ui/empty.tsx`), its glyph the album's, its words an invitation, and the
+ * one act that starts it, the album's own uploader opened and brought into view (the checklist's first photos and the
+ * Reel card open the same). Outside the hub's add provider (the Library) there is no uploader, so no door.
+ */
+function AlbumStartsEmpty() {
+  const add = useHostAdd();
+  return (
+    <Empty
+      data-arrive
+      icon={<Images />}
+      title={EMPTY_ALBUM.title}
+      titleAs="p"
+      action={
+        add ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={add.openAdd}
+            {...trackAttrs("cta_click", {
+              cta: "add-photos",
+              location: "hub-album-empty",
+            })}
+          >
+            <ImageUp /> {EMPTY_ALBUM.act}
+          </Button>
+        ) : undefined
+      }
+    />
+  );
+}
 
 /**
  * THE VIEWER'S LINKS: the open photograph and its neighbours, wherever it walks. The grid writes the

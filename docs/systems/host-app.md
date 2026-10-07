@@ -24,8 +24,10 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
 - **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`): the
-  name, the album's style (a Disposable adds its own screen after it, the develop time and the roll, so the steppers
-  count five), the code's look, then the beat. It
+  name, the album's style (three cards resting on the moment they differ, the picked one playing its story once,
+  `style-story.ts`; a Disposable adds its own screen after it, the develop time and the roll, so the steppers count
+  five), the code's look, then the beat. The room is unlit on every screen: its first light is the code's, in the
+  event's seed (`seedLight`: `orbFor` of the event's id), lit once as the code turns real. It
   creates once, at commit (an abandoned Create leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. ★ **However many times it is asked, a Create is one
   event:** the wizard keeps one key (a UUID minted at its first press, kept across Back and edits) and `createEvent`
@@ -49,8 +51,26 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 - **The beat happens once in an event's life**: only Create event reaches it, and nothing leads Back once the event
   exists. Nothing on it says live before the event is: a failed Create is held on it, never a toast (`held.ts`: the
   sample stands, the words say nothing was lost and the way to put it right, the foot is Try again or, at the plan's
-  limit, Upgrade, and Back leads to the look). It closes on one line, what guests still need, read off the new event's
-  readiness (`stillNeeded`).
+  limit, Upgrade, and Back leads to the screen before it). Once the event exists it is the payoff of a made event: the
+  line under the question says share it, her link stands under the code as guests will receive it (the album's own
+  `/e/<token>/card`, its title, one press copying the permanent link), Print and Share under that (Share only where
+  the device has its own sheet; its message names videos only where the plan's album takes them), and the foot is Go to
+  your event, a link that prefetches the hub in full. ★ **The room opens into her event on the code's own morph
+  name** (`entry.ts`): the plate takes `CODE_MORPH_NAME`, which the hub's code wears while it is the code on screen, and a
+  native view transition carries the one into the other across the change of page (never React's `<ViewTransition>`,
+  whose flag swaps the app's React build); the screen freezes until her cover's code stands, under a 1.2 s ceiling, and
+  reduced motion, a hidden tab or no API is a plain navigation. The head's close steps aside once the event exists.
+- **Make one like this opens Create in an album's style** (`create-event-wizard/like.ts`, after-party r1's `bridge=end`):
+  the guest header's corner, her name menu and her account menu lead through `/dashboard/new/like/<token>`, a route
+  that keeps the token half an hour in a cookie sent to Create's page alone (`pr_create_like`, path `/dashboard/new`)
+  and sends a signed-out visitor to sign-up with Create as the return (a sign-in return carries a path, never a query,
+  and a new account names itself at `/welcome` first, so the token rides the cookie through both). Create's page
+  (or `?like=<token>` on its address) reads the album through its own read and its door as the visitor she is
+  (`pageDoor`): a door that shuts her lends nothing, and what crosses is the style alone (`likeOf`: its capture and
+  review as a style, its code's look, a Disposable's roll), never its name, date, guests, photos or develop time. Create
+  then asks only her name (a Disposable keeps its own screen: the time is hers), a chip under the question says what was
+  carried, and Change puts the two style screens back with the album's answers picked. The island puts the cookie down
+  as it opens; a read that fails is no like, filed.
 - **The cap is a door, not a dead button**, so a host never does the work of an event and only then learns the plan
   cannot hold it: the route computes `atCap` with `enforce_event_limit`'s own math (`profile.event_slots ??
   MAX_EVENTS[tier]`), and the wizard draws the refusal in the room instead of its screens, so New event stays a live
@@ -307,17 +327,24 @@ hub and closes back to it.
   ([design-system.md](design-system.md)): `floatingTransitionEntrance` declares no animation, because the transition
   is the entrance, and falls back to the standard clock under reduced motion. A hidden document never starts one
   (`withMorph`), because it cannot snapshot and every promise the transition hands back would reject.
-- **The checklist stands at the head of the hub until the event is done** (`event-feed/checklist.tsx`). Ready is one
-  pure function (`lib/events/readiness.ts`) the checklist, Settings' steps, the Settings card and Create's hand-off all
-  read, never stored and never shown to a guest; ready waits only on what a guest needs (a door she can pass, uploads
-  open, the code opened once, room once the shelf is full), and the first photos and the welcome are worth doing,
-  never a gate. Every fact is one the hub already reads (the code's first open is the header's Views number; the first
-  photos ride the album store's live counts, `useLiveReadyFacts`; the door's line at a Public or password door is
-  Settings' own sentence, `doorGuestLine`, from the identity step and the photo first the page hands over, so the list
-  never says a guest walks in where Settings says she confirms an email). It never leaves under her eyes, and from the day
-  after the event's date it is not drawn (`checklistOver`, on the viewer's day, as [dashboard.md](dashboard.md) reads
-  it): an album paused after the party is finished, not unready. A held-only album says "Everything's in Review",
-  since it is full, not empty.
+- **The checklist is one line at the head of the hub** (`event-feed/checklist.tsx`): Ready for guests from the minute
+  Create makes the event, with the next thing worth doing said as what it brings and its door beside it (`readyNext`:
+  the code's share first, its Invite, then the first photos, then the welcome), Show opening the rest; while a guest
+  still needs something the line says that first, ringed. It never leaves under her eyes; it leaves on a later visit
+  once nothing is left, from the day after the event's last day (`checklistOver`, on the viewer's day, as
+  [dashboard.md](dashboard.md) reads it: an album paused after the party is finished, not unready), or when she
+  dismisses it: ★ a dismissal is kept for that event alone, in her browser (`pr_checklist_off` on the event's own
+  pages, so the hub's first paint never draws it), and never comes back, since anything that truly needs her says so in
+  its own place (the door's corner, Review's count, a paused code). Ready is one pure function
+  (`lib/events/readiness.ts`) the checklist, Settings' steps, the Settings card and the dashboard's stage all read,
+  never stored and never shown to a guest; ready answers whether a guest who scanned now could get in and add (a door
+  she can pass, uploads open, room once the shelf is full), and the code's first open, the first photos and the welcome
+  are worth doing, never a gate. Every fact is one the hub already reads (the code's first open is the header's Views
+  number; the first photos ride the album store's live counts, `useLiveReadyFacts`; the door's line at a Public or
+  password door is Settings' own sentence, `doorGuestLine`, from the identity step and the photo first the page hands
+  over, so the list never says a guest walks in where Settings says she confirms an email). Under it an empty album
+  says "The album starts with you", Add the first photos its one door (her own uploader, `event-uploads.tsx`), and a
+  held-only album says "Everything's in Review", since it is full, not empty.
 - **The hub is live: an upload lands while the host looks, and nothing refreshes the page.** The album is the page's
   store (`event-feed/host-album.tsx`, its pure half `lib/event/hub-album.ts`), seeded with the host's first sync and
   its validator, and moved by `sync()` on the album's doorbell, a fallback poll and each write's catch-up; the host's

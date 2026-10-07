@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { preload } from "react-dom";
 import { Check } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
@@ -13,8 +13,7 @@ import {
 } from "@/components/app/event-settings/camera-settings-develop-time";
 import {
   STYLE_PICTURE_SRCS,
-  StylePicture,
-  type StyleMoment,
+  StylePictureFrame,
 } from "@/components/app/event-settings/camera-settings-style-picture";
 import {
   ALBUM_STYLES,
@@ -28,19 +27,22 @@ import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import { deviceZone, hostPartyZone } from "@/lib/event/zone";
 import { cn } from "@/lib/utils";
 
-import { Night } from "./night";
+import { runOf, useStory, useStoryRuns } from "./style-story";
 
 /**
  * THE ADD STEP: HOW THE ALBUM IS STYLED (create-wizard r3's add=styles, Will 2026-10-04: "Feels cleaner with more
  * focused views/less fighting for attention, and each option is explained clearly against each other without just
  * throwing screens at a new host ... the clear distinction across the 3. Really clear mental model"). The question is
- * the room's ("Pick your album's style"); the centre is three cards, Live, Review and Disposable, each a small album
- * moving through the night, its name, its one line and a tick, a soft light under the one picked; under them all the
- * night, a slider that moves every picture from guests arriving to the morning after.
+ * the room's ("Pick your album's style"); the centre is three cards, Live, Review and Disposable, each a small album,
+ * its name, its one line and a tick.
  *
- * ★ NOTHING OPENS UNDER THE CARDS (r4's `styles=focused`): the three stand still whatever she picks, and picking
- * Disposable adds its own screen after this one, the develop time and the roll (`develop-step.tsx`), rather than a row
- * opening under its card. The cards' moving pictures stay as built: r5 asks how the three are best seen at once.
+ * ★ THE PICKED ONE PLAYS, THE OTHERS STILL (r5's `previews=one`, Will 2026-10-07): the three cards rest on the one
+ * moment they differ (all in, all but the newest, only hers), so one look tells them apart; only the picked card plays
+ * its story once (arriving, the party, next morning), its moment named on it where it has the room, then rests
+ * (`style-story.ts`). No slider: nine pictures to hold in mind, three moving at once, went with it.
+ *
+ * ★ NOTHING OPENS UNDER THE CARDS (r4's `styles=focused`): picking Disposable adds its own screen after this one, the
+ * develop time and the roll (`develop-step.tsx`), rather than a row opening under its card.
  *
  * ★ A STYLE IS THE SETTINGS' ONE, NEVER A SECOND ONE: its names, its lines, its columns (`album-style.ts`), its
  * pictures (`camera-settings-style-picture.tsx`) and its develop time's judgement are Settings' own, so what a host
@@ -56,8 +58,8 @@ import { Night } from "./night";
  * she moves between the styles, and rides the create only with the Disposable (`createFieldsOf`). The card's line and
  * its arriving camera say her count.
  *
- * ★ THE NIGHT PLAYS ONCE, as the step first opens (every album empty, then the party), and then rests on the party for
- * her hand; reduced motion opens on the party. Her own move of the slider stops it.
+ * ★ THE STORY PLAYS ONCE AS THE STEP FIRST OPENS, on the picked card (Live, as Create opens), and again when a pick has
+ * stood its moment or the picked card is pressed; reduced motion plays nothing, the rest complete.
  *
  * ★ THE CHOICE IS A RADIO GROUP, as the code's looks are: a screen reader hears "one of three" and the arrows move
  * between the cards, choosing as they go (Radix's roving focus).
@@ -68,13 +70,10 @@ import { Night } from "./night";
 
 // ★ ASKED FOR BEFORE THE STEP, as the look's photograph is (`look-step.tsx`): this module loads with the page that
 // holds the wizard, long before Continue mounts the step, so the six frames every album picture draws are fetched while
-// she names the event and the pictures fill with the night, never after it.
+// she names the event and the pictures stand whole as the step opens, never after it.
 if (typeof window !== "undefined") {
   for (const src of STYLE_PICTURE_SRCS) preload(src, { as: "image" });
 }
-
-/** How long the arriving album stands empty before the party fills it, when the night plays. */
-const NIGHT_PLAYS_MS = 900;
 
 /* ── what she has chosen ──────────────────────────────────────────────── */
 
@@ -108,12 +107,26 @@ export type AddChoice = {
  * A Create has no album yet, so the judgement is `judgeDevelopTime`'s with nothing waiting: a time not ahead is "has
  * passed", never Develop now.
  */
-export function useAddChoice(): AddChoice {
-  const [style, setStyle] = useState<AlbumStyle>("live");
-  const [developsAt, setDevelopsAt] = useState<string | null>(null);
+export function useAddChoice(
+  /**
+   * The style Create opens on: Live, as most hosts want, or an album's own (Create's like-entry, `?like=`), its roll
+   * with it. A Disposable is offered its own 9 am tomorrow, never the album's develop time: the time is hers.
+   */
+  initial: { style: AlbumStyle; roll?: number | null } = { style: "live" },
+): AddChoice {
+  const [style, setStyle] = useState<AlbumStyle>(initial.style);
+  const [developsAt, setDevelopsAt] = useState<string | null>(() =>
+    initial.style === "disposable"
+      ? patchForStyle(
+          "disposable",
+          { capture: "upload", review: false, developsAt: null },
+          { eventDate: null, zone: hostPartyZone(null) },
+        ).developsAt
+      : null,
+  );
   const [draft, setDraft] = useState<string | null>(null);
   const [refusal, setRefusal] = useState<string | null>(null);
-  const [roll, setRoll] = useState(ROLL_SHOTS);
+  const [roll, setRoll] = useState(initial.roll ?? ROLL_SHOTS);
 
   const pick = useCallback((to: AlbumStyle) => {
     setStyle(to);
@@ -223,45 +236,18 @@ function Mark({ on }: { on: boolean }) {
   );
 }
 
-function motionWelcome(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
 export function AddStep({
   choice,
   played,
   onPlayed,
 }: {
   choice: AddChoice;
-  /** Whether the night has played in this Create: it plays once, as the step first opens. */
+  /** Whether the picked card's story has played in this Create: it plays once, as the step first opens. */
   played: boolean;
-  /** The night has played, or her hand has taken it. */
+  /** The story has been asked for as the step opened. */
   onPlayed: () => void;
 }) {
-  const [moment, setMoment] = useState<StyleMoment>(() =>
-    played || !motionWelcome() ? "party" : "arrive",
-  );
-
-  useEffect(() => {
-    if (played) return;
-    const t = window.setTimeout(() => {
-      onPlayed();
-      setMoment((m) => (m === "arrive" ? "party" : m));
-    }, NIGHT_PLAYS_MS);
-    // Her hand on the slider (it marks the night played) takes the timer with it.
-    return () => window.clearTimeout(t);
-  }, [played, onPlayed]);
-
-  const onMoment = (m: StyleMoment) => {
-    // Her hand is the night's now: nothing plays over it.
-    onPlayed();
-    setMoment(m);
-  };
-
+  const { run, again } = useStoryRuns(choice.style, played, onPlayed);
   return (
     <div data-add-step="" className="flex w-full flex-col items-center">
       <RadioGroupPrimitive.Root
@@ -280,6 +266,10 @@ export function AddStep({
               value={s}
               data-album-style={s}
               aria-label={`${STYLE_NAMES[s]}. ${line}`}
+              onClick={() => {
+                // A press on the card already picked plays its story again.
+                if (on) again();
+              }}
               className="cr-style-card"
             >
               <span
@@ -287,11 +277,11 @@ export function AddStep({
                 data-carry-pick={on ? "2" : undefined}
                 className="cr-style-pic-box"
               >
-                <StylePicture
+                <CardPicture
                   style={s}
-                  moment={moment}
+                  // Only the picked card plays: one just left stands at its rest at once.
+                  run={on ? runOf(run, s) : null}
                   roll={choice.roll}
-                  className="cr-style-pic"
                 />
               </span>
               <span className="cr-style-words">
@@ -314,7 +304,28 @@ export function AddStep({
           );
         })}
       </RadioGroupPrimitive.Root>
-      <Night moment={moment} onMoment={onMoment} className="cr-under" />
     </div>
+  );
+}
+
+/** One card's picture: its story while its run plays, else its rest. */
+function CardPicture({
+  style,
+  run,
+  roll,
+}: {
+  style: AlbumStyle;
+  run: number | null;
+  roll: number;
+}) {
+  const shown = useStory(style, run);
+  return (
+    <StylePictureFrame
+      style={style}
+      shown={shown}
+      roll={roll}
+      word
+      className="cr-style-pic"
+    />
   );
 }

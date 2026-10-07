@@ -526,11 +526,13 @@ describe("the steps", () => {
       "href",
       "/dashboard/11111111-2222-4333-8444-555555555555/print",
     );
+    // ★ RESHAPED ON PURPOSE (create-wizard r5's `arrival=done`): an unopened code held the head short of ready; it is
+    // worth doing, never a need, so a guest who scanned could get in and add, and the head says ready.
     expect(
       document
         .querySelector("[data-settings-head]")
         ?.hasAttribute("data-ready"),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("reads Settings' own values over the hub's, so a step ticks the moment its choice is made", async () => {
@@ -546,7 +548,7 @@ describe("the steps", () => {
     expect(done("adds")).toBe(false);
   });
 
-  it("calls the event ready once the code has been opened, whatever is still worth doing", () => {
+  it("ticks the code once it has been opened, ready whatever is still worth doing", () => {
     sheet({ ready: { opened: 2 } });
     expect(done("code")).toBe(true);
     expect(

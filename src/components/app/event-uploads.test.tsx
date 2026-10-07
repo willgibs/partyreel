@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EventUploads } from "@/components/app/event-uploads";
+import { EMPTY_ALBUM, EventUploads } from "@/components/app/event-uploads";
 import type { HubAlbumSeed } from "@/lib/event/hub-album";
 import {
   ENTRY_PENDING,
@@ -45,6 +45,12 @@ vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
 }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
+}));
+const add = vi.hoisted(() => ({
+  value: null as { openAdd: () => void } | null,
+}));
+vi.mock("@/components/app/host-add-provider", () => ({
+  useHostAdd: () => add.value,
 }));
 
 // The store's transport: the link route is the spy, answering every id as not in this album.
@@ -188,6 +194,23 @@ describe("the album's place before the first photograph", () => {
     place([]);
     expect(empty()).not.toBeNull();
     expect(screen.queryByTestId("album-grid")).toBeNull();
+  });
+
+  // ★ RESHAPED ON PURPOSE (create-wizard r5's carried `album`, Will's pick for an empty album): it said "No photos yet"
+  // and a line about guests; the empty album is now the house's invitation, its one door her own uploader.
+  it("★ says the album starts with her, Add the first photos its one door: her own uploader", () => {
+    const openAdd = vi.fn();
+    add.value = { openAdd };
+    place([]);
+    expect(empty()?.textContent).toContain(EMPTY_ALBUM.title);
+    fireEvent.click(screen.getByRole("button", { name: EMPTY_ALBUM.act }));
+    expect(openAdd).toHaveBeenCalledTimes(1);
+    add.value = null;
+  });
+
+  it("draws no door where there is no uploader to open (the Library)", () => {
+    place([]);
+    expect(screen.queryByRole("button", { name: EMPTY_ALBUM.act })).toBeNull();
   });
 
   it("gives the place back to the album at the first one", () => {

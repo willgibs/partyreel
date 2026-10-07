@@ -150,6 +150,9 @@ describe("the numbers that move", () => {
 });
 
 describe("the ticks before the day", () => {
+  // ★ RESHAPED ON PURPOSE (create-wizard r5's `arrival=done`): the ticks were Door, Uploads and Code, and a code nobody
+  // had opened held the stage short of ready. The code is worth doing, never a need, so it is no tick: the stage's one
+  // item says its share instead ("the acts", below). The scar kept: a full shelf still holds ready back, said as Room.
   it("are readiness's essentials, a word each, and say when all are done", () => {
     const ready = stageTicksOf(
       readyFactsOf(homeEvent({ date: "2026-10-03" }), afternoon),
@@ -157,9 +160,18 @@ describe("the ticks before the day", () => {
     expect(ready?.ticks.map((t) => [t.word, t.done])).toEqual([
       ["Door", true],
       ["Uploads", true],
-      ["Code", true],
     ]);
     expect(ready?.ready).toBe(true);
+
+    // A code nobody has opened is no tick, and holds nothing back.
+    const unopened = stageTicksOf(
+      readyFactsOf(
+        homeEvent({ date: "2026-10-03", ready: { opened: 0, guestsIn: 0 } }),
+        afternoon,
+      ),
+    );
+    expect(unopened?.ticks.map((t) => t.word)).toEqual(["Door", "Uploads"]);
+    expect(unopened?.ready).toBe(true);
 
     const notYet = stageTicksOf(
       readyFactsOf(
@@ -170,7 +182,6 @@ describe("the ticks before the day", () => {
     expect(notYet?.ticks.map((t) => [t.word, t.done])).toEqual([
       ["Door", true],
       ["Uploads", true],
-      ["Code", false],
       ["Room", false],
     ]);
     expect(notYet?.ready).toBe(false);
@@ -267,9 +278,10 @@ describe("the stage before its first photograph (host-dashboard r3, `stage=lit`)
       [4, "welcome", "Welcome", true],
       [5, "code", "Code", false],
     ]);
+    // A made event is ready (r5's `arrival=done`): the head names what is worth doing, the code's share first.
     expect(rail?.head).toEqual({
-      title: "Before guests arrive",
-      line: "Guests still need one more thing.",
+      title: "Ready for guests",
+      line: "2 things still worth doing.",
     });
   });
 
