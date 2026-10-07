@@ -13,13 +13,14 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, milestone 39 live
+## The current round: round 15, milestone 39 live, milestone 40 forming
 
 - **Milestone 39 is live** (`0333cd705`, 2026-10-07 16:15Z, tagged; its merge commit says what it holds): desk 7's
   moments wired, the storage sums proven nightly, a names-only door the database remembers, the site brought to
   today's product, and Send to Google Drive live (its Worker deployed with it). Red-teamed locally by 57, 57b and 57c
   (nothing above LOW open); the FULL gate green at `3ec66b8fe`. Milestone 38 (`90ab891c2`) before it; the legal text
-  is rewritten once, right before launch.
+  is rewritten once, right before launch. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90 and the calls lab
+  moved into the desk (calls-desk); Will's next desk batch comes next.
 - **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
   hi@willgibs.com's wound down; its lanes run in local worktrees, paced by the 5-hour window.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and

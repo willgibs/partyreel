@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "7600c223"          # the launch-prep SHA this state was written at
+cut: "5dd7ee60"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -23,85 +23,70 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Round 15 goes on from a local seat on Will's Mac (session `ce3ea37b-9032-4189-8a20-a57d78adb657`, willg97@gmail.com,
-from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on build `bbfcc54` is kept verbatim
-(`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed, his three program-wide notes folded into PRD.md.
-Merged since, gates 56 to 66, each recorded and pruned, each one's calls his to overrule in the calls lab (BZ to CF):
-the six wirings (`account-moments-wiring` `1fdeca5e0`, `create-wizard-wiring` `0617cac99`, `event-header-wiring-2`
-`273a911ac`, `camera-wiring` `770efb29d`, `host-moments-wiring` `a78930d9c`, `album-moments-wiring` `3eace21ad`),
-`storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and six boards for the next desk (`brand-marks-r1`
-`3d2c9d1de`, `signature-r1` `556ad4dc1`, `account-moments-r2` `857376f49`, `create-wizard-r5` `7f228e58a`, gate 68,
-`guests-room-r1` `89c6a94c7`, gate 69; its 12 portraits joined ASSETS.md's row 41; `presence-r1` `8b04c5afb`,
-gate 70). Three migrations live by protocol
-(`reshoots`, `let_in`, `storage_sums_signal`; the Advisor's Q40 to Q42), the types regenerated after them and the three
-typed seams dropped (`7600c223e`). The gap audit (`app-gaps-r1`, done): its nine product decisions are the calls lab's
-X9 to X17, its design gaps ROADMAP lab lines, its bugs closed by crumbs-87 (ledger
-`../partyreel-wt/_scratch/app-gaps-r1/ledger.md`). **Red-team 57** (agent `a4ff00e0ff54750d0`, done 07:55Z) walked the
-desk build `b1e219f26` whole: every walk PASS, no HIGH or MEDIUM; its LOW (the folded hub's Review pill, its 99+ badge
-over the icon) and NIT (the hub cover's address link without the house ring) are Immediate lines; its own four events
-and the lanes' seven test events are in Deleted; what no agent can drive is under His walks (ledger
-`../partyreel-wt/_scratch/redteam-57/ledger.txt`).
+Nothing runs: no lane, no red-team, no background job (2026-10-07 18:50Z). Round 15 went on from a local seat on Will's
+Mac (session `ce3ea37b-9032-4189-8a20-a57d78adb657`, from 2026-10-07 01:10Z) and shipped **milestone 39**
+(`0333cd705`, tagged, live 16:15Z; its merge commit says what it holds; Drive's Worker deployed with it). **Milestone 40
+forms on `launch-prep`:** `crumbs-88` (`7224261b3`, gate 75: red-team 57's LOW and NIT, Create's retry key, Immediate's
+app lines), `crumbs-90` (`38e51ae9c`, gate 76 FULL: the guest's send and album), `calls-desk` (`ed704a2f8`, gate 77:
+the calls lab at the desk's Calls place, `docs/calls.json`, `usher/kit/calls.py` its only writer). Their migration
+`event_create_key` is live (Q43). Each lane's own summary is its merge commit; their ledgers and the red-teams' (57,
+57b, 57c) are under `../partyreel-wt/_scratch/`.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key, Immediate's app lines, the docs crumbs-87 left stale | MERGED at `7224261b3` (gate 75 green), for milestone 40; its ten Immediate lines retired; its typed seam an Immediate Code hygiene line; crumbs-89's stale `host-app.md` lines refined at this record; PREMISE checked (its touches are the retry key, refined doc lines and the folded badge's anchor: the boards' asks stand); pruned | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
-| `redteam-57b` | the second half of the walk before milestone 39, on the desk build `cd38cf21a` | DONE 11:50Z: one MEDIUM (crumbs-87's names-only restore misses after a load: 7 of 12; production's 38 never restores, so 39 improves but does not close it) to `crumbs-89`, with its two LOWs (Settings' rows after a load, dormant's 12 px tap band); its six NITs Immediate lines; its four RT57b events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57b/ledger.txt` | Opus | `a81cf69c76e8039ff` |
-| `crumbs-89` | milestone 39's last MEDIUM at its source, the door page's consequence line, Settings' rows after a load (a React canary bug, nudged), dormant's tap band | MERGED at `cab0dc0ac` (gate 72 green); migration `email_first_memory` APPLIED (20261007135056, md5 4836beb3 = the file's; the Advisor's Q44: APPLY, the nudge SHIP; hashes as the proof's; advisors 27/4/36); types regenerated with `create_key` and its `heldOf` seam dropped; its stale `host-app.md` lines refined at crumbs-88's record; PREMISE: guests-room's asks name `invited-section.tsx`, touched only by the save's nudge, so they stand; pruned | Opus, 3131 | `a02926c18b226cb2f` |
-| `after-party-r1` | board (desk place 12): the album after its party (over, recap, keepsake, card, bridge) | MERGED at `8e55608e6` (gate 73 green), for the desk after next with no-signal r1; its Deferred and board ideas placed, its lab line retired; pruned | Opus, 3135 | `a4c7c77694c1f980f` |
-| `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
-| `crumbs-90` | the guest's send and album: Immediate's upload and album lines | MERGED at `38e51ae9c` (gate 76 green, FULL), for milestone 40; its ten Immediate lines retired, its four Deferred placed; pruned | Opus, 3132 | `a792a2c5719fc2ca0` |
-| `redteam-57c` | the re-walk that closes milestone 39, on the desk build `bea40689d` | DONE 15:15Z: no MEDIUM or worse; every path 57b named restores (its strand path 5 of 5); two LOWs (two of her own pages undo her own step under a hold; a slow stream outlasts the save's nudge) and three NITs to the ROADMAP; its two RT57c events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57c/ledger.txt` | Opus | `a93c1b646bf62a281` |
-| `calls-desk` | the calls lab moved into the lab's desk (Will, 2026-10-07) | MERGED at `ed704a2f8` (gate 77 green): `docs/calls.json` (`docs/calls.md` retired at its record), the Calls place at `/design/lab#calls`, the `calls:` line in the desk's one message, `usher/kit/calls.py` the only writer; its three questions relayed to Will in chat; pruned | Opus, 3133 | `aec94a11c372a3ed5` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
-Q43 answered (each APPLY, each applied); the next migration's read goes to it.
+Q44 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
 
-**Seats.** A local `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its
-merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). A successor in another session
-respawns a lane from its transcript (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`)
-on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` seeds a new scratchpad).
+**Seats.** A successor in another session respawns a lane from its transcript
+(`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`).
+Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The session's context names hi@willgibs.com since
+18:45Z; its usage reads the same week as before (weekly 58%, resetting 2026-10-13 21:00Z; the 5-hour window 5%,
+resetting 21:10Z).
 
 ## Next, in order
 
-1. **The next desk is whole** (brand-marks r1, signature r1, account-moments r2, create-wizard r5, guests-room r1,
-   presence r1, all merged): his desk refreshed to the tip at 10:30Z for red-team 57b's walk, which serves his next
-   sitting too; tell him it is ready when he is back (never refreshed while a red-team walks it).
-2. **Milestone 39 is live** (Will's yes, 2026-10-07): `main` at `0333cd705`, tagged `milestone-39`, both projects
-   READY at 16:15Z, partyreel.com verified (200s, the login page serving the build); Drive's Worker deployed first
-   (`partyreel-drive` version `96513f29`, its two queues made, its secret from `.env.local`, `DRIVE_APP_URL`
-   partyreel.com) and `DRIVE_WORKER_URL` set on production. crumbs-88 (`7224261b3`, gate 75) and crumbs-90
-   (`38e51ae9c`, gate 76) merged after it, for milestone 40; his Drive walk on partyreel.com (P3's consent;
-   drive-crumbs' Handoff lists what to press).
-3. **Wave 2's open seats, paced by the 5-hour window and the week** (six to eight agents, `get_usage` at every cut):
-   `calls-desk` RUNNING; the gap audit's other design gaps (turned-away demand, the host's picks, duplicates, video
-   playback) wait for room on a desk; a crumbs lane on Immediate (40 of 40) once crumbs-88 and crumbs-90 retire their
-   lines. Lanes take ports 3131 to 3139 only (R2's CORS).
+1. **Will's review batch, the first thing after this compaction** (he asked for the compaction first, to plan with a
+   fresh context): his desk serves `b0eb89bc9` (the next desk's six boards, the two gap boards behind them, and the
+   Calls place). Keep the paste verbatim in `docs/reviews/batches/<date>-<build>.txt`, committed before a word of it is
+   transcribed (the runbook's "Run a round"); `pnpm lab:review --dry` over it, then for real (the boards' lines into
+   their ledgers; the `calls:` line printed as a routing list, nothing written: route each answer, then
+   `python3 usher/kit/calls.py retire <ids>`); then plan the next round with him: the wirings of his picks first, and a
+   pick that changes what a board's open ask describes re-read against production (`PREMISE` lines).
+2. **Milestone 40** when it holds a round's worth (crumbs-88, crumbs-90 and calls-desk so far): a red-team of what
+   merged since 39 on a desk refreshed to the tip, the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes.
+   crumbs-88's emailed-link paths (a told name to an album, a Create account link for an existing address) need a real
+   email: his walk or the red-team's.
+3. **Open seats, paced by the 5-hour window and the week** (six to eight agents, `get_usage` at every cut): a crumbs
+   lane on Immediate (21 lines: red-team 57c's two LOWs and 57b's NITs first, crumbs-88's typed seam); the gap audit's
+   other design gaps (turned-away demand, the host's picks, duplicates, video playback) once a desk has room. Lanes take
+   ports 3131 to 3139 only (R2's CORS). Specs written so far live in the session scratchpad's `specs/` (`common.py`, the
+   `make-*.py` generators).
 4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
    app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6 (his r5 note
    on `stage`, kept in its ledger, is that round's brief for the home's hero), marketing's light, N4, N7, N9, and the
    ROADMAP's marketing lines unless one breaks production. Crumbs lanes take app lines first.
-5. **His list of 100+ items, when he sends it** (Will, 2026-10-06: after the desk batch, with a fresh context): each
-   batch kept verbatim first, slotted into the ROADMAP's buckets and areas, a proposed order of rounds on top.
-6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000 serves `b0eb89bc9` (refreshed 17:20Z: the six boards, the two gap boards and the Calls place).
-7. **★ Vercel stays on Hobby** (Will, 2026-10-07; he offered his personal account for Partyreel, not needed: since the
-   desks and red-teams moved to the Mac the team's calls fell from 20,000 to 57,000 a day to about 2,000, so at ~250 a
-   day the window falls under the REFUSE line around 2026-10-16 and under WARN in early November, when 2026-09-29 to
-   10-04 roll off; qrcdn is 1 to 14% of a day). Until then nothing runs against the alias or partyreel.com but what Will
-   asks for by name; `node usher/kit/vercel-usage.mjs` before any.
-8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, `get_usage`
-   read at every cut, and nothing new started when the window would run out before its reset, so the account rolls
-   into about 99% at the reset and the session goes on in context. At 13:36Z the window read 34% (it resets 16:10Z)
-   with three lanes; ★ weekly 52% only 16 hours into this account's week (it resets 2026-10-13 21:00Z), so at this
-   pace it runs out around 2026-10-08 06:00Z: keep the handoff block current for the next account's seat, and tell
-   Will. Who does the work: the runbook's "Working with Will" (a lane for focus; small in-context work the
-   Orchestrator's own).
+5. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
+   ROADMAP's buckets and areas, a proposed order of rounds on top.
+6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
+   serves `b0eb89bc9` (refreshed 17:20Z), never refreshed while a red-team walks it.
+7. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling at about
+   250 calls a day toward the REFUSE line around 2026-10-16 and WARN in early November. Nothing runs against the alias
+   or partyreel.com but what Will asks for by name; `node usher/kit/vercel-usage.mjs` before any.
+8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, nothing new
+   started when the window would run out before its reset, so the account rolls into about 99% at the reset. ★ The week
+   ran fast (58% by 18:50Z on day one of seven): keep this block handoff-ready for another account's seat, and tell
+   Will before it runs low. Who does the work: the runbook's "Working with Will".
 
 ## Waiting on Will
 
-- **His Drive walk** on partyreel.com, now Drive is live (P3's consent; drive-crumbs' Handoff lists what to press).
-- **The calls lab** (the desk's Calls place, `docs/calls.json`, reshaped 2026-10-07 at his word: only what he cannot
-  see by using the product): the open questions X1, X2, X3, X5, X6 and X9 to X17, then 16 built calls by theme; X8
-  settled by the Orchestrator. He asks direct questions in chat; answer in chat, never only in a file.
+- **His Drive walk** on partyreel.com, now Drive is live (P3's consent; drive-crumbs' Handoff lists what to press),
+  and the call AH1 (Drive on every plan, Free included) before Drive sees real use.
+- **The calls lab** (the desk's Calls place, `/design/lab#calls`, over `docs/calls.json`): the open questions X1, X2,
+  X3, X5, X6 and X9 to X17 and 16 built calls he cannot see by using the product; his answers ride the desk's paste.
+  calls-desk's three calls, built and his to overrule (relayed in chat): an untouched call is never kept by silence
+  ("Keep the other N" is one press); a fifth theme, "What Partyreel is", for the product-shape questions; an entry's
+  words never change under its id. He asks direct questions in chat; answer in chat, never only in a file.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,
