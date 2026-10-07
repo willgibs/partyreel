@@ -54,11 +54,11 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### The host app
 
 - Settings: the sheet's overflow-hidden box clips the focus halo on the door switches, the Max size select, the Cinematic card and "3 seconds", at 375 and 1440 (`?room=settings&setting=door`) (red-team 56b, LOW).
-- Create: at a roll of 1 the Disposable card reads "1 shots each" (red-team 56b, NIT).
 - Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
 - Host: the dashboard's stage wall shows a disposable album's sealed photographs (`getStagePhotos` in `lib/db/queries/dashboard.ts`) while the hub covers them until the develop; hold the wall to what guests see (`hubCovered`, `host-cover.ts`).
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
+- Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
 
 ### Admin and operations
 
@@ -123,6 +123,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Pricing: drop `consume_passes_for_pro_credit(uuid)` once no deployed build calls it (milestone 38 runs the claim), with `event-passes-migration.test.ts`'s pins on it; a contract migration (billing-integrity).
 - Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
 - Pricing: rename the uploads meter's wire names to window-neutral ones (`at_monthly_cap`, the presign meter's `'monthly'` reason).
+- Pricing: the plans' sheet opened by an event limit (Create's held Upgrade, the cap door's See Pro) leads "You are out of room", the storage trigger's words (`pricing-sheet.tsx`, `kind: "room"`); give the event limit words of its own (create-wizard-wiring).
 
 ### Uploads, media and exports
 
@@ -180,6 +181,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: one label for creating an event: the dashboard says New event (`dashboard/home-head.tsx`), the empty teaser Create your first event, the welcome Create my first event, the app's 404 Create an event.
 - Host: an album's Deleted (`recently-deleted-grid.tsx`) restores and purges one item at a time; give it a Restore all and an Empty for that album (the storage chart's Empty Deleted takes every album's at once).
 - Host: no setting links to its help article (only the user menu, the 404 and the error screen reach `/help`); deep-link Settings' pages (`event-settings/*-page.tsx`) through `lib/content/help-links.ts`.
+- Create: Upgrade from Create's held limit or the cap door leaves through Checkout to `/dashboard` (`returnTo`), so the name, style and look she chose are gone; bring her back to `/dashboard/new` with the draft kept (create-wizard-wiring).
 
 ### Admin and operations
 
@@ -256,6 +258,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: the reel's black after the hub's Reel card: no ceiling (a seed or view chunk that never lands leaves the owner on black until Back, `event-experience.tsx`'s `reelCurtain`), and no pending state on the card (`useLinkStatus` could dim it).
 - Lab exploration: marketing-themes (desk 6, the brand applied): N4 the privacy page's lens (its clear spots a touch stronger than drawn, the moving pane slipping under the words between rests; its photograph is ASSETS 38), N7 the FAQ (bold headings a screen reader can list; the footer's FAQ link staying on the page only on pricing), N9 the album page's hero (two photo streams handing over in turn, a photograph every 1.9 s).
 - Lab exploration: the aurora that answers, for desk 6's aurora board: light answering a real signal rather than looping: the Add's ring with libraries.dev's voice-glow envelope (quick to rise, slow to settle, an idle breath), a glow under the album camera's frame while a clip rolls (its mic is open, and a refused mic films silence), transitions.dev's gradient word re-keyed to the five lamps as the aurora's ink on paper, never on small badges.
+- Library: Create's room specimen never fails (its stand-in always makes the event), so the held beat is pressed nowhere in the lab; a stand-in that fails once (`create-room-demo.tsx`) draws it (create-wizard-wiring).
 
 ### Code hygiene
 

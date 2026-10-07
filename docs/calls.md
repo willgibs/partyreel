@@ -1156,3 +1156,27 @@ try again.", where it used to fall to the error screen.
 **BZ6. A name in Connections opens the person's card,** Open full profile its last button, where the name used to link
 straight to their page.
 - *Push back if* a name should still go straight to the page.
+
+## CA. Create's last steps, wired (create-wizard-wiring)
+
+Your create-wizard r4 picks are in production: the three style cards standing still with Disposable's time on a screen
+of its own, a one-line close, and a failure held where you are with everything kept. These are the calls built into
+them, yours to overrule.
+
+**CA1. At the plan's event limit the held screen offers Upgrade and Back,** never Try again, since a full plan cannot
+pass until an event is deleted.
+- *Push back if* Try again should stand there too.
+
+**CA2. The storage line stays beside the one-line close** when the account runs short (the plan's line, never a step).
+- *Push back if* the close should say only what guests still need.
+
+**CA3. A held failure says the server's own sentence after "Nothing was lost"** (the catch-all as "Please try again.",
+a line that never answered as "Check your connection and try again.").
+- *Push back if* every failure should say one plain sentence of ours.
+
+**CA4. Focus stays on the foot's key when a failure lands** (the same key, turned Try again); the arrival still takes it
+to the question.
+- *Push back if* focus should move to the failure's words.
+
+**CA5. The code holds still across the wait, the hold and the arrival,** where the board's held frame let it drop.
+- *Push back if* the plate should make room for the words.
