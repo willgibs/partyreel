@@ -1,0 +1,71 @@
+/* THE BOARD'S OWN SHEET: what a photograph waiting for the line looks like,
+   drawn on today's tokens (brand r2's settled status: a state is a point and
+   its word, and Standby is half-lit with no hue). Nothing here is production's;
+   a wiring lane lands what the picks keep.
+
+   ★ STANDBY, NEVER A FAULT. A dead zone is nobody's failure and asks nothing of
+   her while her photos are kept, so its point is half-lit in the ground's own
+   ink (or the glass's white) with no hue at all, never the fault's red.
+
+   ★ STILL UNTIL SOMETHING HAPPENS (Aperture): nothing waiting moves. The
+   sending dot on a camera's frame pulses today; a waiting one stands still. */
+
+/* The point: 8px, the left half lit, a hairline round the rest (8 so the half
+   stays open at a phone's 2x and at a desk's 1x alike). */
+.ns-point {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+/* Lit whole: in the album. */
+.ns-point[data-lit] {
+  background: currentColor;
+  box-shadow: none;
+}
+/* Unlit: a ring, nothing kept (production's unlit LED, the Badge's own ring). */
+.ns-point[data-unlit] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px
+    color-mix(in oklab, currentColor 55%, transparent);
+}
+
+/* THE SHUTTER STANDING BY: its ring keeps what the run had sent, but the
+   light's hue goes (no hue is Standby), and its glow with it. The atom is
+   production's (`ui/shutter.tsx`); only this frame's copy is dimmed. */
+[data-ns-standby] .shutter-fill {
+  filter: grayscale(1) brightness(1.25);
+  opacity: 0.7;
+}
+[data-ns-standby] .shutter-track {
+  filter: grayscale(1);
+}
+[data-ns-standby] .shutter-glow {
+  opacity: 0;
+}
+
+/* The stack's bar, held where it stopped: the run's white, dimmed. */
+[data-ns-held] [data-pending-progress],
+[data-ns-held] [data-stand-in-progress] {
+  opacity: 0.45;
+}
+
+/* A CAMERA'S FRAME WAITING FOR THE LINE: the sending dot's place, half-lit and
+   still (production pulses a frame that is sending). Scoped to a camera drawn
+   in the dead zone, where every frame not landed is waiting. */
+[data-ns-reel-wait] .cam-cell[data-sending]::after {
+  width: 7px;
+  height: 7px;
+  top: 4px;
+  right: 4px;
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.9) 50%,
+    transparent 50%
+  );
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9);
+  animation: none;
+}
