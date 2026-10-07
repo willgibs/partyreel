@@ -20,8 +20,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **Milestone 39 is merged on `launch-prep`, both waves in one walk** (Will, 2026-10-07): the second wave (crumbs-86,
   halo-last, marketing-crumbs, upload-sums), his desk batch's six wirings, the storage sums' signal (the Advisor's
   condition) and crumbs-87, with three more migrations live; red-team 57 and 57b walked it, and 57b's one MEDIUM (a
-  names-only door after a load, worse in production) is being fixed (crumbs-89), re-walked, then his yes. Drive goes live with it: its Worker deploys just before 39's
-  production deploy (`tracks/orchestrator.md`).
+  names-only door after a load, worse in production) is being fixed (crumbs-89), re-walked, then his yes. Drive goes
+  live with it: its Worker deploys just before 39's production deploy (`tracks/orchestrator.md`).
 - **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
   hi@willgibs.com's wound down; its lanes run in local worktrees, paced by the 5-hour window.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and
