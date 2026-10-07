@@ -46,6 +46,8 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | --- | --- | --- | --- | --- |
 | `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `20261007120000_event_create_key.sql` (md5 8a1e9e56) with the Advisor (Q43), applied on its answer; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
 | `redteam-57b` | the second half of the walk before milestone 39: crumbs-87's eight fixes and the type change, on the desk build `cd38cf21a` (refreshed 10:26Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57b/brief.md` | RUNNING (from 10:28Z) | Opus, its own headless Chrome (never Will's) | `a81cf69c76e8039ff` |
+| `after-party-r1` | board (desk place 12), the gap audit's highest design gap: what an album becomes once its party is over, for a returning guest, a shared link and the host the morning after | RUNNING (from 11:05Z) | Opus, 3135 | `a4c7c77694c1f980f` |
+| `no-signal-r1` | board (desk place 14), the gap audit's second: a party with no signal, what a guest sees and keeps when the line drops and what resumes, each option's engineering named | RUNNING (from 11:05Z) | Opus, 3136 | `aece05f608a1f0346` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q42 answered (each APPLY, each applied); the next migration's read goes to it.
@@ -73,10 +75,11 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
    consent; drive-crumbs' Handoff lists what to press).
 3. **Wave 2's open seats, paced by the 5-hour window** (six to eight agents, `get_usage` at every cut), each spec
    written in the session scratchpad's `specs/wave3/` (cut with `cut-lane.py`): `crumbs-88` RUNNING (In flight);
-   `after-party-r1` (Opus, 3135) and `no-signal-r1` (Opus, 3136), the gap audit's first two design gaps, cut at the
-   11:10Z reset. The audit's nine decisions wait on Will (X9 to X17); a board draws a decision's surfaces once he
-   picks its model. Lanes take ports 3131 to 3139 only (R2's CORS). The desk's old leftovers: drive-export's unclear
-   `exit` and `naming`, reworded or retired.
+   `after-party-r1` and `no-signal-r1` RUNNING (In flight); next by leverage, the audit's other design gaps
+   (turned-away demand, the host's picks, duplicates, video playback) once the desk after this one has room. The
+   audit's nine decisions wait on Will (X9 to X17); a board draws a decision's surfaces once he picks its model. Lanes
+   take ports 3131 to 3139 only (R2's CORS). The desk's old leftovers: drive-export's unclear `exit` and `naming`,
+   reworded or retired.
 4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
    app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6 (his r5 note
    on `stage`, kept in its ledger, is that round's brief for the home's hero), marketing's light, N4, N7, N9, and the
