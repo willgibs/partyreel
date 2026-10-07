@@ -27,6 +27,8 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **This board's question: the signature across app and marketing** (brand r2's `when`): one light to a screen, and which. The material waiting for it, each a ROADMAP line: production's footer (`.surface-ink`) already is Aperture's black foot, its top edge lit from the page's photographs the cheapest first wiring; the guest door's sheet wears three lamps (red, amber, green) where Afterglow draws one light sampled from the cover's photograph; the light that answers a real signal rather than looping (the Add's ring with a voice-glow envelope: quick to rise, slow to settle, an idle breath; a glow under the album camera's frame while a clip rolls; a gradient word as ink on paper, never on small badges); the privacy hero's two runners-up (the sweep, the aperture ring) as foundations. The hub's Seam is event-header-wiring-2's (wired this wave, draw it as production has it). Draw on production's own surfaces: the guest door and album, the Add, the camera, the hub, Create's room, the marketing home and footer, at a desk and a phone, in the room and on paper.
 
+**Narrowed to the app (the Orchestrator, 2026-10-07, Will's order to launch: the app, then the admin, then marketing):** the app's light only (the door, the album, the Add, the camera, the hub's Seam as wired, Create's room); the marketing half (the footer's lit edge, the privacy hero's runners-up, a gradient word on marketing paper) waits for the marketing round.
+
 **Never asked here:** the marks and tokens (brand-marks r1), each page's theme (page-themes r1), the home's hero object (demo-framing r6), faces (presence r1); the colour of a count that needs her is tally, settled.
 
 **The method:** a helper per option holding the whole brief, a creative director's fresh-eyes pass, one refinement on everything it names; asset gaps as Higgsfield asks in the Handoff (docs/ASSETS.md's form), the stand-in shipped meanwhile. A board's light gate (PROGRAM's "Speed over proof in exploration").
@@ -38,9 +40,27 @@ working.
 
 **Verify on.** The board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke --base http://localhost:<port>` (it crawls what your change reaches, the board and the desk; `--all` for the whole lab); `pnpm lab:demo --board <board> --base http://localhost:<port>` pressing every step.
 
+## Where I stopped (paused 2026-10-07 for the account's usage window; deleted at the handoff)
+
+- Built: the whole board, five asks on production's surfaces (album, add, door, clip, create), every option drawn at
+  375 and 1440, in the room and on paper; typecheck, lint and `test:rules` green at the WIP commit.
+- Next, in order: (1) sync once event-header-wiring-2 is on launch-prep and draw the hub's Seam as
+  `event-feed/event-hub-head-light.tsx` and `event-hub-head-edge.ts` have it (its proposal: the guest cover ends on
+  that same Seam past its actions, which is this board's `seam`/`follow`); (2) the creative director's ten
+  refinements (its report: the clip's Seam clipped to the picture, the Add's rest still with each landing lifting it,
+  the door's paper Seam raised into the dimmed album rather than a strip on the sheet, the Seam spent before every
+  word, the Seam as emitted light (a cream core, a fast fall), 48/64 px reaches, a lighter puck, a softer seed Bloom,
+  one-hue Rings, `party` capped, and `chosen` drawn so it differs); (3) the light gate (`lab:smoke`, `lab:demo`) and
+  the handoff.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Scope: five asks, the app's alone (the Orchestrator's narrowing); the gradient word waits with marketing. Recommended
+  and built.
+- The hub is drawn, never asked: beside the guest's album at a laptop, its Seam as wired, so the album question is
+  read against the light the host already has. Recommended and built.
+- The Add's face stays production's (white in the room, ink on paper, in a dark puck on paper); the icon is
+  brand-marks'. Recommended and built.
 
 ## System-doc edits (in place, owned facts only)
 
