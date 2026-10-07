@@ -1,6 +1,7 @@
 "use client";
 
 import "./row.css";
+import "./ring.css";
 
 import {
   type CSSProperties,
