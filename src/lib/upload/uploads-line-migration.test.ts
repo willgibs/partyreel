@@ -37,11 +37,15 @@ describe("1. the two homes", () => {
     );
   });
 
-  it("uploads_refused: these bytes past her plan's own number over its window (a strict line; none when unmetered), or a lapsed pass", () => {
+  // ★ Reshaped by crumbs-92 (20261008060000; scar kept: these bytes past her plan's own number over its window, a strict
+  // line, none when unmetered, or a lapsed pass): the window's count is the gross one and the number carries her
+  // operator's live credit. The expired reason: the count was `uploads_used`, now the gross count less the credit and
+  // clamped at zero, which refused a file bigger than the plan's own number past a credit that made room for it.
+  it("uploads_refused: these bytes past her plan's own number plus her live credit over its window (a strict line; none when unmetered), or a lapsed pass", () => {
     const { code, file } = liveFunction("uploads_refused");
     expect(file >= FILE, file).toBe(true);
     expect(code).toBe(
-      "create function public.uploads_refused( p_host_id uuid, p_tier public.tier_type, p_storage_cap_bytes bigint, p_bytes bigint ) returns boolean language sql stable set search_path = '' as $$ select case when a.allowance is null then false else public.uploads_used(p_host_id, p_tier) + p_bytes > a.allowance end or public.pass_lapsed(p_host_id, p_tier) from (select public.upload_allowance(p_tier, p_storage_cap_bytes) as allowance) a; $$;",
+      "create or replace function public.uploads_refused( p_host_id uuid, p_tier public.tier_type, p_storage_cap_bytes bigint, p_bytes bigint ) returns boolean language sql stable set search_path = '' as $$ select case when a.allowance is null then false else public.uploads_gross(p_host_id, p_tier) + p_bytes > a.allowance + public.uploads_credit(p_host_id) end or public.pass_lapsed(p_host_id, p_tier) from (select public.upload_allowance(p_tier, p_storage_cap_bytes) as allowance) a; $$;",
     );
   });
 
@@ -108,9 +112,14 @@ describe("3. no copy of the line outside its homes", () => {
     expect(copies).toEqual([]);
   });
 
+  // ★ Reshaped by crumbs-92 (20261008060000; scar kept: no body judges an upload against an allowance but the one home):
+  // `grant_uploads_credit` bounds a CREDIT by one more of the plan's allowance (its `v_allowance`), which is no upload's
+  // judgement, and it never reads a window's count to do it (held below). The expired reason: every `v_allowance` was
+  // an upload's.
   it("★ no live body but uploads_refused holds a window's count to an allowance", () => {
     const copies = liveFunctions()
       .filter((f) => f.name !== "uploads_refused")
+      .filter((f) => f.name !== "grant_uploads_credit")
       .filter((f) => {
         const body = f.code.slice(f.code.indexOf("as $"));
         return (
@@ -120,5 +129,9 @@ describe("3. no copy of the line outside its homes", () => {
       })
       .map((f) => f.name);
     expect(copies).toEqual([]);
+    // The credit's bound reads her credits, never a window's count: it cannot be a second copy of the line.
+    expect(bodyOf("grant_uploads_credit")).not.toMatch(
+      /\buploads_(?:used|gross)\(/,
+    );
   });
 });

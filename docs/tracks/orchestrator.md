@@ -23,30 +23,24 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Wave 1 of desk 8 runs (cut `d4da2464`, 2026-10-07 19:45Z): eight lanes, their rows below. Will's desk-8 batch is
-kept (`docs/reviews/batches/2026-10-07-b0eb89bc9.txt`), transcribed (29 answers; presence `atmosphere`, after-party
-`recap` and `card` unclear) and folded (PRD's principles: words in compact groups, simple on top and deep underneath,
-one product on both sides, no date reshapes an album; PROGRAM's "Fast, focused rounds": zoom out to the whole where a
-ground-up redesign lands the better whole sooner, judged per board; design-system.md: a light fades on its own, never at
-a box's edge). His chat answers: the cover's light goes to the event-page board; AY1 changed (an album turns at her
-close, never on a date; crumbs-91 wires it; retired). His revision made the event page one ground-up board led by his
-idea 1 (the head with no slideshow, its UI on a glow sampled from the album's media, the gallery teasing the scroll), so
-presence, signature and after-party's page-level picks are its inputs and their boards retire into it; nothing of
-theirs is wired into today's head. **Milestone 40 forms on `launch-prep`:** `crumbs-88` (`7224261b3`, gate 75),
-`crumbs-90` (`38e51ae9c`, gate 76 FULL), `calls-desk` (`ed704a2f8`, gate 77), and wave 1's wirings as they merge.
-Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../partyreel-wt/_scratch/`.
+Desk 8's wave runs (2026-10-07; at 23:20Z the week 85%, the 5-hour window 54% to 02:10Z, this context 82%). Merged,
+recorded and pruned since its cut: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring
+(80), brand-marks-wiring (81), crumbs-91 (82; its migration applied on the Advisor's Q45 as 20261007230050),
+no-signal-wiring (83), crumbs-92 (84; its migration applied on the Advisor's Q46 as 20261007233007, advisors 29/4/36, the types
+regenerated and its two seams dropped at the record after it). brand-marks-r2 (85, the board's round two on the desk: one ask, the icon). Running, their rows below:
+the board event-page-r1 and cdn-version. No new lane until those close: the
+week's last share goes to them and to milestone 40's red-team. Will's calls paste's first sections are routed; his
+Deletion and Safety sections are still to come (the Calls place holds 12, five of them new from lanes: CH1, CI1, CI2,
+CJ1). Both plan-limit tokens are minted and set. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk
+and every merge above. Milestone 39 (`0333cd705`) is live.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
 | `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
-| `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
-| `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
-| `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
 | `cdn-version` | X5: an open album's "has anything changed?" answer cached at the CDN; AB5's cadence livelier where free | running (cut 5ed23311) | Opus, 3131 | `aa27be79bf2dd9424` |
-| `crumbs-92` | K5 two years idle, X6 the audited uploads credit, the desk's Clear | running (cut 5ed23311) | Sonnet, 3132 | `a321cec9d5fec5e15` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
-Q44 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
+Q46 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
 
 **Seats.** A successor in another session respawns a lane from its transcript
 (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`).
@@ -56,15 +50,13 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
 
 ## Next, in order
 
-1. **Integrate wave 1 as each hands off** (one at a time, `integrate.sh`; the day's first runs `negative.sh` first). At each
-   record: the lane's board folder is gone in its branch, so delete its ledger (`docs/reviews/<board>.json`) and its
-   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`,
-   `after-party.json` and `create-wizard.json` (its manifest reads that one, so it outlives create-wizard-wiring-2's
-   merge; event-page's folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
-   retire G3`) and adds its successor only if the new checklist rule passes the calls test; ROADMAP lines each lane
-   names close through `record.py`. Migrations named in the manifests (`20261008010000_roll_taken`,
-   `20261008020000_guest_look`, `20261008030000_crumbs_91`, `20261008040000_first_follow`,
-   `20261008050000_create_like`), each only if the lane wrote it: the Advisor first, then the protocol.
+1. **Integrate each running lane as it hands off** (`integrate.sh` detached with a waiter; a Handoff read from its
+   Questions down). event-page-r1's record deletes the ledgers its folder retires (`presence.json`, `signature.json`,
+   `after-party.json`) and `create-wizard.json`, which its manifest read; then the desk refreshes (`desk-refresh.sh`)
+   and Will is told which board opens first (event-page, desk 4). cdn-version and crumbs-92 each may carry a migration
+   (crumbs-92's `20261008060000_crumbs_92.sql`): the Advisor (`af9f31cb46a4e98aa`) first, then the protocol. Waiting to
+   cut when the week allows: X1's develop time (the ROADMAP's Immediate Disposable line) with the two plan-limit
+   readers (Upcoming, Billing), and Settings' board.
 2. **Then, as seats free (six to eight agents, `get_usage` at every cut):** the event page's wiring once Will picks its
    direction (one lane builds the whole: faces, the offer, the keepsake, the light, the end line); fresh whole designs
    on the next surfaces in its language, by leverage: the dashboard home and its event cards, the door, her own page
@@ -99,9 +91,6 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
   all routed and retired); 8 calls remain, his Deletion, retention and privacy section (I7, R2, J5, AH4, CG6) and Safety
   (J2, J3, M1). His paste's AY1=keep crossed his chat answer ("when she closes", which crumbs-91 builds): asked in chat
   which stands. He asks direct questions in chat; answer in chat, never only in a file.
-- **Two tokens to mint (his hand; each a credential):** `VERCEL_USAGE_TOKEN` (X2: scoped to the Partyreel team, one-year
-  expiry) and `CLOUDFLARE_ANALYTICS_TOKEN` (X3: Account Analytics Read only), each into `.env.local` by him; the
-  Orchestrator then sets the Vercel envs by stdin through the REST API, and the plan limits' readers are wired.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,

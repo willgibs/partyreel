@@ -27,6 +27,11 @@
  * ★ A FILE THAT DID NOT GO IS DRAWN NOWHERE (the failure sheet reads it at the run's end), and no Add
  * lives here: the album's Add is the page's (the action row, then the dock).
  *
+ * ★ A SEND THAT WAITS FOR THE LINE STANDS BY WHERE IT IS (no-signal r1, Will's `drop=standby`): the stack keeps her
+ * photograph, its bar giving way to Standby's half-lit point and "No connection" with the promise under it, and its
+ * stand-in says the same; nothing opens by itself, and a press on either opens what waits (`WaitingSheet`). Read off the
+ * progress store the stack already reads (`useQueueWaits`), as its stop is, so no prop runs through the page.
+ *
  * ★ AN ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, `use-arrival-gate.ts`): a live arrival is
  * held out of the rows until its link has landed and its photograph is decoded, its batch with it, then let in
  * as photographs the browser already holds; the glow is written here, when each lands, and on her own the
@@ -57,6 +62,7 @@ import { exportToasts } from "@/components/app/export/export-toast";
 import type { GridMedia } from "@/components/app/media-grid";
 import { SendingStandIn } from "@/components/guest/upload/sending-stand-in";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
+import { WaitingSheet } from "@/components/guest/upload/waiting-sheet";
 import { useLikeAction } from "@/components/likes/like-button";
 import {
   AlbumNewsContext,
@@ -70,8 +76,10 @@ import {
 } from "@/components/shared/masonry";
 import { useArrivalGate } from "@/components/shared/use-arrival-gate";
 import { layerIsUp } from "@/components/ui/layer-is-up";
+import { paneNote } from "@/lib/guest/unsent/words";
 import {
   useQueueProgress,
+  useQueueWaits,
   type QueueProgress,
 } from "@/lib/guest/use-upload-queue";
 import type { RowAnchor, RowStep } from "@/lib/shared/album-rows";
@@ -98,6 +106,8 @@ export type PendingTile = {
  */
 function useStackLead(lead: PendingTile, progress: QueueProgress | null) {
   const live = useQueueProgress(progress, lead.queueId);
+  // Standing by for the line (`QueueProgress.waits`): where it waits, or null while it goes.
+  const waits = useQueueWaits(progress, lead.queueId);
   const now = progress ? live : lead.progress;
   // ★ THE x IS FOR A FILE THAT CAN STILL BE STOPPED: going up (even at 100, while R2 answers), or not begun. Once its
   // bytes are up it waits to be recorded with its burst and its complete is coming, which no stop could take back.
@@ -113,7 +123,7 @@ function useStackLead(lead: PendingTile, progress: QueueProgress | null) {
             stop: () => stop(lead.queueId),
           })
       : undefined;
-  return { now, stoppable, askId, onStop };
+  return { now, stoppable, askId, onStop, waits };
 }
 
 /**
@@ -145,13 +155,15 @@ function LiveStackTile({
   remaining,
   progress,
   onSight,
+  onOpenWaits,
 }: {
   lead: PendingTile;
   remaining: number;
   progress: QueueProgress | null;
   onSight: (inView: boolean) => void;
+  onOpenWaits: () => void;
 }) {
-  const { now, onStop } = useStackLead(lead, progress);
+  const { now, onStop, waits } = useStackLead(lead, progress);
   const ref = useStackSight(onSight);
   return (
     <UploadStackTile
@@ -161,6 +173,8 @@ function LiveStackTile({
       progress={now}
       remaining={remaining}
       onStop={onStop}
+      standby={waits ? { note: paneNote(waits) } : undefined}
+      onOpenWaits={onOpenWaits}
     />
   );
 }
@@ -171,13 +185,15 @@ function LiveStandIn({
   lead,
   remaining,
   progress,
+  onOpenWaits,
 }: {
   doc: Document;
   lead: PendingTile;
   remaining: number;
   progress: QueueProgress | null;
+  onOpenWaits: () => void;
 }) {
-  const { now, onStop } = useStackLead(lead, progress);
+  const { now, onStop, waits } = useStackLead(lead, progress);
   return (
     <SendingStandIn
       doc={doc}
@@ -186,6 +202,8 @@ function LiveStandIn({
       progress={now}
       remaining={remaining}
       onStop={onStop}
+      standby={waits !== null}
+      onOpenWaits={onOpenWaits}
     />
   );
 }
@@ -377,6 +395,16 @@ export function GalleryRows({
   // the x where she is (`sending-stand-in.tsx`).
   const standIn = useStandIn(lead !== undefined);
   const layerUp = useLayerUp(standIn.away);
+  // Her press on a send that stands by: the whole send, and its promise (`WaitingSheet`).
+  const [waitsOpen, setWaitsOpen] = useState(false);
+  const openWaits = useCallback(() => setWaitsOpen(true), []);
+  // Her send all landed (or stopped): the sheet has nothing left to say, and a later send never reopens it by itself
+  // (the sanctioned adjust-state-during-render pattern).
+  if (waitsOpen && pending.length === 0) setWaitsOpen(false);
+  const waitingFiles = useMemo(
+    () => pending.map((p) => ({ id: p.queueId, file: p.file, url: p.url })),
+    [pending],
+  );
 
   return (
     <AlbumNewsContext value={news}>
@@ -409,6 +437,7 @@ export function GalleryRows({
                 remaining={pending.length}
                 progress={progress}
                 onSight={standIn.onSight}
+                onOpenWaits={openWaits}
               />
             )}
           </>
@@ -423,8 +452,15 @@ export function GalleryRows({
           lead={lead}
           remaining={pending.length}
           progress={progress}
+          onOpenWaits={openWaits}
         />
       )}
+      <WaitingSheet
+        open={waitsOpen}
+        onOpenChange={setWaitsOpen}
+        files={waitingFiles}
+        progress={progress}
+      />
     </AlbumNewsContext>
   );
 }

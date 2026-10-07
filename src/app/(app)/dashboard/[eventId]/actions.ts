@@ -333,8 +333,8 @@ export async function purgeMediaNowAction(
  * The album's density step, in the gallery's one cookie (`album-columns` r2: three steps, one index
  * shared by host and guest; `tile-size-cookie.ts` has why a cookie). A preference, not a trust
  * boundary — no auth check, same as `setEventsViewAction` in `dashboard/actions.ts`, whose pattern
- * this mirrors exactly. `resolveRowStep` narrows whatever arrives to the three steps (a legacy width
- * maps across), so a hand-forged call can only ever set one of them.
+ * this mirrors exactly. `resolveRowStep` narrows whatever arrives to the three steps (an index, or the
+ * default), so a hand-forged call can only ever set one of them.
  */
 export async function setRowStepAction(step: number): Promise<void> {
   const cookieStore = await cookies();

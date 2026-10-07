@@ -20,50 +20,14 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Platform, data and cost
 
 - Cost: cache an open album's "has anything changed?" answer at the CDN for a few seconds (Will's yes to X5, 2026-10-07): only an open album at full access, never a password album or a blocked viewer, and the answer a version number alone, never photos or links (100 lit phones asking cost one call). With it in, AB5's cadence may tighten where that costs nothing (Will kept AB5's slowing ask and invites a livelier page at the same cost).
-- Lifecycle: a Free event idle for two years, not six months, is removed (Will changed K5, 2026-10-07: "6 months feels like too short a span"): the window in `src/lib/lifecycle/` and any SQL mirror, the warning mail, help's `<InactivityMonths />`, PRD's "Free-plan inactivity" line and lifecycle-recovery.md; the Terms state no number (his: "Legal terms should not bind us to this").
 
 ### Security and abuse
 
-- Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
-- QA hardening: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
+- Settings: pin in a test that `eventPatch` and `updateEvent` name `require_verified_email` only when her switch provides it: `events_email_held`'s client arm (20261008030000) clears the gate's memory on any client write of the step, so a future whole-row save would undo a hold by a side door (the Advisor's Q45).
 
 ### Uploads, media and exports
 
 - Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
-
-### The guest's album
-
-- Guests: an album's order turns when its host closes adding, never on a date (Will, 2026-10-07, call AY1 changed): today it turns at 9 am the morning after its last day (`lib/shared/album-order.ts`, `lib/event/zone-morning.ts`; guest-flow.md's "The album's order turns"); an undated album turns the same way, reopening turns it back, and a Disposable's develop, her own chosen moment, still turns its album (the Orchestrator's call, his to overrule) (crumbs-91).
-
-### The host app
-
-- Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
-- Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
-- Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
-- Settings: her own "An email first" turned on in one page while another of her pages holds an address gate is undone when the gate goes (`events_email_held` fires only on a change of `gate`, so a write of the step under a standing hold leaves `email_held` true); clear the memory when she writes the step herself (red-team 57c, LOW).
-- Settings: the save's nudge (`settings-state-unpark.ts`) runs 1 to 9 s after the answer, but a slow response stream commits only when it ends: an invite remove answered at 1.75 s stood "Saving… 1 on the list" for 90 s on a slow desk build, and a door save for 2 minutes; nudge until the commit lands, or from the stream's end (red-team 57c, LOW).
-
-### Admin and operations
-- Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
-- Admin: the operator's audited uploads credit (Will's yes to X6, 2026-10-07): a reason, the operator's second factor, a bounded amount, logged in `admin_actions`, on `/admin/accounts`; never a reset of the ledger the spend watch also reads; a migration, through the Advisor.
-
-### Design system and accessibility
-
-- Design: Settings' radio cards are each a Tab stop and ignore the arrow keys; one stop a group, arrows between its cards (red-team 57b, NIT).
-
-### The lab and the kit
-
-- The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 24.5 calls a step against its budget of 9 (milestone 39's run, 2026-10-07; 182.8 on 2026-10-05): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
-- The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
-- The lab: a Clear on the desk (Will, 2026-10-07): "Copy everything" carried desk 8's board answers into his calls paste, since the desk still served a build older than their transcription; one press empties the sitting's held answers, and the Orchestrator refreshes the desk after each transcription so recorded answers never ride again.
-
-### Code hygiene
-
-- Code hygiene: `device-tickets.test.tsx` still pins the welcome by the legacy `pr_welcome_<qr>` localStorage key; read `document.cookie` as `foreign-ticket.test.tsx` does, then drop `use-welcome-seen.ts`'s legacy put-down (`LEGACY_PREFIX`, its `localStorage` removals) and its pins in `use-welcome-seen.test.tsx`.
-- Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
-- Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
-- Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
-- Code hygiene: retire crumbs-88's typed seam in `lib/db/mutations/events.ts` now `types.ts` carries `events.create_key` (applied 20261007111050): `CREATE_KEY`'s cast and the filter spelled as a known column become the plain column, the `Object.assign` putting the key on the insert becomes a field, and `eventUnderKey`'s 42703 branch goes with the tests that pin it (crumbs-88).
 
 ## Upcoming
 
@@ -90,17 +54,18 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Security and abuse
 
 - Security: the impersonation words (`support`, `billing`, `verify`, ...) are refused only as whole slugs (`reserved-slugs.ts`, `set_event_slug`), so `/e/billing-update` stays claimable; refusing them as a part would also take slugs like `staff-party`.
+- QA hardening: the presign budget checks and counts in two round trips, so one ticket's simultaneous bursts can all pass inside one; an atomic count-and-insert RPC (an advisory lock on the requester) would close it (crumbs-91).
 
 ### Billing and pricing
 
 - Pricing: `adopt_pass_credit_orphans`' orphan loop could also hold `and c.profile_id = p_host_id` (the Advisor's nit; billing-orphans).
 - Pricing: re-run the atlas's per-call lines with `usher/kit/cost-model/` for today's paths (the CPU a call as measured, about 44 ms on Vercel's average and not about 3; a burst's one presign; staging's three copies a photo; no proxy on an API route; the wall screen resting, about $0.41 where it says $0.54), and decide the preview at complete: it is checked against its original's declared bytes at presign only, so a multipart original completed short could land a 2 MB preview beside a tiny original (re-check it against the original's HEAD at complete, or say so) (scratch-synthesis).
 - Pricing: drop `consume_passes_for_pro_credit(uuid)` once no deployed build calls it (milestone 38 runs the claim), with `event-passes-migration.test.ts`'s pins on it; a contract migration (billing-integrity).
-- Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, once Will mints a `CLOUDFLARE_ANALYTICS_TOKEN` (Account Analytics: Read) (the calls lab's X3).
+- Billing: the plan limits' Cloudflare reader `[eng+human]`: R2 operations and Workers requests through the GraphQL Analytics API, with `CLOUDFLARE_ANALYTICS_TOKEN` (minted 2026-10-07 for X3: `partyreel-analytics-read`, an account token reading Account Analytics alone on the Partyreel Team account, expiring 2027-10-07; in `.env.local` and both Vercel projects; `src/lib/env.ts` takes it with the reader).
 - Pricing: rename the uploads meter's wire names to window-neutral ones (`at_monthly_cap`, the presign meter's `'monthly'` reason).
 - Pricing: the plans' sheet opened by an event limit (Create's held Upgrade, the cap door's See Pro) leads "You are out of room", the storage trigger's words (`pricing-sheet.tsx`, `kind: "room"`); give the event limit words of its own (create-wizard-wiring).
 - Pricing: `/pricing` opens on paper but the cinema layout pins `themeColor: #020202` (`(cinema)/layout.tsx`), so a phone's browser chrome is dark over a white first screen; the fix is group-level, since the layout keeps `viewport` off every page.
-- Billing: the plan limits' Vercel reader once Will mints `VERCEL_USAGE_TOKEN` (his yes to X2, 2026-10-07: scoped to the Partyreel team, one-year expiry, non-sensitive until launch, then Sensitive; the cron reads it once a day).
+- Billing: the plan limits' Vercel reader with `VERCEL_USAGE_TOKEN` (minted 2026-10-07 for X2: `partyreel-usage`, the Partyreel team, expiring 2027-10-08; in `.env.local` and both Vercel projects, non-sensitive until launch, then Sensitive; the cron reads it once a day; `src/lib/env.ts` takes it with the reader).
 - Lifecycle: a small overage forgiven when a plan ends over its storage (Will changed R1, 2026-10-07: "a big win on user experience when they know we could have just deleted it instead"): at the grace's end nothing moves while she is within a small margin over her cap, sized so it costs little, never advertised; lifecycle-recovery.md and PRD's "Over capacity" line take the rule when built.
 - Lab exploration: Partners (Will's answer to X14, 2026-10-07: the professional host is a launch target, the minimum now: roles through X9's co-hosts, a hand-over, templates; his own Partners idea, its foundation built before launch if he approves): approved partners (planners, venues, photographers) on a free Pro account, a code bound to their events, inherited by every account created from a partner's event and never added later but by the operator, the partner earning a share while those accounts stay on Pro. The board asks the tree's depth, the payout's form (credit or cash: Stripe Connect and tax forms), attribution and abuse, and the partner's own surfaces; his words are in `docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`.
 
@@ -109,7 +74,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Drive: a check page throttled before its folder's duplicate listing skips the count, and once its cursor has moved no later page counts it (`first` is "cursor null"); count once a walk on the first page that answers (drive-crumbs).
 - Drive: the closing check asks a non-rate `unknown` again every 90 s with no growth for the hour before a send reads Stuck; the Worker's cadence could back off on a repeated unknown (the Advisor; drive-crumbs).
 - Downloads: Download all's zip names its entries `slug-id.ext` (`buildDownloadFilename`); name them when, then who, like a Drive copy, so an unzipped album sorts as the night happened (capture-time).
-- Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring).
 - Host (clip): the hub's reel view has no Make your own (its seam wants the host's plan and her own Add to event); wire it from the hub so she can make a clip before the develop.
 - Camera: a host chooses her camera's clip length beside its roll (10, 20 or 30 s), on the customize board's pattern (`CAMERA_VIDEO_SECONDS` is one constant with its SQL mirror, so a per-event length is a column read by the two SQL constants, bounded by the 30 s ceiling); and the camera's first hint says how long a hold may run, since only the ring teaches it today.
 - Uploads: two narrow races at a switch from Review to a develop time: an upload that read the old event row stays pending on an album that no longer reviews, and a second tab's approve at the save's instant shows before the develop; the proposed heal is a nightly pass approving any pending row on a live album.
@@ -117,10 +81,11 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Media: carry Apple's MakerNote HDR headroom (tags 0x0021 and 0x0030) into the minimal Exif `strip-metadata.ts` rebuilds, on JPEG and HEIC, so a pre-iOS-18 HDR photo keeps its exact HDR rendering.
 - Media: `event_covers` picks only approved photos, so an album of videos alone shows no cover on any card (dashboard, picker, profile); fall back to the newest previewed video's frame, photos first, in one migration.
 - Clips: a guest's Add to event reads Added the moment it hands the clip to the page's upload queue (`clip-creator.tsx`'s `add`); it could follow its queue item instead (sending, held for review, failed).
-- Lab exploration: a party with no signal: nothing waits on the device (no service worker; a closed tab loses an unsent photo, and iOS kills background tabs); unsent originals kept in IndexedDB and resumed on the next open with a "3 waiting to send" chip, Background Sync where it exists; whether a camera shot spends the roll when taken or when it lands is Will's (app-gaps-r1).
 - Uploads: the same photo sent twice lands twice (re-picked to be sure, AirDropped around a party), spending storage and the uploads allowance and repeating in the zip, Drive and the reel; skip a byte-identical file per album (a hash of the stripped bytes before presign) and say it is already in (app-gaps-r1).
 - Video: the album's viewer plays the original (up to 10 GB, HEVC by default on iPhones) with no fallback where the reel falls back to its poster (`lib/reel/engine/video/ladder.ts`); measure on real phones, then a light copy made in the uploading browser or a server transcode costed in the atlas (app-gaps-r1).
 - Uploads: a HEIC the uploading browser cannot decode gets no preview, phone copy or measures; decode it there with a WASM decoder fetched only then ($0, in-house; libheif and libde265 are LGPL, Will's call before it is built) (crumbs-90).
+- Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `roll.ts`'s `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring, crumbs-90; one line since no-signal-wiring).
+- Uploads: a file whose bytes went up but whose complete lost its answer waits in its page alone, so a reload there loses it ("Keep this page open" says so): the uploader's kept complete (`UNANSWERED`, by File) lives in memory; kept beside the copy, the next open could ask that complete again instead of sending the file whole (no-signal-wiring).
 
 ### The guest's album
 
@@ -145,10 +110,12 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: a guest's own "what happened to my photos" across albums (her sends, what landed, what waits, what was refused and why), after no-signal's carry is wired; and the install board's new reason (a home-screen album is exempt from Safari's 7-day eviction and can be granted `persist()`) (no-signal r1).
 - Lab exploration: after-party r2, the album's later moments once Will picks where the recap lives: the anniversary a year on, and the keepsake's premiere (the reel opening by itself on a guest's return, with Skip: motion r1's stills could not judge) (after-party r1).
 - Album: the viewer draws nothing for a photograph its browser cannot decode (a HEIC with no preview in Chrome); say it as the tile's stand-in does, beside Save (crumbs-90).
-- Camera: at a roll of 1 the refusal says "You've taken all 1 shots on your roll." (`roll.ts`'s `rollSpentMessage` and `create_media`'s mirror, a migration) (crumbs-90).
 - Lab exploration: the album's controls (Will's own answer to X10, 2026-10-07): one gallery for every kind of event, with deeper optional filters, sort and views (smart views, perhaps), never a divided default: no day dividers or chapters drawn for her, since "our albums are built to be used dynamically across nearly any sort of event type or duration".
 - Lab exploration: the guestbook (Will's yes to X12, 2026-10-07): a short note, a voice memo or a video message to the hosts, moderated in Review like any upload, at the reel's end and in a place of its own; no captions or comments on photographs; "very natural, and likely a more underlying feature", never forced (the event-page board leaves its door).
 - Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event"; the card's wiring loads its face (after-party r1; its placeholder tile is the wordmark since brand-marks-wiring).
+- Guests: an album open across her close turns its order at the sync's word (AY1) but keeps its Add and its open words until a reload (`event-experience.tsx`'s `canUpload` reads the render's `accepting_uploads`, the camera alone the live word); say the close from the live word too (crumbs-91).
+- Uploads: on an album that waits (her host's yes, a develop) a photograph waiting for the line stands in her uploads with no stop (the stack's x is a live album's), so one she no longer wants still goes when the line is back; a Stop on that row would take it back first (no-signal-wiring).
+- Album: the photo viewer's chunk (`media-lightbox.lazy.tsx`) is fetched on a tile's first touch, so a first tap in a dead zone cannot load it; fetched once the album is idle, as the camera's is as it mounts, it would open with no line (no-signal-wiring).
 
 ### Accounts and profiles
 
@@ -197,16 +164,17 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: a Decline or a Let in from a card leaves focus on the room's panel once its row leaves; move it to the next row's name, as the row's own act did before (guests-room-wiring).
 - Drive: the album tile's Standby dot (`drive-tile-mark.tsx`, `bg-info`) is now the page's muted ink on glass, the same grey as its stopped dot: draw it half-lit in the glass's white, as the Badge draws Standby (brand-marks-wiring).
 - Mail: every mail's head wears the wordmark as drawn at 22px (`public/email/wordmark-v1.png`): `scripts/build-email-wordmark.mjs` on the small cut into `wordmark-v2.png`, and `templates.ts`'s `WORDMARK` pointed at it, so his three near-touching pairs stop blotting (brand-marks-wiring).
+- Settings: after a password's first set, a page that never saw her own write of "An email first" elsewhere says names only are back while the step stays on (the trigger kept her word, 20261008030000) until a reload; read the step from `set_event_password`'s answer (crumbs-91).
 
 ### Admin and operations
 
 - Admin: name the admin deployment's manifest for the portal ("Partyreel Ops", start `/admin`) now that it serves one (`src/app/manifest.ts`).
 - Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on `/admin/exports#drive`, found by address).
-- Admin: the operator's uploads credit (the calls lab's X6, on Will's word): a `credit_bytes` column `uploads_used` subtracts, one definer RPC, the `admin_actions` log, a control behind AAL2 and `destructive-sheet`, bounded credits; a migration (admin-uploads' Question).
 - Admin: an operator release for a squatted custom link, reached from a report on `/e/<slug>`; nothing in `/admin` reads or frees an event's slug, and a free account can now hold one.
 - Admin: `/admin/forensics`' held-media table names no uploader (`listHeldMedia`, `queries/forensics.ts`, reads none), so an operator opens each Record to learn it; an uploader column edits `trust-safety-forensics.md`'s "no page renders either" too.
 - **Admin deployment:** its own Sentry project; the portal shares the app's DSN today.
 - Admin: the portal's states in another tier's token: in progress drawn amber (`storage-sums-view.ts`, `reconcile-view.ts`, `restore-view.ts`), a failure amber (`drive-words.ts`'s stopped sends and its "Lanes dying" pause, `outcome-word.ts`'s refused Too large and Empty, failed copies), near a limit red (`limits-card.tsx`'s Critical and stale readings, `drive-section.tsx`'s Google client line), and a count that waits on the operator amber (`admin-bar.tsx`'s "N jobs need you", `queue.ts`'s open reports) where a count that waits is the tally (brand-marks-wiring).
+- Admin: an Undo for an operator's uploads credit (a `revoke_uploads_credit` definer function that appends to `admin_actions`, and a control beside each live credit); today a mistaken credit is bounded by one allowance and ends with its window (crumbs-92).
 
 ### Design system and accessibility
 
@@ -258,6 +226,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Help: `content/help/share-the-album-after-the-event.mdx`'s keepsake step can say the link then unfurls as "Photos from <name>", not "Add photos to <name>" (crumbs-87).
 - Marketing: live drawn green on the site (`demo-modal/demo-door.tsx`'s LiveDot and its ring, `home/live-demo.tsx`, `live-album-stage.tsx`'s Live now, `feature-door.tsx`'s Filling live, `review-modes.tsx`'s Live icon): live is the recording red that breathes, as the app's `LiveDot` and the Badge's `live` draw it (brand-marks-wiring).
 - About: the press band's words (`ABOUT_PRESS_KIT.body`) name "the mark, the app icon, the share card and a QR code"; the kit now carries the wordmark in ink and in white beside the icon (brand-marks-wiring).
+- Marketing: the idle window reads "about 24 months" on every surface that derives `INACTIVE_MONTHS`; "about 2 years" reads warmer, one phrase export in `lib/lifecycle/inactivity.ts` plus an edit in each consumer (the home FAQ data, llms, the event constants, the comparison table, the album copy, the privacy feature section, the JSON-LD, help's `<InactivityMonths />`) (crumbs-92).
 
 ### The lab and the kit
 
@@ -294,6 +263,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The lab: the desk is long at a phone (the Calls place alone about 10,500 px at 375, the queue above it more): fold an answered section to a line, or walk the calls as steps of the review like the boards' asks (calls-desk).
 - The Library: the "At the door and Invited" specimen's hint says "Let in · Decline, then Undo on its toast"; Decline is a name's card's now (`library/compositions/gallery-demos.tsx`) (guests-room-wiring).
 - Library: the Logo specimens (`library/patterns/gallery-demos.tsx`) still call the mark "a stand-in" until the v1 icon arrives, and draw the display size in the small cut: the Ring by name, and `cut="display"` on the 48px specimen (the specimens' JSON regenerated) (brand-marks-wiring).
+- The lab and the kit: the kit kills servers by port the broad way (`lsof -ti tcp:$PORT | xargs kill` in `capture.sh`, `capture-all.sh`, `gate-lane.sh`, `demo-rerun.sh`, pinned by `gate-dev-cache-policy.test.ts`), which also kills a walk's headless Chrome's network service and wipes its cookies; kill the listener alone (`-sTCP:LISTEN`, `kit_port_pids`) (crumbs-91, red-team 56b's vanished cookies).
 
 ### Code hygiene
 
@@ -307,6 +277,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `event-settings/settings-pages.ts`'s head still lists Create's Get it ready among the links into a Settings page; Create's foot is Go to your event now (create-wizard-wiring-2).
 - Code hygiene: retire `blockedSince`, `blockedLineParts` and `LET_IN_LINE` (`lib/events/event-blocks.ts`), which the Guests room no longer calls (only their own tests do) (guests-room-wiring).
 - Code hygiene: `guest-look.ts`'s `readQuietCards` restates the four public card columns because `social.ts`'s `getProfileCards` is private; export it and read through it (guests-room-wiring).
+- Code hygiene: `EventCard`'s `variant` has no caller passing it (the profile hands its own marker as `action`; the marketing teaser draws its own card), and its `data-static` comment still says a host management card; fold the guest marker into the profile's action (crumbs-91).
 
 ## Before launch
 
@@ -389,6 +360,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The marketing site on a real iPhone `[eng+human]`: the privacy lens on /features/privacy was never driven in WebKit, so its two mitigations (`isolation` on the pane's rounded clip, `will-change` on the filtered veil) wait on a first iPhone look.
 - Marketing: the guest row on the marketing site, from fixtures only (ASSETS row 41's portraits where a face needs a photograph), drawn in the marketing round (presence r1's carried `marketing`).
 - Marketing: the site's pictures of the app still draw Review's count in the amber pill (`marketing/sections/how-it-works/host-pictures.tsx`, `features/curation/review-queue-demo.tsx`); the app's is `--needs-you` now (the marketing visuals' phase) (crumbs-87).
+- Legal: the privacy page (`legal-privacy.tsx`) says the welcome's flag lives in local storage and counts three cookies; `pr_welcome_<qr>` is a year's cookie now, beside `pr_tile_size`, `pr_album_sort` and `pr_album_w` (crumbs-91).
 
 ### The lab and the kit
 
@@ -472,6 +444,7 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 
 - Drive: live sync as the second version on the same queue, its decisions per `systems/drive-export.md`'s "The next versions" (only approved, visible items after a grace window; a `trash` act with its own audit; no lane held while idle; the guest-facing privacy text).
 - Drive: Dropbox through `save_url`, the lease carrying a presigned GET (`systems/drive-export.md`, "The next versions").
+- Uploads: Android's Background Sync (a service worker) could send what waits with the album closed; iPhones have none, so her phone's keep sends at her next open (no-signal r1's carried call, "not yet") (no-signal-wiring).
 
 ### The guest's album
 

@@ -22,10 +22,13 @@ import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { ChromeLink } from "@/components/marketing/chrome/chrome-link";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { useRollAhead } from "@/lib/guest/camera/own-shots";
+import { waitsForLine } from "@/lib/guest/unsent/standby";
 import {
   uploadsWait as uploadsWaitOf,
   type UploadsWait,
 } from "@/lib/guest/upload-tracker";
+import { useStoredSession } from "@/lib/guest/use-stored-session";
 // The queue MACHINE lives in `event-experience.tsx`; only its types, and the run's own count, are read
 // here.
 import {
@@ -232,6 +235,15 @@ export function GuestUpload({
   useEffect(() => {
     if (camera) void loadCamera();
   }, [camera]);
+  // ★ AND HER ROLL, READ AS THE ALBUM OPENS (no-signal r1, `roll=taken`): a camera first opened in a dead zone counts
+  // from this, never from the roll's size over shots an earlier visit spent (`useRollAhead`'s note).
+  const [sessionToken] = useStoredSession(qrToken);
+  const ahead = useRollAhead({
+    enabled: camera && !isOwner && !isDemo,
+    qrToken,
+    sessionToken,
+    queue: items,
+  });
   // A slot that goes with the camera open (a re-gate) closes it for the page too, so nothing is held for it.
   const cameraOpenNow = useRef({ open: cameraOpen, tell: onCameraOpenChange });
   useEffect(() => {
@@ -257,6 +269,12 @@ export function GuestUpload({
      mounted (`carriedFailures`) is not this run's, so a clean run after a gate
      never reopens the OLD sheet, with its Retry for a file the host's switch
      refused an hour ago.
+
+     ★ A FILE STANDING BY FOR THE LINE IS NOT GOING (no-signal r1, `drop=standby`):
+     it waits, said where it stands (the stack, her uploads), and the line may not
+     come back for an hour, so a refusal of a file of its own (too large, a type)
+     beside it is said once nothing is going up, as at any run's end, never held
+     behind the wait. The sheet lists only the refusal: a wait is never a failure.
      ──────────────────────────────────────────────────────────────────────── */
   const [failuresOpen, setFailuresOpen] = useState(false);
   const wasRunning = useRef(false);
@@ -277,7 +295,9 @@ export function GuestUpload({
   );
   useEffect(() => {
     const running = items.some(
-      (it) => it.status === "queued" || it.status === "uploading",
+      (it) =>
+        (it.status === "queued" || it.status === "uploading") &&
+        !waitsForLine(it),
     );
     if (
       wasRunning.current &&
@@ -374,6 +394,7 @@ export function GuestUpload({
             <AlbumCamera
               open={cameraOpen}
               openedAt={cameraOpenedAt}
+              ahead={ahead}
               onOpenChange={(next) => {
                 setCameraOpen(next);
                 onCameraOpenChange?.(next);

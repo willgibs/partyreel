@@ -227,7 +227,7 @@ here too; `../help/AUTHORING.md` lists them.
   offers "Add an end date". Deleted events and media wait in Deleted
   (one word everywhere: the app, the marketing pages and the posts; never "trash" or "bin") for
   the recovery window, then are purged. A free event with no activity (the host's, an edit, a new
-  upload) for about six months gets a warning email, then removal. An Event Pass covers about a
+  upload) for `<InactivityMonths />` gets a warning email, then removal. An Event Pass covers about a
   year; a nudge goes out before it lapses, a renewal extends it, and a lapsed pass drops the event
   to Free with a grace window before anything is reduced.
 - **Sharing and download.** One link per event. Per-item originals. A guest takes photos home by

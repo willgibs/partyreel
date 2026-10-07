@@ -14,10 +14,14 @@
  * says Removing while it works, leaves the list when the server agrees, and the count steps back up as the camera reads
  * her roll again. ★ Its head counts her re-shoots ("6 of 24 · 2 re-shoots left", guest-moments r1's `limit=three`),
  * and once they are spent its foot says a removal frees no frame now, so the X never promises one.
+ *
+ * ★ A SHOT WAITING FOR THE LINE IS HERS, ON THE ROLL (no-signal r1, `roll=taken`): its tile says "No connection" beside
+ * Standby's still point, never a spinner, and offers no Retry: it goes by itself once the line is back.
  */
 import { ChevronDown, Loader2, Play, RefreshCw, X } from "lucide-react";
 import type { Ref } from "react";
 
+import { WaitPoint } from "@/components/guest/upload/wait-point";
 import { Button } from "@/components/ui/button";
 import {
   BACK_TO_CAMERA,
@@ -32,7 +36,15 @@ export type ShotTile = {
   mediaId?: string;
   queueId?: string;
   kind: "photo" | "video";
-  status: "taking" | "sending" | "door" | "in" | "sealed" | "held" | "failed";
+  status:
+    | "taking"
+    | "sending"
+    | "waiting"
+    | "door"
+    | "in"
+    | "sealed"
+    | "held"
+    | "failed";
   /** Her picture of it: this visit's frozen frame, or the server's picture for her alone. */
   src?: string;
   /** The server's picture is the video itself (no preview was made): drawn as its first frame. */
@@ -168,6 +180,9 @@ export function YourShots({
                         className="size-3 motion-safe:animate-spin"
                         aria-hidden
                       />
+                    )}
+                    {tile.status === "waiting" && state === null && (
+                      <WaitPoint />
                     )}
                     <span className="truncate">{words}</span>
                   </p>

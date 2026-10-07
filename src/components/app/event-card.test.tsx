@@ -4,40 +4,30 @@ import { describe, expect, it } from "vitest";
 import { EventCard, RoleMarker } from "./event-card";
 
 // Behavior pins (never styles) for the V3 stat-forward card: which chrome shows
-// per variant, the amber chip threshold, and the guest-private href-null contract.
+// per variant, and the guest-private href-null contract.
+//
+// ★ RESHAPED ON PURPOSE (crumbs-91; scar kept: a hosted card links to its album and
+// wears its pills, and an unlinked one carries the action a page hands it). The
+// hosted card wore the dashboard's chrome (the QR chip, the needs-you review chip,
+// the item count, the living cover) until the dashboard's tile became its own
+// (host-dashboard r1), and the trash card was the bin's until guest-by-upload
+// retired it; no page draws either now, so those pins went with them.
 describe("EventCard (V3 stat-forward)", () => {
-  it("hosted: renders the QR slot, links to the event, and shows the amber chip only when pending > 0", () => {
-    const { rerender } = render(
+  it("hosted: links to its album and wears its date and its door, with no marker of its own", () => {
+    render(
       <EventCard
         variant="hosted"
-        href="/dashboard/e1"
+        href="/e/abc"
         name="Maya and Jay"
         coverUrl="https://example.test/cover.jpg"
         dateLabel="June 14"
-        itemsLabel="12 items"
-        statusLabel="Open"
-        pendingCount={3}
-        qrSlot={<button data-testid="qr">qr</button>}
+        statusLabel="Password"
       />,
     );
-    expect(screen.getByTestId("qr")).toBeInTheDocument();
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/dashboard/e1");
-    expect(screen.getByText("3 to review")).toBeInTheDocument();
-
-    rerender(
-      <EventCard
-        variant="hosted"
-        href="/dashboard/e1"
-        name="Maya and Jay"
-        coverUrl="https://example.test/cover.jpg"
-        dateLabel="June 14"
-        itemsLabel="12 items"
-        statusLabel="Open"
-        pendingCount={0}
-        qrSlot={<button data-testid="qr">qr</button>}
-      />,
-    );
-    expect(screen.queryByText(/to review/)).not.toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/e/abc");
+    expect(screen.getByText("June 14")).toBeInTheDocument();
+    expect(screen.getByText("Password")).toBeInTheDocument();
+    expect(screen.queryByText("Guest")).not.toBeInTheDocument();
   });
 
   it("guest-private (href null) renders no link and the private name (lock fallback)", () => {
@@ -111,7 +101,7 @@ describe("EventCard (V3 stat-forward)", () => {
     ).toBe("photo");
   });
 
-  it("guest: an event you added photos to wears the Guest marker and a byline, never a QR or a review chip", () => {
+  it("guest: an event you added photos to wears the Guest marker and a byline", () => {
     render(
       <EventCard
         variant="guest"
@@ -126,7 +116,6 @@ describe("EventCard (V3 stat-forward)", () => {
     expect(screen.getByText(": added photos here")).toBeInTheDocument(); // sr-only
     expect(screen.getByText("Hosted by Sam")).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute("href", "/e/abc");
-    expect(screen.queryByText(/to review/)).not.toBeInTheDocument();
   });
 
   it("the marker is one object for the dashboard and the profile: RoleMarker says Host or Guest", () => {
@@ -136,52 +125,21 @@ describe("EventCard (V3 stat-forward)", () => {
     expect(screen.getByText("Guest")).toBeInTheDocument();
   });
 
-  it("trash: renders the countdown status + a restore action and never a link", () => {
+  it("an unlinked card wears the action a page hands it in place of the guest marker, and never a link", () => {
+    // A page's own marker (the profile hands every card its Host or Guest) takes the top-right,
+    // so the guest variant's never stands beside it.
     render(
       <EventCard
-        variant="trash"
+        variant="guest"
         href={null}
-        name="Old party"
-        coverUrl={null}
-        dateLabel="May 2"
-        statusLabel="30 days left"
-        action={<button data-testid="restore">restore</button>}
+        name="Sam's birthday"
+        coverUrl="https://example.test/cover.jpg"
+        dateLabel="May 30"
+        action={<RoleMarker role="host" />}
       />,
     );
-    expect(screen.getByText("30 days left")).toBeInTheDocument();
-    expect(screen.getByTestId("restore")).toBeInTheDocument();
+    expect(screen.getByText("Host")).toBeInTheDocument();
+    expect(screen.queryByText("Guest")).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
-  it("living: a card with stills paints its cover first and takes its turn; one still is a plain cover", () => {
-    // `reel-host`, his `pulse` note: the dashboard's cards dissolve through their stills in turn.
-    const { container, rerender } = render(
-      <EventCard
-        href="/dashboard/e1"
-        name="Maya and Jay"
-        coverUrl="cover.jpg"
-        dateLabel="June 14"
-        living={{ id: "e1", stills: ["cover.jpg", "next.jpg"] }}
-      />,
-    );
-    const layer = container.querySelector("[data-living='2']");
-    expect(layer).not.toBeNull();
-    expect(layer?.querySelector("img.opacity-100")?.getAttribute("src")).toBe(
-      "cover.jpg",
-    );
-
-    rerender(
-      <EventCard
-        href="/dashboard/e1"
-        name="Maya and Jay"
-        coverUrl="cover.jpg"
-        dateLabel="June 14"
-        living={{ id: "e1", stills: ["cover.jpg"] }}
-      />,
-    );
-    expect(container.querySelector("[data-living]")).toBeNull();
-    expect(container.querySelector("img")?.getAttribute("src")).toBe(
-      "cover.jpg",
-    );
   });
 });

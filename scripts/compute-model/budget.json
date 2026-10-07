@@ -43,8 +43,8 @@
     },
     "lab-demo": {
       "per": "step",
-      "calls": 9,
-      "vercelCpuMs": 210
+      "calls": 27,
+      "vercelCpuMs": 410
     }
   }
 }

@@ -27,6 +27,7 @@
  * escaped on its way into HTML; the text twin carries it raw, since plain text is never parsed.
  */
 import { BRAND_HEX, SITE_URL } from "@/lib/constants/site";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 
 /** What every template returns, and all `sendOnce` sends. */
 export type Mail = { subject: string; html: string; text: string };
@@ -410,7 +411,9 @@ export function inactivityWarningEmail(opts: {
       p(
         "Your event ",
         strong(opts.eventName),
-        " hasn't been used in a while. To keep free accounts tidy, we remove events after 6 months of inactivity. Yours is set for removal on ",
+        // The window is the sweep's own (inactivity.ts), never retyped here: a mail that says a window the sweep does
+        // not enforce tells a host her event is safe, or doomed, when it is not.
+        ` hasn't been used in a while. To keep free accounts tidy, we remove events after ${INACTIVE_MONTHS} months of inactivity. Yours is set for removal on `,
         strong(opts.deadline),
         ". Just sign in or open it before then to keep it.",
       ),
@@ -434,7 +437,7 @@ export function inactivityRemovedEmail(opts: {
       p(
         "Your event ",
         strong(opts.eventName),
-        " was removed after 6 months of inactivity (a free-account policy). It's still recoverable until ",
+        ` was removed after ${INACTIVE_MONTHS} months of inactivity (a free-account policy). It's still recoverable until `,
         strong(opts.recoverableUntil),
         ": restore it yourself from your dashboard's Deleted filter. After that it's permanently deleted.",
       ),
@@ -470,12 +473,20 @@ export function driveConnectedEmail(opts: {
         " can now take your albums' originals. Partyreel sees only the files it puts in that Drive, never anything else there.",
       ),
       ...(opts.replacedEmail
-        ? [p("It replaced ", strong(opts.replacedEmail), ": a send to that Drive that was still going has stopped.")]
+        ? [
+            p(
+              "It replaced ",
+              strong(opts.replacedEmail),
+              ": a send to that Drive that was still going has stopped.",
+            ),
+          ]
         : []),
       p("Not you? Disconnect it in Account, then change your password."),
     ],
     cta: { href: opts.accountUrl, label: "Open Account" },
-    foot: { line: "You're receiving this because a Google Drive was connected to your Partyreel account." },
+    foot: {
+      line: "You're receiving this because a Google Drive was connected to your Partyreel account.",
+    },
   });
 }
 
@@ -498,7 +509,10 @@ export type DriveDoneAlbum = {
  * several say each. "Every one checked" is literal: each file's size and fingerprint matched ours as it landed, and
  * the send asked Drive again for each at its end. Nothing here suggests deleting what was sent (Will, desk 2).
  */
-export function driveExportDoneEmail(opts: { albums: DriveDoneAlbum[]; albumsUrl: string }): Mail {
+export function driveExportDoneEmail(opts: {
+  albums: DriveDoneAlbum[];
+  albumsUrl: string;
+}): Mail {
   const one = opts.albums.length === 1 ? opts.albums[0]! : null;
   const line = (a: DriveDoneAlbum): Block =>
     a.failed > 0
@@ -511,20 +525,34 @@ export function driveExportDoneEmail(opts: { albums: DriveDoneAlbum[]; albumsUrl
           `: all ${a.sent.toLocaleString("en-US")}, ${a.size}, every one checked against ours${a.kept > 0 ? ` (${a.kept.toLocaleString("en-US")} already there from an earlier send, kept as they were)` : ""}.`,
         );
   return composeMail({
-    subject: one ? `${one.name} is in your Google Drive` : `${opts.albums.length} albums are in your Google Drive`,
-    heading: one ? `${one.name} is in your Google Drive` : `${opts.albums.length} albums are in your Google Drive`,
+    subject: one
+      ? `${one.name} is in your Google Drive`
+      : `${opts.albums.length} albums are in your Google Drive`,
+    heading: one
+      ? `${one.name} is in your Google Drive`
+      : `${opts.albums.length} albums are in your Google Drive`,
     blocks: [
-      p("Your photos and videos are in My Drive, in the Partyreel folder, an album to a folder."),
+      p(
+        "Your photos and videos are in My Drive, in the Partyreel folder, an album to a folder.",
+      ),
       ...opts.albums.map(line),
     ],
     cta:
-      one && one.folderUrl ? { href: one.folderUrl, label: "Open in Drive" } : { href: opts.albumsUrl, label: "Open Partyreel" },
-    foot: { line: "You're receiving this because you sent an album to Google Drive." },
+      one && one.folderUrl
+        ? { href: one.folderUrl, label: "Open in Drive" }
+        : { href: opts.albumsUrl, label: "Open Partyreel" },
+    foot: {
+      line: "You're receiving this because you sent an album to Google Drive.",
+    },
   });
 }
 
 /** Why a send paused, as the paused mail says it (a lost connection is the reconnect mail, said once a connection). */
-export type DrivePauseReason = "drive_full" | "daily_limit" | "folder_gone" | "domain_policy";
+export type DrivePauseReason =
+  | "drive_full"
+  | "daily_limit"
+  | "folder_gone"
+  | "domain_policy";
 
 /** A send that paused: once a send and reason, each with its one act (or the promise that it carries on by itself). */
 export function driveExportPausedEmail(opts: {
@@ -537,7 +565,10 @@ export function driveExportPausedEmail(opts: {
   albumUrl: string;
   accountUrl: string;
 }): Mail {
-  const parts: Record<DrivePauseReason, { subject: string; heading: string; body: Block[]; cta: Link }> = {
+  const parts: Record<
+    DrivePauseReason,
+    { subject: string; heading: string; body: Block[]; cta: Link }
+  > = {
     drive_full: {
       subject: `Your Google Drive is full: ${opts.albumName} is paused`,
       heading: "Your Google Drive is full",
@@ -596,7 +627,9 @@ export function driveExportPausedEmail(opts: {
     heading: chosen.heading,
     blocks: chosen.body,
     cta: chosen.cta,
-    foot: { line: "You're receiving this because you sent an album to Google Drive." },
+    foot: {
+      line: "You're receiving this because you sent an album to Google Drive.",
+    },
   });
 }
 
@@ -618,7 +651,9 @@ export function driveExportStoppedEmail(opts: {
       ),
     ],
     cta: { href: opts.albumUrl, label: "Open the album" },
-    foot: { line: "You're receiving this because you sent an album to Google Drive." },
+    foot: {
+      line: "You're receiving this because you sent an album to Google Drive.",
+    },
   });
 }
 
@@ -636,9 +671,16 @@ export function driveReconnectEmail(opts: {
   const drive = opts.googleEmail ?? "your Google Drive";
   const waiting =
     opts.waiting > 0
-      ? [p(`${opts.waiting === 1 ? "1 send is" : `${opts.waiting.toLocaleString("en-US")} sends are`} paused until you do. Each carries on where it stopped.`)]
+      ? [
+          p(
+            `${opts.waiting === 1 ? "1 send is" : `${opts.waiting.toLocaleString("en-US")} sends are`} paused until you do. Each carries on where it stopped.`,
+          ),
+        ]
       : [];
-  const words: Record<DriveReconnectWhy, { subject: string; heading: string; first: Block }> = {
+  const words: Record<
+    DriveReconnectWhy,
+    { subject: string; heading: string; first: Block }
+  > = {
     revoked: {
       subject: "Partyreel lost access to your Google Drive",
       heading: "Partyreel lost access to your Google Drive",
@@ -673,7 +715,9 @@ export function driveReconnectEmail(opts: {
     heading: chosen.heading,
     blocks: [chosen.first, ...waiting],
     cta: { href: opts.accountUrl, label: "Reconnect" },
-    foot: { line: "You're receiving this because a Google Drive is connected to your Partyreel account." },
+    foot: {
+      line: "You're receiving this because a Google Drive is connected to your Partyreel account.",
+    },
   });
 }
 
@@ -883,7 +927,9 @@ export function driveBreakerEmail(opts: {
     blocks: [
       p(
         "It sent more to Google Drive in 30 days than ten times its plan's storage (never under 5 GB): ",
-        strong("the shape of one album sent, deleted from Drive and sent again, not of a host taking her photos home."),
+        strong(
+          "the shape of one album sent, deleted from Drive and sent again, not of a host taking her photos home.",
+        ),
       ),
       {
         kind: "fields",

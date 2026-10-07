@@ -96,7 +96,7 @@ file for limits. Field notes:
    date, with the end date a host may add for a run of days, only says when
    it happens: nothing closes, locks or removes an event because a day
    passed, so no line says an event "has no end date" (Settings offers "Add an
-   end date"). On the Free plan an event nobody touches for about six months
+   end date"). On the Free plan an event nobody touches for `<InactivityMonths />`
    is warned by email, then moved to Deleted, where it can be restored for 30
    days. Use the components for both windows; never let one article say
    "never expires" while another describes the removal.
@@ -170,7 +170,7 @@ the shared file or the blog's (each file's header says whose it is).
   `<TeaserCount />`, `<OverCapGraceDays />`, `<TierName tier="pro" />`.
   Extend this family for new numbers. `<RecoveryDays />` and `<UnlockHours />`
   carry their unit ("30 days", "12 hours"), and `<InactivityMonths />` and
-  `<EventPassTerm />` render a phrase ("about 6 months", "about a year"), as
+  `<EventPassTerm />` render a phrase ("about 24 months", "about a year"), as
   `<MaxEvents />` does ("one event"), which takes `capitalized` where it opens
   a sentence, a bullet or a table cell (`spec-shared.test.ts` holds it there).
   `<ReelSeconds />` is a clip's length cap; the live reel itself has none.

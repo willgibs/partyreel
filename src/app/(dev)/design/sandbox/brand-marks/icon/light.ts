@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { fitChroma, hex } from "@/lib/avatar/gradient";
+import { EMBER } from "@/lib/brand/ring";
 
 /**
  * THE RING'S LIGHT, AS COLOUR: the machinery every way of lighting the icon
@@ -43,17 +44,11 @@ export const mix = (a: Lab, b: Lab, k: number): Lab => [
 export const toHex = (lab: Lab) => hex(fitChroma(fromLab(lab)));
 
 /**
- * THE HOUSE EMBER (brand r2's `DUSK`, kept): one gradient in one direction
- * from the one key light, amber, then coral, then a deep ember; never lamps
- * side by side.
+ * THE HOUSE EMBER, from its one home (`src/lib/brand/ring.ts`, globals.css's
+ * `--ember-1..4`): one gradient in one direction from the one key light,
+ * amber, then coral, then a deep ember; never lamps side by side.
  */
-export const EMBER: readonly { t: number; l: number; c: number; h: number }[] =
-  [
-    { t: 0, l: 0.87, c: 0.15, h: 80 },
-    { t: 0.35, l: 0.77, c: 0.17, h: 52 },
-    { t: 0.68, l: 0.65, c: 0.18, h: 34 },
-    { t: 1, l: 0.5, c: 0.15, h: 24 },
-  ];
+export { EMBER };
 
 /** The ember at `t` (0 its lit end, 1 its deep end), as a lab colour; `chroma` 0 is the tinted grey. */
 export function emberAt(t: number, chroma = 1): Lab {

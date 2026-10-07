@@ -31,6 +31,8 @@ const fx = vi.hoisted(() => ({
     ok: true as const,
   })),
   refresh: vi.fn(),
+  /** The order the hub last handed its album's rows (`HubView.sort`). */
+  sort: null as string | null,
 }));
 
 vi.mock("@/app/(app)/dashboard/actions", () => ({
@@ -60,7 +62,16 @@ vi.mock("@/components/app/event-feed/host-album", () => {
     useHubEntries: () => fx.entries,
     useHubCounts: () => ({ album: fx.entries.length, pending: 0 }),
     useHubLive: () => false,
-    HubViewProvider: ({ children }: { children: React.ReactNode }) => children,
+    HubViewProvider: ({
+      value,
+      children,
+    }: {
+      value: { sort: string };
+      children: React.ReactNode;
+    }) => {
+      fx.sort = value.sort;
+      return children;
+    },
   };
 });
 vi.mock("@/components/app/host-add-provider", () => ({
@@ -320,5 +331,75 @@ describe("the album's news", () => {
       </EventGallery>,
     );
     expect(screen.getByTestId("news").textContent).toBe("new1,held");
+  });
+});
+
+/**
+ * ★ HER SORT OPENS ON HER GUESTS' ORDER (album-order's `albumOwnSort`, AY1): her album opens as her guests meet it, newest
+ * first while it takes uploads and the night in order once she closes adding or it develops, so a hub and a guest's
+ * phone never show one album two ways; her own Sort is a departure for the visit, forgotten when she chooses the album's
+ * own again.
+ */
+describe("★ her Sort opens on her guests' order", () => {
+  const gallery = (
+    acceptingUploads: boolean | undefined,
+    developsAt: string | null = null,
+  ) => (
+    <EventGallery
+      eventId="event-1"
+      videosAllowed
+      initialStep={1}
+      develop={{ develops_at: developsAt, sealed_from: null }}
+      acceptingUploads={acceptingUploads}
+    >
+      <div data-testid="album-rows">the album rows</div>
+    </EventGallery>
+  );
+  const pick = (label: string) => {
+    // Radix's dropdown trigger opens on pointerdown, not click (`view-menu.test.tsx`'s own `openMenu`).
+    fireEvent.pointerDown(screen.getByRole("button", { name: "View" }), {
+      ctrlKey: false,
+      button: 0,
+    });
+    fireEvent.click(screen.getByRole("menuitemradio", { name: label }));
+  };
+
+  it("newest first while it takes uploads, and where the page says nothing of it", () => {
+    const view = render(gallery(true));
+    expect(fx.sort).toBe("newest");
+    view.unmount();
+    render(gallery(undefined));
+    expect(fx.sort).toBe("newest");
+  });
+
+  it("★ the night in order once she has closed adding, whatever its date", () => {
+    render(gallery(false));
+    expect(fx.sort).toBe("oldest");
+  });
+
+  it("★ the night in order once its develop has come, open or not", () => {
+    render(gallery(true, new Date(NOW - 60_000).toISOString()));
+    expect(fx.sort).toBe("oldest");
+  });
+
+  it("★ her Sort departs for the visit; choosing the album's own again lets her close turn it", () => {
+    const view = render(gallery(true));
+    pick("Oldest first");
+    expect(fx.sort).toBe("oldest");
+    pick("Newest first");
+    expect(fx.sort).toBe("newest");
+    // She closes adding while she looks (the page renders again with the row): her album turns, as her guests' do.
+    view.rerender(gallery(false));
+    expect(fx.sort).toBe("oldest");
+  });
+
+  it("a departure she chose stands across her close and a reopen", () => {
+    const view = render(gallery(false));
+    pick("Newest first");
+    expect(fx.sort).toBe("newest");
+    view.rerender(gallery(true));
+    expect(fx.sort).toBe("newest");
+    view.rerender(gallery(false));
+    expect(fx.sort).toBe("newest");
   });
 });

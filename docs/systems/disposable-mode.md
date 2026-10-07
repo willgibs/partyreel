@@ -159,7 +159,11 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   alone: her tracker lists it as developing and removable, and the album's wait counts it
   ([guest-flow.md](guest-flow.md)).
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (never `tell`, which would
-  spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. Her live shots
+  spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice (a shot waiting
+  for the line is not in the air: it is read beside, and counted outside the read, `unread`, until it lands, which reads
+  the roll again; so is a shot of hers another camera took or her phone kept from an earlier page, `elsewhere`). A read
+  the line could not carry is asked again on the phone's `online`; until one answers the count reads from the roll's
+  size. Her live shots
   count uncapped (`RollView.held`, past the roll only by the server's own count), so the counts say "2 on a roll of 1"
   and never promise a freed frame where removing one frees none (`removalFrees`). Her count is what she can still take
   (the frames left, or the room under the ceiling where that ends first: a frame the host freed past it stays empty),
@@ -167,9 +171,25 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   spends one, a shot taken since the read and taken back since included (`taken`, the ledger keeps it). They are said
   where she takes one back (the sheet's line, her list's head, the camera's line after) and at the roll's end once
   spent. The host's own camera keeps no roll (`isOwner`) and asks nothing.
+- ★ **Like film: every press spends a frame at once, sent or not** (no-signal r1, Will's one-way door `roll=taken`). A
+  shot the line could not carry stands by in the queue (uploads-and-r2.md: a drop is never a failure), so it stays
+  counted: in a dead zone the count steps down, the reel draws its frame spent with its minute, half-lit and still
+  (`camera-roll.css`), the caption says "Frame 23 of 24 · 2 waiting", the line under the shutter "No connection: 2
+  shots wait, and go in once it’s back." with no press, and the roll ends at 0 with its end saying the wait first ("24
+  shots; 4 wait for your connection, then develop with everyone’s."); when the line is back all of them land. ★ **The
+  server needs nothing new for it**: `create_media` counts her live shots at insert, and a phone that counts every shot
+  it took never takes one past her roll, so each lands. ★ That count needs a read of her roll: the album reads it as it
+  opens, while the line is up and nothing of hers is in the air (`own-shots.ts`'s `useRollAhead`), so a camera first
+  opened in a dead zone counts from it, never from the roll's size over what an earlier visit spent; a shot of hers
+  landed after any read is counted on top of it until a later read holds it. **Two phones (or two open pages) of one
+  account can still overrun it**: each counts its own shots off its own last read, so shots both took offline past the
+  roll's end are refused when they land (`roll_spent`, "You've taken all 24 shots on your roll."), said on the album's
+  failure sheet with no Retry, and her camera ends the roll; so is a shot the host's smaller roll no longer has room
+  for. The roll's 3 re-shoots are no shelter there: they are take-backs.
 - **Two doors take a shot back** (guest-moments r1's `where=reel`): a press on the reel's newest frame (this visit's
   newest shot, on an album that keeps it out of sight) lays it over the picture with Take it back and Keep it
-  (`TakeBackPanel`; two keys, since a mis-press on the reel must not delete), waiting for a shot still on its way;
+  (`TakeBackPanel`; two keys, since a mis-press on the reel must not delete), waiting for a shot still on its way (one
+  waiting for the line is no door until it lands: its sheet would say "Sending…" over a shot going nowhere);
   Your shots keeps its X with no question. Both are `removeOwnShot`, the page's own removal. On an album that shows
   each shot the reel is one door: a shot in the album is taken back from the album.
 - **A fresh roll is said once** (host-moments r1's `fresh-roll=panel`): the device keeps the period she last held shots
@@ -219,13 +239,14 @@ before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time
 rolls or Keep it as it is (`camera-settings-fresh-rolls.ts`), wherever she adds one: Customize, the Disposable style
 from a mix, a new time for a camera that has developed (a close, which cannot ask, writes nothing of it).
 
-★ **The default develop is the party's 9 am, the morning its album turns** (`developToKeep`, `lib/event/zone-morning.ts`):
-9 am the morning after the party's last day (or after today, once that has passed) in the event's own zone
-(`events.time_zone`), so a destination wedding set up from home develops in the party's morning, not hers, and its
-develop and its album's turn are one morning for every guest. Create offers it in the zone it captures (her browser's);
-Settings in the party's stored zone, else hers. `patchForStyle` and `defaultDevelopAt` take the party's zone themselves
-(`{ zone }`, through `event/wall-time.ts`, the one wall-clock arithmetic the turn shares); `developToKeep` is a thin
-wrapper until Create and Settings drop it. Where the party's zone is not the host's own (`farZone`), the
+★ **The default develop is the party's 9 am** (`developToKeep`, `lib/event/zone-morning.ts`): 9 am the morning after
+the party's last day (or after today, once that has passed) in the event's own zone (`events.time_zone`), so a
+destination wedding set up from home develops in the party's morning, not hers, one moment for every guest; and the
+develop is what turns its album into the night's order (album-order, AY1: her close or her develop, never a date).
+Create offers it in the zone it captures (her browser's); Settings in the party's stored zone, else hers.
+`patchForStyle` and `defaultDevelopAt` take the party's zone themselves (`{ zone }`, through `event/wall-time.ts`, the
+one wall-clock arithmetic); `developToKeep` is Customize's "At a develop time" (a time still ahead kept, else that
+morning). Where the party's zone is not the host's own (`farZone`), the
 develop time is her party's clock throughout Settings: the field takes it both ways (`toZoneInput`/`fromZoneInput`, the
 judge reads it), and every line says its place ("Develops Sun, Oct 4, 9:00 AM in Mexico City", `zone-words.ts`). An
 instant is never moved by a zone: a develop set before she picks another city keeps its moment and is said in the new

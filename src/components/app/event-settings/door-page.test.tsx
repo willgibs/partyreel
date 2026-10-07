@@ -16,7 +16,9 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
@@ -537,5 +539,133 @@ describe("the password's first set, held", () => {
     expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
       description: "It was only on while you let each person in.",
     });
+  });
+});
+
+/* ★ THE GATES ARE ONE RADIO GROUP (crumbs-91, red-team 57b's NIT: every gate was a Tab stop of its own and the arrows did
+   nothing). One stop for the four, the arrows between them choosing as a press does, so a gate that asks first only asks;
+   and each (i) keeps a stop of its own both ways (`radio-cards.tsx`: Radix's own group stop handed Shift+Tab from the
+   first (i) forward to the chosen gate again, a loop, and Tab skipped the (i)s before it). */
+describe("★ the gates from the keyboard: one stop, the arrows between them", () => {
+  /** A stop as the walk records it: a radio by its name, a control by its name or words. */
+  const stopOf = (el: Element | null) =>
+    el?.getAttribute("role") === "radio"
+      ? `radio ${el.textContent}`
+      : (el?.getAttribute("aria-label") ?? el?.textContent ?? "");
+
+  /** Every stop Tab (Shift+Tab, `back`) meets between two controls, in order. */
+  async function walk(
+    user: UserEvent,
+    from: HTMLElement,
+    to: HTMLElement,
+    back = false,
+  ) {
+    act(() => from.focus());
+    const met: string[] = [];
+    // Bounded: a stop that hands focus back never reaches `to`.
+    for (let i = 0; i < 20 && document.activeElement !== to; i++) {
+      await user.tab({ shift: back });
+      if (document.activeElement !== to)
+        met.push(stopOf(document.activeElement));
+    }
+    expect(document.activeElement, `stuck after: ${met.join(" | ")}`).toBe(to);
+    return met;
+  }
+
+  /**
+   * An arrow held down, as a finger holds a key (`add-step.test.tsx`'s): the group moves focus a tick after the keydown,
+   * and a gate is chosen by a focus that arrives while an arrow is down.
+   */
+  async function arrow(user: UserEvent, key: string, lands: () => HTMLElement) {
+    await user.keyboard(`{${key}>}`);
+    await waitFor(() => expect(lands()).toHaveFocus());
+    await user.keyboard(`{/${key}}`);
+  }
+
+  it("★ Tab reaches the chosen gate, one stop for the four, and every (i) keeps its own, met in order both ways", async () => {
+    const user = userEvent.setup();
+    page({ visibility: "private", door: "closed" });
+    const from = choice("Private");
+    const to = screen.getByRole("switch", { name: /An email first/ });
+    const forward = await walk(user, from, to);
+    expect(forward).toEqual([
+      "What a password is for",
+      "What you let each person in is for",
+      "What your invite list is for",
+      "radio Only people already in",
+      "What only people already in is for",
+    ]);
+    expect(await walk(user, to, from, true)).toEqual([...forward].reverse());
+  });
+
+  it("★ an arrow chooses as a press does: a gate that reaches nobody applies at once", async () => {
+    const user = userEvent.setup();
+    page({ visibility: "private", door: "approve" });
+    act(() => choice("You let each person in").focus());
+    await arrow(user, "ArrowDown", () => choice("Your invite list"));
+    await waitFor(() =>
+      expect(setEventDoorAction).toHaveBeenCalledWith(EVENT_ID, "invite"),
+    );
+    await waitFor(() =>
+      expect(choice("Your invite list")).toHaveAttribute(
+        "aria-checked",
+        "true",
+      ),
+    );
+  });
+
+  it("★ a gate that asks first only asks when an arrow lands on it, and the saved gate picked back lets its line go", async () => {
+    const user = userEvent.setup();
+    page(
+      { visibility: "private", door: "approve", has_password: true },
+      { waiting: 2 },
+    );
+    act(() => choice("You let each person in").focus());
+    await arrow(user, "ArrowUp", () => choice("A password"));
+    expect(
+      screen.getByText(
+        "2 people are waiting at the door. A password asks them for it too.",
+      ),
+    ).toBeInTheDocument();
+    expect(choice("A password")).toHaveAttribute("aria-checked", "false");
+    // The line is said, never focused: the arrows go on from the gate she is on.
+    expect(choice("A password")).toHaveFocus();
+    await arrow(user, "ArrowDown", () => choice("You let each person in"));
+    expect(screen.queryByText(/A password asks them for it too/)).toBeNull();
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+  });
+
+  it("an arrow onto A password with none set opens its field and no door; the saved gate picked back takes it away", async () => {
+    const user = userEvent.setup();
+    page({ visibility: "private", door: "closed" });
+    act(() => choice("Only people already in").focus());
+    // Round from the last gate to the first.
+    await arrow(user, "ArrowDown", () => choice("A password"));
+    expect(screen.getByLabelText("Album password")).toBeInTheDocument();
+    expect(choice("A password")).toHaveAttribute("aria-checked", "true");
+    await arrow(user, "ArrowUp", () => choice("Only people already in"));
+    expect(screen.queryByLabelText("Album password")).toBeNull();
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+  });
+
+  it("an (i) keeps its own keys: its arrows never move the gates", async () => {
+    const user = userEvent.setup();
+    page({ visibility: "private", door: "approve" });
+    const help = screen.getByRole("button", {
+      name: "What you let each person in is for",
+    });
+    act(() => help.focus());
+    for (const key of ["ArrowDown", "ArrowUp"]) {
+      await user.keyboard(`{${key}>}`);
+      // Past the tick the group would move on.
+      await new Promise((r) => setTimeout(r, 30));
+      await user.keyboard(`{/${key}}`);
+      expect(help).toHaveFocus();
+    }
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+    expect(choice("You let each person in")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 });

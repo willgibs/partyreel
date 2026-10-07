@@ -316,10 +316,10 @@ reader sees the same thank-you either way and nothing else would ever show it. A
 
 ## Accounts
 
-`/admin/accounts` and an account's page are read-only (billing changes go through Stripe: the webhook is the sole writer
-of tier and cap), and they say what the product enforces on an upload, so "why was this host refused" needs no SQL. The
-reads are `lib/db/queries/accounts.ts`; the words are `app/admin/accounts/uploads.ts`, shared by the list and the page so
-a row and its card never disagree. The list also carries two billing checks, the pass-to-Pro credits stuck past their
+`/admin/accounts` and an account's page are read-only but for one act, the audited uploads credit below (billing changes
+go through Stripe: the webhook is the sole writer of tier and cap), and they say what the product enforces on an upload,
+so "why was this host refused" needs no SQL. The reads are `lib/db/queries/accounts.ts`; the words are
+`app/admin/accounts/uploads.ts`, shared by the list and the page so a row and its card never disagree. The list also carries two billing checks, the pass-to-Pro credits stuck past their
 hour or waiting on Stripe and Stripe's change-plan configuration against every Pro price, and an account's page her
 credits, a stuck one with its Retry, which runs the webhook's own credit path ([billing-caps.md](billing-caps.md)).
 - ★ **A host's uploads are `uploads_used` asked with HER OWN tier,** as `create_media*` and `meter_upload` ask it (this
@@ -339,9 +339,21 @@ credits, a stuck one with its Retry, which runs the webhook's own credit path ([
   against the cap; the list's Storage column is still the physical counter, which gates nothing.
 - ★ **A read that fails says "No reading" and why, never a zero, and never takes the page:** the readers answer
   `{ ok: false, message }` and the page raises one Sentry warning (Sentry never enters `lib/db`). A real zero is a reading.
-- ★ **Nothing here lifts a host's uploads count.** The ledger sits behind billing enforcement, and `cumulative_bytes`
-  is also the spend watch's meter of what the platform pays for (it diffs snapshots of its sum), so zeroing it would
-  both lift the guard and skew the watch: a lift must be additive and audited, never an edit of the ledger.
+- ★ **Nothing here edits a host's uploads count; the one lift is the operator's audited credit** (`grant_uploads_credit`,
+  20261008060000; the words `app/admin/accounts/uploads-credit.ts`, the reads `lib/db/queries/uploads-credits.ts`, the
+  control `[id]/uploads-credit-control.tsx`). The ledger sits behind billing enforcement, and `cumulative_bytes` is also
+  the spend watch's meter of what the platform pays for (it diffs snapshots of its sum), so zeroing it would both lift
+  the guard and skew the watch: a credit is a row beside it, extra room in her current window that ends with it (the
+  calendar month for Free and Pro, her soonest live pass for a pass holder). The action asks `requireAdminAction()`
+  (AAL2) first and the function checks the operator again (an admin profile, else 42501); the reason is required (the
+  sheet's note), the host's row is locked first, together her live credits never pass one more of her plan's allowance
+  nor number more than ten, and a Pro with no cap on record (unmetered) or a lapsed pass is refused in words, since no
+  credit lifts either. One press is one credit however often it is sent (the sheet's key), logged in `admin_actions`
+  (append-only for the service role) in the credit's own transaction. `uploads_used` is the gross count less her credit,
+  never below zero, and `uploads_refused` compares the gross count with the allowance plus the credit, so the door, the
+  figures here, the plan sheet and every refusal agree. The card draws each live credit with who, when and why and holds the
+  control back, in words, where it cannot work; the list wears a credited account's total beside its allowance; a credits
+  read that fails says No reading (the list says so under the search) and raises a Sentry warning, never an empty list.
 
 ## Sentry
 

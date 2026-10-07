@@ -1,7 +1,8 @@
 // node join.mjs <key> <qr> <name> : welcome > Continue > Continue as guest > name > Continue > Skip for now
 import { APP, call, ev, sleep } from "./lib.mjs";
 const [key, qr, name] = process.argv.slice(2);
-const A = APP; // the desk by default (APP moves it); never the alias or partyreel.com
+if (!APP) { console.error("set APP: a lane's own http://localhost:<port>, the desk only for a milestone red-team"); process.exit(2); }
+const A = APP; // never the alias or partyreel.com
 const mouse = async (p) => { for (const type of ["mouseMoved", "mousePressed", "mouseReleased"]) await call({ key, method: "Input.dispatchMouseEvent", params: { type, x: p.x, y: p.y, button: "left", clickCount: 1 } }); };
 const find = (re) => ev(key, `(() => { const re = ${re}; const e = [...document.querySelectorAll('button, a, [role=button]')].find(b => re.test(((b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '')).trim()) && b.getBoundingClientRect().width > 0); if (!e) return null; e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
 const press = async (re, label, tries = 30) => { for (let i = 0; i < tries; i++) { const p = await find(re); if (p) { await sleep(350); const q = await find(re); await mouse(q || p); console.log("pressed", label); return true; } await sleep(200); } console.log("NOT FOUND", label, await ev(key, "document.body.innerText.slice(0,300)")); return false; };

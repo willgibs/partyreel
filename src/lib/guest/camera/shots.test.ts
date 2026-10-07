@@ -163,3 +163,50 @@ describe("pendingSince", () => {
     expect(pendingSince(shots, 300)).toBe(1);
   });
 });
+
+/**
+ * ★ A SHOT WAITING FOR THE LINE IS ON ITS WAY, AND COUNTED (no-signal r1, Will's `roll=taken`): its send dropped and the
+ * queue holds it standing by (`queued`, its cause kept), so it is `sending` and `waiting`, never `failed`, and the count
+ * since the roll's last read keeps it: the shutter spent its frame at the press, like film.
+ */
+describe("a shot waiting for the line", () => {
+  it("★ is sending, waiting, still in flight, and never failed", () => {
+    const f = file();
+    const state = shotState({ file: f }, [
+      item(f, { id: "q-w", status: "queued", cause: "dropped" }),
+    ]);
+    expect(state).toEqual({ status: "sending", queueId: "q-w", waiting: true });
+    expect(inFlight(state)).toBe(true);
+  });
+
+  it("★ stays counted on the roll, where a shot refused for a reason of its own leaves it", () => {
+    const f1 = file("a.jpg");
+    const f2 = file("b.jpg");
+    const shots: { shot: CameraShot; state: ReturnType<typeof shotState> }[] = [
+      {
+        shot: { key: "a", kind: "photo", takenAt: 2_000, file: f1 },
+        state: shotState({ file: f1 }, [
+          item(f1, { id: "qa", status: "queued", cause: "dropped" }),
+        ]),
+      },
+      {
+        shot: { key: "b", kind: "photo", takenAt: 2_000, file: f2 },
+        state: shotState({ file: f2 }, [
+          item(f2, {
+            id: "qb",
+            status: "error",
+            errorCode: "unsupported_type",
+          }),
+        ]),
+      },
+    ];
+    expect(pendingSince(shots, 1_000)).toBe(1);
+  });
+
+  it("is not waiting once it goes again: the line's return clears its cause", () => {
+    const f = file();
+    expect(
+      shotState({ file: f }, [item(f, { id: "q", status: "uploading" })]),
+    ).toEqual({ status: "sending", queueId: "q" });
+  });
+});

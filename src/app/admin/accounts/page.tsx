@@ -28,6 +28,7 @@ import {
   readCreditsToSettle,
   readStuckPassCredits,
 } from "@/lib/db/queries/pass-credits";
+import { readLiveCreditBytes } from "@/lib/db/queries/uploads-credits";
 import { formatAdminDate } from "@/lib/format/admin-time";
 import { captureWarning } from "@/lib/observability/sentry";
 import { formatBytes } from "@/lib/utils";
@@ -36,6 +37,7 @@ import { PageHeading } from "@/components/shared/page-heading";
 import { BillingChecks } from "./billing-checks";
 import { accountCap, capLabel } from "./cap";
 import { checkChangePlanConfiguration, type PortalCheck } from "./portal-check";
+import { creditTotalWords } from "./uploads-credit";
 import {
   allowanceLabel,
   lapsedBadge,
@@ -96,7 +98,18 @@ export default async function AdminAccountsPage({
   // row, 50 a page view), each figure still `uploads_used` asked with her own tier, the function the upload refusals
   // read, so no row can disagree with the refusal it warns of, and a pass holder with no live pass reads lapsed. A
   // failed read answers No reading for the rows it could not read and never fails the page, never a zero.
-  const uploads = await readAccountsUploads(accounts);
+  // ★ And the credit each of them holds (crumbs-92, X6), one read beside it: an account whose line an operator lifted
+  // wears it, since its figure has the credit taken off. A failed read is said under the search and never a blank cell.
+  const [uploads, lifts] = await Promise.all([
+    readAccountsUploads(accounts),
+    readLiveCreditBytes(accounts.map((account) => account.id)),
+  ]);
+  if (!lifts.ok) {
+    captureWarning("admin", "accounts: uploads credits read failed", {
+      of: accounts.length,
+      message: lifts.message,
+    });
+  }
   const unread = uploads.flatMap((u) => (u.used.ok ? [] : [u.used.message]));
   if (unread.length > 0) {
     captureWarning("admin", "accounts: uploads read failed", {
@@ -111,8 +124,9 @@ export default async function AdminAccountsPage({
       <div>
         <PageHeading>Accounts</PageHeading>
         <p className="text-sm text-muted-foreground">
-          Host accounts: tier, storage, uploads, and billing. Read-only; make
-          billing changes in Stripe.
+          Host accounts: tier, storage, uploads, and billing. Read-only but for
+          an uploads credit, made on an account&apos;s page; make billing
+          changes in Stripe.
         </p>
       </div>
 
@@ -134,6 +148,12 @@ export default async function AdminAccountsPage({
       {unread.length > 0 ? (
         <p role="alert" className="text-sm text-destructive">
           {`Uploads could not be read for ${unread.length} of ${accounts.length} ${accounts.length === 1 ? "account" : "accounts"} (marked ${NO_READING} in their rows). Check Sentry.`}
+        </p>
+      ) : null}
+      {!lifts.ok ? (
+        <p role="alert" className="text-sm text-destructive">
+          Uploads credits could not be read, so no row below shows one. Check
+          Sentry.
         </p>
       ) : null}
 
@@ -235,6 +255,12 @@ export default async function AdminAccountsPage({
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap text-muted-foreground tabular-nums">
                       {allowanceLabel(held)}
+                      {/* The line an operator lifted: the figure beside it has the credit taken off. */}
+                      {lifts.ok && lifts.value.has(account.id) ? (
+                        <span className="block text-caption">
+                          {creditTotalWords(lifts.value.get(account.id)!)}
+                        </span>
+                      ) : null}
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap text-muted-foreground">
                       {formatAdminDate(account.last_active_at)}

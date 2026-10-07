@@ -131,9 +131,12 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   wrote (`data-rows-plan`), never its own. Her lens (Photos, Videos, Yours: `lensAlbum`) runs over the manifest (the
   device's own ids met with it; the counts stay the album's). A photograph with no link yet is a loading tile, never a
   request.
-- **The album's order turns once the party is over** ([`album-order.ts`](../../src/lib/shared/album-order.ts),
-  customize r1's `order=turns`): newest first while it is on, the night in order from 9 am the morning after its last
-  day or from its develop; an undated album and the demo never turn, and a teaser's nine stay newest first. It is
+- **The album's order turns when its host closes adding, never on a date**
+  ([`album-order.ts`](../../src/lib/shared/album-order.ts), customize r1's `order=turns`; Will's AY1): newest first
+  while it takes uploads, the night in order once she closes adding (`accepting_uploads` off) or its develop is
+  reached (a Disposable's own chosen moment turns it, open or not); reopening turns it back, an undated album turns the
+  same way, the demo never turns, and a teaser's nine stay newest first. A date says when a party happens, never when
+  she is done collecting it: a week's trip dated on its first day stays the live feed all week. It is
   presentation over the one wire (the manifest and its delta stay `created_at desc`): the view turns the live source's
   list (`inOrder`) and the rows lay from the end it grows at, so an album in order grows at its end but for a late
   upload its capture time lands mid-album (the anchoring holds her place, the arrivals pill points there). In order
@@ -141,22 +144,19 @@ read beside it so its Follow starts on Following; no card means no host row, nev
   one switch), else when it arrived, and a capture time before the night's own run of times (neighbours within three
   days, `NIGHT_GAP_US`, ending at the newest) is seated at the night's END edge while it is the smaller part of the album
   (`nightKeys`, one key for the first paint, the live album and the hub; the wire keeps the true time); newest first is
-  always by arrival, the live feed. ★ The turn is one moment for
-  every reader, the party's (Will: "It feels unfair to unlock the album at different times for certain guests based
-  on geographical location"): its 9 am is read in the event's own zone (`events.time_zone`,
-  [`lib/event/zone.ts`](../../src/lib/event/zone.ts); a row with none, or one the runtime cannot read, turns in UTC,
-  the one fallback), never the reader's. The page's server reads the zone on the service role beside the door's read
-  (`zone.server.ts`; a failed read is the fallback, reported) and hands the browser the turn as an INSTANT, never a
-  zone (`GuestAlbumOrder`'s `morningAfter`, beside the album's own order and her choice: event-zone's opening folded
-  in), so no reader's clock, geography or browser's database of zones moves it; the zone reaches the browser for words
-  alone (`partyZone`, never behind a lock), never for the turn. The seed links the first paint of that order and the
-  hydration lays the same rows; the page then turns it at that instant on the device's clock (`useGuestAlbumOrder`: a
-  timer, a return to the tab, a Develop now). A develop time wins over the morning after, and the one it turns at is
-  the sync's word once heard, a develop taken away included, else the page's own (`turnDevelopsAt`).
-  Behind a gate the order knows no days, as the shell does not. Her Newest or Oldest is remembered per album on the
-  device only as a departure from the turn (`pr_album_sort`, which the page reads; choosing the album's own order
-  forgets it), her lens for the visit. See it as a guest is handed the same opening (`readAsGuest`), so it lays the
-  album as a guest who never chose meets it.
+  always by arrival, the live feed. ★ The turn is one moment for every reader (Will: "It feels unfair to unlock the
+  album at different times for certain guests based on geographical location"): it is the album's own state, never a
+  day read in anyone's zone. The page's server decides the first paint's order off the row (`guestAlbumOrder`: the
+  album's own and her choice, `albumOwnSort` the one rule); the seed links that order's first paint and the hydration
+  lays the same rows. The page then follows the album as it hears it (`useGuestAlbumOrder`): her close and a reopen
+  reach every open page on its next sync (`accepting`, `useLiveUploadsWord`), and a develop turns it at its instant on
+  the device's clock (a timer, a return to the tab, a Develop now), the develop being the sync's word once heard, one
+  taken away included, else the page's own (`turnDevelopsAt`). The party's zone is read only for a develop time's
+  words (`partyZone`, never behind a lock), never for the order. Behind a gate the order knows no develop, as the shell
+  does not. Her Newest or Oldest is remembered per album on the device only as a departure from the album's own
+  (`pr_album_sort`, which the page reads; choosing the album's own order forgets it), her lens for the visit. See it as
+  a guest is handed the same opening (`readAsGuest`), so it lays the album as a guest who never chose meets it, and
+  the host's Sort opens on the same rule (`event-gallery.tsx`, her departure kept for the visit).
   The page root is two boxes ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)): `COLUMN`,
   the reading measure, and `BLEED`, the gutter alone. The album alone takes `BLEED` and the cover runs the window's
   width; everything else the page says keeps `COLUMN`.
@@ -184,8 +184,9 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     photograph lands in (the album's head, or its end in an album in order), and while that slot is out of her sight a
     stand-in carries its thumb, its count, its bar and its x in view above the shutter's band
     ([`upload/sending-stand-in.tsx`](../../src/components/guest/upload/sending-stand-in.tsx), `useStandIn`); either x
-    stops the file in the air, one at a time (E6). It asks first on the product's toast ("Stop this upload?", Keep going
-    first), then the queue's `stop` aborts that file alone (each file of a burst carries its own signal: its siblings
+    stops the file in the air, one at a time (E6), and one standing by for the line (it leaves at once). It asks first
+    on the product's toast ("Stop this upload?", Keep going first), then the queue's `stop` aborts that file alone (each
+    file of a burst carries its own signal: its siblings
     go on and are recorded together) and the toast says "Upload cancelled." with Try again, which puts the same file
     back. A stopped file is no failure: it leaves the queue (the failure sheet, the shutter's ring and her uploads never
     count it) and nothing is recorded or metered. The x is drawn only while the file can still be stopped (going up, or
@@ -198,9 +199,10 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     waits for it, so its stop still takes it back. The stop reaches the stack on the progress
     store it already reads (`QueueProgress.stop`), so no prop runs through the page, the provider and the gallery.
   - **The failure sheet** ([`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx)): nothing
-    interrupts while files go; when the run ends with anything refused it opens once, a line per file (its name, the
-    server's sentence, Retry; a dropped connection's line wears a signal mark, told by the queue's `cause`, never its
-    words; a file she stopped is never listed, it left the queue) over one `Retry all`. It heads on the door's own scale
+    interrupts while files go; when nothing is going up any more (a file standing by for the line is waiting, not
+    going: `guest-upload.tsx`'s edge) with anything refused it opens once, a line per file (its name, the server's
+    sentence, Retry; a drop is never listed, it stands by: the next bullet; a file she stopped is never listed, it left
+    the queue) over one `Retry all`. It heads on the door's own scale
     (`DoorHeading` in its `announce` mode, so the heading IS the dialog's title: the door's upload step says this very
     failure on it too) with "N of SENT didn't upload", where SENT is the run's own files (`useRunSent`,
     [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)): the queue's own `inRun` (every file not settled
@@ -212,11 +214,7 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     (`uploadFailureElsewhere`), said only where the run sent more than failed and every file the sheet does not list has
     landed (`useRunCounts`, one baseline for both numbers): a run that failed whole has no "Everything else", and a
     row's Retry, which takes its file out of the list while it goes, says nothing of the rest until that file lands. A
-    file that failed as a dropped connection with its complete kept (`hasKeptComplete`: the row may stand, and the album
-    may already show it) is asked again for her by the queue (`use-upload-queue.heal.ts`: 5, 20 and 60 s on, the moment
-    the browser says the line is back and when the page is looked at again, none while it says it is offline and none
-    spent on it; three asks a File, never a loop; a Retry's own runner, so the two never race), so the sheet lets its row go when the server answers instead of saying "didn't
-    upload" over a photograph in the album. A refusal no retry could pass (`retryCanPass`) lists with no Retry, and so
+    refusal no retry could pass (`retryCanPass`) lists with no Retry, and so
     does a shot the album's spent roll refused (`roll_spent`, its own class on the ladder), whose way on is the
     camera's: the sheet offers no other file over it and closes on Done. A refusal of the file itself (a type nobody
     takes, a file over the ceiling, a video where the album takes none) lists the same way, and where every line is one
@@ -228,14 +226,48 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     (nothing was queued). Every close drops what it listed from the queue (`dismiss`), not just from the screen, so a
     dismissed failure never comes back at a later run's end. While the door's upload step shows, it owns the run's
     failures (`suppressFailures`).
+  - ★ **A dropped line stands by where the send is** (no-signal r1, Will's `drop=standby` over `carry=phone`): the queue
+    holds a file the connection ended `queued`, its cause kept (`waitsForLine`), its bar at nothing, and sends nothing
+    that waits until the line answers (uploads-and-r2.md, the line's check and its backoff), so the run never ends on a
+    drop and nothing opens. The stack keeps her photograph, its bar giving way to Standby's half-lit point
+    (`upload/wait-point.tsx`) and "No connection", the promise under it ("Kept on this phone", or "Keep this page open"
+    where her phone could not hold it: `unsent/words.ts`), its x still stopping it; the stand-in says the same; the
+    shutter's ring holds still at what landed with its count; and a press on the stack or the stand-in opens the whole
+    send (`upload/waiting-sheet.tsx`, a list popup: each photograph and where it stands, under the promise in full,
+    closing itself once nothing waits).
+    Both read the wait off the progress store they already read (`QueueProgress.waits`), as the stop does. On an album
+    that waits (her host's yes, a develop) the head draws no stack, so her uploads list it, half-lit, "Waiting for your
+    connection"; the door's upload step says it on the pick's row, and its heading once every pick waits. While the
+    phone says it is offline what she adds stands by at once (no presign), and a first pick whose silent join never
+    reached the network stands by too, never put down under a toast (`joinLostTheLine`), its join asked again as the
+    line's return sends it.
+  - ★ **Her phone keeps what is on its way** (`unsent/keep.ts`, `unsent/use-keep.ts`; IndexedDB `partyreel-unsent`, one
+    record a file): each file is copied as she sends it while the phone has room (one it cannot hold waits in the page,
+    and its pane says so), filed under the album and who it goes up as (the host on her own album, else the device's
+    ticket: `keepOwner`), re-filed when the queue swaps her ticket mid-visit, and put down the moment it is stopped or
+    refused, or its bytes are up: its complete is asked then (at the burst's end, or at once as the page hides) and sent
+    `keepalive`, so it outlives a closed page, and a copy carried past it would go up again whole and land twice, so a
+    file whose complete then lost its answer waits in its page alone (asking that complete again), never carried.
+    Nothing is copied with no one to send as (a first pick on its join, a door that holds her: the held door keeps its
+    own choice, `door/wait-picks-store.ts`). Once, as a page opens with an identity, it takes back what an earlier page
+    kept and never sent (a page closed in a dead zone) and the queue sends it by itself under the same ids (`restore`),
+    the send's toast saying it landed; a record that is not this identity's, past `UNSENT_KEEP_DAYS` (14), or no whole
+    record, is put down unread, and a kept file the server then refuses as somebody else's ticket is put down, never
+    re-sent on a fresh one. ★ One page sends each: a page holds a Web Lock of its own while it keeps a copy, and an
+    opening page takes, under the album's lock, only records no live page holds (an iOS page frozen in the background
+    still holds its lock; a discarded one does not); where the browser has no Web Locks every record is taken. Safari's
+    7-day cap on script-written storage and a private tab's close bound what it keeps, which is why no word promises
+    more than "kept on this phone".
   - **The send's toast** ([`upload/send-toast.ts`](../../src/components/guest/upload/send-toast.ts), guest-moments
     r1's `own=glow` note): once, as a run's last file lands (never at its start: the stack shows a send while it
-    runs), one short toast says what of the run landed, in the keep's words (`keepSentLine`: hers "joined Maya's
+    runs, and a send standing by for the line is still running, so it is one toast once the line's return has landed
+    it all), one short toast says what of the run landed, in the keep's words (`keepSentLine`: hers "joined Maya's
     album", or how they develop, as the host lets them in or with everyone's), with Show yours: the album's Yours view
     and the album brought into view (`live-gallery-lens.ts`), or her uploads where they wait. Heard at the page, whose
     queue outlives the slot, so a run's own files are counted (a Retry's included, an earlier run's never). A run that
     ends with a file of its own refused, or under a failure sheet still standing (`failureSheetStands`: a row's Retry,
-    a heal of one of its rows), is the sheet's alone, which says what joined ("Everything else is in Maya's album.");
+    a file that waited for the line landing under it), is the sheet's alone, which says what joined ("Everything else
+    is in Maya's album.");
     a run that landed nothing says nothing; and it is spent, never said later, where another surface says the landing:
     the keep, the door's upload step, the camera (`quiet`), or the reel's view. The demo's has no press (its
     photographs are nobody's).
