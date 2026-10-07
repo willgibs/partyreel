@@ -1,15 +1,14 @@
 import type { Control } from "@/components/lab/exploration";
 
 /**
- * THE BOARD'S ONE KNOB, AS PURE DATA: split from the drawings so `spec.ts`
- * declares it without importing React into a module the registry hands to a
+ * THE BOARD'S KNOBS, AS PURE DATA: split from the drawings so `spec.ts`
+ * declares them without importing React into a module the registry hands to a
  * server page (`registry.test.ts`'s own rule).
  *
  * ★ HER PHONE FIRST, HER LAPTOP ONE PRESS AWAY. These are a guest's moments
  * as much as a host's: Priya follows Maya from the album on her phone the
- * night of the wedding, blocks from a page she opened there, and opens her
- * own page from the same menu. Tidying Connections is the one she is likelier
- * to do at a desk, and every frame draws at either width.
+ * night of the wedding, and opens her own page from the same menu; Account's
+ * Connections is likelier at a desk, and every frame draws at either width.
  */
 export const SCREEN: Control = {
   id: "screen",
@@ -31,3 +30,24 @@ export const SCREENS: Record<ScreenId, { w: number; h: number; name: string }> =
 
 export const screenOf = (v: unknown): ScreenId =>
   v === "1440" ? "1440" : "375";
+
+/**
+ * ★ WHOSE PHOTOGRAPHS (the invitation's): her six from the wedding, or six
+ * from a party night. The plate's light is read from her photographs, so a
+ * picture of one set could be any fixed gradient; swapping the set is how the
+ * light is seen to be hers. Her uploads below change with it.
+ */
+export const PHOTOS: Control = {
+  id: "photos",
+  label: "Her photos",
+  options: [
+    { id: "wedding", label: "From the wedding" },
+    { id: "party", label: "From a party night" },
+  ],
+  default: "wedding",
+};
+
+export type PhotosId = "wedding" | "party";
+
+export const photosOf = (v: unknown): PhotosId =>
+  v === "party" ? "party" : "wedding";

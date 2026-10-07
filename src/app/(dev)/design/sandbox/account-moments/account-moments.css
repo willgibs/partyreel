@@ -16,3 +16,61 @@
     animation: none;
   }
 }
+
+/* A stand-in feed row's height, a phone's then a desk's. Here and not as
+   `h-24 sm:h-44`: production's sheet holds `h-24` in its own layer, which
+   outranks the lab's `sm:` copy at every width (design.css says why), so the
+   desk drew a phone's rows. An unlayered rule wins. */
+.am-row {
+  height: 6rem;
+}
+
+@media (min-width: 40rem) {
+  .am-row {
+    height: 11rem;
+  }
+}
+
+/* The Following pill's end, cleared for the private mark laid over it
+   (`follow.tsx`, the `mark` option). In this sheet because production's
+   Button pads with `px-*` in its own layer, which outranks a lab utility on
+   the same element, and a `[&>button]:` variant would reach the mark too. */
+.am-marked > button[data-relation] {
+  padding-right: 2.25rem;
+}
+
+/* The line at the press (`follow.tsx`, `once`) opens its own row as it fades
+   in, so the page below eases down rather than jumping: the row grows from
+   nothing on the arrival's own curve and clock. None under reduced motion. */
+@keyframes am-open {
+  from {
+    grid-template-rows: 0fr;
+  }
+}
+
+.am-open {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: am-open 240ms var(--ease-emphasis) both;
+}
+
+.am-open > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .am-open {
+    animation: none;
+  }
+}
+
+/* At a desk the line stands under the button that made it, flush with the
+   actions row's end; in a hand that row is the column's width, so the line
+   starts where the row does. */
+@media (min-width: 40rem) {
+  .am-once {
+    display: flex;
+    justify-content: flex-end;
+  }
+}

@@ -8,16 +8,10 @@ import {
   type PreviewsFor,
 } from "@/components/lab";
 
-import { type TidyWay, TidyMoment } from "./connections";
-import { screenOf } from "./knobs";
-import { type InviteWay, type MeShape, MePage } from "./me";
-import {
-  BlockAsk,
-  BlockedMoment,
-  type BlockWay,
-  FollowMoment,
-  type FollowWay,
-} from "./relations";
+import { ConnectionsMoment } from "./connections";
+import { FollowMoment, type FollowWay } from "./follow";
+import { photosOf, screenOf } from "./knobs";
+import { type InviteWay, MePage } from "./me";
 import { Scene, Story } from "./scene";
 import { ACCOUNT_MOMENTS } from "./spec";
 
@@ -26,6 +20,10 @@ import { ACCOUNT_MOMENTS } from "./spec";
  * page as Priya meets it, its frames left to right as the moment runs, at her
  * phone or her laptop on the Screen knob. Every caption is read off its frame
  * (`scene.tsx`).
+ *
+ * A follow is the same three moments in every option, so the frames compare
+ * one for one: her first follow (Maya's page), her fortieth weeks later
+ * (Theo's), and Connections, where her follows live.
  */
 
 function follow(s: BoardState, way: FollowWay) {
@@ -33,69 +31,29 @@ function follow(s: BoardState, way: FollowWay) {
   return (
     <Story screen={screen}>
       <Scene
-        id={`am-follow-${way}`}
+        id={`am-follow-${way}-first`}
         screen={screen}
-        title="Maya's page, the moment after Follow"
+        title={
+          way === "mark"
+            ? "Maya's page, her first follow, the mark asked"
+            : "Maya's page, her first follow"
+        }
       >
-        <FollowMoment way={way} />
-      </Scene>
-    </Story>
-  );
-}
-
-function block(s: BoardState, way: BlockWay) {
-  const screen = screenOf(s.screen);
-  return (
-    <Story screen={screen}>
-      <Scene
-        id={`am-block-${way}-ask`}
-        screen={screen}
-        title="Jordan's page, Block's ask"
-      >
-        <BlockAsk />
+        <FollowMoment way={way} who="first" />
       </Scene>
       <Scene
-        id={`am-block-${way}-after`}
+        id={`am-follow-${way}-later`}
         screen={screen}
-        title="Jordan's page, the moment after"
+        title="Theo's page, her fortieth follow"
       >
-        <BlockedMoment way={way} />
-      </Scene>
-    </Story>
-  );
-}
-
-function tidy(s: BoardState, way: TidyWay) {
-  const screen = screenOf(s.screen);
-  return (
-    <Story screen={screen}>
-      <Scene
-        id={`am-tidy-${way}-unfollow`}
-        screen={screen}
-        title="Connections, after Following on Sam"
-      >
-        <TidyMoment way={way} stage="unfollow" />
+        <FollowMoment way={way} who="later" />
       </Scene>
       <Scene
-        id={`am-tidy-${way}-unblock`}
+        id={`am-follow-${way}-connections`}
         screen={screen}
-        title="Connections, after Unblock on Ray"
+        title="Account, her Connections"
       >
-        <TidyMoment way={way} stage="unblock" />
-      </Scene>
-    </Story>
-  );
-}
-
-const shapeOf = (v: unknown): MeShape =>
-  v === "private" || v === "halves" ? v : "today";
-
-function me(s: BoardState, shape: MeShape) {
-  const screen = screenOf(s.screen);
-  return (
-    <Story screen={screen}>
-      <Scene id={`am-me-${shape}`} screen={screen} title="Your profile, opened">
-        <MePage shape={shape} invite="today" />
+        <ConnectionsMoment said={way === "once"} />
       </Scene>
     </Story>
   );
@@ -103,45 +61,28 @@ function me(s: BoardState, shape: MeShape) {
 
 function invite(s: BoardState, way: InviteWay) {
   const screen = screenOf(s.screen);
-  const shape = shapeOf(s["me-page"]);
+  const photos = photosOf(s.photos);
   return (
     <Story screen={screen}>
       <Scene
-        id={`am-invite-${shape}-${way}`}
+        id={`am-invite-${way}-${photos}`}
         screen={screen}
         title="Your profile, opened"
       >
-        <MePage shape={shape} invite={way} />
+        <MePage invite={way} photos={photos} />
       </Scene>
-      {way === "notnow" ? (
-        <Scene
-          id={`am-invite-${shape}-${way}-folded`}
-          screen={screen}
-          title="Your profile, after Not now"
-        >
-          <MePage shape={shape} invite={way} stage="folded" />
-        </Scene>
-      ) : null}
     </Story>
   );
 }
 
 const PREVIEWS: PreviewsFor<typeof ACCOUNT_MOMENTS> = {
   "follow.today": (s) => follow(s, "today"),
-  "follow.line": (s) => follow(s, "line"),
-  "follow.toast": (s) => follow(s, "toast"),
-  "block.today": (s) => block(s, "today"),
-  "block.line": (s) => block(s, "line"),
-  "block.toast": (s) => block(s, "toast"),
-  "tidy.today": (s) => tidy(s, "today"),
-  "tidy.stays": (s) => tidy(s, "stays"),
-  "tidy.toast": (s) => tidy(s, "toast"),
-  "me-page.today": (s) => me(s, "today"),
-  "me-page.private": (s) => me(s, "private"),
-  "me-page.halves": (s) => me(s, "halves"),
+  "follow.once": (s) => follow(s, "once"),
+  "follow.mark": (s) => follow(s, "mark"),
   "invite.today": (s) => invite(s, "today"),
-  "invite.line": (s) => invite(s, "line"),
-  "invite.notnow": (s) => invite(s, "notnow"),
+  "invite.plate": (s) => invite(s, "plate"),
+  "invite.address": (s) => invite(s, "address"),
+  "invite.window": (s) => invite(s, "window"),
 };
 
 export function AccountMomentsBoard() {

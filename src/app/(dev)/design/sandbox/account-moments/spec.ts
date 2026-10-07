@@ -1,33 +1,42 @@
 import { defineExploration } from "@/components/lab/exploration";
 
-import { SCREEN } from "./knobs";
+import { PHOTOS, SCREEN } from "./knobs";
 
 /**
- * YOUR OWN ACCOUNT: FOLLOWING, BLOCKING, YOUR PAGE (the account-moments-r1
- * track, cut 2026-10-06).
+ * YOUR OWN ACCOUNT, ROUND TWO: WHAT A FOLLOW SAYS, AND THE INVITATION ON HER
+ * PAGE (the account-moments-r2 track, cut 2026-10-07 from Will's round one
+ * batch, `docs/reviews/account-moments.json`).
  *
- * The calls lab's round 15 settled two moments of a person's own account in
- * text on 2026-10-04, and they were built that way: Follow and Block stay
- * quiet (I4: a landed flip says nothing, a Connections row leaves at once with
- * no undo), and an account with no public page keeps its uploads, likes and
- * follows at `/me` under a standing invitation (I5). This board asks each again
- * as a picture: production's built answer is one option (`today`), drawn on
- * production's own controls (`RelationToggle`, the profile menu,
- * `BlockConfirm`, `PageInviteCard`) beside real alternatives.
+ * Round one's block, tidy and me-page picks are built (account-moments-wiring:
+ * the blocked well, Connections' rows that stay turned back, `/me` wearing her
+ * page's head marked private), so they leave the asks and stand in the opening
+ * as settled. Two asks remain, each drawn on production as it now is:
  *
- * ★ THE CONSENT MODEL IS NEVER DRAWN AWAY (profiles-social.md): every option
- * on the page asks keeps "a page is public only by her choice". Nothing here
- * publishes her, and the invitation's options change only its weight.
+ *  - `follow`, which came back split: his note wants the words at a first
+ *    follow and never at the thousandth. Three contenders, each drawn in the
+ *    same three moments (her first follow, her fortieth, Connections) and each
+ *    saying the same sentence: said once at the press, a private mark that
+ *    speaks when asked, and today's button alone. ★ "Said where follows live"
+ *    was drawn too and landed on today's answer plus one line, so it is
+ *    `once`'s standing note in Connections now (the manifest's Questions).
+ *  - `invite`, picked as today's visible card and to be redrawn ("We can do
+ *    much better than the design itself"): three takes in Aperture (brand r2's
+ *    pick), each beautiful and inviting and never loud, beside today's card as
+ *    the reference his note grades against: one lit plate, her address set as
+ *    an invitation, and her events on one lit plate (the fresh-eyes pass's
+ *    cross of the first and the events). The Photos knob swaps her
+ *    photographs, so the plates' light is seen to be read from them.
  *
- * ★ A REFUSED FLIP IS SETTLED, NOT ASKED: it springs back with the server's
- * words in one toast on every face, and no option here changes that.
+ * ★ THE CONSENT MODEL IS NEVER DRAWN AWAY (profiles-social.md): a page is
+ * public only by her choice, and claiming a handle is the consent act. No
+ * invitation here publishes anything; each leads to the setup, which claims
+ * the handle last, at Finish.
  *
- * ★ STAGED: how the invitation reads waits on what her own page is, since the
- * invitation is drawn on the page he picks.
- *
- * ★ ASKS NOTHING guest-moments r1 asks (its follow is the confirmation card's
- * own row, the album's; this board's Follow is the profile's), and wears
- * today's brand and headers (brand r2's take, event-header r6's).
+ * ★ ASKS NOTHING ANOTHER BOARD ASKS: the calls lab's X17 asks what a follow is
+ * for (this asks how it feels); brand-marks r1 and signature r1 own the marks,
+ * the tokens and where the light lives across the app (this draws the
+ * invitation in Aperture as picked); a guests-room board will polish
+ * `GuestPeek` and the person rows.
  */
 export const ACCOUNT_MOMENTS = defineExploration({
   id: "account-moments",
@@ -37,283 +46,208 @@ export const ACCOUNT_MOMENTS = defineExploration({
   lives: [
     "docs/systems/profiles-social.md",
     "src/components/social/relation-toggle.tsx",
-    "src/components/social/profile-actions-menu.tsx",
-    "src/app/(app)/account/page.tsx",
+    "src/components/social/follow-button.tsx",
     "src/app/(guest)/u/[slug]/page.tsx",
-    "src/app/(guest)/u/[slug]/owner-sections.tsx",
+    "src/app/(app)/account/page-connections.tsx",
     "src/app/(app)/me/page.tsx",
     "src/components/app/dashboard/page-invite-card.tsx",
   ],
-  tracks: ["account-moments-r1"],
+  tracks: ["account-moments-r1", "account-moments-r2"],
   round: {
-    n: 1,
-    date: "2026-10-06",
+    n: 2,
+    date: "2026-10-07",
     changed:
-      "A new board: following, blocking and her own page before it's public, settled in words on Oct 4 and built that way, now drawn with production's answer beside real alternatives.",
+      "From your round one batch: block, tidy and her page are built. A follow asked again from your split note, four ways, each with its first time and what comes after; the invitation you kept visible, redrawn three ways in Aperture beside today's card.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-10-06",
+      changed:
+        "A new board: following, blocking and her page before it's public. You picked the blocked well, rows that stay turned back and her page marked private, all built since; follow came back split, and the invitation stayed visible.",
+    },
+  ],
   context:
-    "Priya confirmed her email at Maya & Jay's wedding, so she has an account and no public page. She follows Maya from Maya's page, blocks Jordan from his, tidies her Connections, and opens Your profile. Every frame is production's page at 375 or 1440 (the Screen knob).",
+    "Round two, two decisions, for Priya, who confirmed her email at Maya & Jay's wedding and has no public page: how a follow tells her it's private, on Maya's page as built, and the invitation on her own page, on /me as wired. Every frame is production's page at 375 or 1440 (the Screen knob); every press works and writes nothing; each caption is read off its frame.",
   opening: {
     about:
-      "Two moments in a person's own account, built from words on Oct 4: Follow and Block staying quiet, and her own page before she has a public one.",
+      "Round two: how a follow says it's private without saying it every time, and her page's invitation, kept visible, redrawn beautiful and never loud.",
     settled: [
       "A page is public only by her choice: claiming a handle is the consent act, and nothing here changes that.",
       "Follows are private to their owner: Maya sees a count of followers, never who.",
-      "A block is private and mutual, asks first, and the other side is never told.",
-      "A refused flip springs back with the server's words in one toast.",
+      "Your round one picks, built: the blocked well on his page, Connections rows that stay turned back, her page marked private.",
+      "The invitation stays a visible card on her page, never folded to a line: your round one pick.",
+      "Drawn in Aperture, brand r2's pick: on paper, light lives only inside a dark piece of the room, one lit plate a screen.",
     ],
     earlier: [
-      "The calls lab's round 15 (Oct 4) settled these in words: a landed flip says nothing, a row leaves at once.",
-      "Your direction since round 13: immediate, or a clear state and a way to stop it; nothing depends on a timeline.",
+      "On a follow: 'I'm split here. I'd like to know what you think.'",
+      "'Imagine following 1000+ users on Instagram and being told 1000 times what a follow does.'",
+      "'Our solutions also need to be a bit more polished.'",
+      "On the invitation: 'The whole goal of this page is to be activated and become public.'",
+      "'Making it more minimal may lead users to think it's already active.'",
+      "'This design should feel very beautiful and inviting, but not yelling or in your face.'",
     ],
   },
   terms: [
+    {
+      term: "Following",
+      means: "The Follow button once pressed; pressing it again unfollows.",
+    },
     {
       term: "Connections",
       means:
         "The card in Account listing whom she follows and whom she blocked; only she sees it.",
     },
     {
-      term: "Your profile",
+      term: "the private line",
       means:
-        "Her own page at /me: her uploads, likes and follows, until she sets up a public page.",
+        "A lock and a few muted words, the way her own page says 'Only you can see this page.'",
     },
     {
-      term: "Following",
-      means: "The Follow button once pressed; pressing it again unfollows.",
+      term: "Your profile",
+      means:
+        "Her own page at /me, marked private, until she sets up a public one.",
+    },
+    {
+      term: "lit plate",
+      means:
+        "Aperture's one dark piece of the room on a paper page, its light inside it; one a screen.",
+    },
+    {
+      term: "the setup",
+      means:
+        "Three steps that make her page public: her address, how she shows up, which events show.",
+    },
+  ],
+  carried: [
+    {
+      id: "once-memory",
+      question: "If a follow is said once, where is 'once' remembered?",
+      taken:
+        "On the server, from her list being empty before the press: no new column, every device alike.",
+      overrule:
+        "On the device (a new phone hears it again), or a stored flag (a migration).",
+    },
+    {
+      id: "once-few",
+      question:
+        "Once means her first follow, or her first few, as your note allowed?",
+      taken:
+        "Her first: one line answers it, and Connections keeps saying it for whenever she looks.",
+      overrule:
+        "Her first three (her list under three before the press), read the same way.",
     },
   ],
   asks: [
     {
       id: "follow",
-      label: "A follow, landed",
-      question: "When Priya follows someone, what should tell her it worked?",
+      label: "What a follow says",
+      question:
+        "How should Priya learn that only she sees who she follows, without hearing it on every follow?",
       where: ["Shared", "Maya's page", "Pressing Follow"],
-      when: "Priya, signed in, opened Maya's page from the wedding album and pressed Follow.",
+      when: "Signed in, Priya opens Maya's page from the wedding album and follows her; weeks later she follows her fortieth.",
       matters:
-        "Following shows her nothing new anywhere yet: the press is the one moment that can say what it means.",
+        "Nobody would guess a follow is private, and nobody wants to be told so a thousand times.",
       lands:
-        "What every Follow says when it lands: the profile's, the album's quieter one, a guest list's.",
+        "What a follow says, the first time and after: on a profile, beside an album, in a guest's look.",
       context:
-        "One frame: Maya's page the moment after Follow, signed in as Priya. Today the button turns and nothing more; each other option adds its line or its toast.",
+        "Three frames an option, the same three moments: Maya's page after her first follow, Theo's after her fortieth, and Connections, where her follows live. The sentence is the same in each; only where and when differ.",
       options: [
         {
           id: "today",
-          label: "As today: the button turns",
-          means: "Follow becomes Following, and nothing else is said.",
-          gains: "Nothing to read: the button is the answer.",
-          costs: "She can't tell who sees it, or where it went.",
+          label: "As today: the button alone",
+          means:
+            "Follow becomes Following, nothing more; Connections says 'Only you can see this' in passing.",
+          gains: "Nothing to read, ever.",
+          costs: "Who sees a follow is never answered where she wonders.",
         },
         {
-          id: "line",
-          label: "A line under her name, once",
+          id: "once",
+          label: "Said once, at her first follow",
           means:
-            "The button turns, and a line arrives under the row: Maya is in your Connections; only you see who you follow.",
-          gains: "Answers the worry, who sees this, where she pressed.",
-          costs: "A line the page didn't have, until she leaves it.",
-        },
-        {
-          id: "toast",
-          label: "A toast that says it",
-          means:
-            "The button turns, and a toast says You follow Maya, who sees it, with See all.",
-          gains: "The app's usual voice for a thing done.",
+            "Her first follow ever: the private line under the button. Every follow after is the button alone; Connections keeps the line.",
+          gains: "Answers the question when it's new, then never again.",
           costs:
-            "Says loudly what the button already shows, and goes on a timer.",
-        },
-      ],
-      recommended: "line",
-      today: "today",
-      because:
-        "Following is private, and nobody would guess it: one quiet line where she pressed says so.",
-      overrule: "If a follow should never need words, the button alone.",
-      configs: [SCREEN],
-    },
-    {
-      id: "block",
-      label: "A block, done",
-      question:
-        "Once Priya blocks someone from their page, what should the page show her?",
-      where: ["Shared", "Jordan's page", "After the block's ask"],
-      when: "Jordan, a guest at the wedding, keeps turning up; Priya opens his page, presses Block in the menu, then Block in the ask.",
-      matters:
-        "Follow vanishes from the row: with nothing said, a block reads as a glitch, and the way back hides in a menu.",
-      lands:
-        "What a blocked person's page shows the one who blocked, every visit, and what a block says when it lands.",
-      context:
-        "Two frames: production's ask (the same in every option), then Jordan's page the moment after. Today Follow goes and the menu's row reads Unblock.",
-      options: [
-        {
-          id: "today",
-          label: "As today: Follow just goes",
-          means:
-            "The row loses Follow; Unblock waits in the menu and in Account.",
-          gains: "The page barely changes, so nothing is made of it.",
-          costs: "A button vanishing is the only sign it worked.",
+            "Every place she can follow from needs room for the line, once.",
         },
         {
-          id: "line",
-          label: "The page says it, to her alone",
+          id: "mark",
+          label: "Following wears a private mark",
           means:
-            "Where Follow stood, a quiet well: You blocked Jordan, Jordan isn't told, and Unblock beside it, on every visit.",
-          gains: "A clear state, and the way to stop it in sight.",
-          costs: "Her block stays named on his page whenever she visits.",
-        },
-        {
-          id: "toast",
-          label: "A toast with Undo",
-          means:
-            "The page changes as today, and a toast says Jordan is blocked and isn't told, with Undo.",
-          gains: "Confirms the act and catches a slip.",
-          costs: "Undo lasts as long as the toast; then it's the menu again.",
-        },
-      ],
-      recommended: "line",
-      today: "today",
-      because:
-        "A block is a standing state, not an event: said where Follow was, with Unblock in reach, it's never a mystery.",
-      overrule:
-        "If her page should look the same blocked or not, today's quiet.",
-      configs: [SCREEN],
-    },
-    {
-      id: "tidy",
-      label: "Tidying Connections",
-      question:
-        "When Priya unfollows or unblocks someone in Connections, what should their row do?",
-      where: ["Shared", "Account", "Connections"],
-      when: "Priya follows 4 people and blocks 2; she presses Following on Sam, then Unblock on Ray.",
-      matters:
-        "Every other face of a relation is undone by one more press; here the row leaves, and a slip means finding them again.",
-      lands: "What the Connections card does when a row's relation flips off.",
-      context:
-        "Two frames: Account scrolled to Connections, the moment after Following on Sam, then after Unblock on Ray.",
-      options: [
-        {
-          id: "today",
-          label: "As today: the row leaves at once",
-          means:
-            "Sam's row is gone, then Ray's; nothing is said, and there is no undo here.",
-          gains: "The list is always exactly true.",
-          costs: "A slip can't be undone here: she must find their page.",
-        },
-        {
-          id: "stays",
-          label: "The row stays, turned back",
-          means:
-            "Sam's row stays with Follow, Ray's with Block; one more press undoes it, and they leave when she comes back.",
-          gains: "Undo is the same press as everywhere else, with no timer.",
+            "A small lock at the end of every Following says the line when she taps or points at it; nothing is said unless she asks.",
+          gains:
+            "The privacy shows on every Following, and says more only when asked.",
           costs:
-            "The list is a visit old, and a red Block stands in Ray's row.",
-        },
-        {
-          id: "toast",
-          label: "The row leaves, a toast offers Undo",
-          means:
-            "The row goes as today, and a toast says You unfollowed Sam, or Ray is unblocked, with Undo.",
-          gains: "The list stays true and the slip is caught.",
-          costs: "Undo lives on a timer, then it's gone.",
+            "A lock on every Following for a lesson learned once; a lock can read as Maya's page being locked.",
         },
       ],
-      recommended: "stays",
+      recommended: "once",
       today: "today",
       because:
-        "The relation control promises one more press undoes a flip; a row that stays keeps that promise here too.",
-      overrule: "If the list must always be exactly true, the toast.",
-      configs: [SCREEN],
-    },
-    {
-      id: "me-page",
-      label: "Her page, not public",
-      question: "Before Priya has a public page, what should her own page be?",
-      where: ["Shared", "Your profile", "No public page yet"],
-      when: "Priya has 6 uploads, 9 likes and 2 follows, no handle, and opens Your profile from her menu.",
-      matters:
-        "It's where her photos live after the night: it should feel like hers, whether or not she ever goes public.",
-      lands:
-        "What /me is: its head, and whether it reads as her page or a list of her things.",
-      context:
-        "One frame: /me at the top, as she opens it. Today's invitation card is drawn in every option; how it reads is the next question.",
-      options: [
-        {
-          id: "today",
-          label: "As today: her lists, under an invitation",
-          means:
-            "Your profile, the invitation, then Only you can see the sections below: uploads, likes, connections.",
-          gains: "Plain, and the way to a public page leads.",
-          costs: "It reads as a settings page about a page she doesn't have.",
-        },
-        {
-          id: "private",
-          label: "Her page, before it's public",
-          means:
-            "The public page's own head, her photo and name, marked Only you can see this page, then her things.",
-          gains: "Already her page; going public later changes who sees it.",
-          costs: "Looks like a public page, so the private mark has to carry.",
-        },
-        {
-          id: "halves",
-          label: "The public half, drawn empty",
-          means:
-            "A dashed well first: nobody can find you here yet, and what a page would show; then her things.",
-          gains: "Shows exactly what going public would add.",
-          costs: "Leads with what she doesn't have.",
-        },
-      ],
-      recommended: "private",
-      today: "today",
-      because:
-        "Her page is hers before it's public: the same head she'd have, marked private, makes going public a choice of who sees it.",
-      overrule: "If /me should stay a plain list of her things, today's.",
+        "The question comes with her first follow: answered there in one line, every follow after is the button alone, and the thousandth is quiet.",
+      overrule: "If the privacy should show on every Following, the mark.",
       configs: [SCREEN],
     },
     {
       id: "invite",
       label: "The invitation",
       question:
-        "How should her own page invite her to go public, and can she put it away?",
-      where: ["Shared", "Your profile", "The invitation"],
-      when: "Priya has opened Your profile a few times since the wedding and hasn't set up a page.",
+        "Which invitation should stand on Priya's page until she makes it public?",
+      where: ["Shared", "Your profile", "Before it's public"],
+      when: "Priya has six photos from the wedding and a birthday, no handle, and opens Your profile from her menu.",
       matters:
-        "Ignoring it should cost her nothing: a card she can never put away stands between her and her photos on every visit.",
+        "Her page exists to go public: the way there should draw her eye without shouting.",
       lands:
-        "The invitation on /me: its words, its weight, and whether Not now exists there.",
+        "The invitation on /me and the dashboard's same card: its look, its words, its weight.",
       context:
-        "Drawn on the page you picked above: one frame, or for Not now, the card, then the page after she presses it.",
+        "One frame an option: /me as wired, her head marked private, the invitation under it, at 375 or 1440. Every press works and goes nowhere; each caption is read off its frame.",
       options: [
         {
           id: "today",
-          label: "As today: a card with no Not now",
+          label: "As today: the card",
           means:
-            "Set up your page, Nothing shows until you finish, Choose what shows; it stands on every visit.",
-          gains: "The way to a page is never lost.",
-          costs: "Can't be put away, and leads every visit.",
+            "Set up your page, Nothing shows until you finish, and Choose what shows, on a plain card.",
+          gains: "Plain, and the way to a page leads.",
+          costs: "Reads as a settings card, not an invitation.",
         },
         {
-          id: "line",
-          label: "One quiet line, always there",
+          id: "plate",
+          label: "One lit plate, in her own light",
           means:
-            "Want a page others can visit? You choose what shows. Set up your page, as a link in the line.",
-          gains: "Always in reach, never in her way.",
-          costs: "Easy to miss for someone who'd want a page.",
+            "A compact dark plate under her head, its top edge lit in her own photographs' colours, holding the words and the way to the setup.",
+          gains:
+            "The most beautiful thing on her page is the way to share it, lit by her own photographs.",
+          costs:
+            "A dark object on a light page, and a light at rest, which only Get Pro's card has today.",
         },
         {
-          id: "notnow",
-          label: "The card, with Not now",
+          id: "address",
+          label: "Her address, set as an invitation",
           means:
-            "Today's card with the dashboard's Not now; Not now folds it to the quiet line, never away.",
-          gains: "Invites once, firmly, then steps back at her word.",
-          costs: "A press to put away, and two shapes to keep.",
+            "'Your page could live at partyreel.com/u/priya-shah', her name pencilled on a reply card's blank, a paper card in either theme, with Make it yours.",
+          gains:
+            "Says exactly what she would gain, her name pencilled on a blank: offered, never shown as live.",
+          costs:
+            "Quiet print that invites by words, not light; in the dark theme it is a white card.",
+        },
+        {
+          id: "window",
+          label: "Her events on one lit plate",
+          means:
+            "One dark plate under her head holding her two events' covers, their own light falling from them, each Not shown yet, with the way to choose what shows.",
+          gains:
+            "Her own events invite her, lit by their own light, and plainly not shown yet.",
+          costs:
+            "The tallest take and a light at rest; with no event to show yet, it is the plate.",
         },
       ],
-      recommended: "line",
+      recommended: "window",
       today: "today",
       because:
-        "She came for her photos: an invitation in one line is always there and never asks her to step around it.",
+        "Her own events, lit and plainly not shown yet: what going public gives her, and that it waits on her, in the one lit piece of her page.",
       overrule:
-        "If a public page should be pushed harder, the card with Not now.",
-      after: { ask: "me-page" },
-      configs: [SCREEN],
+        "If the invitation should stay small, the plate; if it should be calm print, her address.",
+      configs: [SCREEN, PHOTOS],
     },
   ],
 });
