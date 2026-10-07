@@ -110,7 +110,7 @@ async function createIt() {
   await userEvent.click(
     screen.getByRole("button", { name: /^create event$/i }),
   );
-  await screen.findByRole("button", { name: /^get it ready$/i });
+  await screen.findByRole("link", { name: /^go to your event$/i });
 }
 
 /** A question's own words as a pattern that matches them whole, whatever they hold. */
@@ -154,6 +154,24 @@ describe("the room (shape=screen)", () => {
     expect(room().classList.contains("dark")).toBe(true);
   });
 
+  it("★ stands every screen unlit, so the room's first light is her code's (signature r1's `create=dark`)", async () => {
+    // The field at the floor stood under every step and dimmed for the code; the room is dark until the code lights.
+    renderWizard();
+    const lit = () => room().querySelector("[data-room-light]");
+    expect(lit()).toBeNull();
+    await nameIt();
+    expect(lit()).toBeNull();
+    await styleIt();
+    expect(lit()).toBeNull();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("link", { name: /^go to your event$/i });
+    expect(lit()).toBeNull();
+    // The one light: the code's own, behind its plate.
+    expect(room().querySelectorAll("[data-beat-light]")).toHaveLength(1);
+  });
+
   it("★ asks the app's bar to step aside, in the shell's own way a page asks (`:has()`, never a prop)", () => {
     // The shell is the layout's and the page its grandchild, so the room asks in CSS, as a wide page
     // does: nothing of the app stands around Create, and nothing of it stays in the tab order behind.
@@ -169,6 +187,8 @@ describe("the room's own wait", () => {
     // paper skeleton to the dark room a beat later. The route waits in its own room instead.
     render(<RouteSkeleton variant="room" />);
     expect(room()).toHaveAttribute("aria-busy", "true");
+    // Unlit, as every screen of the room is.
+    expect(room().querySelector("[data-room-light]")).toBeNull();
     expect(room().classList.contains("dark")).toBe(true);
     expect(screen.getByRole("link", { name: /^close$/i })).toHaveAttribute(
       "href",
@@ -191,8 +211,8 @@ describe("each screen's question, in one place", () => {
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
     );
-    await screen.findByRole("button", { name: /^get it ready$/i });
-    expectLaidOut(new RegExp(`^${EVENT.name} is live$`), /^get it ready$/i);
+    await screen.findByRole("link", { name: /^go to your event$/i });
+    expectLaidOut(new RegExp(`^${EVENT.name} is live$`), /^go to your event$/i);
   });
 
   it("★ stands the Disposable's own screen in the same layout, and a failed Create's hold too", async () => {
@@ -394,13 +414,22 @@ describe("the close", () => {
     );
   });
 
-  it("★ leaves the beat for the event's own page (the carried `close`): the foot keeps Get it ready alone", async () => {
+  // ★ RESHAPED ON PURPOSE (create-wizard r5's carried `close-x`): the head's close became Go to your event beside the
+  // foot's Get it ready. The foot is now the way into her event, so the head offers no second way out; the scar kept:
+  // once the event exists nothing leads back to the events as though nothing had been made.
+  it("★ steps aside on the beat once the event exists: the foot, Go to your event, is the one way on", async () => {
     renderWizard();
     await createIt();
     expect(
-      screen.getByRole("link", { name: /go to your event/i }),
+      screen.getByRole("link", { name: /^go to your event$/i }),
     ).toHaveAttribute("href", `/dashboard/${EVENT.id}`);
+    expect(
+      screen.getAllByRole("link", { name: /go to your event/i }),
+    ).toHaveLength(1);
     expect(screen.queryByRole("link", { name: /^close$/i })).toBeNull();
+    expect(head().querySelector("[data-room-close]")).toHaveAttribute(
+      "data-gone",
+    );
   });
 });
 

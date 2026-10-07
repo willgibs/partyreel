@@ -149,13 +149,14 @@ export type StageTick = { id: string; word: string; done: boolean };
 const TICK_WORDS: Record<string, string> = {
   door: "Door",
   adds: "Uploads",
-  code: "Code",
   room: "Room",
 };
 
 /**
  * Readiness's essentials as ticks, a word each: what a guest needs, read off production's one function
- * (`readiness`), so a tick here is a tick in the hub's checklist and in Settings.
+ * (`readiness`), so a tick here is a tick in the hub's checklist and in Settings. ★ The code is no tick since
+ * create-wizard r5's `arrival=done`: its first open is worth doing, never a need, and the stage's one item says its
+ * share while nobody has opened it (`attention.ts`, Invite and Print).
  */
 export function stageTicksOf(facts: ReadyFacts | null): {
   ticks: StageTick[];
@@ -227,7 +228,7 @@ export function lampNear(e: Dated, today: string): boolean {
   return d !== null && d >= 0 && d < WEEK_DAYS;
 }
 
-/** Each of Settings' five steps in a word, as the rail lays them flat (`stageTicksOf` says Door, Uploads, Code). */
+/** Each of Settings' five steps in a word, as the rail lays them flat (`stageTicksOf` says Door and Uploads). */
 const RAIL_WORDS: Record<string, string> = {
   door: "Door",
   adds: "Uploads",
@@ -238,7 +239,7 @@ const RAIL_WORDS: Record<string, string> = {
 
 export type StageRail = {
   steps: { n: number; item: string; word: string; done: boolean }[];
-  /** The checklist's own head, in its two states: "Before guests arrive. Guests still need one more thing." */
+  /** The checklist's own head, in its two states: "Ready for guests. 3 things still worth doing." on a new event. */
   head: { title: string; line: string };
 };
 

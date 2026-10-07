@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CalendarPlus,
   LayoutDashboard,
   LifeBuoy,
   LogOut,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { LIKE_WORDS } from "@/components/app/create-event-wizard/like";
 import { ThemeSubmenu, initial } from "@/components/app/user-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -29,7 +31,9 @@ import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 //      deep link, so a signed-in visitor can get back into the app, and Your profile, the door the host
 //      menu opens its account group with (her uploads, likes and connections: crumbs-81);
 //   2. Sign out runs CLIENT-side (the onSignOut prop), so the visitor STAYS on the event page and
-//      an account-required event re-gates, the job the removed "Not you? Switch guest" button did.
+//      an account-required event re-gates, the job the removed "Not you? Switch guest" button did;
+//   3. on an album, Make one like this beside Dashboard (after-party r1's `bridge=end`): the corner's own row for an
+//      account, straight into Create in this album's style, no sign-up.
 // It reuses the host menu's ThemeSubmenu (next-themes + hydration wiring) + initial() so the
 // shared logic is single-sourced; the layout below intentionally mirrors UserMenu's.
 export function GuestAccountMenu({
@@ -41,6 +45,7 @@ export function GuestAccountMenu({
   ownsThisEvent,
   eventId,
   onSignOut,
+  likeHref = null,
 }: {
   email: string | null;
   displayName: string | null;
@@ -59,6 +64,8 @@ export function GuestAccountMenu({
   eventId: string;
   /** Client-side sign-out (clears the guest session, signs out, refreshes) — owned by GuestHeader. */
   onSignOut: () => void | Promise<void>;
+  /** The like door for this album (`likeHref`), or null on an event-less page: Make one like this. */
+  likeHref?: string | null;
 }) {
   return (
     <DropdownMenu>
@@ -112,6 +119,14 @@ export function GuestAccountMenu({
             <LayoutDashboard /> Dashboard
           </Link>
         </DropdownMenuItem>
+        {likeHref ? (
+          <DropdownMenuItem asChild>
+            {/* A plain link: the like door is a route of its own, never prefetched. */}
+            <a href={likeHref} data-guest-like="">
+              <CalendarPlus /> {LIKE_WORDS}
+            </a>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem asChild>
           <Link href="/account">
             <Settings /> Account
