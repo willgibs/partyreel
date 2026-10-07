@@ -49,8 +49,9 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | `crumbs-89` | milestone 39's last MEDIUM at its source, the door page's consequence line, Settings' rows after a load (a React canary bug, nudged), dormant's tap band | MERGED at `cab0dc0ac` (gate 72 green); migration `email_first_memory` APPLIED (20261007135056, md5 4836beb3 = the file's; the Advisor's Q44: APPLY, the nudge SHIP; hashes as the proof's; advisors 27/4/36); types regenerated with `create_key` and its `heldOf` seam dropped; its stale `host-app.md` lines wait for crumbs-88's merge (both edit that doc): "An email first" (the event remembers the hold, every path gives names only back, `email_restored`), "A setting with no effect right now" (a folded side is inert), and a gotcha (a revalidating save's commit can be parked by React; `settings-state-unpark.ts`); PREMISE: guests-room's asks name `invited-section.tsx`, touched only by the save's nudge, so they stand; pruned | Opus, 3131 | `a02926c18b226cb2f` |
 | `after-party-r1` | board (desk place 12): the album after its party (over, recap, keepsake, card, bridge) | MERGED at `8e55608e6` (gate 73 green), for the desk after next with no-signal r1; its Deferred and board ideas placed, its lab line retired; pruned | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
-| `crumbs-90` | the guest's send and album: Immediate's upload and album lines (a hung complete, the heal beside a Retry, a HEIC with no preview, the failure sheet beside the toast and a roll's refusal, a tile's focus, a photo link's image size, two dead arms); merges after 39 and crumbs-88 | RUNNING (from 13:40Z) | Opus, 3132 | `a792a2c5719fc2ca0` |
+| `crumbs-90` | the guest's send and album: Immediate's upload and album lines | HANDED OFF at `9a78cd146` (gates green on `6e8aee8ee`; no migration); merges after milestone 39 and crumbs-88; its test events in Deleted | Opus, 3132 | `a792a2c5719fc2ca0` |
 | `redteam-57c` | the re-walk that closes milestone 39, on the desk build `bea40689d` | DONE 15:15Z: no MEDIUM or worse; every path 57b named restores (its strand path 5 of 5); two LOWs (two of her own pages undo her own step under a hold; a slow stream outlasts the save's nudge) and three NITs to the ROADMAP; its two RT57c events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57c/ledger.txt` | Opus | `a93c1b646bf62a281` |
+| `calls-desk` | the calls lab moved into the lab's desk (Will, 2026-10-07): `docs/calls.json`, a Calls place answered in a press, its answers in the desk's one message, `usher/kit/calls.py` the record's door (the test, the cap of 30) | RUNNING | Opus, 3133 | (spawning) |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q43 answered (each APPLY, each applied); the next migration's read goes to it.
@@ -65,13 +66,11 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 1. **The next desk is whole** (brand-marks r1, signature r1, account-moments r2, create-wizard r5, guests-room r1,
    presence r1, all merged): his desk refreshed to the tip at 10:30Z for red-team 57b's walk, which serves his next
    sitting too; tell him it is ready when he is back (never refreshed while a red-team walks it).
-2. **Milestone 39 on Will's yes** (one walk, both waves): red-team 57 (both waves, nothing above LOW) and 57b
-   (crumbs-87, merged after 57's build) walked it; 57b's one MEDIUM goes first: `crumbs-89` fixes it at its source,
-   its migration through the Advisor and the protocol, merged into 39; then **red-team 57c** re-walks exactly its
-   items on a desk refreshed to the tip; then the FULL gate at the tip (about ten minutes; gate 67 was green at
-   `7572c6360`) and his yes. `pnpm compute:model` ran (every production scenario within budget; lab-demo 24.5 calls a
-   step, its Immediate line). `crumbs-88` (handed off, its migration live) merges only after 39 is on `main`, so 39 is
-   exactly what 57, 57b and 57c walked; boards may merge meanwhile (lab only).
+2. **Milestone 39 on Will's yes** (one walk, both waves): red-teams 57, 57b and 57c walked it, nothing above LOW open;
+   the FULL gate is green at `3ec66b8fe` (gate 74, 1,228 s, red steps 0) and the compute budget ran (every production
+   scenario within budget). On his yes: Drive's Worker first (below), then the merge to `main` (`git merge --no-ff
+   launch-prep`, the subject naming what 39 ships), the tag, production READY at the merge, a verification pass on
+   partyreel.com, `launch-prep` fast-forwarded; then `crumbs-88` and `crumbs-90` merge.
    **Drive goes live with 39** (Will, 2026-10-07): just before 39's production deploy, from this Mac (`wrangler` is
    logged in as P3), `workers/drive`'s `npm ci`, its two queues (README), `DRIVE_APP_URL` partyreel.com, its secret from
    `.env.local` by stdin, `wrangler deploy`, then `DRIVE_WORKER_URL` on production; his Drive walk follows (P3's
