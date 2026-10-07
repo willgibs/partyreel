@@ -155,7 +155,7 @@ describe("what creating asks for", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),
     );
-    await screen.findByRole("button", { name: /get it ready/i });
+    await screen.findByRole("link", { name: /^go to your event$/i });
     expect(createEventInWizard).toHaveBeenCalledWith(
       expect.objectContaining({
         name: EVENT.name,
@@ -237,7 +237,7 @@ describe("where Create lands", () => {
 
     // The beat, and the REAL token rather than the preview stand-in.
     expect(
-      await screen.findByRole("button", { name: /get it ready/i }),
+      await screen.findByRole("link", { name: /^go to your event$/i }),
     ).toBeInTheDocument();
     expect(
       screen
@@ -248,8 +248,9 @@ describe("where Create lands", () => {
       "href",
       `/dashboard/${EVENT.id}/print`,
     );
+    // Her link, the one press that copies it (a share sheet's Share stands beside Print only where a device has one).
     expect(
-      screen.getByRole("button", { name: /^(share|copy link)$/i }),
+      screen.getByRole("button", { name: /^copy the link/i }),
     ).toBeInTheDocument();
     // The event is created ONCE, at commit. A second insert here would mean an
     // abandoned row for every host who pressed twice.
@@ -261,12 +262,12 @@ describe("where Create lands", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),
     );
-    await screen.findByRole("button", { name: /get it ready/i });
+    await screen.findByRole("link", { name: /^go to your event$/i });
     expect(push).not.toHaveBeenCalled();
-    // ★ RESHAPED ON PURPOSE (create-wizard r2's carried `close`; scar kept: the event itself stays one
-    // press away): Go to your event moved from a ghost beside Get it ready into the room's close.
+    // ★ RESHAPED ON PURPOSE (create-wizard r5's `close=enter`; scar kept: the event itself stays one press away, and
+    // only her press goes): Go to your event moved from the room's close to the foot, the one way on.
     expect(
-      screen.getByRole("link", { name: /go to your event/i }),
+      screen.getByRole("link", { name: /^go to your event$/i }),
     ).toHaveAttribute("href", `/dashboard/${EVENT.id}`);
   });
 });
@@ -344,7 +345,7 @@ describe("the door at the cap", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: /create event/i }),
     );
-    await screen.findByRole("button", { name: /get it ready/i });
+    await screen.findByRole("link", { name: /^go to your event$/i });
 
     rerender(
       <CreateEventWizard
@@ -357,7 +358,7 @@ describe("the door at the cap", () => {
       />,
     );
     expect(
-      screen.getByRole("button", { name: /get it ready/i }),
+      screen.getByRole("link", { name: /^go to your event$/i }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /delete it/i }),

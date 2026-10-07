@@ -1,7 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { CreateEventWizard } from "@/components/app/create-event-wizard";
+import {
+  type CreateLike,
+  CreateEventWizard,
+} from "@/components/app/create-event-wizard";
+import {
+  LIKE_COOKIE,
+  likeOf,
+  likeToken,
+} from "@/components/app/create-event-wizard/like";
 import {
   DEFAULT_TIER,
   effectiveStorageCap,
@@ -13,6 +22,7 @@ import {
 import { countActiveEvents, listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { isShut, pageDoor } from "@/lib/events/closed-door.server";
 import { storageUsedPct } from "@/lib/events/readiness";
 import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
@@ -43,19 +53,46 @@ export const viewport: Viewport = { themeColor: "#040405" };
 //
 // The page draws nothing of its own around the room: the room is the whole screen, and its close is the
 // way back to the events.
-export default async function NewEventPage() {
-  const [profile, siteUrl, eventCount, storage] = await Promise.all([
-    getProfile(),
-    getSiteUrl(),
-    countActiveEvents(),
-    // The beat's room line (create-wizard r2's carried `room`), the dashboard meter's own read. ★ IT IS
-    // NEVER WORTH THE PAGE: a failed read leaves room out of what is left (the quiet direction; the
-    // dashboard's meter still says it) and says so where failures are read.
-    getHostStorageSummary().catch((error: unknown) => {
-      captureError("db", error, { seam: "create_room_storage" });
-      return null;
-    }),
-  ]);
+//
+// ★ MAKE ONE LIKE THIS (after-party r1's `bridge=end`, `create-event-wizard/like.ts`): an album's token, on the address
+// (`?like=`) or carried through her sign-up by the like door's cookie, opens Create in that album's style. It is read
+// through the album's own read AND ITS DOOR, as the visitor she is (`pageDoor`, the guest page's own answer), so an
+// album whose door shuts her out lends nothing, and what crosses to the island is the style alone (`likeOf`): never
+// the album's name, date, guests or photographs. Read only past the gates below (a nameless account names itself
+// first, a host at her cap meets the door), and a read that fails is no like, filed, never the page.
+async function readLike(token: string | null): Promise<CreateLike | null> {
+  if (!token) return null;
+  try {
+    const door = await pageDoor(token);
+    if (!door || isShut(door)) return null;
+    return likeOf(door.event);
+  } catch (error: unknown) {
+    captureError("db", error, { seam: "create_like" });
+    return null;
+  }
+}
+
+export default async function NewEventPage({
+  searchParams,
+}: {
+  // Next 16: searchParams is a Promise.
+  searchParams: Promise<{ like?: string | string[] }>;
+}) {
+  const [profile, siteUrl, eventCount, storage, jar, params] =
+    await Promise.all([
+      getProfile(),
+      getSiteUrl(),
+      countActiveEvents(),
+      // The beat's room line (create-wizard r2's carried `room`), the dashboard meter's own read. ★ IT IS
+      // NEVER WORTH THE PAGE: a failed read leaves room out of what is left (the quiet direction; the
+      // dashboard's meter still says it) and says so where failures are read.
+      getHostStorageSummary().catch((error: unknown) => {
+        captureError("db", error, { seam: "create_room_storage" });
+        return null;
+      }),
+      cookies(),
+      searchParams,
+    ]);
 
   // A host's name shows publicly on their own uploads + the "Hosted by" byline, so require it
   // before they can create an event (deep-link guard; the dashboard gate covers the normal path).
@@ -80,6 +117,12 @@ export default async function NewEventPage() {
         effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null),
       )
     : 0;
+  // The address's own like first, then the one her sign-up carried; none at the cap, where the door stands instead.
+  const like = atCap
+    ? null
+    : await readLike(
+        likeToken(params.like) ?? likeToken(jar.get(LIKE_COOKIE)?.value),
+      );
 
   return (
     <CreateEventWizard
@@ -92,6 +135,7 @@ export default async function NewEventPage() {
       // and every setting; a client island gets a name and an id.
       cappedEvents={cappedEvents}
       storagePct={storagePct}
+      like={like}
     />
   );
 }

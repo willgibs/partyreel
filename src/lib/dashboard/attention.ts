@@ -69,10 +69,11 @@ const uploads = (n: number) =>
 /**
  * THE EVENT'S ONE ITEM TODAY, or nothing. The queues speak in every phase (people at the door, then the
  * review queue); on its day, paused uploads and a reel one photo short; before its day, the first
- * essential readiness leaves undone (a door nobody can pass, a password not set, uploads paused, the
- * code never opened), then the code printed the day before. What is merely worth doing (the first
- * photos, the welcome) is the hub's checklist's to say, never the dashboard's, and room is the
- * storage ring's.
+ * essential readiness leaves undone (a door nobody can pass, a password not set, uploads paused), then the
+ * code's share while nobody has opened it, then the code printed the day before. ★ THE SHARE IS THE ONE
+ * THING WORTH DOING THE DASHBOARD SAYS (create-wizard r5's `arrival=done`): the code's first open stopped
+ * being a need, and leads what is worth doing, so a party in the week still says its share; the first photos
+ * and the welcome stay the hub's checklist's to say, and room is the storage ring's.
  */
 export function itemFor(e: HomeEvent, ctx: HomeContext): Item | null {
   const phase = phaseOfEvent(e, ctx.today);
@@ -140,16 +141,15 @@ export function itemFor(e: HomeEvent, ctx: HomeContext): Item | null {
   if (phase !== "before") return null;
 
   const facts = readyFactsOf(e, ctx);
-  const left = facts
-    ? readiness(facts).left.find((i) => i.essential && i.id !== "room")
-    : undefined;
+  const r = facts ? readiness(facts) : null;
+  const left = r?.left.find((i) => i.essential && i.id !== "room");
   if (left?.id === "door")
     return e.door === "password"
       ? make("password", "No password set", "Set it", "door", "setup")
       : make("door-shut", "Nobody can get in yet", "Choose", "door", "setup");
   if (left?.id === "adds")
     return make("adds", "Uploads are paused", "Open uploads", "adds", "setup");
-  if (left?.id === "code")
+  if (r?.left.some((i) => i.id === "code"))
     return make("code", "Code never opened", "Invite", "invite", "setup");
   if (queue?.kind === "print")
     return make("print", "Print the code", "Print", "print", "setup");

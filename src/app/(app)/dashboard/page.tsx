@@ -84,6 +84,7 @@ import {
   getMyGuestEventCards,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { storageUsedPct } from "@/lib/events/readiness";
 import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
@@ -256,10 +257,8 @@ export default async function DashboardPage({
     profile?.storage_cap_bytes ?? null,
   );
   const storageUsed = storage.storedBytes;
-  const storagePct =
-    storageCap && storageCap > 0
-      ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
-      : 0;
+  // The meter's own math, in its one home (`storageUsedPct`): the hub's checklist and Create read it there too.
+  const storagePct = storageUsedPct(storageUsed, storageCap);
   const hasBilling = Boolean(profile?.stripe_customer_id);
   const passExpiry =
     tier === "event_pass" && profile?.tier_expires_at

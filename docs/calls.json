@@ -8,227 +8,6 @@
   ],
   "entries": [
     {
-      "id": "X2",
-      "kind": "question",
-      "theme": "Safety, and the product acting on its own",
-      "title": "Should the limits watch read Vercel with its own token?",
-      "body": "Vercel has no read-only token; a token can deploy and delete. Until the app holds one, the new \"Plan limits\" card is blind to Vercel, the one limit we nearly broke.",
-      "recommended": "mint a fresh token scoped to the Partyreel team, one-year expiry, as `VERCEL_USAGE_TOKEN` (non-sensitive until launch, then Sensitive). The cron makes one read with it a day. The app's env already holds keys as powerful (the database's service key, R2's write keys).",
-      "alternatives": [
-        "keep Vercel out of the app. A GitHub Action holds the token and posts the numbers in (a workflow and a route to build), or the kit reads it only when an agent runs it"
-      ]
-    },
-    {
-      "id": "X3",
-      "kind": "question",
-      "theme": "Safety, and the product acting on its own",
-      "title": "A read-only Cloudflare analytics token for R2's operations and the Workers' requests?",
-      "body": "`Account Analytics: Read` only: it can't deploy or delete.",
-      "recommended": "yes, as `CLOUDFLARE_ANALYTICS_TOKEN`; the four meters wait for it.",
-      "alternatives": []
-    },
-    {
-      "id": "X5",
-      "kind": "question",
-      "theme": "Deletion, retention and privacy",
-      "title": "May an open album's \"has anything changed?\" answer be cached by the CDN for a few seconds?",
-      "body": "That's the single biggest cost lever: 100 lit phones asking costs one call instead of 100. But a cached answer reaches anyone who has its URL.",
-      "recommended": "only for an open album at full access, never a password album or a blocked viewer, and the answer is a version number, never photos or links. Not built until you say yes.",
-      "alternatives": []
-    },
-    {
-      "id": "X6",
-      "kind": "question",
-      "theme": "Plans and billing",
-      "title": "Should the operator be able to lift a host's uploads count?",
-      "body": "`/admin/accounts` now shows each host's uploads against her allowance, read-only. A false positive (a bug, a misread meter) would block a paying host with nothing in `/admin` to lift it.",
-      "recommended": "before launch, an audited credit: a reason, your second factor, a bounded amount, logged in `admin_actions`. Never a reset of the ledger, which the spend watch also reads. It's a migration, so a follow-up lane on your word.",
-      "alternatives": []
-    },
-    {
-      "id": "X1",
-      "kind": "question",
-      "theme": "An event's life and timing",
-      "title": "A Disposable's develop time when the date comes later.",
-      "body": "Create now asks the style. With no date yet, a Disposable develops at 9 am tomorrow, and that time never follows a date added later, so a party weeks away would develop before it starts. The row says the time plainly, but it's easy to miss.",
-      "recommended": "when you set or move the date, an untouched develop time that falls before the party ends moves to the morning after (9 am, your zone). A time you chose yourself never moves.",
-      "alternatives": [
-        "ask the date in Create",
-        "put a \"morning after\" shortcut beside the row"
-      ]
-    },
-    {
-      "id": "X9",
-      "kind": "question",
-      "theme": "What Partyreel is",
-      "title": "Who can act for an event?",
-      "body": "Today one account owns and runs each event: no co-host, no helper for the night, no hand-over (`events.host_id` is the only owner, assumed by 121 checks in 39 migrations, and the planners post says so in public). Nearly every wedding has two hosts, and Pro's sizes are sold as a planner's year and a venue's year.",
-      "recommended": "co-hosts invited by email, acting for the event as the owner does (Review, the door, Settings, Share), while billing, storage, the plan and deleting the event stay the owner's; handing an event to another account waits for X14.",
-      "alternatives": [
-        "one owner for good, with a read-only link for a partner",
-        "roles per event (owner, co-host, a night helper who runs only Review and the door)",
-        "hand-over now"
-      ]
-    },
-    {
-      "id": "X10",
-      "kind": "question",
-      "theme": "Plans and billing",
-      "title": "What is inside an event, and what does one pass buy?",
-      "body": "An event is one stream with one reel, one folder and one roll, so a wedding weekend is either one undivided album or several paid events (a competitor sells sub-albums).",
-      "recommended": "day dividers drawn from the dates and the capture times, display only (no schema, no price change), now; named chapters or linked events only when hosts ask.",
-      "alternatives": [
-        "chapters she names, each with its own reel and folder",
-        "a weekend grouping several events under one link and one pass"
-      ]
-    },
-    {
-      "id": "X11",
-      "kind": "question",
-      "theme": "Safety, and the product acting on its own",
-      "title": "Who may Partyreel contact, and for what?",
-      "body": "Account says \"Your guests never hear from us\" and help promises no \"album is ready\" mail, yet the ROADMAP plans a guest's develop and let-in mails; and a host hears nothing when her event goes live, when someone waits at her door while she is away, or when the album develops.",
-      "recommended": "a host's email for her event's moments (a receipt with the code and the print link, a quiet alert for the door and Review while she is away, a morning-after recap); a guest hears from us only when she asks at the door (\"Email me when it develops\"), once, never marketing: \"never\" becomes \"only when you ask\".",
-      "alternatives": [
-        "hosts only, guests never",
-        "web push for hosts through an installed app",
-        "messages the host writes, sent once"
-      ]
-    },
-    {
-      "id": "X12",
-      "kind": "question",
-      "theme": "What Partyreel is",
-      "title": "Does the album hold words?",
-      "body": "It holds photographs and videos alone: no caption, no note, no guestbook, though the guestbook is a wedding staple and competitors include one.",
-      "recommended": "a guestbook as its own kind (a short note, a voice memo or a video message to the hosts), in a room of its own and at the reel's end, moderated in Review like any upload; no captions or comments on photographs, so the album stays the pictures.",
-      "alternatives": [
-        "never, as part of the identity",
-        "an optional one-line caption at send",
-        "comments and reactions"
-      ]
-    },
-    {
-      "id": "X13",
-      "kind": "question",
-      "theme": "What Partyreel is",
-      "title": "Will a guest ever see Partyreel in her own language?",
-      "body": "Everything is US English, written inline in about 260 files, and the cost of translating grows with every string.",
-      "recommended": "English at launch, with the guest's journey (the door, the album, the camera, the reel) made translation-ready now (a string catalog, dates and plurals by her locale); the host's app later.",
-      "alternatives": [
-        "English only for good, said plainly",
-        "three to five languages at launch, by the phone's setting",
-        "the host picks the album's language"
-      ]
-    },
-    {
-      "id": "X14",
-      "kind": "question",
-      "theme": "Plans and billing",
-      "title": "Is the professional host (a planner, a venue, a photographer) a launch target?",
-      "body": "Pro's sizes are sold for them, but nothing exists for them: no hand-over, no partner mark, no templates.",
-      "recommended": "not at launch: Pro's sizes say what they hold instead, and the professional is decided with X9's hand-over after launch.",
-      "alternatives": [
-        "the minimum now (roles, hand-over, templates)",
-        "a partner's mark on the guest page, the prints and the reel as a paid lever",
-        "a host theme"
-      ]
-    },
-    {
-      "id": "X15",
-      "kind": "question",
-      "theme": "Deletion, retention and privacy",
-      "title": "Will Partyreel ever find a guest's photos by her face?",
-      "body": "Selfie search is becoming a premium default among competitors, but it is biometric data (Illinois' BIPA, the GDPR's special category).",
-      "recommended": "never, said as a privacy feature, with ways to find a photograph that need no face (by day, by who sent it, videos, likes).",
-      "alternatives": [
-        "opt-in selfie search per album through a vendor, deleted with the event",
-        "tagging yourself",
-        "decide later, promising nothing meanwhile"
-      ]
-    },
-    {
-      "id": "X16",
-      "kind": "question",
-      "theme": "What Partyreel is",
-      "title": "Prints or a book?",
-      "body": "Export is the only way out today; a competitor sells photobooks.",
-      "recommended": "not before launch; after it, a print partner built on the host's picks.",
-      "alternatives": []
-    },
-    {
-      "id": "X17",
-      "kind": "question",
-      "theme": "What Partyreel is",
-      "title": "What does a follow do before the feed exists?",
-      "body": "Nothing reads follows until the after-launch feed (account-moments r2 asks how a follow feels; this asks what it is for).",
-      "recommended": "keep Follow as a private list (whom she follows, on her page) and say so; its payoff is the feed.",
-      "alternatives": ["hide Follow until the feed ships"]
-    },
-    {
-      "id": "L2",
-      "kind": "call",
-      "theme": "Plans and billing",
-      "title": "An Event Pass is one year, paid once.",
-      "body": "She is reminded before it ends (unless she turned Event Pass reminders off), and a renewal at the cheaper price extends from the end of the year she holds, only while it is still active. When the year ends the account becomes Free: nothing is deleted, but her albums stop taking uploads, hers and her guests', until she renews (AJ1, AR5).",
-      "changeIf": "a lapsed pass should keep collecting for a grace period, or a renewal should happen by itself.",
-      "home": "docs/systems/billing-caps.md"
-    },
-    {
-      "id": "R1",
-      "kind": "call",
-      "theme": "Plans and billing",
-      "title": "A plan that ends over its storage.",
-      "body": "She gets 45 days of grace with reminders; at the deadline what she already deleted leaves for good first, then her largest files move to Deleted (30 days to recover) until she is under the cap, with no small overage forgiven.",
-      "changeIf": "a small overage should be forgiven, or nothing should move without her.",
-      "home": "docs/systems/lifecycle-recovery.md"
-    },
-    {
-      "id": "AH1",
-      "kind": "call",
-      "theme": "Plans and billing",
-      "title": "Every plan, Free included, can send to Google Drive.",
-      "body": "It costs us about $0.0003 a GB and is the honest way out; once Free has it, the rule that a marketed number only moves up keeps it there.",
-      "changeIf": "Drive should be a paid feature: decide before it goes live with milestone 39.",
-      "home": "docs/systems/drive-export.md"
-    },
-    {
-      "id": "K5",
-      "kind": "call",
-      "theme": "An event's life and timing",
-      "title": "A Free event idle for six months is removed.",
-      "body": "Warned two weeks out, then moved to Deleted (30 days to recover); any use of her account, the event's own dates or a new photo resets the clock; Pro and Event Pass albums never.",
-      "changeIf": "a Free album should never be removed (events otherwise never expire), or the clock should be longer.",
-      "home": "docs/systems/lifecycle-recovery.md"
-    },
-    {
-      "id": "G3",
-      "kind": "call",
-      "theme": "An event's life and timing",
-      "title": "The get-ready checklist",
-      "body": "stays atop an event until it is done or until the day after the event's date; it is only advice, blocks nothing and guests never see it.",
-      "changeIf": "it should stay until done, whatever the date.",
-      "home": "docs/systems/host-app.md"
-    },
-    {
-      "id": "AB5",
-      "kind": "call",
-      "theme": "An event's life and timing",
-      "title": "How live an open page stays.",
-      "body": "Where the live line is blocked an album asks for news every 12 seconds, slowing to a minute when quiet; past two untouched hours it stops asking until a touch; a party screen rests at 5 minutes, its doorbell still instant.",
-      "changeIf": "a long-open page should keep asking (each ask is a call on every open phone).",
-      "home": "docs/systems/guest-flow.md"
-    },
-    {
-      "id": "CC4",
-      "kind": "call",
-      "theme": "An event's life and timing",
-      "title": "A host's removal spends a guest's shots,",
-      "body": "as her own take-back does: a guest whose host removed five of her 24 can take only 3 more.",
-      "changeIf": "a host's removal should give the guest her frames back.",
-      "home": "docs/systems/disposable-mode.md"
-    },
-    {
       "id": "I7",
       "kind": "call",
       "theme": "Deletion, retention and privacy",
@@ -274,6 +53,15 @@
       "home": "docs/systems/profiles-social.md"
     },
     {
+      "id": "CH1",
+      "kind": "call",
+      "theme": "Deletion, retention and privacy",
+      "title": "Make one like this lends an album's style alone.",
+      "body": "Its mode, its code's look and a Disposable's roll go into the visitor's own Create, read through the album's door as the visitor she is, so an album that shuts her out lends nothing; never its name, date, guests, photos or develop time.",
+      "changeIf": "it should lend more (its cover, its date), or ask the host before lending anything.",
+      "home": "docs/systems/host-app.md"
+    },
+    {
       "id": "J2",
       "kind": "call",
       "theme": "Safety, and the product acting on its own",
@@ -311,6 +99,7 @@
     "F3",
     "F4",
     "G2",
+    "G3",
     "G5",
     "G6",
     "H1",
@@ -331,7 +120,9 @@
     "K2",
     "K3",
     "K4",
+    "K5",
     "L1",
+    "L2",
     "L3",
     "M2",
     "M3",
@@ -353,6 +144,7 @@
     "P5",
     "Q3",
     "Q6",
+    "R1",
     "S1",
     "S2",
     "S3",
@@ -372,9 +164,23 @@
     "V3",
     "V4",
     "W1",
+    "X1",
+    "X2",
+    "X3",
     "X4",
+    "X5",
+    "X6",
     "X7",
     "X8",
+    "X9",
+    "X10",
+    "X11",
+    "X12",
+    "X13",
+    "X14",
+    "X15",
+    "X16",
+    "X17",
     "Y1",
     "Y2",
     "Z1",
@@ -384,6 +190,7 @@
     "AB2",
     "AB3",
     "AB4",
+    "AB5",
     "AC1",
     "AC2",
     "AD1",
@@ -402,6 +209,7 @@
     "AG4",
     "AG5",
     "AG6",
+    "AH1",
     "AH2",
     "AH3",
     "AH5",
@@ -612,6 +420,7 @@
     "CC1",
     "CC2",
     "CC3",
+    "CC4",
     "CC5",
     "CD1",
     "CD2",

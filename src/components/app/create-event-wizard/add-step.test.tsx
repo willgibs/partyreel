@@ -11,6 +11,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  MOMENT_WORDS,
   pictureCells,
   STYLE_MOMENTS,
 } from "@/components/app/event-settings/camera-settings-style-picture";
@@ -31,21 +32,23 @@ import { DevelopStep } from "./develop-step";
 
 /**
  * THE ADD STEP: HOW THE ALBUM IS STYLED (create-wizard r3's `add=styles`, Will 2026-10-04). Three cards, Live, Review and
- * Disposable, each a small album moving through the night, nothing opening under them; the night under them all. And
- * the Disposable's own screen after it (r4's `styles=focused`, 2026-10-07): its develop time and its roll.
+ * Disposable, each a small album resting on the moment they differ, the picked one playing its story once (r5's
+ * `previews=one`, 2026-10-07), nothing opening under them. And the Disposable's own screen after it (r4's
+ * `styles=focused`): its develop time and its roll.
  *
  * What fails silently, and is pinned here:
  *  - the cards stop speaking Settings' words (a second name for a style is two products);
  *  - the develop time creeps back onto the cards' screen (his own worry: "not tucked underneath the timeline where it
  *    may not be noticed", answered by a screen of its own), or its screen stops offering and keeping her time and roll;
- *  - a keyboard cannot move between the cards or the night's moments (a radio group moves with the arrows);
- *  - the night plays every time the step opens, or plays over a hand already on the slider;
- *  - the pictures stop telling the three styles apart at the party (Live all lit, Review with the held ones, Disposable
- *    dark but for hers).
+ *  - a keyboard cannot move between the cards (a radio group moves with the arrows);
+ *  - more than the picked card moves (his "3 things happen at once"), a story plays every time the step opens, or an
+ *    arrow walking past a card plays it;
+ *  - the pictures stop telling the three styles apart at rest (Live all in, Review all but the newest two, Disposable
+ *    dark but for hers, its camera standing in its first frame).
  * No class, size or duration is pinned; the words are, where a word is the fact.
  */
 
-/** The wizard's own holding of the add step: its choice, and whether the night has played (state, as the wizard has it). */
+/** The wizard's own holding of the add step: its choice, and whether the story has played (state, as the wizard has it). */
 function Harness({
   played: initiallyPlayed = true,
   onChoice,
@@ -334,82 +337,57 @@ describe("the roll stands under the develop time, on the Disposable's screen", (
   });
 });
 
-describe("the pictures: the three styles told apart, moving through the night", () => {
-  it("★ at the party Live is lit, Review holds some under a clock, and Disposable is dark but for hers", () => {
+describe("the pictures: the three styles told apart at rest (previews=one)", () => {
+  // ★ RESHAPED ON PURPOSE (create-wizard r5's `previews=one`): the party moment read Review with two frames "fading in"
+  // (read as disabled) and the Disposable's camera only as guests arrived, and a slider moved all three. The rest is
+  // drawn to read still, the scar kept: one look tells the three apart.
+  it("★ rests Live all in, Review all but the newest two under a clock, Disposable dark but hers, its camera in the first frame", () => {
     render(<Harness />);
     expect(new Set(cellsOf("live"))).toEqual(new Set(["lit"]));
-    expect(cellsOf("approval")).toEqual(pictureCells("approval", "party"));
-    expect(cellsOf("approval").filter((c) => c === "held")).toHaveLength(2);
-    expect(cellsOf("approval").filter((c) => c === "fading")).toHaveLength(2);
-    expect(cellsOf("disposable").filter((c) => c === "hers")).toHaveLength(1);
-    expect(cellsOf("disposable").filter((c) => c === "dark")).toHaveLength(5);
-  });
-
-  it("★ the night moves every picture: guests arriving (empty, the camera holds its roll), the party, the morning (whole)", async () => {
-    render(<Harness />);
-    const moments = () => ALBUM_STYLES.map((s) => picture(s).dataset.moment);
-    expect(moments()).toEqual(["party", "party", "party"]);
-
-    await userEvent.click(screen.getByRole("radio", { name: "Arriving" }));
-    expect(moments()).toEqual(["arrive", "arrive", "arrive"]);
-    expect(new Set(cellsOf("live"))).toEqual(new Set(["empty"]));
-    expect(new Set(cellsOf("disposable"))).toEqual(new Set(["dark"]));
-    // The disposable's camera, with its roll's size, over its still-dark frames.
-    expect(picture("disposable")).toHaveTextContent("24");
-
-    await userEvent.click(screen.getByRole("radio", { name: "Next morning" }));
-    expect(moments()).toEqual(["morning", "morning", "morning"]);
-    for (const s of ALBUM_STYLES)
-      expect(new Set(cellsOf(s))).toEqual(new Set(["lit"]));
-  });
-
-  it("★ the night is a radio group of three words a keyboard moves through, and the track answers a press", async () => {
-    render(<Harness />);
-    const night = screen.getByRole("radiogroup", {
-      name: /through the night/i,
-    });
+    expect(cellsOf("approval")).toEqual([
+      "lit",
+      "lit",
+      "lit",
+      "lit",
+      "held",
+      "held",
+    ]);
+    expect(cellsOf("disposable")).toEqual([
+      "camera",
+      "dark",
+      "dark",
+      "dark",
+      "hers",
+      "dark",
+    ]);
+    // The camera holds her roll's count.
     expect(
-      within(night)
-        .getAllByRole("radio")
-        .map((r) => r.textContent),
-    ).toEqual(["Arriving", "The party", "Next morning"]);
-    const word = (name: string) => screen.getByRole("radio", { name });
-    act(() => word("The party").focus());
-    await arrow("ArrowRight", () => word("Next morning"));
-    await arrow("ArrowLeft", () => word("The party"));
-    await arrow("ArrowLeft", () => word("Arriving"));
-
-    // A press anywhere on the track lands on the nearest moment (its words stay the control for a reader).
-    const track = document.querySelector<HTMLElement>("[data-night-track]")!;
-    track.setPointerCapture = vi.fn();
-    track.getBoundingClientRect = () =>
-      ({
-        left: 0,
-        top: 0,
-        width: 300,
-        height: 28,
-        right: 300,
-        bottom: 28,
-      }) as DOMRect;
-    fireEvent.pointerDown(track, { clientX: 290, pointerId: 1 });
-    expect(screen.getByRole("radio", { name: "Next morning" })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-    fireEvent.pointerDown(track, { clientX: 140, pointerId: 1 });
-    expect(screen.getByRole("radio", { name: "The party" })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
+      picture("disposable").querySelector("[data-cell='camera']"),
+    ).toHaveTextContent(String(ROLL_SHOTS));
+    // Settings' cards draw the same rest.
+    expect(cellsOf("approval")).toEqual(pictureCells("approval", "party"));
   });
 
-  it("the track and the moments are the same three, in order", () => {
+  it("★ draws no slider under the cards: the picked one carries the story", () => {
+    render(<Harness />);
+    expect(
+      screen.queryByRole("radiogroup", { name: /through the night/i }),
+    ).toBeNull();
+    expect(screen.getAllByRole("radiogroup")).toHaveLength(1);
+  });
+
+  it("names the story's three moments by what happens, never a clock", () => {
     expect(STYLE_MOMENTS).toEqual(["arrive", "party", "morning"]);
+    expect(STYLE_MOMENTS.map((m) => MOMENT_WORDS[m])).toEqual([
+      "Arriving",
+      "The party",
+      "Next morning",
+    ]);
   });
 });
 
-describe("the night plays once, as the step first opens", () => {
-  /** The wizard around the step: it holds whether the night has played, and mounts the step again on demand. */
+describe("the picked one plays, once (previews=one)", () => {
+  /** The wizard around the step: it holds whether the story has played, and mounts the step again on demand. */
   function Wizard() {
     const [played, setPlayed] = useState(false);
     const [open, setOpen] = useState(true);
@@ -429,39 +407,80 @@ describe("the night plays once, as the step first opens", () => {
       </>
     );
   }
+  const playing = () =>
+    ALBUM_STYLES.filter((s) => picture(s).hasAttribute("data-playing"));
 
-  it("★ opens on the guests arriving and rests on the party, once; a second open (a Back and a Continue) opens on the party", () => {
+  it("★ plays the picked card's story as the step first opens, its moment named, the others resting; then rests", () => {
     vi.useFakeTimers();
     render(<Wizard />);
+    // Arriving: Live's album empty, named; Review and Disposable stand still at their rest.
     expect(picture("live").dataset.moment).toBe("arrive");
+    expect(new Set(cellsOf("live"))).toEqual(new Set(["empty"]));
+    expect(playing()).toEqual(["live"]);
+    expect(picture("live")).toHaveTextContent(MOMENT_WORDS.arrive);
+    expect(cellsOf("approval")).toEqual(pictureCells("approval", "party"));
     act(() => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(3000);
     });
-    expect(picture("live").dataset.moment).toBe("party");
-
-    // She goes on and comes back: the step stands on the party, no second show.
-    fireEvent.click(screen.getByRole("button", { name: "toggle" }));
-    expect(document.querySelector("[data-add-step]")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "toggle" }));
-    expect(picture("live").dataset.moment).toBe("party");
-  });
-
-  it("★ reduced motion opens on the party at once, the page complete at rest", () => {
-    setReducedMotion(true);
-    render(<Harness played={false} />);
-    expect(picture("live").dataset.moment).toBe("party");
-  });
-
-  it("★ a hand on the slider is the night's now: nothing plays over it", () => {
-    vi.useFakeTimers();
-    render(<Wizard />);
-    expect(picture("live").dataset.moment).toBe("arrive");
-    fireEvent.click(screen.getByRole("radio", { name: "Next morning" }));
     expect(picture("live").dataset.moment).toBe("morning");
+    expect(picture("live")).toHaveTextContent(MOMENT_WORDS.morning);
     act(() => {
       vi.advanceTimersByTime(2000);
     });
-    expect(picture("live").dataset.moment).toBe("morning");
+    // Back to its rest, where it stays: nothing named, nothing playing.
+    expect(playing()).toEqual([]);
+    expect(new Set(cellsOf("live"))).toEqual(new Set(["lit"]));
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(playing()).toEqual([]);
+  });
+
+  it("★ plays once in a Create: a second open (a Back and a Continue) rests", () => {
+    vi.useFakeTimers();
+    render(<Wizard />);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "toggle" }));
+    expect(document.querySelector("[data-add-step]")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "toggle" }));
+    expect(playing()).toEqual([]);
+  });
+
+  it("★ plays a pick once it has stood its moment, and never a card the arrows only passed", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<Harness />);
+    expect(playing()).toEqual([]);
+    fireEvent.click(style(/^disposable\./i));
+    // The pick has not stood yet: nothing plays.
+    expect(playing()).toEqual([]);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(playing()).toEqual(["disposable"]);
+    // Walking on before a pick stands plays nothing on the card passed.
+    fireEvent.click(style(/^review\./i));
+    fireEvent.click(style(/^live\./i));
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(playing()).toEqual([]);
+  });
+
+  it("plays the picked card again on a second press", () => {
+    vi.useFakeTimers();
+    render(<Harness />);
+    expect(playing()).toEqual([]);
+    fireEvent.click(style(/^live\./i));
+    expect(playing()).toEqual(["live"]);
+  });
+
+  it("★ reduced motion plays nothing: the rest stands, the page complete", () => {
+    setReducedMotion(true);
+    render(<Harness played={false} />);
+    expect(playing()).toEqual([]);
+    expect(picture("live").dataset.moment).toBe("party");
   });
 });
 

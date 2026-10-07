@@ -74,6 +74,8 @@ const codes = () =>
     .map((n) => ({ value: n.dataset.value!, dots: n.dataset.dots }));
 const go = (name: RegExp) =>
   userEvent.click(screen.getByRole("button", { name }));
+/** The beat's foot once the event exists: Go to your event, a link into it (create-wizard r5's `close=enter`). */
+const GO_IN = { name: /^go to your event$/i };
 
 /** The name given and the album's style left as it opens: the look stands, and she picks Rounded. */
 async function toTheLook() {
@@ -88,11 +90,7 @@ async function toTheBeat() {
   render(<CreateRoomDemo />);
   await toTheLook();
   await go(/^create event$/i);
-  await screen.findByRole(
-    "button",
-    { name: /^get it ready$/i },
-    { timeout: 5000 },
-  );
+  await screen.findByRole("link", GO_IN, { timeout: 5000 });
 }
 
 beforeEach(() => {
@@ -159,16 +157,10 @@ describe("Create's room, pressed through with no session", () => {
     expect(codes()).toEqual([
       { value: expect.stringMatching(SAMPLE), dots: "rounded" },
     ]);
-    expect(
-      screen.queryByRole("button", { name: /^get it ready$/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", GO_IN)).toBeNull();
 
     // Then her own code, where the sample stood, in the same look.
-    await screen.findByRole(
-      "button",
-      { name: /^get it ready$/i },
-      { timeout: CREATE_MS + 3000 },
-    );
+    await screen.findByRole("link", GO_IN, { timeout: CREATE_MS + 3000 });
     expect(beat().dataset.beat).toBe("arrived");
     expect(codes()).toContainEqual({
       value: expect.stringMatching(LIVE),
@@ -179,9 +171,9 @@ describe("Create's room, pressed through with no session", () => {
     expect(createEventInWizard).not.toHaveBeenCalled();
   });
 
-  it("★ holds Get it ready: the press that would push the lab into Settings goes nowhere", async () => {
+  it("★ holds Go to your event: the press that would push the lab into a hub goes nowhere", async () => {
     await toTheBeat();
-    await go(/^get it ready$/i);
+    await userEvent.click(screen.getByRole("link", GO_IN));
     expect(push).not.toHaveBeenCalled();
     // Still on the beat, still hers.
     expect(beat().dataset.beat).toBe("arrived");
@@ -191,11 +183,7 @@ describe("Create's room, pressed through with no session", () => {
     const { unmount } = render(<CreateRoomDemo />);
     await toTheLook();
     await go(/^create event$/i);
-    await screen.findByRole(
-      "button",
-      { name: /^get it ready$/i },
-      { timeout: 5000 },
-    );
+    await screen.findByRole("link", GO_IN, { timeout: 5000 });
     expect(window.sessionStorage.getItem("pr-just-made-event")).toBe(
       "library-create-room",
     );

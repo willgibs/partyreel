@@ -473,7 +473,7 @@ function AlbumAsGuest({
 
 /**
  * THE GUEST'S HEADER, AS A GUEST WITH NO ACCOUNT SEES IT (`guest-header.tsx`, drawn still): the wordmark, white on the
- * cover with no rule, and the quiet "Start for free" the anonymous majority meets. Inert like the album. Where the
+ * cover with no rule, and the quiet "Make one like this" the anonymous majority meets. Inert like the album. Where the
  * view is its own page, her way back to the hub stands in that slot instead, the one live control on it.
  */
 function GuestBar({
@@ -503,7 +503,7 @@ function GuestBar({
         ) : (
           <span inert>
             <Button variant="ghost" size="sm" tabIndex={-1}>
-              Start for free
+              Make one like this
             </Button>
           </span>
         )}
