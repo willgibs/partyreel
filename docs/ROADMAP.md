@@ -17,10 +17,19 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ## Immediate
 
+### Platform, data and cost
+
+- Cost: cache an open album's "has anything changed?" answer at the CDN for a few seconds (Will's yes to X5, 2026-10-07): only an open album at full access, never a password album or a blocked viewer, and the answer a version number alone, never photos or links (100 lit phones asking cost one call). With it in, AB5's cadence may tighten where that costs nothing (Will kept AB5's slowing ask and invites a livelier page at the same cost).
+- Lifecycle: a Free event idle for two years, not six months, is removed (Will changed K5, 2026-10-07: "6 months feels like too short a span"): the window in `src/lib/lifecycle/` and any SQL mirror, the warning mail, help's `<InactivityMonths />`, PRD's "Free-plan inactivity" line and lifecycle-recovery.md; the Terms state no number (his: "Legal terms should not bind us to this").
+
 ### Security and abuse
 
 - Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
 - QA hardening: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
+
+### Uploads, media and exports
+
+- Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
 
 ### The guest's album
 
@@ -38,6 +47,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
+- Admin: the operator's audited uploads credit (Will's yes to X6, 2026-10-07): a reason, the operator's second factor, a bounded amount, logged in `admin_actions`, on `/admin/accounts`; never a reset of the ledger the spend watch also reads; a migration, through the Advisor.
 
 ### Design system and accessibility
 
@@ -48,6 +58,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 24.5 calls a step against its budget of 9 (milestone 39's run, 2026-10-07; 182.8 on 2026-10-05): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
 - The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
+- The lab: a Clear on the desk (Will, 2026-10-07): "Copy everything" carried desk 8's board answers into his calls paste, since the desk still served a build older than their transcription; one press empties the sitting's held answers, and the Orchestrator refreshes the desk after each transcription so recorded answers never ride again.
 
 ### Code hygiene
 
@@ -94,6 +105,9 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Pricing: rename the uploads meter's wire names to window-neutral ones (`at_monthly_cap`, the presign meter's `'monthly'` reason).
 - Pricing: the plans' sheet opened by an event limit (Create's held Upgrade, the cap door's See Pro) leads "You are out of room", the storage trigger's words (`pricing-sheet.tsx`, `kind: "room"`); give the event limit words of its own (create-wizard-wiring).
 - Pricing: `/pricing` opens on paper but the cinema layout pins `themeColor: #020202` (`(cinema)/layout.tsx`), so a phone's browser chrome is dark over a white first screen; the fix is group-level, since the layout keeps `viewport` off every page.
+- Billing: the plan limits' Vercel reader once Will mints `VERCEL_USAGE_TOKEN` (his yes to X2, 2026-10-07: scoped to the Partyreel team, one-year expiry, non-sensitive until launch, then Sensitive; the cron reads it once a day).
+- Lifecycle: a small overage forgiven when a plan ends over its storage (Will changed R1, 2026-10-07: "a big win on user experience when they know we could have just deleted it instead"): at the grace's end nothing moves while she is within a small margin over her cap, sized so it costs little, never advertised; lifecycle-recovery.md and PRD's "Over capacity" line take the rule when built.
+- Lab exploration: Partners (Will's answer to X14, 2026-10-07: the professional host is a launch target, the minimum now: roles through X9's co-hosts, a hand-over, templates; his own Partners idea, its foundation built before launch if he approves): approved partners (planners, venues, photographers) on a free Pro account, a code bound to their events, inherited by every account created from a partner's event and never added later but by the operator, the partner earning a share while those accounts stay on Pro. The board asks the tree's depth, the payout's form (credit or cash: Stripe Connect and tax forms), attribution and abuse, and the partner's own surfaces; his words are in `docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`.
 
 ### Uploads, media and exports
 
@@ -138,6 +152,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: after-party r2, the album's later moments once Will picks where the recap lives: the anniversary a year on, and the keepsake's premiere (the reel opening by itself on a guest's return, with Skip: motion r1's stills could not judge) (after-party r1).
 - Album: the viewer draws nothing for a photograph its browser cannot decode (a HEIC with no preview in Chrome); say it as the tile's stand-in does, beside Save (crumbs-90).
 - Camera: at a roll of 1 the refusal says "You've taken all 1 shots on your roll." (`roll.ts`'s `rollSpentMessage` and `create_media`'s mirror, a migration) (crumbs-90).
+- Lab exploration: the album's controls (Will's own answer to X10, 2026-10-07): one gallery for every kind of event, with deeper optional filters, sort and views (smart views, perhaps), never a divided default: no day dividers or chapters drawn for her, since "our albums are built to be used dynamically across nearly any sort of event type or duration".
+- Lab exploration: the guestbook (Will's yes to X12, 2026-10-07): a short note, a voice memo or a video message to the hosts, moderated in Review like any upload, at the reel's end and in a place of its own; no captions or comments on photographs; "very natural, and likely a more underlying feature", never forced (the event-page board leaves its door).
 
 ### Accounts and profiles
 
@@ -176,6 +192,13 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Settings' door menu (`settings-rows.tsx`'s `doorConsequence`) says an address gate "Turns An email first on" but not what it asks of the guests in by name, which the door page now says before the move (crumbs-89).
 - Hub: the Live mark (`EventLive`) reads only the realtime connection, so a closed album's hub says LIVE beside its paused code; it gives way to the album's phase (after-party r1's `over` answer) (after-party r1).
 - Host: her dashboard's tile covers and stills (`event_covers`, `event_stills`) and the stage's "in the album" count (`event_card_stats`) are exempt from a disposable album's seal for her own session, so sealed photographs and the full count show there while the hub and the stage's wall cover them; hold the three SQL homes to the guests' view, or say on the cards why they are hers (a migration) (crumbs-88).
+- **Share studio (QR and share-content configurator):** more focus now (Will's X16 note, 2026-10-07): a light first layer where a few presets get the code around the event, a second-layer designer for the artifacts, never complicated, inside the event's own experience rather than a separate page, perhaps an optional step near Create's end so a new host learns it exists before she designs her own; a lab exploration that zooms out to the whole. An in-app generator for polished share outputs, so hosts never build their own; it builds on the share sheet's QR designer and Print, its outputs land as share-sheet sections, and it doubles as a growth lever (every output carries the QR).
+  - A gallery of printable QR designs to pick from (`print-stock.tsx` prints one design).
+  - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
+  - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.
+  - The print stock draws the event's own code look, server-side as `FooterQr` draws the classic (`print-stock.tsx` prints the classic shape whatever the look).
+  - The code's four looks (Bold's coral corners, "Playful dots") predate the room's design; redraw the set so Create's look step offers looks worth choosing.
+- Host: co-hosts (Will's yes to X9, 2026-10-07: "a couple sharing a wedding event rather than both having to log in under one account"): invited by email, acting for the event as the owner does (Review, the door, Settings, Share), while billing, storage, the plan and deleting the event stay the owner's. `events.host_id` is assumed by 121 checks in 39 migrations, so a board for its surfaces and an Advisor-read plan for its RLS come first; a hand-over waits for the Partners board.
 
 ### Admin and operations
 
@@ -304,6 +327,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Android, walked hard on real phones before launch `[eng+human]`: Save through the share sheet into the gallery (the phone-size set and its sizes), the camera (a still, a held clip, the mic's answer), uploads on a weak signal (a dropped request must not kill the batch), the door and the reel, on several makes and Chrome versions; nobody has tried Android Save on a device yet.
 - An iPhone, walked hard on a real device before launch `[eng+human]`: the file-picker upload end to end; the responsive Sheet's phone half with a focused input and the home indicator (no `env(safe-area-inset-bottom)`); the export's form-POST download on iOS Safari; a real gated event's arrival, and a guest's own upload landing in Safari (any flash as the in-flight tile hands over to hers); the keyboard-safe dialogs over a real keyboard.
 - QA hardening: a full Content-Security-Policy, report-only first, then enforced: a per-request nonce through the streaming render (set in the proxy) and an inventory of every inline style and third-party origin; it carries `FRAME_ANCESTORS`, which ships alone today (`src/lib/security-headers.ts`).
+- Emails from the ground up (Will's answer to X11, 2026-10-07): host mail reshaped whole for her event's moments (a receipt with the code and the print link, the door and Review while she is away, a morning-after recap), and guests may hear from us lightly (a follow-up to view the album), never marketing; each mail its own thinking, the ROADMAP's mail lines folded in.
 
 ### Security and abuse
 
@@ -320,12 +344,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### The host app
 
 - Host: the preferences customize r1's audit ranked and no board drew, each for the next customize round: a cover she picks ("Use as the cover"), "Tell me when" (someone waiting at the door, Review waiting, the develop; after the Notification system), library photos on a Disposable counting against the roll, "Show who took each" for the album and the wall, a fresh roll each day of a range, uploads closing at the develop or the morning after, the strangers' peek of 9 or none, keep out of the reel and feature, a guest's starting tile size set for everyone (scratch-synthesis).
-- **Share studio (QR and share-content configurator):** an in-app generator for polished share outputs, so hosts never build their own; it builds on the share sheet's QR designer and Print, its outputs land as share-sheet sections, and it doubles as a growth lever (every output carries the QR).
-  - A gallery of printable QR designs to pick from (`print-stock.tsx` prints one design).
-  - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
-  - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.
-  - The print stock draws the event's own code look, server-side as `FooterQr` draws the classic (`print-stock.tsx` prints the classic shape whatever the look).
-  - The code's four looks (Bold's coral corners, "Playful dots") predate the room's design; redraw the set so Create's look step offers looks worth choosing.
 
 ### Admin and operations
 
@@ -424,7 +442,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ## After launch
 
-Bigger ideas that need product reshaping or a decision before they are roadmap-ready (co-hosts, a referral program, host 2FA, proactive CSAM filtering, NSFW and host trust-level configs, a content CMS, a Backblaze B2 cross-vendor backup tier, …) read back with `git show e8d11584c^:docs/ROADMAP.md`; pull one in when it is ready.
+Bigger ideas that need product reshaping or a decision before they are roadmap-ready (host 2FA, proactive CSAM filtering, NSFW and host trust-level configs, a content CMS, a Backblaze B2 cross-vendor backup tier, …) read back with `git show e8d11584c^:docs/ROADMAP.md`; pull one in when it is ready.
 
 ### Platform, data and cost
 
@@ -466,6 +484,7 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 - Host: her usual for new parties (the style, the roll, the develop's hour), set in Account, only if hosts ask; never offered in Create (customize r1's `mine`) (settings-wiring).
 - Dashboard: Last opened could say when ("opened yesterday") from production's `openedAt` (host-dashboard r4's idea).
 - Dashboard: a guest album she opened is in neither Recent nor Last opened (only a host's own event is stamped); stamping one wants a table of its own.
+- Prints and books through a print partner built on the host's picks (Will's X16: not before launch).
 
 ### Admin and operations
 

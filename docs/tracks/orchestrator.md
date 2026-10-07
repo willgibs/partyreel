@@ -94,10 +94,14 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
 
 - **His Drive walk** on partyreel.com, now Drive is live (P3's consent; drive-crumbs' Handoff lists what to press),
   and the call AH1 (Drive on every plan, Free included) before Drive sees real use.
-- **The calls lab** (the desk's Calls place, `/design/lab#calls`, over `docs/calls.json`): 29 entries (14 questions, 15
-  calls); no `calls:` line rode desk 8's paste. AY1 left with his chat answer; AH1's "decide before 39" window passed
-  with Drive live on every plan (he can still change it). He asks direct questions in chat; answer in chat, never only
-  in a file.
+- **The calls lab** (the desk's Calls place, `/design/lab#calls`, over `docs/calls.json`): his first sections came at
+  2026-10-07 20:40Z (`docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`; every question and the plans and life calls,
+  all routed and retired); 8 calls remain, his Deletion, retention and privacy section (I7, R2, J5, AH4, CG6) and Safety
+  (J2, J3, M1). His paste's AY1=keep crossed his chat answer ("when she closes", which crumbs-91 builds): asked in chat
+  which stands. He asks direct questions in chat; answer in chat, never only in a file.
+- **Two tokens to mint (his hand; each a credential):** `VERCEL_USAGE_TOKEN` (X2: scoped to the Partyreel team, one-year
+  expiry) and `CLOUDFLARE_ANALYTICS_TOKEN` (X3: Account Analytics Read only), each into `.env.local` by him; the
+  Orchestrator then sets the Vercel envs by stdin through the REST API, and the plan limits' readers are wired.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,

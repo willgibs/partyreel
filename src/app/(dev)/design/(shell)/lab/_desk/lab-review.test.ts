@@ -24,6 +24,56 @@ import { composeMessage } from "./review-message";
 import { SAMPLE_BOARD } from "./sample-spec";
 
 /**
+ * THE CALLS THE TRANSCRIPT IS CHECKED AGAINST: the live file's own entries for each kind the calls line's tests answer
+ * (a call, a question with alternatives, a question with none), and a stand-in of the same shape only for a kind the
+ * live file no longer holds. ★ Scar (2026-10-07): these tests read the live entries alone, "so the round trip is held
+ * to the words Will reads"; but the file empties by design, an answer leaving the same day it lands, and the day his
+ * paste answered every open question the whole calls block failed. That reason expired; real words still come first.
+ */
+const STAND_INS = {
+  call: {
+    id: "ZZ1",
+    kind: "call",
+    theme: "An event's life and timing",
+    title: "A stand-in call.",
+    body: "Stands in only while the live file holds no open call.",
+    changeIf: "the stand-in should change.",
+    home: "docs/systems/host-app.md",
+  },
+  asked: {
+    id: "ZZ2",
+    kind: "question",
+    theme: "What Partyreel is",
+    title: "A stand-in question with other ways.",
+    body: "Stands in only while the live file holds no open question with two alternatives.",
+    recommended: "the stand-in's recommendation.",
+    alternatives: ["the first other way", "the second other way"],
+  },
+  bare: {
+    id: "ZZ3",
+    kind: "question",
+    theme: "What Partyreel is",
+    title: "A stand-in question with no other way.",
+    body: "Stands in only while the live file holds no open question without alternatives.",
+    recommended: "the stand-in's one answer.",
+    alternatives: [],
+  },
+} as const;
+const TEST_CALLS = {
+  themes: CALLS.themes,
+  entries: [
+    CALLS.entries.find((e) => e.kind === "call") ?? STAND_INS.call,
+    CALLS.entries.find(
+      (e) => e.kind === "question" && e.alternatives.length >= 2,
+    ) ?? STAND_INS.asked,
+    CALLS.entries.find(
+      (e) => e.kind === "question" && e.alternatives.length === 0,
+    ) ?? STAND_INS.bare,
+  ],
+  retired: CALLS.retired,
+};
+
+/**
  * THE TRANSCRIPT SCRIPT. `pnpm lab:review`
  * reads a board's spec without importing it (node builtins only, no build
  * step), so the scanner needs a real spec file on disk to be held to: this test
@@ -151,11 +201,11 @@ beforeAll(() => {
   mkdirSync(join(root, "docs", "reviews"), { recursive: true });
   // The real file, so the scanner is held to a spec an agent actually writes.
   copyFileSync(SPEC_FILE, join(sandbox, BOARD, "spec.ts"));
-  // The real calls file, so a `calls:` line is checked against the entries
-  // Will actually sees (copied, never written: the transcript writes nothing).
-  copyFileSync(
-    join(process.cwd(), "docs", "calls.json"),
+  // The calls a `calls:` line is checked against: Will's own entries where
+  // the live file holds them (TEST_CALLS); the transcript writes nothing.
+  writeFileSync(
     join(root, "docs", "calls.json"),
+    JSON.stringify(TEST_CALLS, null, 2),
   );
   // A directory with no spec must simply be skipped, not crash the read.
   mkdirSync(join(sandbox, "no-spec-here"), { recursive: true });
@@ -1194,15 +1244,9 @@ describe("the desk's note for the whole program", () => {
  * them, since the record acts through usher/kit/calls.py, the file's only writer.
  */
 describe("the calls line", () => {
-  // Real entries, so the round trip is held to the words Will reads.
-  const call = CALLS.entries.find((e) => e.kind === "call")!;
-  const asked = CALLS.entries.find(
-    (e) => e.kind === "question" && e.alternatives.length >= 2,
-  )!;
-  const bare = CALLS.entries.find(
-    (e) => e.kind === "question" && e.alternatives.length === 0,
-  )!;
-  const gone = CALLS.retired[0];
+  // Will's own entries where the live file holds them (TEST_CALLS).
+  const [call, asked, bare] = TEST_CALLS.entries;
+  const gone = TEST_CALLS.retired[0];
   const callsFile = () =>
     readFileSync(join(root, "docs", "calls.json"), "utf8");
 
