@@ -1,6 +1,6 @@
 ---
 track: brand-marks-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c04da309"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -74,25 +74,123 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended; every one is a design call Will sees by using the product, his to overrule.
+
+- **Standby's colour:** `--info` is every ground's own muted ink (its words at AA), and the Badge's Standby point is
+  half-lit in the word's own ink: no hue, as the Orchestrator's four tiers have it. Overrule: a faint cool hue.
+- **Ready's words:** `text-success` reads a deeper green at AA on paper (`--success-ink`, 4.98:1, as `text-warning`
+  reads its bronze), so "Copied" or "In your Drive" stands as text; a point, a fill and a check's disc keep the lit
+  green (3.68:1). Overrule: one green for both, under AA as words (3.68:1).
+- **The press kit's three icons:** the Ring on its tile for a light ground, the Ring alone (its light and its dark puck)
+  for a dark ground, and the mono Ring in one ink (the ring and the puck, the gap the ground, a tab's bold proportions)
+  for any surface. Overrule: the mono as the ring alone.
+- **The reel's watermark:** on footage the mono Ring in white beside partyreel.com (scrim, the shipped default, and
+  ghost); the dev-only badge is the icon itself on its tile. Overrule: the icon in colour on footage too.
+- **Every app bitmap wears the home screen's cut** (the 180 apple icon, the 192 and both 512s, each shown at about 60
+  points), the favicon's entries each its own size's cut, and `icon.svg` a tab's. Overrule: the 512 "any" icon in the
+  master's thinner cut, for an install dialog drawn large.
+- **The ember relights only what the brief named:** every unsampled lamp inside a piece of the room (the foot's seam)
+  and the confetti; the Aurora's other unsampled lamps (`SectionLight`, the cinema and QR heroes, Create's code bloom)
+  keep the five hues until the event-page board answers how a light with no photograph is lit. Overrule: the ember
+  wherever there is no photograph.
+- **The event's card signs with the wordmark alone** (display cut, 52px, the card's white), where the aperture tile and
+  its typed name stood; the event's name still leads. Overrule: the wordmark quieter (the old zinc grey).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`: the grounds line (the display on paper is the room's black); a new line, a piece of
+  the room on paper is the room's own black; "Status is light" refined into the four tiers with the map of every state
+  production shows; the brand line (the wordmark's one home, its two cuts and Will's rule for every cut, as the brief
+  asked); a new line for the icon (the Ring, its one home, what draws it, `marks.test.ts`); a new line for the house
+  ember (`--ember-1..4`, `--ember-lamp-1..5`, what they relight and what keeps the five); the toast line's tiers.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Upcoming › Design system and accessibility: Design: states still drawn in another tier's token (design-system.md's
+  four tiers), each its surface's to move: Standby in green (`ui/progress.tsx` fills every meter in `--success`, so an
+  upload or a Drive send under way reads done; the "Sending to Google Drive" toasts in `storage-door.tsx`,
+  `take-home-panel.tsx` and `event-experience.tsx` are successes) and in amber (`upload-tracker.tsx`'s Developing);
+  a warning in red (`grace-banner.tsx` and `goal-strip.tsx` over the cap inside the grace, the password gate's
+  cooldown); a fault in amber (Drive's "Couldn't" notices in `send-steps.tsx`, `send-strip.tsx`'s warning toasts)
+  (brand-marks-wiring).
+- Upcoming › Admin and operations: Admin: the portal's states in another tier's token: in progress drawn amber
+  (`storage-sums-view.ts`, `reconcile-view.ts`, `restore-view.ts`), a failure amber (`drive-words.ts`'s stopped sends
+  and its "Lanes dying" pause, `outcome-word.ts`'s refused Too large and Empty, failed copies), near a limit red
+  (`limits-card.tsx`'s Critical and stale readings, `drive-section.tsx`'s Google client line), and a count that waits
+  on the operator amber (`admin-bar.tsx`'s "N jobs need you", `queue.ts`'s open reports) where a count that waits is
+  the tally (brand-marks-wiring).
+- Upcoming › Marketing and content: Marketing: live drawn green on the site (`demo-modal/demo-door.tsx`'s LiveDot and
+  its ring, `home/live-demo.tsx`, `live-album-stage.tsx`'s Live now, `feature-door.tsx`'s Filling live,
+  `review-modes.tsx`'s Live icon): live is the recording red that breathes, as the app's `LiveDot` and the Badge's
+  `live` draw it (brand-marks-wiring).
+- Upcoming › The host app: Drive: the album tile's Standby dot (`drive-tile-mark.tsx`, `bg-info`) is now the page's
+  muted ink on glass, the same grey as its stopped dot: draw it half-lit in the glass's white, as the Badge draws
+  Standby (brand-marks-wiring).
+- Upcoming › The host app: Mail: every mail's head wears the wordmark as drawn at 22px (`public/email/wordmark-v1.png`):
+  `scripts/build-email-wordmark.mjs` on the small cut into `wordmark-v2.png`, and `templates.ts`'s `WORDMARK` pointed
+  at it, so his three near-touching pairs stop blotting (brand-marks-wiring).
+- Upcoming › The lab and the kit: Library: the Logo specimens (`library/patterns/gallery-demos.tsx`) still call the
+  mark "a stand-in" until the v1 icon arrives, and draw the display size in the small cut: the Ring by name, and
+  `cut="display"` on the 48px specimen (the specimens' JSON regenerated) (brand-marks-wiring).
+- Upcoming › Marketing and content: About: the press band's words (`ABOUT_PRESS_KIT.body`) name "the mark, the app
+  icon, the share card and a QR code"; the kit now carries the wordmark in ink and in white beside the icon
+  (brand-marks-wiring).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- **Commits, pushed:** the work `b34b047fe`; the sync `87687d611` (launch-prep at `f0623106f` merged: it brings
+  `9086b48f5`'s calls ledger and test, since at the cut the ledger held 29 entries and `calls.test.ts` "refuses the
+  31st entry" failed on the base; nothing merged touches this lane's paths); the follow-up `b756ad1dc` (the badge's
+  icon painted once per size, a Ring of no size drawn as a tab's); this manifest the head.
+- **Gates on `b756ad1dc` (the synced tree), each its own exit code:** `zsh scripts/build-lock.sh pnpm typecheck` 0;
+  `pnpm lint` 0; `zsh scripts/build-lock.sh pnpm test` 0 (1100 files, 13974 tests); `zsh scripts/build-lock.sh pnpm
+  build` 0 (no warning); `pnpm lab:smoke --base http://localhost:3131` 0 (231 checks, 0 failing); `pnpm lab:demo --board
+  brand-marks --base http://localhost:3131` 0 (no open step).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the brand board's 41
+  deleted files, and these exceptions: `docs/systems/design-system.md` (the system-doc facts above); `kit/README.md`
+  (a read, but the brief names its Sources: the logo table and the Sources line now say the Ring, and "no brand hue"
+  allows the icon's ember); `public/press/` and `src/lib/constants/press.ts` (the press kit the brief and the ROADMAP's
+  brand-pass line name: the regenerated marks, the app icon, the share card, the zip, four new wordmark files and their
+  rows, every row's bytes); `src/app/(marketing)/marketing.css` (the confetti's five aliases to `--ember-lamp-*`, the
+  brief's `lamps` call); `src/components/marketing/chrome/marketing-footer.tsx` (one comment said the slab is lifted to
+  0.165 so it is no hole: now the room's black); `src/app/(dev)/design/sandbox/brand-marks/palette/grades.test.ts`
+  (brand-marks-r2's folder, two lines: it pinned the lifted plate to production, which now wears the room plate, so it
+  pins `GRADES.room`; r2 may retire the answered asks with it).
+- The wordmark, finished: `src/lib/brand/wordmark.ts` keeps his path as the source and draws two cuts (small under
+  48px, display from 48px), measured gaps in its table and `wordmark.test.ts`; `Logo` draws the small cut (`cut` names
+  the display), the social card and the event card the display cut; the philosophy is design-system.md's brand line.
+- The icon, the ember Ring: `src/lib/brand/ring.ts` (the board's numbers, one home) draws `Logo markOnly` (`size`
+  picks the cut), the reel watermark (`canvas2d.ts`: the mono Ring on footage, the icon as the badge, the REAL-LOGO
+  seam gone) and every file through `scripts/build-press-kit.mjs`: `src/app/icon.svg`, `favicon.ico` (16, 32, 48,
+  256), `apple-icon.png`, `public/icons/` (192, 512, 512 maskable), `kit/logo/`, `public/press/`; `marks.test.ts` holds
+  every SVG to its source, the press PNGs to the kit's.
+- The plate, the room's own black: `.surface-ink` is `.dark`'s ladder, its states the room's and its lamps the ember;
+  paper's `--display` and `--display-step` the room's body and dialog (the footer, menus and toasts on paper).
+- The status set, four tiers at their sources (no consumer swept): `--info` Standby (muted ink), `--success` a clear
+  green with `--success-ink` for words, `--warning` amber turned orange on paper (3.02:1 on the mat, the floor), the
+  red unchanged; the Badge's point 8px and solid, Standby half-lit, live breathing as a point (theme.css's
+  `live-signal`); the dashboard's `LiveDot` the breathing red; `display.test.ts` pins every point at 3:1 and every
+  state's words at 4.5:1 on paper's three grounds and the room's.
+- The ember: `--ember-1..4` and `--ember-lamp-1..5` in globals.css, held to `ring.ts` by `ring.test.ts`; the foot's
+  seam and the confetti glow as the ember; a photo-less event's lamp on the dashboard keeps the five.
+- ROADMAP lines: "The brand pass the day the v1 icon lands" is done (the Ring in every icon file, the press kit carries
+  the wordmark in ink and in white); the card route's "placeholder aperture tile left for the wordmark" is gone (that
+  line's font clause stays); "the amber pill should be `--needs-you`" stays: the pills are utilities in marketing's
+  pictures (`host-pictures.tsx`, `review-queue-demo.tsx`, `review-switch.tsx`), not a token at a source.
+- The brand board retired: `src/app/(dev)/design/sandbox/brand/` deleted (41 files, nothing imported it);
+  `docs/reviews/brand.json` is the Orchestrator's.
+- Test data: none (a local session minted for willg97@gmail.com through `signin.mjs` on :3131 read the dashboard;
+  nothing written).
+- Assets requested from Will: none. ASSETS row 19 (agents never edit the log), for the Orchestrator to write: `| 19 |
+  The icon's bespoke take | Will's own drawing on the ember Ring, if brand-marks r2's pick asks for one: SVG, square,
+  legible at 16 px, with a mono version for footage | the Ring, the v1 since brand-marks r1 (src/lib/brand/ring.ts,
+  drawn into every icon file by scripts/build-press-kit.mjs) | parked until brand-marks r2's pick |`.
+- Board ideas: one state point for every surface (`StatusPoint`: the Badge's 8px point, Standby half-lit, live
+  breathing), so the Drive tile, the dashboard's marks and the admin's lines stop drawing their own dots; whether
+  every light with no photograph is the house ember (the Aurora's unsampled lamps on marketing), after the event-page
+  board.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls for Will: none.
+- Look at first: `/about` at 375, its press band and the foot on paper (the room's black, the ember seam);
+  `/design/library/badge?key=` light and dark (the four tiers); the tab's icon on any page; `/e/<token>/card` and
+  `/opengraph-image`; the parity tool's watermark (`/design/lab/tools/reel-parity?key=`, scrim and badge).
