@@ -60,6 +60,8 @@ const DISPLAY_ONLY: Readonly<Record<string, string>> = {
   "src/lib/db/queries/guest-events-admin.ts":
     "the reel's and her sealed shots' pictures",
   "src/lib/db/queries/guest-events.ts": "the guest gallery's rows, for tiles",
+  "src/lib/db/queries/invite-light.ts":
+    "her invitation's light: her newest photographs' previews, read on her device for their colour, never a delete",
   "src/lib/db/queries/media.ts":
     "the host's column list (`MEDIA_HOST_COLUMNS`, pinned to her SELECT grant, which holds no phone column) and the hub's tiles",
   "src/lib/db/queries/moderation.ts": "the operator's Albums tiles",

@@ -15,6 +15,10 @@ import { partyCards } from "@/app/(guest)/u/[slug]/party-cards";
 import { ProfileHead } from "@/app/(guest)/u/[slug]/profile-head";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
+import {
+  FirstFollowScope,
+  FirstFollowSlot,
+} from "@/components/social/first-follow-line";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -200,6 +204,51 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const partyCount =
     profile.hosted_events.length + profile.attended_events.length;
 
+  // The identity block and its actions. ★ The slot under it is where a first follow's private line stands
+  // (`first-follow-line.tsx`); it draws nothing until the control, inside this scope, says a first follow landed.
+  const head = (
+    <ProfileHead
+      seed={seedFor(profile.id)}
+      avatarUrl={avatarUrl}
+      name={name}
+      handle={profile.slug}
+      joined={joined}
+      actions={
+        <>
+          {(showFollow || showMenu) && (
+            <div
+              data-profile-actions
+              className="flex items-center gap-2 max-sm:w-full"
+            >
+              {showFollow && (
+                <FollowButton
+                  profileId={profile.id}
+                  initialFollowing={following}
+                />
+              )}
+              {showMenu && (
+                <ProfileActionsMenu
+                  profileId={profile.id}
+                  displayName={profile.display_name}
+                  blocked={viewerBlockedThem}
+                />
+              )}
+            </div>
+          )}
+          {isSelf && (
+            <div className="flex items-center max-sm:w-full">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/account">Edit profile</Link>
+              </Button>
+            </div>
+          )}
+        </>
+      }
+    >
+      {showFollow ? <FirstFollowSlot /> : null}
+    </ProfileHead>
+  );
+
   return (
     <div className="flex min-h-full flex-1 flex-col">
       {/* The album's own header, with no album behind it:
@@ -210,45 +259,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         {/* The identity block is `profile-head.tsx`'s, the one head her own page wears before it is public
             too (`/me`): avatar, name, handle, restraint (joined month only, no counts by design: the
-            graph is private, profiles-social.md). Its actions are this page's own. */}
-        <ProfileHead
-          seed={seedFor(profile.id)}
-          avatarUrl={avatarUrl}
-          name={name}
-          handle={profile.slug}
-          joined={joined}
-          actions={
-            <>
-              {(showFollow || showMenu) && (
-                <div
-                  data-profile-actions
-                  className="flex items-center gap-2 max-sm:w-full"
-                >
-                  {showFollow && (
-                    <FollowButton
-                      profileId={profile.id}
-                      initialFollowing={following}
-                    />
-                  )}
-                  {showMenu && (
-                    <ProfileActionsMenu
-                      profileId={profile.id}
-                      displayName={profile.display_name}
-                      blocked={viewerBlockedThem}
-                    />
-                  )}
-                </div>
-              )}
-              {isSelf && (
-                <div className="flex items-center max-sm:w-full">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/account">Edit profile</Link>
-                  </Button>
-                </div>
-              )}
-            </>
-          }
-        />
+            graph is private, profiles-social.md). Its actions are this page's own. ★ A visitor who can
+            follow wraps it in the first-follow scope, so the line her first follow says is drawn under the
+            head (the slot) rather than inside the actions' narrow box. */}
+        {showFollow ? (
+          <FirstFollowScope name={name}>{head}</FirstFollowScope>
+        ) : (
+          head
+        )}
 
         {profile.bio && (
           <p

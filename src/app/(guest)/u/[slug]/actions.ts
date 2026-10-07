@@ -8,6 +8,8 @@ import {
   unblockUser,
   unfollowUser,
 } from "@/lib/db/mutations/social";
+import { followsNoOne } from "@/lib/db/queries/first-follow";
+import { captureError } from "@/lib/observability/sentry";
 
 /**
  * THE RELATION'S FOUR SERVER FUNCTIONS, the only writes behind every face of a follow or a block
@@ -21,14 +23,24 @@ import {
  * renders the page the press came from into this function's response, so the control's page re-reads
  * in the same round trip and no face calls `router.refresh()` (which rendered it a second time).
  * Account kept its own unfollow and unblock until crumbs-44: one write, two contracts.
+ *
+ * ★ A FIRST FOLLOW SAYS SO (`account-moments` r2, `follow=once`): `first` on a landed follow means her list was empty
+ * before the press, so the control draws the private line once ("Only you see who you follow") and every follow after is
+ * the button alone. It is read HERE, on the server, before the write (`followsNoOne`: no column, every device alike),
+ * so it is the same on her phone, her laptop and every seat she follows from, and no face has to remember it.
  */
-export type ProfileActionResult = { ok: true } | { ok: false; message: string };
+export type ProfileActionResult =
+  | { ok: true; first?: boolean }
+  | { ok: false; message: string };
 
-function done(result: { ok: boolean; message?: string }): ProfileActionResult {
+function done(
+  result: { ok: boolean; message?: string },
+  first = false,
+): ProfileActionResult {
   if (result.ok) {
     revalidatePath("/u/[slug]", "page");
     revalidatePath("/account");
-    return { ok: true };
+    return first ? { ok: true, first: true } : { ok: true };
   }
   return {
     ok: false,
@@ -38,10 +50,25 @@ function done(result: { ok: boolean; message?: string }): ProfileActionResult {
   };
 }
 
+/**
+ * ★ THE LINE IS A COURTESY, NEVER A GATE: a read that fails is "not her first" (the follow is the act, the line a
+ * nicety), and it is recorded, since a line that quietly never shows is a silent failure.
+ */
+async function herListIsEmpty(): Promise<boolean> {
+  try {
+    return await followsNoOne();
+  } catch (error) {
+    captureError("account", error, { seam: "first_follow_read" });
+    return false;
+  }
+}
+
 export async function followProfileAction(
   profileId: string,
 ): Promise<ProfileActionResult> {
-  return done(await followUser(profileId));
+  // Before the write: afterwards her list would hold the follow just made, and every first would read as not.
+  const first = await herListIsEmpty();
+  return done(await followUser(profileId), first);
 }
 
 export async function unfollowProfileAction(

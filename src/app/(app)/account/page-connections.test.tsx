@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { FOLLOWING_WORDS, followWords } from "@/components/social/private-line";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 import { ConnectionsLists } from "./page-connections";
@@ -228,5 +229,75 @@ describe("what the card says before she has done anything", () => {
     expect(screen.getByText(/not following anyone yet/i)).toBeInTheDocument();
     expect(screen.queryByText("Blocked")).toBeNull();
     expect(screen.queryByRole("list")).toBeNull();
+  });
+});
+
+/**
+ * THE LIST KEEPS WHAT A FIRST FOLLOW SAID (`account-moments` r2, `follow=once`): her first follow says once, under its
+ * button, that only she sees who she follows, and the place those follows live keeps the line for whenever she looks.
+ * Pinned: it stands above the people she follows and nowhere else on the card; a row's own Follow does not say it a second
+ * time, a few pixels under the line that already does; and the look's Follow, which closes, still says it on a first follow.
+ */
+describe("the line Connections keeps", () => {
+  it("★ stands above the people she follows, and not above Blocked or in the empty state", () => {
+    const { unmount } = render(
+      <ConnectionsLists following={[sam]} blocked={[ray]} />,
+    );
+    const line = screen.getByText(FOLLOWING_WORDS);
+    const following = screen.getByRole("list", { name: "Following" });
+    const blocked = screen.getByRole("list", { name: "Blocked" });
+    // After the heading, before its list: it is about the list under it.
+    expect(
+      line.compareDocumentPosition(following) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      line.compareDocumentPosition(blocked) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getAllByText(FOLLOWING_WORDS)).toHaveLength(1);
+
+    // Nobody followed: the empty state is a sentence of its own, not a list the line would be about. (A fresh render:
+    // the island reads its props once, by design, so a re-render could never empty a list.)
+    unmount();
+    render(<ConnectionsLists following={[]} blocked={[ray]} />);
+    expect(screen.queryByText(FOLLOWING_WORDS)).toBeNull();
+  });
+
+  it("★ is not said again by a row's own Follow, though the server calls it her first", async () => {
+    act.follow.mockResolvedValue({ ok: true, first: true });
+    const { container } = render(
+      <ConnectionsLists following={[sam]} blocked={[]} />,
+    );
+    // She unfollows her only follow and follows again from the same row (her list was empty before that press).
+    fireEvent.click(
+      screen.getByRole("button", { name: "Following Sam Okafor" }),
+    );
+    await landed("Follow Sam Okafor");
+    fireEvent.click(screen.getByRole("button", { name: "Follow Sam Okafor" }));
+    await waitFor(() => expect(act.follow).toHaveBeenCalledWith("sam"));
+    await landed("Following Sam Okafor");
+    expect(container.querySelector("[data-follow-line]")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getAllByText(FOLLOWING_WORDS)).toHaveLength(1);
+  });
+
+  it("★ is still said by the look's Follow on a first follow, in his name, and then stands on the list it joins", async () => {
+    act.follow.mockResolvedValue({ ok: true, first: true });
+    render(<ConnectionsLists following={[]} blocked={[ray]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Unblock Ray Moss" }));
+    await landed("Block Ray Moss");
+
+    fireEvent.click(screen.getByRole("button", { name: "Ray Moss" }));
+    fireEvent.click(screen.getByRole("button", { name: "Follow" }));
+    await waitFor(() => expect(act.follow).toHaveBeenCalledWith("ray"));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        followWords("Ray Moss"),
+      ),
+    );
+    // And the list she just joined carries its standing line.
+    await waitFor(() =>
+      expect(screen.getByText(FOLLOWING_WORDS)).toBeInTheDocument(),
+    );
   });
 });
