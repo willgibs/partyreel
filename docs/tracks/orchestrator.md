@@ -85,7 +85,7 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
    REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
    `node usher/kit/vercel-usage.mjs` before any.
 9. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill; nothing new started when the window
-   would run out before its reset. ★ The week reads 59% at 19:40Z on day one of seven, this wave takes it toward 80%:
+   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so no lane is cut until Will says (told at 21:15Z); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
    keep this block handoff-ready for the other account's seat, and tell Will before it runs low. Who does the work: the
    runbook's "Working with Will".
 
