@@ -140,7 +140,7 @@ export const AFTER_PARTY = defineExploration({
       lands:
         "What turns an album from its party into its keepsake, and how she is offered it: her own press, never a date alone.",
       context:
-        "Maya's hub at a laptop or her phone (her screen): Sunday, the morning after; Wednesday, once the photos stop; the moment she presses (today, where the switch waits in Settings); and her guests' cover a week on, Add as each answer leaves it.",
+        "Maya's hub at a laptop or her phone (her screen), each answer's days in order: the morning after, Wednesday once the photos stop, and her press (or where the switch waits); then her guests' cover a week on.",
       options: [
         {
           id: "switch",
@@ -155,7 +155,7 @@ export const AFTER_PARTY = defineExploration({
           id: "offer",
           label: "Close adding, offered once the photos stop",
           means:
-            "Two days after its last photo, dated or not, her hub offers Close adding beside what the party made; she closes it, or keeps it open.",
+            "Two days after its last photo, dated or not, her hub offers Close adding beside what the party made; closed, the album turns keepsake.",
           gains:
             "One press, offered when it's true, and no date switches anything.",
           costs:
@@ -191,7 +191,7 @@ export const AFTER_PARTY = defineExploration({
       lands:
         "Where a host's morning-after recap stands and what it offers: Share the album, Make a clip, Download all.",
       context:
-        "Maya at a laptop or her phone (her screen), on paper or in the room (Ground), Sunday at 9 in your first answer: her home's stage and her hub, each as the answer draws it, and for the cover, where its code goes.",
+        "Maya at a laptop or her phone (her screen), on paper or in the room (Ground), Sunday at 9 in your first answer (a wrap said once, in the recap): her home's stage and her hub, and for the cover, where its code goes.",
       options: [
         {
           id: "stage",
@@ -285,7 +285,7 @@ export const AFTER_PARTY = defineExploration({
           id: "still",
           label: "A still title page",
           means:
-            "The cover holds one photograph as a title page: its day in full over the name, a hairline, '214 photos and videos from 41 guests', and no buttons on it.",
+            "The cover holds one photograph as a title page: its day over the name, Maya's byline, a hairline, '214 photos and videos from 41 guests', no buttons on it.",
           gains: "It reads as a finished thing, still until something happens.",
           costs:
             "The cover's movement goes, and nothing on it leads her on: the reel waits in the dock.",
@@ -312,7 +312,7 @@ export const AFTER_PARTY = defineExploration({
       lands:
         "The one card family every shared link wears: the album while it takes photos and as its keepsake, one photo, a gated album.",
       context:
-        "Two chats at a phone: the family's the morning after (the album, one photo's link) and a friend's a week on, in dark mode; each card at its true size, live and kept; a password album's card beside a Private one's.",
+        "Two chats at a phone: the family's the morning after (the album, one photo's link) and a friend's a week on, in dark mode; then its cards at half size, the morning after and a week on, over a password album's and a Private one's.",
       options: [
         {
           id: "name",
@@ -369,35 +369,36 @@ export const AFTER_PARTY = defineExploration({
       where: ["Guest", "Maya & Jay's album", "Signed out"],
       when: "Priya, signed out, has spent ten minutes in the album and has a birthday next month.",
       matters:
-        "A guest becoming a host is how Partyreel grows, and today her one way in leaves the album for the home page.",
+        "A guest becoming a host is how Partyreel grows; today her way in leaves for the home page, and a guest who joined never sees it.",
       lands:
         "Where a signed-out guest's way to her own album stands, and where it leads: the home page, or Create in this album's style.",
       context:
-        "Maya & Jay's album at a phone, signed out, as your keepsake answer draws it: its corner and its end, then where the way leads: the home page as it is, or Create in this album's style once she signs up.",
+        "Maya & Jay's album (Screen), as your keepsake answer draws it: its top for a newcomer, her name menu once she's joined, its end, then where the way leads: the home page as it is, or Create in this album's style.",
       options: [
         {
           id: "home",
           label: "As today: Start for free, to the home page",
           means:
-            "The header's quiet Start for free leads to the home page, where she learns what Partyreel is and starts from nothing.",
+            "A stranger's corner says Start for free, to the home page, to start from nothing; a guest who joined by her name has her name menu there, with no way in.",
           gains: "Built, and quiet: the album stays Maya's, never an ad.",
           costs:
-            "She leaves her delight for a page about Partyreel, and starts over.",
+            "She leaves her delight for a page about Partyreel and starts over; a guest who joined never sees it.",
         },
         {
           id: "header",
           label: "The same corner, into Create in this style",
           means:
-            "The header's quiet link says Make one like this; after she signs up, Create opens with the style and the code's look answered: only her name is asked.",
+            "The corner, and a row in a joined guest's name menu, say Make one like this; after she signs up, Create opens in this album's style and asks only her name.",
           gains:
-            "Straight from delight to her own party: after sign-up, Create asks only her name.",
-          costs: "Still a quiet corner of the header, easy to miss.",
+            "Straight from delight to her own party, new to the album or joined: Create asks only her name.",
+          costs:
+            "Still a quiet corner, easy to miss; a guest who joined meets it only inside her menu.",
         },
         {
           id: "end",
           label: "The corner, and a line at the album's end",
           means:
-            "The corner says Make one like this, and past the last photo, before Guests, one quiet line: 'Your party next? Make one like this', into the same Create.",
+            "The corner and her menu say Make one like this; past the last photo, before Guests, one quiet line: 'Your party next? Make one like this', into the same Create.",
           gains:
             "Met when she's finished looking, by every guest, signed in or not.",
           costs:
@@ -407,7 +408,7 @@ export const AFTER_PARTY = defineExploration({
       recommended: "header",
       today: "home",
       because:
-        "The way stays the album's one quiet corner, as little Partyreel as possible, and now starts her party in the style she loved.",
+        "The way stays in the album's quiet corner, and in her own menu once she's joined: as little Partyreel as possible, starting her party in the style she loved.",
       overrule:
         "If more guests should meet it once they're done looking, the line at the album's end as well.",
       after: { ask: "keepsake" },
