@@ -158,6 +158,37 @@ describe("a name opens the look, and the look says what is true now", () => {
     ).toBeInTheDocument();
   });
 
+  it("★ offers no Follow after an Unblock where they blocked her back: her own block lifts, theirs stands (crumbs-87)", async () => {
+    // `followBarred`, from `getMyBlocks`: a Follow of Ray would be answered ok and written nowhere.
+    render(
+      <ConnectionsLists
+        following={[]}
+        blocked={[{ ...ray, followBarred: true }, theo]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Unblock Ray Moss" }));
+    await waitFor(() => expect(act.unblock).toHaveBeenCalledWith("ray"));
+    await landed("Block Ray Moss");
+
+    // The Unblock stands as she asked for it, and the look still opens, with the way to his page.
+    fireEvent.click(screen.getByRole("button", { name: "Ray Moss" }));
+    expect(
+      screen.getByRole("link", { name: /open full profile/i }),
+    ).toHaveAttribute("href", "/u/raym");
+    expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
+    expect(screen.getByText(/not following anyone yet/i)).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+
+    // Where nobody blocked her back, the same Unblock still offers one (the neighbour row, unchanged).
+    fireEvent.click(screen.getByRole("button", { name: "Unblock Theo Grant" }));
+    await waitFor(() => expect(act.unblock).toHaveBeenCalledWith("theo"));
+    await landed("Block Theo Grant");
+    fireEvent.click(screen.getByRole("button", { name: "Theo Grant" }));
+    expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
+  });
+
   it("★ a block that lands severs the follow it just made: the row that offered it goes, and the look does too", async () => {
     render(<ConnectionsLists following={[]} blocked={[ray]} />);
     fireEvent.click(screen.getByRole("button", { name: "Unblock Ray Moss" }));

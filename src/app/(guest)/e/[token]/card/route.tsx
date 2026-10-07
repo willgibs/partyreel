@@ -9,6 +9,8 @@ import {
   PRIVATE_CARD_PARAM,
 } from "@/lib/guest/event-card";
 
+import { ADD_CARD_PARAM, cardFoot } from "./words";
+
 /**
  * THE EVENT'S SHARE CARD: the event name on the branded dark surface, so a pasted event link unfurls
  * with the real name. Private and missing events fall back to a generic card (no existence or name
@@ -26,18 +28,27 @@ import {
  * blocked viewer got the named card while her page said private. A viewer the closed door masks is
  * never pointed here: her page names the private album's card (`?private`, generic by its address
  * alone), as a private album's page does (`privateEventCardPath`).
+ *
+ * ★ ITS FOOT FOLLOWS THE ALBUM, BY ITS ADDRESS TOO (`?add`, crumbs-87): the plain card says what is true of every album
+ * ("See the photos & videos"), and the address the page names for an album that takes photos right now invites ("Add
+ * your photos & videos"). The page names the one that is true when it renders, so a host who closes uploads is not
+ * answered by an hour of the old invitation from the edge; and the flag is honoured only where a name is (a private,
+ * unknown or deleted album's card is the generic one whatever the address says).
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
-  const privateCard = new URL(request.url).searchParams.has(PRIVATE_CARD_PARAM);
-  const eventName =
-    (privateCard ? null : await getEventCardName(token)) ?? EVENT_CARD_ALT;
+  const { searchParams } = new URL(request.url);
+  const privateCard = searchParams.has(PRIVATE_CARD_PARAM);
+  const named = privateCard ? null : await getEventCardName(token);
+  const eventName = named ?? EVENT_CARD_ALT;
   // Guard against pathological names blowing out the layout.
   const heading =
     eventName.length > 70 ? `${eventName.slice(0, 69)}…` : eventName;
+  // The invitation only on a card that names its album: the generic card says nothing of uploads.
+  const foot = cardFoot(named !== null && searchParams.has(ADD_CARD_PARAM));
 
   return new ImageResponse(
     <div
@@ -102,7 +113,7 @@ export async function GET(
       </div>
 
       <div style={{ display: "flex", fontSize: "30px", color: "#a1a1aa" }}>
-        See the photos &amp; videos on Partyreel
+        {foot}
       </div>
     </div>,
     {

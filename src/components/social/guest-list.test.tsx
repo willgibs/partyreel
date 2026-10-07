@@ -272,6 +272,55 @@ describe("GuestList: unverified guests", () => {
     // Only Maya is left: "me" is the viewer, "b" is already followed.
     expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
   });
+
+  it("★ offers no Follow across a block, on the chip or in the look: a Follow there writes nothing and would read Following (crumbs-87)", () => {
+    const items = [
+      { ...guests(1)[0], id: "a", displayName: "Maya", slug: "maya" },
+      { ...guests(1)[0], id: "b", displayName: "Priya", slug: "priya" },
+    ];
+    render(
+      <GuestList items={items} viewerId="me" blockedIds={new Set(["b"])} />,
+    );
+    // Only Maya's chip carries one; Priya's name has none beside it.
+    expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
+
+    // Nor does her look: the same answer, said once, for both places a Follow is offered.
+    fireEvent.click(screen.getByRole("button", { name: /priya/i }));
+    expect(
+      screen.getByRole("link", { name: /open full profile/i }),
+    ).toHaveAttribute("href", "/u/priya");
+    expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
+  });
+
+  it("is the faces row's list too: a blocked name in the opened panel has no Follow", () => {
+    const many = guests(GUEST_LIST_FACES_THRESHOLD + 2).map((g, i) => ({
+      ...g,
+      id: `p${i}`,
+      displayName: `Person ${i}`,
+      slug: `person-${i}`,
+    }));
+    render(
+      <GuestList items={many} viewerId="me" blockedIds={new Set(["p1"])} />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(`${many.length} guests added photos`),
+      }),
+    );
+    const panel = document.querySelector("[data-guest-list-panel]")!;
+    const names = [...panel.querySelectorAll("li")];
+    const withFollow = names.filter((li) =>
+      [...li.querySelectorAll("button")].some(
+        (b) => b.textContent === "Follow",
+      ),
+    );
+    expect(withFollow).toHaveLength(names.length - 1);
+    expect(
+      names
+        .find((li) => li.textContent?.includes("Person 1"))
+        ?.textContent?.includes("Follow"),
+    ).toBe(false);
+  });
 });
 
 /**

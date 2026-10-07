@@ -136,8 +136,9 @@ export function GuestPeek({
   /** HOST-ONLY: the confirmed address the Guests room already shows. */
   email?: string | null;
   /**
-   * A signed-in viewer who is somebody else, may follow them and does not follow them yet. A surface that keeps
-   * the answer live (Connections) says so for as long as it is true.
+   * A signed-in viewer who is somebody else, may follow them, does not follow them yet and has no block with them
+   * either way (a Follow across one writes nothing: `followUser` is block-silent). A surface that keeps the answer
+   * live (Connections) says so for as long as it is true.
    */
   canFollow: boolean;
   /** The Follow the look offers while `canFollow`, where the surface keeps the relation itself; the look's own otherwise. */

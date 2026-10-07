@@ -55,6 +55,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 const {
   countMyGuestEventCards,
   countWaitingGuestShots,
+  getBlockedAmong,
   getEventGuests,
   getMyAttendedEvents,
   getMyBlocks,
@@ -161,6 +162,28 @@ describe("the owner's graph, read whole", () => {
     expectChunked(fake.requests);
   });
 
+  it("★ says, per block she holds, whether they blocked her too: a yes or a no, never which came first", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        user_blocks: [
+          { blocker_id: ME, blocked_id: uuid("p", 1), created_at: at(300) },
+          { blocker_id: ME, blocked_id: uuid("p", 2), created_at: at(200) },
+          // p1 blocked her back; p9 blocked her and she blocked nobody there (not a row of hers); p2 did not.
+          { blocker_id: uuid("p", 1), blocked_id: ME, created_at: at(100) },
+          { blocker_id: uuid("p", 9), blocked_id: ME, created_at: at(90) },
+        ],
+        profiles: profiles(3),
+      },
+    });
+    const blocks = await getMyBlocks();
+    expect(
+      Object.fromEntries(blocks.map((b) => [b.id, b.followBarred])),
+    ).toEqual({ [uuid("p", 1)]: true, [uuid("p", 2)]: false });
+    // Her list is hers: someone who blocked her and whom she did not block never appears on it.
+    expect(blocks.map((b) => b.id)).not.toContain(uuid("p", 9));
+    expectChunked(fake.requests);
+  });
+
   it("★ 2,500 shown events come back whole", async () => {
     fake = createFakePostgrest({
       tables: {
@@ -176,6 +199,71 @@ describe("the owner's graph, read whole", () => {
     const shown = await getMyShownEventIds();
     expect(shown).toHaveLength(2500);
     expect(shown).not.toContain(uuid("e", 9999));
+  });
+});
+
+describe("getBlockedAmong: where a Follow could only no-op (crumbs-87)", () => {
+  it("★ answers only the ids asked about: a block with someone not on the list never reaches the list's reader", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        user_blocks: [
+          { blocker_id: ME, blocked_id: uuid("p", 1), created_at: at(300) },
+          { blocker_id: uuid("p", 2), blocked_id: ME, created_at: at(200) },
+          // Blocked either way with people the list does not hold, and a pair of strangers.
+          { blocker_id: ME, blocked_id: uuid("p", 7), created_at: at(150) },
+          { blocker_id: uuid("p", 8), blocked_id: ME, created_at: at(140) },
+          {
+            blocker_id: uuid("p", 3),
+            blocked_id: uuid("p", 4),
+            created_at: at(1),
+          },
+        ],
+      },
+    });
+    const among = await getBlockedAmong(ME, [
+      uuid("p", 0),
+      uuid("p", 1),
+      uuid("p", 2),
+      uuid("p", 3),
+      uuid("p", 4),
+    ]);
+    // p1 she blocked, p2 blocked her: both are a yes. Nobody else is, and p7 and p8 are not even named.
+    expect([...among].sort()).toEqual([uuid("p", 1), uuid("p", 2)]);
+  });
+
+  it("asks nothing of the database for an empty list", async () => {
+    fake = createFakePostgrest({ tables: {} });
+    expect([...(await getBlockedAmong(ME, []))]).toEqual([]);
+    expect(fake.requests).toHaveLength(0);
+  });
+
+  it("★ reads a thousand people on both sides whole, never an `.in()` of the list", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        user_blocks: [
+          ...Array.from({ length: 1100 }, (_, i) => ({
+            blocker_id: ME,
+            blocked_id: uuid("p", i),
+            created_at: at(100 + i),
+          })),
+          ...Array.from({ length: 1100 }, (_, i) => ({
+            blocker_id: uuid("q", i),
+            blocked_id: ME,
+            created_at: at(100 + i),
+          })),
+        ],
+      },
+    });
+    const among = await getBlockedAmong(ME, [
+      uuid("p", 1050),
+      uuid("q", 1099),
+      uuid("p", 5000),
+    ]);
+    expect([...among].sort()).toEqual([uuid("p", 1050), uuid("q", 1099)]);
+    expectChunked(fake.requests);
+    expect(
+      fake.requests.flatMap((r) => r.filters).filter((f) => f.op === "in"),
+    ).toHaveLength(0);
   });
 });
 

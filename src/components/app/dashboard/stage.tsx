@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 
 import { ActDoor } from "@/components/app/dashboard/act-door";
-import { LiveDot, Mark } from "@/components/app/dashboard/marks";
+import { LiveDot, Mark, StateDot } from "@/components/app/dashboard/marks";
 import { LampLight, Plate, Rail } from "@/components/app/dashboard/stage-lit";
 import { useStageLive } from "@/components/app/dashboard/use-stage-live";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
@@ -353,15 +353,16 @@ export function Stage({
               {numbers.map((n) => (
                 // The term before its value, as a list reads it; the number drawn on top.
                 <div key={n.key} className="flex flex-col-reverse">
-                  <dt className="mt-0.5 text-xs text-gallery-muted">
+                  {/* ★ A COUNT THAT WAITS ON HER wears the needs-you status as every other surface does, in the one
+                      mark a count carries (`StateDot`, `--needs-you`) beside its label: the figure stays the stage's
+                      white, since a deeper red set as type would thin out over the photograph's light. */}
+                  <dt className="mt-0.5 flex items-center gap-1.5 text-xs text-gallery-muted">
+                    {n.tone === "waiting" && (
+                      <StateDot tone="waiting" className="size-1.5" />
+                    )}
                     {n.label}
                   </dt>
-                  <dd
-                    className={cn(
-                      "font-heading text-subsection tabular-nums lg:text-page",
-                      n.tone === "waiting" ? "text-warning" : "text-white",
-                    )}
-                  >
+                  <dd className="font-heading text-subsection text-white tabular-nums lg:text-page">
                     {formatCount(n.value)}
                   </dd>
                 </div>

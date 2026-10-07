@@ -376,7 +376,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         source: "prop",
         fallback: "hosted",
         options: ["hosted", "guest", "trash"],
-        note: "What the chrome carries: hosted takes the QR slot and the amber review chip, guest (an event you added photos to) the profile's Guest marker and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
+        note: "What the chrome carries: hosted takes the QR slot and the needs-you review chip, guest (an event you added photos to) the profile's Guest marker and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
       },
     ],
     specimens: [

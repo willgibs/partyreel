@@ -36,10 +36,14 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * action. Follow is offered there only where the row's own action is not the Follow and she does not
  * block them: a Blocked row that has been unblocked ("Follow after an Unblock is one press there").
  * The look never offers a Follow while the block stands, whose write the server would answer ok and
- * leave undone (`followUser`'s block-silence).
+ * leave undone (`followUser`'s block-silence). ★ NOR AFTER AN UNBLOCK WHERE THEY BLOCKED HER BACK (crumbs-87): lifting
+ * her own block leaves theirs, and a Follow across it writes nothing and reads Following over nothing until she
+ * leaves Account. `followBarred` says it per Blocked row (`getMyBlocks`: a yes or no, never which side blocked first),
+ * so the look offers a Follow only where one could land.
  */
 
-type Person = ProfileCardItem;
+/** A person in a list; a Blocked row also says whether a Follow could only no-op once she unblocks them. */
+type Person = ProfileCardItem & { followBarred?: boolean };
 
 /** Where each relation stands for one person, as the page last heard it land. */
 type Live = { following: boolean; blocked: boolean };
@@ -120,7 +124,9 @@ function Row({
     <li className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
       <GuestPeek
         item={person}
-        canFollow={relation === "block" && !live.blocked}
+        canFollow={
+          relation === "block" && !live.blocked && !person.followBarred
+        }
         follow={
           <RelationToggle
             relation="follow"

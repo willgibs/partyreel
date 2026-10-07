@@ -21,7 +21,31 @@ import { cn } from "@/lib/utils";
  *
  * At a desk the parties stand as cards; in a hand, as one list. One markup for both: the list's row
  * becomes a card from `md`, so a party is one link, one face and one act at every width.
+ *
+ * ★ THE TALLY COUNTS THE STAGE'S OWN EVENT (crumbs-87, from the gap audit): the stage's party is one of the week's
+ * (the week is every party within seven days of its date, and the stage's only leaves the cards because it stands above
+ * them), so "Nothing needs you" under a stage whose live event reads 105 to review was a line the page contradicted. The
+ * tally reads the week's whole set; the cards stay the other parties. And a stage that is not the week's (a far party,
+ * an undated album busy today) that still needs her takes the zero's "else", since the page above says what does.
  */
+
+/** The stage's own event as the tally reads it: one of the week's parties, and whether it asks anything of her. */
+export type StageTally = { inWeek: boolean; needsYou: boolean };
+
+/** What the week says it asks of her: the parties that ask, of the week's own, the stage's included where it is one. */
+export function weekTally(
+  cards: readonly WeekCard[],
+  stage: StageTally | null,
+): string {
+  const stageIn = stage?.inWeek === true;
+  const parties = cards.length + (stageIn ? 1 : 0);
+  const needing =
+    cards.filter((c) => c.item).length + (stageIn && stage.needsYou ? 1 : 0);
+  if (needing === 0) {
+    return stage?.needsYou ? "Nothing else needs you" : "Nothing needs you";
+  }
+  return `${formatCount(needing)} of ${formatCount(parties)} ${needing === 1 ? "needs" : "need"} you`;
+}
 
 function Face({ card }: { card: WeekCard }) {
   if (card.coverUrl)
@@ -51,9 +75,15 @@ function Face({ card }: { card: WeekCard }) {
   );
 }
 
-export function WeekRow({ cards }: { cards: readonly WeekCard[] }) {
+export function WeekRow({
+  cards,
+  stage = null,
+}: {
+  cards: readonly WeekCard[];
+  /** The stage's own event, which the tally counts; null where there is no stage. */
+  stage?: StageTally | null;
+}) {
   if (cards.length === 0) return null;
-  const needing = cards.filter((c) => c.item).length;
   return (
     <section
       data-week={cards.length}
@@ -68,9 +98,7 @@ export function WeekRow({ cards }: { cards: readonly WeekCard[] }) {
           This week
         </h2>
         <p className="text-xs text-muted-foreground">
-          {needing === 0
-            ? "Nothing needs you"
-            : `${formatCount(needing)} of ${formatCount(cards.length)} ${needing === 1 ? "needs" : "need"} you`}
+          {weekTally(cards, stage)}
         </p>
       </div>
       <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border md:grid md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] md:gap-x-4 md:gap-y-6 md:divide-y-0 md:overflow-visible md:rounded-none md:border-0">
