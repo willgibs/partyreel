@@ -14,12 +14,6 @@ configure({
   defaultIgnore: "script, style, [data-entry-exit], [data-entry-exit] *",
 });
 
-// src/lib/env.ts validates the public vars EAGERLY on import; components that
-// transitively import the supabase client need these to exist. Dummies only -
-// component pins never hit a network.
-process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://test.supabase.co";
-process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??= "test-publishable-key";
-
 // RTL auto-cleanup hooks into globals (off here); register it explicitly so
 // each test starts from an empty document. Radix's FocusScope restores focus
 // on unmount from a `setTimeout(0)` that dispatches on its container: flush
