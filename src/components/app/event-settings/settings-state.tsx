@@ -26,9 +26,15 @@ import { developState } from "@/lib/disposable/reveal";
 import { rollSizeOf } from "@/lib/disposable/roll";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
-import type { Door } from "@/lib/event/door/door";
+import { holdsEmailOn, type Door } from "@/lib/event/door/door";
 import { deviceZone } from "@/lib/event/zone";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
+import {
+  emailHeldWhile,
+  emailWasOff,
+  forgetEmailWasOff,
+  rememberEmailWasOff,
+} from "@/components/app/event-settings/settings-state-email";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { REEL_MOOD_IDS, resolveHoldSec } from "@/lib/reel/defaults";
 import {
@@ -450,8 +456,11 @@ export function SettingsProvider({
   );
 
   const saveEvent = useCallback(
-    (patch: Partial<SettingsValues>) =>
-      run(
+    (patch: Partial<SettingsValues>) => {
+      // ★ HER OWN WORD ON THE EMAIL STEP ENDS WHAT A GATE NOTED FOR HER (`settings-state-email.ts`): the choice a gate
+      // gives back is the one she had before it, and a switch she has touched since is a newer one.
+      if (patch.requireVerifiedEmail !== undefined) forgetEmailWasOff(event.id);
+      return run(
         patch,
         async () => {
           const result = await writes.updateEvent(event.id, {
@@ -463,7 +472,8 @@ export function SettingsProvider({
             : { ok: false as const, message: result.message };
         },
         "Couldn't save that setting.",
-      ),
+      );
+    },
     [event, run, writes],
   );
 
@@ -477,6 +487,11 @@ export function SettingsProvider({
           if (!result.ok)
             return { ok: false as const, message: result.message };
           answer = result;
+          // ★ WHAT THE GATE TOOK IT FROM, NOTED FOR HER (`settings-state-email.ts`): a gate that turned the email step
+          // on from off is the one that gives her names-only back when it lets go (the effect below), and a gate that
+          // found it already on, her own or a stale note's, noted nothing.
+          if (result.emailHeld) rememberEmailWasOff(event.id);
+          else if (holdsEmailOn(door)) forgetEmailWasOff(event.id);
           // An address gate holds the email step on: the row says so after the revalidation, and
           // the overlay says it now.
           return {
@@ -564,6 +579,43 @@ export function SettingsProvider({
       ),
     [event.id, run, writes],
   );
+
+  /**
+   * ★ A GATE THAT LETS GO GIVES HER CHOICE BACK (crumbs-87, the gap audit): the row said "On while you let each person
+   * in", so when the door the ROW (never the optimistic overlay, which moves before the database has) shows has left
+   * the gate that held "An email first" on, and a gate turned it on from off on this device
+   * (`settings-state-email.ts`), the switch goes back to off, and she is told in the row's own words. Whichever way the
+   * door left (a pick on the door page, a first password's own save, another device's change reaching this row), since
+   * the row is what changed. Nothing is given back where she never had names only, where the row already says off, or
+   * where she has touched the switch since; and the switch is live again the moment the gate has gone, so a refused
+   * write leaves it on, said, one tap from off.
+   */
+  const rowDoor = useRef<{ id: string; door: Door } | null>(null);
+  const rowEmailOn = base.requireVerifiedEmail;
+  const rowDoorNow = base.door;
+  useEffect(() => {
+    const was = rowDoor.current;
+    rowDoor.current = { id: event.id, door: rowDoorNow };
+    // Only a row that let go of a gate that held the step: its first sight, or any other change, gives nothing back.
+    if (was?.id !== event.id) return;
+    if (!holdsEmailOn(was.door) || holdsEmailOn(rowDoorNow)) return;
+    if (!emailWasOff(event.id)) return;
+    if (!rowEmailOn) {
+      forgetEmailWasOff(event.id);
+      return;
+    }
+    // Her saved choice coming back is a write, started once this commit is done (never state set in the effect's own
+    // turn), and it consumes the note as it starts: a second look at the same row finds nothing left to give back.
+    const heldBy = emailHeldWhile(was.door);
+    void Promise.resolve()
+      .then(() => saveEvent({ requireVerifiedEmail: false }))
+      .then((ok) => {
+        if (!ok) return;
+        toast.success("An email first is off again.", {
+          description: `It was only on ${heldBy}.`,
+        });
+      });
+  }, [event.id, rowDoorNow, rowEmailOn, saveEvent]);
 
   const videosOnPlan = videosAllowedForTier(tier);
   const facts: SettingsFacts = {
