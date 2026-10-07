@@ -50,10 +50,10 @@ const EMPTY_FACE: Record<EventCardFace, LucideIcon> = {
  * private (the guestEventCardProps privacy contract), a binned event, or a
  * profile's attended card (attendance is not a capability). Bare of a cover, the
  * first two wear the lock by default and the third names its own face (`empty`).
- * `variant` drives the chrome: hosted (QR slot + the amber review chip +
+ * `variant` drives the chrome: hosted (QR slot + the needs-you review chip +
  * Open/Paused + item count), guest (the profile's own Guest marker + byline: an
  * event you added photos to, guest by upload 2026-09-22), trash (dimmed +
- * countdown + restore action). The amber chip and `action` never coexist by
+ * countdown + restore action). The review chip and `action` never coexist by
  * construction (hosted has the chip + no action; trash has an action + no
  * pending; guest wears its marker there unless a caller hands an action), so the
  * top-right slot never collides.
@@ -119,7 +119,7 @@ export function EventCard({
   itemsLabel?: string | null;
   /** A status pill: Open/Paused (hosted, `uploadsLabel`), the countdown (trash), Password (guest). */
   statusLabel?: string | null;
-  /** Hosted: the amber "N to review" chip (rendered only when > 0). */
+  /** Hosted: the needs-you "N to review" chip (rendered only when > 0). */
   pendingCount?: number;
   /** Guest: "Hosted by X". */
   byline?: string | null;
@@ -225,15 +225,15 @@ export function EventCard({
       {/* Top-LEFT: the hosted QR chip. */}
       {qrSlot && <div className="absolute top-2.5 left-2.5 z-10">{qrSlot}</div>}
 
-      {/* Top-RIGHT: the amber review chip (hosted) OR the action (trash, or a
+      {/* Top-RIGHT: the needs-you review chip (hosted) OR the action (trash, or a
           page's own marker) OR the Guest marker (guest); mutually exclusive by
           variant, so they never overlap. */}
       {pendingCount > 0 && (
         <div
           className="absolute top-2.5 right-2.5 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold"
           style={{
-            background: "var(--warning)",
-            color: "var(--warning-foreground)",
+            background: "var(--needs-you)",
+            color: "var(--needs-you-foreground)",
           }}
         >
           {formatCount(pendingCount)} to review

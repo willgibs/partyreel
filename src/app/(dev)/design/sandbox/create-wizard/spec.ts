@@ -3,31 +3,25 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./knobs";
 
 /**
- * CREATE, ROUND FOUR: THE STYLES POLISHED, AND THE BEAT'S TWO MOMENTS DRAWN.
+ * CREATE, ROUND FIVE: CREATE FINISHES THE EVENT, ITS CLOSE THE PAYOFF; THE STYLES TOLD APART WITHOUT THREE STORIES.
  *
- * His r3 pick (`add=styles`) is production now (`components/app/create-event-
- * wizard/add-step.tsx`), with his note answered where it was plain: the style
- * is named Review, and Disposable's develop time opens directly under its
- * card. What he left open is the polish ("could continue to be polished"), so
- * `styles` draws production's step beside the two other answers his note
- * names: the time on a focused screen of its own, and fewer pictures fighting
- * for attention.
+ * His round four picks are production now (create-wizard-wiring): Disposable's own screen, the beat's one quiet line,
+ * a failure held where she is. His two notes are this round's brief, and their wording is the point: the close felt
+ * "only halfway done" (the "Get it ready" foot into Settings, the line's "Guests still need", the hub's checklist
+ * meeting her "2 of 3"), and the style step asks her to hold "9 screens in your head" with "3 things happen at once".
  *
- * ★ F1 AND F2 WERE MADE IN TEXT ON 2026-10-04 AND BUILT THAT WAY (the round
- * 15 calls, `docs/calls.md` BG5): what is left as Settings' steps under the
- * code, and the develop playing while the event is made. Each is asked here
- * as a picture, production's own answer one option among real contenders, so
- * the pick weighs it rather than inherits it. F2 parts in two decisions, the
- * wait and the failure, and the failure is drawn in the wait he picks
- * (`after`), since a failure held in place looks like the wait it holds.
+ * ★ THE HALFWAY IS PRESENTATION, NOT A MISSING SETTING (`readiness.ts`): Create already does every essential but the
+ * code's first open, which Create can never do. So the close is asked as where the beat leads (into her event, through
+ * an invite, through her first photos), and her event's first greeting as its own decision, one answer of which fixes
+ * the readiness at its source (`done`), since PRD's core loop now says Create finishes the event.
  *
- * ★ EVERY FRAME IS PRODUCTION'S OWN ROOM AND ATOMS (`create.tsx`): the head,
- * the question, the foot, the carry, the add step, the look and the beat are
- * imported, never redrawn; an option draws only what differs.
+ * ★ EVERY FRAME IS PRODUCTION'S OWN ROOM, ATOMS AND PAGE (`create.tsx`, `hub.tsx`): the room's head, question and
+ * foot, the carry, the steps, the beat's code and rounds, the hub's shell, cover, cards, checklist and album, all
+ * imported; an option draws only what differs.
  *
- * Nothing here asks what another board asks: the calls lab's F3 (a sample
- * code until Create) and F4 (a phone's Back leaves Create) stay as built,
- * host-moments asks a develop time added mid-party, brand r2 its take.
+ * Nothing here asks what another standing board asks: brand-marks r1 and signature r1 (the marks, the tokens, where the
+ * light lives, so the beat's bloom and the hub's light stand as built), account-moments r2 (follow, the invitation on
+ * her page), and the calls lab's H1 (a date in Create).
  */
 export const CREATE_WIZARD = defineExploration({
   id: "create-wizard",
@@ -37,16 +31,25 @@ export const CREATE_WIZARD = defineExploration({
   lives: [
     "src/components/app/create-event-wizard.tsx",
     "src/components/app/create-event-wizard/",
+    "src/components/app/event-feed/checklist.tsx",
+    "src/components/app/event-uploads.tsx",
+    "src/components/app/event-settings/camera-settings-style-picture.tsx",
     "src/lib/events/readiness.ts",
     "docs/systems/host-app.md",
   ],
   round: {
-    n: 4,
-    date: "2026-10-06",
+    n: 5,
+    date: "2026-10-07",
     changed:
-      "From your round three note: the album style step polished three ways, as built among them. And the beat's two moments, built in text on 10-04, drawn as contenders: what Create closes on, the wait while the event is made, a failed Create.",
+      "From your round four notes: Create's last screen drawn three ways as the payoff, each stepping into her event; how her event first greets her; and the styles told apart without three pictures moving at once.",
   },
   history: [
+    {
+      n: 4,
+      date: "2026-10-06",
+      changed:
+        "The styles polished, and the beat's close, wait and failure drawn. You picked Disposable's own screen, one line under the code, the sample breathing as built and a failure held where she is; all wired.",
+    },
     {
       n: 3,
       date: "2026-10-03",
@@ -67,21 +70,21 @@ export const CREATE_WIZARD = defineExploration({
     },
   ],
   context:
-    "Round four, four decisions, for Maya & Jay's wedding, all in production's own room: the album style step, then the beat's close, its wait and its failure. Each option opens on Try it, Create running from the moment asked; every press works and nothing is made. Each caption is read off its frame.",
+    "Round five, three decisions, for Maya & Jay's wedding, all in production's own room and her event's own page: where Create's last screen leads, how her event first greets her, and the styles' pictures. Each option stands at rest, then Try it, Create running from the moment asked: every press works and nothing is made. Each caption is read off its frame.",
   opening: {
     about:
-      "Round four: the album style step polished, then the beat's two moments built in text (what it closes on, the wait while the event is made) drawn as contenders.",
+      "Round five, from your round four notes: Create's last screen as the payoff, how her event first greets her, and the styles told apart calmly.",
     settled: [
-      "The room as wired, your round three styles step in it: three cards each moving through the night, Disposable's develop time under its card.",
-      "Review is the style's name, your plainer word, wherever a style is named.",
-      "A sample code until Create, and a phone's Back leaving Create, stay as built (the calls lab's F3 and F4).",
-      "Drawn on Afterglow's tokens: brand r2's take would recolour the room's light and the beat's bloom, nothing else here.",
+      "Your round four picks are built: Disposable's own screen, one quiet line under the code, a failure held where she is.",
+      "The beat's moment stays as built: the sample developing into her code, lit, and her event's name above it, live.",
+      "Not asked here: the light, the marks and the tokens (brand-marks r1, signature r1), nor a date in Create (H1).",
     ],
     earlier: [
-      "On round three's styles: 'Could continue to be polished, but this is the far superior option.'",
-      "'Feels cleaner with more focused views/less fighting for attention ... Really clear mental model.'",
-      "'If disposable is selected, time should either be directly below option item or on a focused following screen.'",
-      "On round two's beat: 'a beautiful screen ... The steps beneath could be designed better, while remaining somewhat minimal.'",
+      "On the close: 'it felt weird to go through a create wizard, complete, then feel like you're only halfway done.'",
+      "'Rather than shouting about what's done and what's to come, we should simply continue naturally guiding them through.'",
+      "'Nailing this seamless creation and entry would be a huge win.'",
+      "On the styles: 'kind of hard mental model to keep 9 screens in your head ... overwhelming seeing 3 things happen at once.'",
+      "'Maybe one can play the live visual demo of the active selection, while the others stay still until selected.'",
     ],
   },
   terms: [
@@ -93,258 +96,216 @@ export const CREATE_WIZARD = defineExploration({
     {
       term: "the beat",
       means:
-        "Create's last screen: her code, lit, with Print and Share under it and Get it ready at the foot.",
+        "Create's last screen: her code developing into the real one, lit, the moment the event exists.",
     },
     {
-      term: "develop time",
+      term: "the checklist",
       means:
-        "When a Disposable's photos open to everyone at once: 9 am the morning after, unless she moves it.",
+        "The card at the head of her event's page saying what the event still needs before guests arrive.",
     },
     {
-      term: "the sample",
+      term: "story",
       means:
-        "The stand-in code she styles on the look before her event exists; it opens no album.",
+        "A style's small album through three moments: guests arriving, the party, next morning.",
     },
     {
       term: "Try it",
       means:
-        "An option's first frame: Create itself, running from the moment asked; every press works.",
+        "A frame that is Create itself, running from the moment asked: every press works, nothing is made.",
     },
   ],
   carried: [
     {
-      id: "slow",
-      question: "How long does Try it's wait last, on the wait and the failure?",
+      id: "kind",
+      question:
+        "Should Create ask what kind of party it is (a wedding, a birthday) to set its defaults and stock covers?",
       taken:
-        "2.6 seconds, a slow line's, so the wait is long enough to judge; a good line answers in about one.",
-      overrule: "A good line's second, as most hosts will meet it.",
+        "No: the name says it, and a kind would set little she does not pick a screen later; a step before the payoff costs more.",
+      overrule:
+        "A kind chip on the name screen, picking the style and the look's photograph.",
     },
     {
-      id: "retry",
-      question: "On Try it for the failure, what does a second Create do?",
+      id: "entry",
+      question: "How does she step from Create into her event, whichever button takes her?",
       taken:
-        "It makes the event: the line came back, so every option is seen through to her code.",
-      overrule: "It fails again, so the failure can be read twice.",
+        "The room opens into it: the dark rises into her cover and her code flies to its place there. Under reduced motion, a cut.",
+      overrule: "A plain change of page.",
+    },
+    {
+      id: "album",
+      question: "What does her event's empty album say, under every greeting?",
+      taken:
+        "The house's empty voice, your pick: 'The album starts with you', Add the first photos its one door.",
+      overrule: "Production's 'No photos yet' and its line.",
+    },
+    {
+      id: "close-x",
+      question: "On the beat, what becomes of the head's close once the event exists?",
+      taken:
+        "Where the foot goes into her event it goes; where the foot does something else it stays, and on Add your first photos it reads Your event.",
+      overrule: "It always stays an X, Go to your event.",
     },
   ],
   asks: [
     {
-      id: "styles",
-      label: "The styles, polished",
+      id: "close",
+      label: "Create's last screen",
       question:
-        "How should the album style step stand, so the three read apart at a glance and Disposable's develop time is never missed?",
+        "Once her event is made, where should Create's last screen lead her?",
+      where: ["Host", "Create an event", "Her code, made"],
+      when: "Create event has made the wedding: her code stands lit, her event's name above it, live.",
+      matters:
+        "The payoff of all of Create: she should leave it excited and finished, never halfway done.",
+      lands:
+        "The beat's words and its one button, and how she steps from Create into her event.",
+      context:
+        "Each option: the beat made, where its button leads, her event as she lands (wearing the greeting you pick next), then Try it from the code's look: Create event, the beat, its button, her event.",
+      options: [
+        {
+          id: "enter",
+          label: "Into her event, her code carried there",
+          means:
+            "The beat's line says share it, under the question; Print and Share under her code; Go to your event opens the room into her event, her code flying to its place.",
+          gains:
+            "One press from the payoff into her event; her own code is the first thing she meets there.",
+          costs:
+            "Sharing stays a choice on the beat: she can walk in with her code unsent.",
+        },
+        {
+          id: "invite",
+          label: "Invite your guests, then in",
+          means:
+            "The beat is her code alone; Invite guests opens one screen: the message guests will get, Share, Copy link and Print, then Go to your event.",
+          gains:
+            "The one thing a new event lacks gets a focused screen; she leaves Create with it sent.",
+          costs:
+            "One more screen before her event, passed by every host who shares later.",
+        },
+        {
+          id: "photos",
+          label: "Her first photos, then in",
+          means:
+            "Print and Share under her code, and the album starts with you; Add your first photos sends a few of hers up, and she lands in her event with them in it.",
+          gains:
+            "Her event opens alive: her photos on its cover and in the album, the reel already playing.",
+          costs:
+            "Before the party many hosts have no photos, and the button becomes a step to skip.",
+        },
+      ],
+      recommended: "enter",
+      because:
+        "Your note's own words, a seamless creation and entry: one press carries her code into her event, the share said as an invitation, never a debt.",
+      overrule:
+        "If the code's share should have a screen of its own before she leaves Create.",
+      configs: [SCREEN],
+    },
+    {
+      id: "arrival",
+      label: "Her event's first greeting",
+      question:
+        "When she first lands in her event, what should the checklist at its head say?",
+      where: ["Host", "Her event's page", "The first visit"],
+      when: "Create has just made the wedding and she has stepped in: no photos yet, nobody has opened the code.",
+      matters:
+        "Whether her event reads made or half done: today it greets her with 2 of 3.",
+      lands:
+        "What a new event's checklist says and shows, and whether ready waits on the code's first open.",
+      context:
+        "Her event as she lands from Create, in the way you pick for Create's last screen, then Try it from the beat: its button, and the step into her event.",
+      options: [
+        {
+          id: "list",
+          label: "As built: the whole checklist",
+          means:
+            "Before guests arrive, 2 of 3 with its bar, then five rows: who can get in and what guests can add ticked, the code, the first photos, the welcome.",
+          gains: "Everything ahead in one place, each row with the button that finishes it.",
+          costs:
+            "It greets a just-made event as unfinished: the halfway your trial run felt.",
+        },
+        {
+          id: "share",
+          label: "One line: share your code",
+          means:
+            "Ready still waits on the code's first open, but a new event's checklist is one line, share your code, said as the beat says it, with Invite and Print.",
+          gains:
+            "One warm next step, nothing to audit, and the code still counts until it is opened.",
+          costs: "The date and the note are never offered here; they wait in Settings.",
+        },
+        {
+          id: "done",
+          label: "Ready for guests, the rest worth doing",
+          means:
+            "A new event counts as ready, since guests can get in and add; the code's share leads what is worth doing, and the checklist is one line, Ready for guests.",
+          gains:
+            "Her event and Create's last screen say the same thing: it is made, and ready.",
+          costs:
+            "Ready stops vouching that anyone has the code; the line's Invite is the nudge.",
+        },
+      ],
+      recommended: "done",
+      because:
+        "Create finishes the event, yet ready waits on a scan Create can never make; fixed at the source, the beat and her event say one thing: made, and ready.",
+      overrule:
+        "If a new event should stay unready until someone has opened its code.",
+      configs: [SCREEN],
+    },
+    {
+      id: "previews",
+      label: "The styles, told apart",
+      question:
+        "How should the three styles show, so she can tell them apart at a glance?",
       where: ["Host", "Create an event", "Pick your album's style"],
       when: "Maya has named the wedding; she picks Live, Review or Disposable before the code's look.",
       matters:
-        "One of an event's biggest choices, met here first: three styles told apart at a glance, nothing missed.",
+        "One of an event's biggest choices, met here first: today three pictures move through three moments together.",
       lands:
-        "Create's album style step: how the three styles show, and where a Disposable's develop time and roll stand.",
+        "What each style's picture shows, when it moves, and whether the slider stays under them.",
       context:
-        "In production's room: Try it (Create from this step; every press works), then Disposable picked at rest. The focused option adds its own next screen.",
+        "Try it (the step as it opens; every press works), then Disposable picked; where a story plays, a still of it where Disposable looks least like Live. Disposable's own screen after it stays as built.",
       options: [
         {
           id: "built",
-          label: "As built: the time under its card",
+          label: "As built: all three move, a slider under",
           means:
-            "Production's step: three cards, each its album through the night, the slider under them; picking Disposable opens its time and roll under its card.",
-          gains:
-            "Every style pictured at once, and the time opens where her eye already is.",
+            "Three cards, each a small album; the slider moves all three through arriving, the party and next morning, and they play once as the step opens.",
+          gains: "Every style's whole story, side by side, at her hand.",
           costs:
-            "Three pictures, a slider and the time's controls on one screen; a phone scrolls to reach them.",
+            "Three pictures moving at once, nine to hold in mind, and two moments look alike.",
         },
         {
-          id: "focused",
-          label: "Three cards, then the time's own screen",
+          id: "one",
+          label: "The picked one plays, the others still",
           means:
-            "The same three cards with nothing opening under them; picking Disposable adds one screen after this: when they develop, and the roll.",
+            "Three cards resting on the moment they differ; only the picked card plays its story once, its moment named on it, then rests. No slider.",
           gains:
-            "The time gets a whole screen of its own, impossible to miss, and the cards never move.",
+            "At rest the three compare on one moment; the one she picks shows its whole story.",
           costs:
-            "One more screen for a Disposable host, and the steppers grow by one when she picks it.",
+            "A story shows only once picked: a host who keeps Live never sees Disposable develop.",
         },
         {
-          id: "quiet",
-          label: "One picture, three plain rows",
+          id: "open",
+          label: "The picked one opens, the others words",
           means:
-            "One large album for the style picked, moving through the night; under it Live, Review and Disposable as plain rows, the time opening in Disposable's.",
+            "Three rows of words; the picked row opens on its album, large, playing its story once, its three moments under it to stop on. No slider.",
           gains:
-            "The least fighting for attention: one picture read large, the words carry the choice.",
-          costs:
-            "Never pictured side by side; at a phone the picture shrinks when Disposable's time opens.",
+            "One album at a time, large enough to show its rhythm: one by one, let in, all at once.",
+          costs: "Never side by side: comparing means picking each in turn.",
+        },
+        {
+          id: "still",
+          label: "One moment each, nothing plays",
+          means:
+            "Three cards standing still on the moment they differ: all in, all but the newest, only hers. No slider, no story; the lines carry the when.",
+          gains:
+            "The calmest: one look tells them apart, and nothing moves while she reads.",
+          costs: "How each album ends is said, never shown, and the step loses its opening play.",
         },
       ],
-      recommended: "focused",
+      recommended: "one",
       today: "built",
       because:
-        "Your second placement: the cards stay calm and still, and the time is a screen she cannot miss, at the cost of one screen only for Disposable.",
-      overrule:
-        "If one more screen for a Disposable host costs more than a row opening under its card.",
-      configs: [SCREEN],
-    },
-    {
-      id: "close",
-      label: "What Create closes on",
-      question:
-        "Under her new code, how much of Settings should Create's last screen carry?",
-      where: ["Host", "Create an event", "Her code, made"],
-      when: "Create event has made the wedding: her code stands lit, Print and Share under it, Get it ready at the foot.",
-      matters:
-        "Create's last words: whether she leaves knowing what guests still need, or only that she is done.",
-      lands:
-        "The beat's close, under Print and Share: Settings' steps, one line, or nothing, before Get it ready.",
-      context:
-        "The beat at rest once the event exists, then Try it from the look: Create event, the wait, the beat; Get it ready starts again.",
-      options: [
-        {
-          id: "marks",
-          label: "As built: Settings' five marks",
-          means:
-            "Settings' five steps as numbered marks on one line, two ticked, then the checklist's line: guests still need one more thing.",
-          gains:
-            "Settings' shape is seen before Get it ready opens it, in a line.",
-          costs:
-            "Five unnamed marks to decode, and the line never says what the one thing is.",
-        },
-        {
-          id: "next",
-          label: "One line: what guests still need",
-          means:
-            "No marks: one line saying what guests still need, the code sent or printed, which Print and Share just above it do.",
-          gains:
-            "The fewest words, and they point at the two rounds right above them.",
-          costs:
-            "Settings' later steps (the reel, the welcome) go unseen until Get it ready.",
-        },
-        {
-          id: "named",
-          label: "Settings' steps, named",
-          means:
-            "Settings' five steps as small named chips, the two done ticked, so every step reads without opening Settings.",
-          gains: "Everything ahead in words, nothing to decode.",
-          costs:
-            "The most to read on a screen meant as a first win, and it wraps at a phone.",
-        },
-        {
-          id: "none",
-          label: "Nothing of Settings",
-          means:
-            "Her code, Print and Share, and Get it ready alone: Settings says what is left once she opens it.",
-          gains: "The calmest close: the code is the whole moment.",
-          costs:
-            "Nothing says guests still need anything before she leaves Create.",
-        },
-      ],
-      recommended: "next",
-      today: "marks",
-      because:
-        "The one thing a new event still needs is the code, sent or printed: one line names it and the rounds above it do it.",
-      overrule:
-        "If seeing all of Settings' steps before Get it ready matters more than a calm first win.",
-      configs: [SCREEN],
-    },
-    {
-      id: "wait",
-      label: "The wait",
-      question: "While Create makes the event, what should Maya be watching?",
-      where: ["Host", "Create an event", "Making the event"],
-      when: "She has pressed Create event on the code's look; the event takes about a second, longer on a slow line.",
-      matters:
-        "Immediate, or a clear state: the moment between her press and her code must never read as stuck, or as done.",
-      lands:
-        "The beat's first moment: what stands while the event is made, and how her own code arrives.",
-      context:
-        "The wait held (a line that never answers), then Try it from the look on a slow line; Get it ready starts again.",
-      options: [
-        {
-          id: "breath",
-          label: "As built: the sample breathes",
-          means:
-            "The beat lands at once, the room dims, the sample she styled breathes like a print in the tray, and her code comes up sharp under it.",
-          gains:
-            "Her pick carries straight into her code: one picture, never a gap.",
-          costs:
-            "A sample code stands lit on the screen while nothing is real yet.",
-        },
-        {
-          id: "tray",
-          label: "Blank paper, then her code develops",
-          means:
-            "The beat lands at once on a blank print with her name under it; her code develops up out of the paper only once it exists.",
-          gains:
-            "Nothing on the screen is false: a code appears only once it is hers.",
-          costs: "A blank square for the wait, which on a slow line can read empty.",
-        },
-        {
-          id: "inplace",
-          label: "The wait on the look",
-          means:
-            "Nothing moves on the press: Create event works in place on the look, then the beat lands with her own code.",
-          gains:
-            "No in-between screen at all: the beat only ever shows what is true.",
-          costs:
-            "The develop from her pick into her code is lost, and the look waits under a working button.",
-        },
-      ],
-      recommended: "breath",
-      today: "breath",
-      because:
-        "Your round two pick, and the wait is its best part: the code she styled develops into hers where it stands, the status saying so.",
-      overrule:
-        "If a sample standing lit while nothing is real reads as a promise the screen has not kept.",
-      configs: [SCREEN],
-    },
-    {
-      id: "failed",
-      label: "When Create fails",
-      question:
-        "When Create fails, where should Maya land, with everything she chose kept?",
-      after: { ask: "wait" },
-      where: ["Host", "Create an event", "Create failed"],
-      when: "She pressed Create event and the line dropped or the server refused: nothing was made.",
-      matters:
-        "A failure says so where she is looking, keeps her work and offers the one next step.",
-      lands:
-        "What a failed Create shows and where: the screen she lands on, its words, and the way to try again.",
-      context:
-        "Drawn in the wait you picked: the failure at rest, then Try it, where the first Create fails and the second makes it.",
-      options: [
-        {
-          id: "back",
-          label: "As built: back to the look, a toast",
-          means:
-            "The room returns to the look, her name, style and look kept, and a toast says the event could not be created.",
-          gains:
-            "She is back where she pressed, everything in place to press again.",
-          costs:
-            "The toast stands apart from the room, and the screen she was watching vanishes.",
-        },
-        {
-          id: "held",
-          label: "Held where she is, Try again",
-          means:
-            "The screen she is watching stays and says nothing was lost; the foot becomes Try again, and Back is there for a change.",
-          gains:
-            "No jump: the failure is said where her eyes are, with one press to retry.",
-          costs:
-            "A failure state of its own on the beat, and changing anything means Back.",
-        },
-        {
-          id: "line",
-          label: "Back to the look, said in the room",
-          means:
-            "The room returns to the look and says why under the question, in the room's own words, never a toast.",
-          gains:
-            "Her place to press again, with the reason in the room's one place for words.",
-          costs:
-            "The look's quiet line changes meaning for a moment, then stays until she presses.",
-        },
-      ],
-      recommended: "held",
-      today: "back",
-      because:
-        "Immediate, or a clear state: the failure is said where she was looking, her work untouched, with Try again at her thumb.",
-      overrule:
-        "If a failure should always return her to the screen where she pressed.",
+        "At rest the three compare on the one moment they differ; only her pick moves, once, so nothing competes while she reads.",
+      overrule: "If seeing each style's story should never wait on picking it.",
       configs: [SCREEN],
     },
   ],

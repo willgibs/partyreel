@@ -58,9 +58,25 @@ manifest alone; push; report one line in chat: "handed off at <sha>".
 ## Launch switches
 
 Stripe live, the real `/privacy`, secrets to Sensitive, `PRUNE_MODE=live` and the test-data reset gather in ROADMAP's
-launch checkpoint and run only in the launch round: each is public or hard to undo.
+Launch bucket and run only in the launch round: each is public or hard to undo.
 
 ## Program principles
+
+### The order to launch
+
+The app is the product, and every change to it reaches the admin portal, the marketing site and its pictures, the help
+center, the legal text and the blog. So the rounds before launch put their weight in this order, each phase starting
+once the one before is final enough to stop reshaping it (Will, 2026-10-07; rising tides go on everywhere after):
+1. **The app's features and experience:** the deepest work, and what everything after it describes; settling the final
+   product early ends the deep refactors a late feature forces. A gap in it is opened as a board the day it is seen.
+2. **The admin portal,** shaped by the data the final app holds (each feature still ships its own admin handling).
+3. **The marketing foundation:** the site rethought from the ground up for the final app, never the old pages adapted:
+   the sitemap (what stays, goes or reshapes), each page's goal and its part in the whole, the page themes.
+4. **The marketing site,** page by page, each section designed whole: its content and layout, how it sits among its
+   neighbours, and the picture it needs, written down as an asset ask.
+5. **Its content and visuals,** made last, each by an exploration of its own that the section requested, so drawing a
+   picture never thins the thinking about the page. The help center and the blog take the same shape: the big picture
+   first, then the articles.
 
 ### A round returns DECISIONS
 
@@ -78,7 +94,8 @@ have to click through the options to learn what he is being asked, nor read a sc
 
 **Speed over proof in exploration** (Will, 2026-10-04: four rounds in the time of one beats one perfect round). A board
 is dev-only (its folder never ships; the lab is a 404 in production), so its lane spends its hours on the question and
-its options, never on proving them. Its handoff gate is the light one: typecheck, lint, the board's own tests,
+its options, never on proving them. Its handoff gate is the light one: typecheck, lint, the board's own tests, `pnpm
+test:rules` (every repo-wide rule: the tests that read the tree through `src/testing/source-tree.ts`, about 50 s),
 `lab:smoke` and `lab:demo --board <id>` (every option renders, fits the lab and differs, at a desk and a phone). There
 is no full test run, no production build and no multi-theme capture round unless the question is about a theme; the
 Orchestrator's merge gate is the one full check. The helpers per option and the fresh-eyes pass stay: they are the

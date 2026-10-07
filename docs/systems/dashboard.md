@@ -102,8 +102,11 @@ header holds its rule), the page only reads, and the composition is `components/
   next still (`cover-cycle.tsx`).
 - **The storage ring is unconditional** (a host with no events still has a plan); its popover is the meter, both ways
   out doors (See plans, and the size list counting down to her plan's cap). The over-cap grace banner is its own red
-  alert under the head, never in the ring, since its deadline costs her media (`grace-banner.tsx`). New event stays
-  live at the cap: the create route is the refusal.
+  alert under the head, never in the ring, since its deadline costs her media (`grace-banner.tsx`): it says the number
+  she is over her plan and by when, and its one key, Free <that number>, opens the size list counting down the same
+  number, her plan's line drawn across what she stores (`goal-strip.tsx`), with See plans beside it; it says nothing
+  once she is no longer over, while the grace waits for the next sweep. New event stays live at the cap: the create
+  route is the refusal.
 - **The claims review** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED
   email at a names-mode door before that email was proved. A banner line above the events opens it
   (`claims-review.tsx`), one event at a time (`claims-card.tsx`), each with a few of its own approved photographs

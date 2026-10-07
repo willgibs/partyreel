@@ -15,9 +15,15 @@
  *
  * ★ NOTHING HERE CAN BE CUT AT 1,000 ROWS (read-all.ts). The list is a PAGE on purpose, largest
  * first by `(file_size_bytes desc, id desc)` through `readAllPages`' budget, and the screen says
- * how many it shows of how many ("Show more"). The per-event totals behind the filter read every
- * active item's size WHOLE, one keyset walk per chunk of her events, because a total that stopped
- * at the first 1,000 would name the wrong heaviest event.
+ * how many it shows of how many ("Show more"). The per-event totals behind the filter are read
+ * WHOLE, a keyset walk each over her live events and over their sums, because a list that stopped at
+ * the first 1,000 would name the wrong heaviest event.
+ *
+ * ★ THE TOTALS ARE THE DATABASE'S OWN SUMS (upload-sums, 20261006180000): `event_storage_sums`, a
+ * row per event kept by a trigger at every write to `media`, so the filter reads one row an event
+ * however many items each holds (a 5,000-event account reads 5,000 rows, not every item she owns).
+ * Its `live_*` columns are exactly what the cap counts above; that they equal the items walked is
+ * the migration's proof and `storage_sums_drift`'s nightly reconciliation, never this read's.
  *
  * ★ KEYS NEVER REACH THE BROWSER. Each item leaves presigned (stable, like every gallery read): the
  * inline original, which is the tile's fallback and a video's poster, and the small preview when
@@ -28,7 +34,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { readAlbumAttribution } from "@/lib/db/queries/album-state";
-import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { presignDownload } from "@/lib/r2/presign";
@@ -155,62 +161,62 @@ export async function readStoragePage(
   };
 }
 
+type SumRow = {
+  event_id: string;
+  live_bytes: number | string;
+  live_count: number;
+};
+
 /**
  * Every live event of hers that holds anything, with its active bytes and item count, heaviest
- * first: the filter's chips and their totals. The sizes are read whole (see the header), one keyset
- * walk per chunk of her event ids, so the totals are exact however large an album grows.
+ * first: the filter's chips and their totals. Two keyset walks, each read whole: her live events
+ * (their names) and her events' sums (one row an event), joined here; a sum whose event is deleted
+ * or gone has no live event to join and is not listed.
  */
 export async function readStorageEvents(
   supabase: Client,
   hostId: string,
 ): Promise<StorageEventTotal[]> {
-  const { rows: events } = await readAllPages(
-    "storage list: events",
-    (after: string | null, pageLimit) => {
-      let q = supabase
-        .from("events")
-        .select("id, name")
-        .eq("host_id", hostId)
-        .is("deleted_at", null)
-        .order("id", { ascending: true })
-        .limit(pageLimit);
-      if (after !== null) q = q.gt("id", after);
-      return q;
-    },
-    (row) => row.id,
-  );
-  if (events.length === 0) return [];
+  const [{ rows: events }, { rows: sums }] = await Promise.all([
+    readAllPages(
+      "storage list: events",
+      (after: string | null, pageLimit) => {
+        let q = supabase
+          .from("events")
+          .select("id, name")
+          .eq("host_id", hostId)
+          .is("deleted_at", null)
+          .order("id", { ascending: true })
+          .limit(pageLimit);
+        if (after !== null) q = q.gt("id", after);
+        return q;
+      },
+      (row) => row.id,
+    ),
+    readAllPages(
+      "storage list: sums",
+      (after: string | null, pageLimit) => {
+        let q = supabase
+          .from("event_storage_sums")
+          .select("event_id, live_bytes, live_count")
+          .eq("host_id", hostId)
+          .gt("live_count", 0)
+          .order("event_id", { ascending: true })
+          .limit(pageLimit);
+        if (after !== null) q = q.gt("event_id", after);
+        return q;
+      },
+      (row) => row.event_id,
+    ),
+  ]);
 
-  const sizes = await inChunks(
-    "storage list: sizes",
-    events.map((e) => e.id),
-    async (chunk) =>
-      (
-        await readAllPages(
-          "storage list: sizes",
-          (after: string | null, pageLimit) => {
-            let q = supabase
-              .from("media")
-              .select("id, event_id, file_size_bytes")
-              .in("event_id", chunk)
-              .neq("status", "removed")
-              .order("id", { ascending: true })
-              .limit(pageLimit);
-            if (after !== null) q = q.gt("id", after);
-            return q;
-          },
-          (row) => row.id,
-        )
-      ).rows,
+  // A bigint may arrive as text; a total is a whole number of bytes either way.
+  const totals = new Map(
+    (sums as SumRow[]).map((row) => [
+      row.event_id,
+      { bytes: Number(row.live_bytes), count: Number(row.live_count) },
+    ]),
   );
-
-  const totals = new Map<string, { bytes: number; count: number }>();
-  for (const row of sizes) {
-    const t = totals.get(row.event_id) ?? { bytes: 0, count: 0 };
-    t.bytes += row.file_size_bytes;
-    t.count += 1;
-    totals.set(row.event_id, t);
-  }
   return events
     .flatMap((e) => {
       const t = totals.get(e.id);

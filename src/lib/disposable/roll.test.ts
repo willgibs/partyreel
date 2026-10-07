@@ -1,6 +1,6 @@
 /**
- * THE ROLL AND THE CAMERA VIDEO, ONE HOME EACH AND THEIR SQL MIRRORS (20261002200000, 20261005190000): the roll's size,
- * its bounds and its ceiling's multiple live in TypeScript (`roll.ts`), the camera video's two bounds in
+ * THE ROLL AND THE CAMERA VIDEO, ONE HOME EACH AND THEIR SQL MIRRORS (20261002200000, 20261005190000, 20261007021000):
+ * the roll's size, its bounds and its re-shoots live in TypeScript (`roll.ts`), the camera video's two bounds in
  * `media/limits.ts`, and each is restated in the winning SQL (the stamp that fills a roll in, the CHECK that bounds one,
  * the constants of the bodies that count);
  * the sentences the shot past the roll, past its ceiling and an over-long video meet are raised by `create_media` and
@@ -16,9 +16,10 @@ import {
   parseRollCount,
   ROLL_MAX,
   ROLL_MIN,
-  ROLL_RETAKES,
-  ROLL_RETAKES_SPENT_MESSAGE,
+  ROLL_RESHOOTS,
+  ROLL_RESHOOTS_SPENT_MESSAGE,
   ROLL_SHOTS,
+  rollCeiling,
   rollHasFrame,
   rollRefusal,
   rollRefusalSentence,
@@ -111,16 +112,27 @@ describe("the roll's one home and its SQL mirrors", () => {
     expect(isRollSize(ROLL_MAX)).toBe(true);
   });
 
+  // ★ RESHAPED ON PURPOSE (camera-wiring, 20261007021000; scar kept: each of the three restates the constant and counts
+  // against the event's own roll; reason dropped: the ceiling was a multiple, three rolls' worth). Will's flat 3
+  // (guest-moments r1's `limit=three`) is the roll plus 3 at any size.
   it.each(["create_media", "get_upload_context", "get_upload_gate"])(
-    "%s restates ROLL_RETAKES and counts against the event's own roll",
+    "%s restates ROLL_RESHOOTS and counts the ceiling as the event's own roll plus it",
     (name) => {
       const sql = body(name);
       expect(sql).toContain(
-        `c_roll_retakes constant integer := ${ROLL_RETAKES};`,
+        `c_roll_reshoots constant integer := ${ROLL_RESHOOTS};`,
       );
-      expect(sql).toContain("v_event.roll_size * c_roll_retakes");
+      expect(sql).toContain("v_event.roll_size + c_roll_reshoots");
+      expect(sql).not.toContain("roll_size * c_roll");
     },
   );
+
+  it("the ceiling is the roll plus its re-shoots: 27 at film's 24, 4 at a roll of one", () => {
+    expect(ROLL_RESHOOTS).toBe(3);
+    expect(rollCeiling(ROLL_SHOTS)).toBe(27);
+    expect(rollCeiling(ROLL_MIN)).toBe(4);
+    expect(rollCeiling(ROLL_MAX)).toBe(102);
+  });
 
   it("create_media refuses the shot past the roll, and past its ceiling, in the sentences the presign says", () => {
     const sql = body("create_media");
@@ -132,11 +144,22 @@ describe("the roll's one home and its SQL mirrors", () => {
     for (const size of [24, 12, 1]) {
       expect(sentence.replace("%", String(size))).toBe(rollSpentMessage(size));
     }
-    expect(sql).toContain(
-      `raise exception '${ROLL_RETAKES_SPENT_MESSAGE.replace(/'/g, "''")}'`,
-    );
+    // The ceiling's, formatted from its own constant, so the check and its words are one literal.
+    const ceiling =
+      /raise exception '([^']*(?:''[^']*)*)', c_roll_reshoots using errcode = 'check_violation';/.exec(
+        sql,
+      );
+    expect(ceiling, "the ceiling's raise").not.toBeNull();
+    expect(ceiling![1]).not.toMatch(/\d/);
+    expect(
+      ceiling![1].replace(/''/g, "'").replace("%", String(ROLL_RESHOOTS)),
+    ).toBe(ROLL_RESHOOTS_SPENT_MESSAGE);
     expect(rollSpentMessage(ROLL_SHOTS)).toBe(
       "You've taken all 24 shots on your roll.",
+    );
+    // Both carry "roll", the word every build's `mapCheckViolation` routes by.
+    expect(ROLL_RESHOOTS_SPENT_MESSAGE).toBe(
+      "You've used all 3 re-shoots on your roll.",
     );
   });
 
@@ -197,12 +220,25 @@ describe("the roll's one home and its SQL mirrors", () => {
 
 describe("parseRollCount", () => {
   it("reads {used, cap, taken, ceiling}", () => {
-    expect(parseRollCount({ used: 3, cap: 24, taken: 5, ceiling: 72 })).toEqual(
-      { used: 3, cap: 24, taken: 5, ceiling: 72 },
+    expect(parseRollCount({ used: 3, cap: 24, taken: 5, ceiling: 27 })).toEqual(
+      { used: 3, cap: 24, taken: 5, ceiling: 27 },
     );
-    expect(parseRollCount({ used: 0, cap: 12, taken: 0, ceiling: 36 })).toEqual(
-      { used: 0, cap: 12, taken: 0, ceiling: 36 },
+    expect(parseRollCount({ used: 0, cap: 12, taken: 0, ceiling: 15 })).toEqual(
+      { used: 0, cap: 12, taken: 0, ceiling: 15 },
     );
+  });
+
+  it("reads the gate's period where it is a whole instant, and leaves the key out where it is not", () => {
+    const roll = { used: 3, cap: 24, taken: 5, ceiling: 27 };
+    expect(parseRollCount({ ...roll, period: 1791335428131 })).toEqual({
+      ...roll,
+      period: 1791335428131,
+    });
+    for (const bad of [null, 0, -5, 1.5, "1791335428131", Number.MAX_VALUE]) {
+      const parsed = parseRollCount({ ...roll, period: bad });
+      expect(parsed, String(bad)).toEqual(roll);
+      expect(parsed).not.toHaveProperty("period");
+    }
   });
 
   it("answers null for free uploads and for anything it cannot read", () => {
@@ -229,20 +265,24 @@ describe("the refusal the next shot meets", () => {
     used,
     cap,
     taken,
-    ceiling: cap * ROLL_RETAKES,
+    ceiling: rollCeiling(cap),
   });
 
-  it("a frame is left until her live shots reach the roll, whatever she took before", () => {
+  it("a frame is left until her live shots reach the roll, while she has re-shoots", () => {
     expect(rollRefusal(roll(23, 23))).toBeNull();
-    expect(rollRefusal(roll(23, 60))).toBeNull();
+    expect(rollRefusal(roll(23, 26))).toBeNull();
     expect(rollRefusal(roll(24, 24))).toBe(rollSpentMessage(24));
     expect(rollRefusal(roll(12, 12, 12))).toBe(rollSpentMessage(12));
   });
 
-  it("the ceiling holds once she has taken three rolls' worth, a frame free or not; the roll speaks first", () => {
-    expect(rollRefusal(roll(10, 72))).toBe(ROLL_RETAKES_SPENT_MESSAGE);
-    expect(rollRefusal(roll(10, 71))).toBeNull();
-    expect(rollRefusal(roll(24, 72))).toBe(rollSpentMessage(24));
+  // ★ RESHAPED ON PURPOSE (camera-wiring; scar kept: the ceiling holds a frame free or not, and the roll speaks
+  // first; reason dropped: three rolls' worth, 72 at film's 24). The ceiling is the roll plus 3.
+  it("the ceiling holds once she has taken the roll and its 3 re-shoots, a frame free or not; the roll speaks first", () => {
+    expect(rollRefusal(roll(10, 27))).toBe(ROLL_RESHOOTS_SPENT_MESSAGE);
+    expect(rollRefusal(roll(23, 27))).toBe(ROLL_RESHOOTS_SPENT_MESSAGE);
+    expect(rollRefusal(roll(10, 26))).toBeNull();
+    expect(rollRefusal(roll(24, 27))).toBe(rollSpentMessage(24));
+    expect(rollRefusal(roll(0, 4, 1))).toBe(ROLL_RESHOOTS_SPENT_MESSAGE);
   });
 
   it("no roll is no limit", () => {
@@ -257,11 +297,14 @@ describe("the refusal the next shot meets", () => {
       rollSpentMessage(24),
     );
     expect(rollRefusalSentence(rollSpentMessage(7))).toBe(rollSpentMessage(7));
-    expect(rollRefusalSentence(ROLL_RETAKES_SPENT_MESSAGE)).toBe(
-      ROLL_RETAKES_SPENT_MESSAGE,
+    expect(rollRefusalSentence(ROLL_RESHOOTS_SPENT_MESSAGE)).toBe(
+      ROLL_RESHOOTS_SPENT_MESSAGE,
     );
     for (const other of [
       "You've taken all your shots on your roll.",
+      // The older sentence of the ceiling reads as the taxonomy's own, as any sentence this code does not know.
+      "You've used every retake this roll allows.",
+      "You've used all 4 re-shoots on your roll.",
       "Storage capacity exceeded for this plan.",
       "You've taken all 24 shots on your roll. <script>",
       "",

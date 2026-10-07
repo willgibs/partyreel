@@ -178,7 +178,8 @@ describe.each(RECORDS)(
 
 describe("the portal's not-found boundary", () => {
   it("heads a thrown notFound() with the same words, one home for both", () => {
-    expect(boundaryMetadata).toBe(adminNotFoundMetadata);
+    // The words alone: a thrown notFound() carries Next's one noindex, and a second meta said it twice (crumbs-86).
+    expect(boundaryMetadata).toEqual({ title: adminNotFoundMetadata.title });
     expect(adminNotFoundMetadata.title).toBe("Page not found");
     expect(adminNotFoundMetadata.robots).toEqual({
       index: false,

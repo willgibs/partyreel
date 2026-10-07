@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { preload } from "react-dom";
 import { Check } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
@@ -16,7 +16,6 @@ import {
   StylePicture,
   type StyleMoment,
 } from "@/components/app/event-settings/camera-settings-style-picture";
-import { RollControl } from "@/components/app/event-settings/roll-control";
 import {
   ALBUM_STYLES,
   type AlbumStyle,
@@ -27,10 +26,8 @@ import {
 } from "@/lib/disposable/album-style";
 import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import { deviceZone, hostPartyZone } from "@/lib/event/zone";
-import { developToKeep } from "@/lib/event/zone-morning";
 import { cn } from "@/lib/utils";
 
-import { DevelopRow } from "./develop-row";
 import { Night } from "./night";
 
 /**
@@ -38,27 +35,26 @@ import { Night } from "./night";
  * focused views/less fighting for attention, and each option is explained clearly against each other without just
  * throwing screens at a new host ... the clear distinction across the 3. Really clear mental model"). The question is
  * the room's ("Pick your album's style"); the centre is three cards, Live, Review and Disposable, each a small album
- * moving through the night, its name, its one line and a tick, a soft light under the one picked; under the
- * Disposable card, once it is picked, its develop time; under them all the night, a slider that moves every picture
- * from guests arriving to the morning after.
+ * moving through the night, its name, its one line and a tick, a soft light under the one picked; under them all the
+ * night, a slider that moves every picture from guests arriving to the morning after.
+ *
+ * ★ NOTHING OPENS UNDER THE CARDS (r4's `styles=focused`): the three stand still whatever she picks, and picking
+ * Disposable adds its own screen after this one, the develop time and the roll (`develop-step.tsx`), rather than a row
+ * opening under its card. The cards' moving pictures stay as built: r5 asks how the three are best seen at once.
  *
  * ★ A STYLE IS THE SETTINGS' ONE, NEVER A SECOND ONE: its names, its lines, its columns (`album-style.ts`), its
  * pictures (`camera-settings-style-picture.tsx`) and its develop time's judgement are Settings' own, so what a host
  * meets here is what she meets there, and Create asks the same three columns Settings writes (`createFieldsOf`).
- *
- * ★ THE DEVELOP TIME STANDS DIRECTLY UNDER ITS CARD, never under the night (his own placement): once Disposable is
- * picked a row of it opens in place under that card, so it is where the host's eye already is. Approval never stands
- * with it (`both=never`): no style here combines the two.
+ * Approval never stands with a develop time (`both=never`): no style here combines the two.
  *
  * ★ THE PARTY'S ZONE IS HERS, CAPTURED AND NEVER ASKED (event-zone): the create carries her browser's own zone
  * (`fields`' `captured_zone`), the party's from birth, and the 9 am the Disposable offers is read in that same zone
- * (`developToKeep`), so the default develop and the album's turn are one morning for every guest. Create never asks a
- * zone: a party far from home is Settings' quiet choice.
+ * (`patchForStyle`'s `zone`), so the default develop and the album's turn are one morning for every guest. Create never
+ * asks a zone: a party far from home is Settings' quiet choice.
  *
- * ★ AND THE ROLL UNDER IT (customize r1's `roll=both`, and its carried `create`: "never as a question: it stands under the
- * Disposable pick, a press to change, the way the develop time does"): Settings' own control (`roll-control.tsx`), film's
- * three and Other's stepper, opening and shutting with the develop time. 24 unless she picks; her pick is kept while she
- * moves between the styles, and rides the create only with the Disposable (`createFieldsOf`).
+ * ★ THE ROLL (customize r1's `roll=both`): 24 unless she picks, on the Disposable's own screen; her pick is kept while
+ * she moves between the styles, and rides the create only with the Disposable (`createFieldsOf`). The card's line and
+ * its arriving camera say her count.
  *
  * ★ THE NIGHT PLAYS ONCE, as the step first opens (every album empty, then the party), and then rests on the party for
  * her hand; reduced motion opens on the party. Her own move of the slider stops it.
@@ -66,7 +62,8 @@ import { Night } from "./night";
  * ★ THE CHOICE IS A RADIO GROUP, as the code's looks are: a screen reader hears "one of three" and the arrows move
  * between the cards, choosing as they go (Radix's roving focus).
  *
- * The state is `useAddChoice`'s, held by the wizard so a Back and a Continue never lose it; the step itself is drawn.
+ * The state is `useAddChoice`'s, held by the wizard so a Back and a Continue never lose it, and shared with the
+ * Disposable's screen; the step itself is drawn.
  */
 
 // ★ ASKED FOR BEFORE THE STEP, as the look's photograph is (`look-step.tsx`): this module loads with the page that
@@ -124,19 +121,13 @@ export function useAddChoice(): AddChoice {
     setDraft(null);
     setRefusal(null);
     if (to === "disposable") {
-      // A time still ahead is kept, else 9 am tomorrow in the zone the create will carry (`developToKeep`).
+      // A time still ahead is kept, else 9 am tomorrow in the zone the create will carry (`hostPartyZone`).
       setDevelopsAt(
         (at) =>
           patchForStyle(
             "disposable",
-            {
-              capture: "upload",
-              review: false,
-              developsAt: developToKeep(at, hostPartyZone(null), {
-                eventDate: null,
-              }),
-            },
-            { eventDate: null },
+            { capture: "upload", review: false, developsAt: at },
+            { eventDate: null, zone: hostPartyZone(null) },
           ).developsAt,
       );
     }
@@ -189,7 +180,7 @@ export function useAddChoice(): AddChoice {
         patchForStyle(
           style,
           { capture: "upload", review: false, developsAt },
-          { eventDate: null },
+          { eventDate: null, zone },
         ),
         roll,
       ),
@@ -284,80 +275,46 @@ export function AddStep({
           const on = s === choice.style;
           const line = styleLine(s, { rollSize: choice.roll });
           return (
-            <Fragment key={s}>
-              <RadioGroupPrimitive.Item
-                value={s}
-                data-album-style={s}
-                aria-label={`${STYLE_NAMES[s]}. ${line}`}
-                className="cr-style-card"
+            <RadioGroupPrimitive.Item
+              key={s}
+              value={s}
+              data-album-style={s}
+              aria-label={`${STYLE_NAMES[s]}. ${line}`}
+              className="cr-style-card"
+            >
+              <span
+                // The pick drops into the add step's hairline as the next screen arrives (`carry.ts`).
+                data-carry-pick={on ? "2" : undefined}
+                className="cr-style-pic-box"
               >
-                <span
-                  // The pick drops into the add step's hairline as the look arrives (`carry.ts`).
-                  data-carry-pick={on ? "2" : undefined}
-                  className="cr-style-pic-box"
-                >
-                  <StylePicture
-                    style={s}
-                    moment={moment}
-                    roll={choice.roll}
-                    className="cr-style-pic"
-                  />
-                </span>
-                <span className="cr-style-words">
-                  <span className="block min-w-0 flex-1">
-                    <span
-                      className={cn(
-                        "block font-heading text-card-title",
-                        !on && "text-foreground/85",
-                      )}
-                    >
-                      {STYLE_NAMES[s]}
-                    </span>
-                    <span className="mt-0.5 block text-caption text-pretty text-muted-foreground">
-                      {line}
-                    </span>
-                  </span>
-                  <Mark on={on} />
-                </span>
-              </RadioGroupPrimitive.Item>
-              {s === "disposable" ? (
-                // Directly under its card, wherever the cards stand.
-                <DevelopRow
-                  open={on}
-                  developsAt={choice.developsAt}
-                  draft={choice.draft}
-                  refusal={choice.refusal}
-                  onDraft={choice.type}
-                  onFinish={() => void choice.finish()}
-                  after={
-                    <RollField roll={choice.roll} onRoll={choice.setRoll} />
-                  }
+                <StylePicture
+                  style={s}
+                  moment={moment}
+                  roll={choice.roll}
+                  className="cr-style-pic"
                 />
-              ) : null}
-            </Fragment>
+              </span>
+              <span className="cr-style-words">
+                <span className="block min-w-0 flex-1">
+                  <span
+                    className={cn(
+                      "block font-heading text-card-title",
+                      !on && "text-foreground/85",
+                    )}
+                  >
+                    {STYLE_NAMES[s]}
+                  </span>
+                  <span className="mt-0.5 block text-caption text-pretty text-muted-foreground">
+                    {line}
+                  </span>
+                </span>
+                <Mark on={on} />
+              </span>
+            </RadioGroupPrimitive.Item>
           );
         })}
       </RadioGroupPrimitive.Root>
       <Night moment={moment} onMoment={onMoment} className="cr-under" />
-    </div>
-  );
-}
-
-/** The Disposable's roll under its develop time: its name, then film's three and Other, Settings' own control. */
-function RollField({
-  roll,
-  onRoll,
-}: {
-  roll: number;
-  onRoll: (n: number) => void;
-}) {
-  const labelId = useId();
-  return (
-    <div data-roll-field="" className="mt-4 space-y-2.5">
-      <p id={labelId} className="px-1 text-working text-muted-foreground">
-        Shots each
-      </p>
-      <RollControl value={roll} onChange={onRoll} labelledBy={labelId} />
     </div>
   );
 }

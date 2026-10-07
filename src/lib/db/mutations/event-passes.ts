@@ -27,17 +27,7 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `adopt_pass_credit_orphans` arrives with migration 20261006120000, so
- * its call goes through this untyped client (drop the cast then, as credit-watch's `creditDb` was).
- */
-function orphansDb(db: ReturnType<typeof createAdminClient>) {
-  return db as unknown as SupabaseClient;
-}
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -420,7 +410,7 @@ export async function adoptPassCreditOrphans(
   hostId: string,
   grants: readonly { session: string; balanceTransactionId: string }[],
 ): Promise<OrphanAdoption> {
-  const { data, error } = await orphansDb(createAdminClient()).rpc(
+  const { data, error } = await createAdminClient().rpc(
     "adopt_pass_credit_orphans",
     {
       p_session_id: sessionId,

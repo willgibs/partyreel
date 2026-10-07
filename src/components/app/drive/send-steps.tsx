@@ -23,7 +23,7 @@ import type { DriveReturn } from "@/lib/drive/oauth-cookie";
 import type { AlbumPreview, PressAnswer, PressResult } from "@/lib/drive/press";
 import { driveFolderName } from "@/lib/export/drive-names";
 import { formatCount } from "@/lib/format/count";
-import { cn, formatBytes } from "@/lib/utils";
+import { formatBytes } from "@/lib/utils";
 
 import {
   albumRefusalWords,
@@ -394,18 +394,11 @@ export function DriveSendSteps({
         ) : (
           <Button
             onClick={() => void press()}
-            disabled={pressing || !preview || total === 0}
-            className={cn(pressing && "cursor-progress")}
+            working={pressing}
+            workingLabel="Starting"
+            disabled={!preview || total === 0}
           >
-            {pressing ? (
-              <Loader2
-                className="animate-spin motion-reduce:animate-none"
-                aria-hidden
-              />
-            ) : (
-              <FolderUp />
-            )}
-            {pressing ? "Starting" : label}
+            <FolderUp /> {label}
           </Button>
         )}
       </PopupFooter>

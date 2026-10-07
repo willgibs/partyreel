@@ -96,9 +96,13 @@ export type GuestUploadHandle = {
  *
  * ★ THE BACK: nothing interrupts while the files go, and when the RUN ENDS with
  * anything refused, `UploadFailureSheet` opens itself once with a line and a
- * Retry per file. No upload toasts: an error toast has usually gone by the time
- * it is read, and on a held event the badge beside Add says what a "Sent,
- * waiting for approval" toast would, where she already is.
+ * Retry per file. No error toasts: an error toast has usually gone by the time
+ * it is read. ★ RESHAPED (album-moments-wiring): this said "No upload toasts".
+ * What landed is told now, once, as the run ends, by the page's send toast
+ * (`upload/send-toast.ts`, guest-moments r1's `own=glow`, which took the mark
+ * off her own photograph): the reason that expired was that a held upload's
+ * badge already said it, which a send of six into an album that shows them at
+ * once never had. The reason kept is the errors': they stay in this sheet.
  *
  * Joining is just-in-time and SILENT (account-required events are gated at
  * the PAGE level; a signed-in uploader sets a display name first).

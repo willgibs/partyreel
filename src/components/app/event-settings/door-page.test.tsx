@@ -21,11 +21,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 
-const { toast, updateEventAction, setEventDoorAction } = vi.hoisted(() => ({
-  toast: { success: vi.fn(), error: vi.fn() },
-  updateEventAction: vi.fn(),
-  setEventDoorAction: vi.fn(),
-}));
+const { toast, updateEventAction, setEventDoorAction, setEventPasswordAction } =
+  vi.hoisted(() => ({
+    toast: { success: vi.fn(), error: vi.fn() },
+    updateEventAction: vi.fn(),
+    setEventDoorAction: vi.fn(),
+    setEventPasswordAction: vi.fn(),
+  }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast }));
@@ -33,7 +35,7 @@ vi.mock("@/lib/reel/defaults-action", () => ({ setReelDefaults: vi.fn() }));
 vi.mock("@/app/(app)/dashboard/actions", () => ({
   updateEventAction: (...a: unknown[]) => updateEventAction(...a),
   updateEventSocialSettingsAction: vi.fn(),
-  setEventPasswordAction: vi.fn(),
+  setEventPasswordAction: (...a: unknown[]) => setEventPasswordAction(...a),
   clearEventPasswordAction: vi.fn(),
 }));
 vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
@@ -43,7 +45,8 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
   PricingSheet: () => null,
 }));
 
-const { DoorPage } = await import("./door-page");
+const { DoorPage, consequenceOf, insideNote, passwordGroups } =
+  await import("./door-page");
 const { SettingsProvider } = await import("./settings-state");
 const { hostEvent, NO_COUNTS } = await import("./testing/host-event");
 
@@ -183,8 +186,8 @@ describe("the gates, under Private", () => {
     fireEvent.click(screen.getByRole("radio", { name: "A password" }));
     expect(screen.getByLabelText("Album password")).toBeTruthy();
     expect(setEventDoorAction).not.toHaveBeenCalled();
-    // Nobody waits, so nothing more is said beside the field.
-    expect(document.querySelector("[data-door-password-waiting]")).toBeNull();
+    // Nobody in and nobody waiting, so nothing more is said beside the field.
+    expect(document.querySelector("[data-door-password-groups]")).toBeNull();
   });
 
   it("★ a password with people at the door says it asks them for it too, and writes nothing until confirmed", async () => {
@@ -227,14 +230,99 @@ describe("the gates, under Private", () => {
     expect(setEventDoorAction).not.toHaveBeenCalled();
   });
 
-  it("the first password, set as it opens the door, says the same beside its field", () => {
-    page({ visibility: "private", door: "approve" }, { waiting: 1 });
+  // ★ RESHAPED ON PURPOSE (host-moments r1, `password=both`; scar kept: the first password, set as it opens the door,
+  // says what it does to the people waiting beside its field, before anything is written). The expired reason: "says
+  // the same beside its field", the waiting line alone: both groups are said there now, the guests in first.
+  it("★ a first password with guests in and people waiting says both groups where she types it, and only there", () => {
+    page({ visibility: "private", door: "approve" }, { in: 31, waiting: 3 });
+    // Before: the gates' note says who is in.
+    expect(document.querySelector("[data-door-inside]")).not.toBeNull();
     fireEvent.click(screen.getByRole("radio", { name: "A password" }));
+    const groups = document.querySelector<HTMLElement>(
+      "[data-door-password-groups]",
+    );
     expect(
-      document.querySelector("[data-door-password-waiting]")?.textContent,
-    ).toBe("1 person is waiting at the door. A password asks them for it too.");
-    expect(screen.getByLabelText("Album password")).toBeTruthy();
+      [...groups!.querySelectorAll("[data-door-password-group]")].map(
+        (line) => [
+          line.getAttribute("data-door-password-group"),
+          line.textContent,
+        ],
+      ),
+    ).toEqual(
+      passwordGroups({ in: 31, waiting: 3 }).map((line) => [
+        line.group,
+        `${line.lead} ${line.rest}`,
+      ]),
+    );
+    // Read before she types: the lines stand above the field, in the same panel.
+    const field = screen.getByLabelText("Album password");
+    expect(
+      groups!.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // ★ In place of today's two: the field's waiting line and the gates' inside note are never said beside them.
+    expect(document.querySelector("[data-door-password-waiting]")).toBeNull();
+    expect(document.querySelector("[data-door-inside]")).toBeNull();
+    expect(screen.queryByText(/A password asks them for it too/)).toBeNull();
     expect(setEventDoorAction).not.toHaveBeenCalled();
+    // Picking the saved gate back takes the lines with the field, and the inside note returns.
+    fireEvent.click(choice("You let each person in"));
+    expect(document.querySelector("[data-door-password-groups]")).toBeNull();
+    expect(document.querySelector("[data-door-inside]")).not.toBeNull();
+  });
+
+  it("each group has its line only while someone is in it", () => {
+    page({ visibility: "private", door: "approve" }, { in: 31 });
+    fireEvent.click(choice("A password"));
+    expect(
+      [...document.querySelectorAll("[data-door-password-group]")].map((l) =>
+        l.getAttribute("data-door-password-group"),
+      ),
+    ).toEqual(["in"]);
+    cleanup();
+    page({ visibility: "private", door: "approve" }, { waiting: 1 });
+    fireEvent.click(choice("A password"));
+    expect(
+      [...document.querySelectorAll("[data-door-password-group]")].map((l) =>
+        l.getAttribute("data-door-password-group"),
+      ),
+    ).toEqual(["waiting"]);
+  });
+
+  it("the groups' words: who stays in, and who stops waiting on her, counted and agreeing with the count", () => {
+    expect(passwordGroups({ in: 31, waiting: 3 })).toEqual([
+      {
+        group: "in",
+        lead: "31 guests are in, and stay in",
+        rest: "on every phone they used. Nobody inside is asked for it.",
+      },
+      {
+        group: "waiting",
+        lead: "3 people wait at the door",
+        rest: "and stop waiting on you: they get in with the password, like anyone new.",
+      },
+    ]);
+    // Each verb agrees with its count.
+    expect(
+      passwordGroups({ in: 1, waiting: 1 }).map((l) => `${l.lead} ${l.rest}`),
+    ).toEqual([
+      "1 guest is in, and stays in on every phone they used. Nobody inside is asked for it.",
+      "1 person waits at the door and stops waiting on you: they get in with the password, like anyone new.",
+    ]);
+    expect(passwordGroups({ in: 0, waiting: 0 })).toEqual([]);
+    expect(passwordGroups({ in: 1234, waiting: 0 })[0]!.lead).toBe(
+      "1,234 guests are in, and stay in",
+    );
+  });
+
+  it("★ a password already set, picked with people waiting, still asks first in its consequence line", () => {
+    // The groups are the field's: a password already set has no field to type, and keeps its consequence line.
+    page(
+      { visibility: "private", door: "approve", has_password: true },
+      { waiting: 2, in: 4 },
+    );
+    fireEvent.click(choice("A password"));
+    expect(document.querySelector("[data-door-password-groups]")).toBeNull();
+    expect(document.querySelector("[data-door-inside]")).not.toBeNull();
   });
 
   it("under a gate, says how many are already in", () => {
@@ -333,5 +421,121 @@ describe("the invite list's row says who it would let in, before it is chosen (c
       { waiting: 0, waitingListed: 2 },
     );
     expect(inviteRow().querySelector("[data-door-listed]")).toBeNull();
+  });
+});
+
+/* ★ A MOVE ONTO AN ADDRESS GATE SAYS WHAT IT DOES TO THE GUESTS IN BY NAME (crumbs-89, the second Immediate line;
+   crumbs-87's walk: a guest on a phone). Letting each person in and the invite list turn An email first on for everyone,
+   so a guest already in on a name alone meets "Confirm your email to see everything" and adds nothing until she does,
+   while the page said nothing of it before the move and its note under the gates said "everyone in keeps adding". */
+describe("an address gate and the guests in by name", () => {
+  it("★ letting each person in, from names only with guests in by name, says what it asks of them and writes nothing until confirmed", async () => {
+    page(
+      { visibility: "private", door: "closed", require_verified_email: false },
+      { in: 5, inByName: 2 },
+    );
+    fireEvent.click(choice("You let each person in"));
+    expect(
+      screen.getByText(
+        "2 guests are in on a name alone. Letting each person in asks them to confirm an email too, before they see everything or add more.",
+      ),
+    ).toBeTruthy();
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Ask for an email" }));
+    });
+    expect(setEventDoorAction).toHaveBeenCalledWith(EVENT_ID, "approve");
+  });
+
+  it("the invite list says it in its own words, and Keep it as it is writes nothing", () => {
+    page(
+      { visibility: "private", door: "closed", require_verified_email: false },
+      { in: 1, inByName: 1 },
+    );
+    fireEvent.click(choice("Your invite list"));
+    expect(
+      screen.getByText(
+        "1 guest is in on a name alone. Your invite list asks them to confirm an email too, before they see everything or add more.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Keep it as it is" }));
+    expect(screen.queryByText(/in on a name alone/)).toBeNull();
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+  });
+
+  it("★ says nothing where it reaches nobody: the step already on (her own), or nobody in by name", async () => {
+    expect(
+      consequenceOf("approve", { in: 5, inByName: 2, waiting: 0 }, true),
+    ).toBeNull();
+    expect(
+      consequenceOf("invite", { in: 5, inByName: 0, waiting: 0 }, false),
+    ).toBeNull();
+    // Only the two gates that match an address: the others keep their own lines.
+    expect(
+      consequenceOf("closed", { in: 5, inByName: 2, waiting: 0 }, false),
+    ).toBeNull();
+    expect(
+      consequenceOf("open", { in: 5, inByName: 2, waiting: 0 }, false),
+    ).toBeNull();
+    page(
+      { visibility: "private", door: "closed", require_verified_email: true },
+      { in: 5, inByName: 2 },
+    );
+    await act(async () => {
+      fireEvent.click(choice("You let each person in"));
+    });
+    expect(setEventDoorAction).toHaveBeenCalledWith(EVENT_ID, "approve");
+  });
+
+  it("★ the note under the gates says when the guests in by name keep adding, while the step is on", () => {
+    page(
+      { visibility: "private", door: "approve", require_verified_email: true },
+      { in: 5, inByName: 2 },
+    );
+    expect(document.querySelector("[data-door-inside]")?.textContent).toBe(
+      "5 guests are already in. A gate stops newcomers; everyone in keeps adding, the 2 in by name once they confirm an email.",
+    );
+    expect(insideNote(2, false)).toBe(
+      "A gate stops newcomers; everyone in keeps adding.",
+    );
+    expect(insideNote(0, true)).toBe(
+      "A gate stops newcomers; everyone in keeps adding.",
+    );
+  });
+});
+
+/* ★ THE PASSWORD'S FIRST SET, WHILE A GATE HELD THE STEP FROM OFF (crumbs-89): `set_event_password` clears the gate as it
+   opens the password door, and the event gives her names only back (20261007140000). Its control answers success alone,
+   so the page lays what that did at once, and says it as the door's own save does, never waiting on the hub's row. */
+describe("the password's first set, held", () => {
+  it("★ the door turns to the password, the step goes off, and she is told", async () => {
+    setEventPasswordAction.mockResolvedValue({ ok: true });
+    page(
+      {
+        visibility: "private",
+        door: "approve",
+        require_verified_email: true,
+        email_held: true,
+      } as Parameters<typeof hostEvent>[0],
+      { in: 2, inByName: 1 },
+    );
+    fireEvent.click(choice("A password"));
+    fireEvent.change(screen.getByLabelText("Album password"), {
+      target: { value: "garden-party" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Set password" }));
+    });
+    expect(setEventPasswordAction).toHaveBeenCalledWith(
+      EVENT_ID,
+      "garden-party",
+    );
+    expect(choice("A password").getAttribute("aria-checked")).toBe("true");
+    const email = screen.getByRole("switch", { name: /An email first/ });
+    expect(email).not.toBeChecked();
+    expect(email).not.toBeDisabled();
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while you let each person in.",
+    });
   });
 });

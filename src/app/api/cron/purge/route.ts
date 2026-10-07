@@ -46,9 +46,13 @@ import {
   startJobRun,
   type JobTrigger,
 } from "@/lib/db/queries/jobs";
+import { readLatestStorageSumsCounts } from "@/lib/db/queries/storage-sums";
 import type { Json } from "@/lib/db/types";
 import { assertCronEnv } from "@/lib/env";
-import { createSweepRunner } from "@/lib/jobs/purge-sweeps";
+import {
+  createSweepRunner,
+  type SweepRunOptions,
+} from "@/lib/jobs/purge-sweeps";
 import {
   purgeRunVerdict,
   ROWS_NOTE_KEY,
@@ -71,6 +75,13 @@ import {
   sweepRenewalNudges,
 } from "@/lib/lifecycle/sweeps/passes";
 import { sweepRemovedMedia } from "@/lib/lifecycle/sweeps/removed-media";
+import { sweepStorageSums } from "@/lib/lifecycle/sweeps/storage-sums";
+import {
+  FINDINGS_KEY,
+  readStorageSumsState,
+  storageSumsCounts,
+  type StorageSumsState,
+} from "@/lib/lifecycle/sweeps/storage-sums-state";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { servesApp } from "@/lib/surface";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -84,7 +95,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** The sweeps that work under a deadline, in the order they run: the clock shares the window between them. */
-const BUDGETED_SWEEPS = 10;
+const BUDGETED_SWEEPS = 11;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -127,7 +138,14 @@ function summarizeSweeps(
     if (value && typeof value === "object" && !Array.isArray(value)) {
       const tally: Record<string, Json> = {};
       for (const [key, field] of Object.entries(value)) {
-        if (key === ROWS_NOTE_KEY || key === STOPPED_NOTE_KEY) continue;
+        // The storage sums' drifted hosts ride its own row whole (`storageSumsCounts`); the parent keeps the tally.
+        if (
+          key === ROWS_NOTE_KEY ||
+          key === STOPPED_NOTE_KEY ||
+          key === FINDINGS_KEY
+        ) {
+          continue;
+        }
         tally[key] = field as Json;
       }
       out[name] = tally;
@@ -152,6 +170,24 @@ async function resumeCursor(
     captureWarning("cron", "sweep_cursor_unreadable", {
       job,
       sweep: sweep ?? null,
+      error: String(e).slice(0, 300),
+    });
+    return null;
+  }
+}
+
+/**
+ * Where the storage sums' check left off and whom it named (`readLatestStorageSumsCounts`). Unreadable, it starts a
+ * pass from the first host with nobody carried, which checks every host and can skip none, and says so, as a cursor
+ * does.
+ */
+async function storageSumsPrevious(): Promise<StorageSumsState | null> {
+  try {
+    return readStorageSumsState(await readLatestStorageSumsCounts());
+  } catch (e) {
+    captureWarning("cron", "sweep_cursor_unreadable", {
+      job: "storage_sums",
+      sweep: "storage_sums",
       error: String(e).slice(0, 300),
     });
     return null;
@@ -311,8 +347,12 @@ export async function GET(request: Request): Promise<Response> {
   // Sentry and, for the promoted sub-sweeps (the catalog's `purge_sweep` jobs), keeps a `job_runs` row, a kill switch and a card of
   // their own (`createSweepRunner`, src/lib/jobs/purge-sweeps.ts).
   const sweepRunner = createSweepRunner(triggeredBy);
-  const runSweep = async (name: string, fn: () => Promise<unknown>) => {
-    sweeps[name] = await sweepRunner.run(name, fn);
+  const runSweep = async (
+    name: string,
+    fn: () => Promise<unknown>,
+    opts?: SweepRunOptions,
+  ) => {
+    sweeps[name] = await sweepRunner.run(name, fn, opts);
   };
   const clock = createSweepClock({
     startMs: invokedAtMs,
@@ -324,9 +364,10 @@ export async function GET(request: Request): Promise<Response> {
   const runBudgeted = async (
     name: string,
     fn: (deadline: Deadline) => Promise<unknown>,
+    opts?: SweepRunOptions,
   ) => {
     const deadline = clock.next();
-    await runSweep(name, () => fn(deadline));
+    await runSweep(name, () => fn(deadline), opts);
   };
 
   // FIRST of the budgeted (disposable-foundation): the develop. A reveal a guest waits on, it deletes nothing and
@@ -373,15 +414,23 @@ export async function GET(request: Request): Promise<Response> {
       resumeAfter: await resumeCursor("purge_inactivity"),
     }),
   );
-  // LAST of the budgeted (crumbs-37): the album change log's prune. Pure upkeep, so it takes what the
-  // window has left, and it runs after every sweep that purges, so tonight's tombstones are in its walk.
-  // It rotates like the account sweeps: its own run row carries where it stopped.
+  // The album change log's prune (crumbs-37). Pure upkeep, after every sweep that purges, so tonight's
+  // tombstones are in its walk. It rotates like the account sweeps: its own run row carries where it stopped.
   await runBudgeted("album_log", async (deadline) =>
     sweepAlbumLog(admin, {
       deadline,
       resumeAfter: await resumeCursor("purge_album_log"),
     }),
   );
+  // LAST of the budgeted (storage-sums-signal): the storage sums' proof. It writes nothing and reads the sums every
+  // sweep before it moved, so a night's own writes are checked the same night, and it takes what the window leaves:
+  // a pass longer than that resumes the next night. Its row keeps its drifted hosts whole, for the card's Rebuilds.
+  const storageSums = async (deadline: Deadline) =>
+    sweepStorageSums(admin, now, {
+      deadline,
+      previous: await storageSumsPrevious(),
+    });
+  await runBudgeted("storage_sums", storageSums, { counts: storageSumsCounts });
   // Prune the unlock rate-limiter log — rows older than its longest window are dead weight.
   await runSweep("unlock_attempts", () => sweepUnlockAttempts(admin, now));
   await runSweep("action_attempts", () => sweepActionAttempts(admin, now));

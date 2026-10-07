@@ -28,7 +28,7 @@ import {
  *
  * ★ THE STEP IS THE ITEM'S, THE STATE IS THE STAGE'S. What the stage asks of the host (Let them in,
  * Review, Invite, Print) is its event's one item (`attention.ts`); its numbers and its ticks are state
- * and always show, so two people waiting read in amber beside the act that lets them in.
+ * and always show, so two people waiting read with the needs-you dot beside the act that lets them in.
  */
 
 /**
@@ -243,7 +243,7 @@ export type StageRail = {
 };
 
 /**
- * SETTINGS' FIVE STEPS LAID FLAT under an empty stage's name (Create's last beat draws the same rail): the steps are
+ * SETTINGS' FIVE STEPS LAID FLAT under an empty stage's name: the steps are
  * Settings' own (`settingsSteps`, room left out), the head is the checklist's (`readyHead`), so a tick here is a tick in
  * the hub and in Settings. Null where readiness's own reads were not made for this event.
  */

@@ -14,7 +14,7 @@ semantics live in its doc.
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 26 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
+`get_advisors` (security) after every schema change reads 27 `rls_enabled_no_policy`, 4 in lint `0028` and 36 in
 `0029`. Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -82,10 +82,11 @@ semantics live in its doc.
   unless a signed-in browser must call it, so the advisor lists grow only on purpose. The dashboard cards'
   `event_stills` (one jsonb) is this shape, authenticated-only: another host's event is simply absent, and it may name
   only media columns the host's SELECT grant holds.
-- **Service-role only, never in either list:** the server-mediated set above, `action_rate`,
-  `article_feedback_summary` (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
-  `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `leave_deleted` (the over-capacity deadline's first
-  step), `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
+- **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `article_feedback_summary`
+  (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`, `record_link_hit`, `host_active_bytes`,
+  `host_storage_summary` (beside the storage sums' `storage_sums_drift` and `rebuild_storage_sums`; the walk they answer
+  to, `host_storage_walk`, is the owner's alone), `leave_deleted` (the over-capacity deadline's first step),
+  `tier_limits`, `upload_allowance` and `uploads_used` (INVOKER; every other caller is a DEFINER body),
   `uploads_windows` (an INVOKER read behind the admin seam, every listed host's `uploads_used` in one call) and
   `consume_passes_for_pro_credit` (INVOKER, milestone 37's pass-to-Pro conversion, kept until no deployed build names
   it), the credit's `claim_pass_credit`, `record_pass_credit_grant`, `convert_pass_credit`, `release_pass_credit` and
@@ -123,7 +124,9 @@ semantics live in its doc.
   `article_feedback` (the help center's feedback beacon, no identity of any kind), and
   `storage_ledger` (Free's and Pro's monthly uploads meter, a pass's year counting on its own
   `event_passes.uploaded_bytes`: its readers are the upload gates, DEFINER, and the service role),
-  `notice_retries` (a one-time notice kept rendered until a retry sends it, never the address: `sendOnce`), and Send to
+  `notice_retries` (a one-time notice kept rendered until a retry sends it, never the address: `sendOnce`),
+  `host_storage_sums` (each host's total of her events' `event_storage_sums` rows, written by the `media_storage_sums`
+  trigger and the rebuild alone, read by definer bodies), and Send to
   Google Drive's five (`cloud_connections`, the sealed tokens; `cloud_event_folders`; `cloud_export_items`, whose live
   `session_uri` is a week-long upload capability; `cloud_export_leases`; `cloud_export_sent_hours`:
   [drive-export.md](drive-export.md)).
@@ -149,10 +152,12 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   `display_name` or `bio` (public text, written on the admin client after validation and the profanity check:
   [auth-accounts.md](auth-accounts.md)), `deletion_requested_at` (no un-request path exists), or `slug`, `tier*`,
   `event_slots`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
-- **`events`:** hosts write the settings columns and `insert(host_id)`, `update(host_opened_at)` (the dashboard's open
-  stamp, a finite instant that only orders her list) and `update(deleted_at)` for a soft delete only.
-  `event_password_hash`, `custom_slug`, `qr_token` and `purge_at` are RPC, trigger or default only. SELECT is
-  table-level (RLS scopes the rows), so a new column reads with no grant.
+- **`events`:** hosts write the settings columns and `insert(host_id)`, `insert(create_key)` (a Create's retry key,
+  written once at birth, never updated), `update(host_opened_at)` (the dashboard's open stamp, a finite instant that
+  only orders her list) and `update(deleted_at)` for a soft delete only. `event_password_hash`, `custom_slug`,
+  `qr_token`, `purge_at` and `email_held` (written only by the `events_email_held` trigger, BEFORE UPDATE OF gate,
+  SECURITY INVOKER with no client EXECUTE) are RPC, trigger or default only. SELECT is table-level (RLS scopes the
+  rows), so a new column reads with no grant.
 - **`media`:** UPDATE `status` and `removed_at` only; `purge_at` and `let_in_at` (the approval toast's news) come
   from triggers; the removal provenance (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`,
   `status_before_removed`) is RPC, trigger or service role only; `reel_eligible` is readable and written once, by
@@ -202,7 +207,23 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   act on one row at once. ★ So does every writer of a pass's row (`event-passes-migration.test.ts`): the completes
   count on her live pass under her profiles lock, and `consume_passes_for_pro_credit`, the pass-to-Pro credit, takes
   that lock before it converts her passes, since the reverse order in one transaction deadlocks with a complete
-  (measured, 20261005130000).
+  (measured, 20261005130000). ★ So does every media write, in its statement trigger (`media_storage_sums`,
+  20261006180000): the profiles row of every host the statement touched (`for no key update`, hosts in id order)
+  before any sum row, free where the writer holds it already; a writer holding media rows takes them media then
+  profiles, as the purge does. ★ A writer that holds her row never waits on a media row it could meet held: the
+  guest's withdrawal of a block-removed upload (`remove_my_upload`'s sneaky arm, 20261007022000) takes her row first,
+  where her Restore and Let back in take it, then that media row NOWAIT (a holder, her Delete permanently, the purge or
+  an operator's removal, is on its way to her row: 55P03, and the guest presses again), so it sits in no cycle; her
+  row first alone would only turn the cycle round. One of the class stands: `disown_guest_rows_by_email` re-marks a
+  row the host binned (media, then her row) against `restore_media` (her row, then the media), one side's 40P01 and a
+  retry, until the restores take their rows without waiting (a ROADMAP line; `let_back_in`'s from let_in's
+  three-argument body, 20261007020000).
+- ★ **A write that bypasses triggers leaves the storage sums behind** (`session_replication_role = replica`, a
+  data-only restore of `media` with its triggers off). A whole-database restore carries `event_storage_sums` and
+  `host_storage_sums` in the same snapshot and stays exact; a partial restore of media rows runs
+  `rebuild_storage_sums` for each host it touched, and `storage_sums_drift` names any it missed. Undoing
+  `upload_sums` whole, if ever (the Advisor): drop its three triggers, its two tables and its two indexes on `media`
+  and `events`, and point `host_storage_summary` back at `host_storage_walk`'s body.
 - ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`). Every move
   of the door writes that row (`set_event_door` locks it `for no key update`, `set_event_password`'s update takes the
   same lock), and the triggers that end or admit the asks read only what has committed, so a join minted unlocked in
@@ -338,6 +359,8 @@ across the files (a body is its last definition; grants and policies replay stat
   which is how a check gets an unconfirmed account.
 - **An unapplied migration is proved on the live schema inside `begin; … rollback;` in ONE `execute_sql` call:** the
   call returns the LAST row-returning statement's result even after the rollback, so a temp `proof` table carries
-  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback). That
-  a deployed build's call still resolves to a changed signature is proved with no fixtures: call it the old way with
-  arguments its body refuses first (an unknown session, a foreign event) and read the refusal's words.
+  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback). A
+  migration's own foot carries its proof, commented: RED is `begin;` + that block uncommented + `rollback;`, GREEN the
+  file's statements before it. That a deployed build's call still resolves to a changed signature is proved with no
+  fixtures: call it the old way with arguments its body refuses first (an unknown session, a foreign event) and read
+  the refusal's words.

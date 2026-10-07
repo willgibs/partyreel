@@ -125,8 +125,9 @@ export const TAKE_HOME = {
     },
     {
       title: "Take all of it",
-      // However big: past one zip's ceilings it comes home in parts (export-flow `cap=split`).
-      body: "A zip of the originals: everything, photos, or videos, however big the album.",
+      // The plate draws Select (every tile picked), then Save's two rows: Photos takes light copies, Files the
+      // originals' zip, however big (past one zip's ceilings it comes home in parts, export-flow `cap=split`).
+      body: "Select it all, then Save: light copies to Photos, or every original as a zip.",
     },
     {
       // The reel plays live at the album's head and is never a file; what a

@@ -99,7 +99,11 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   is the PHYSICAL meter only (up on create, down when a row is asked to leave or purged) and gates nothing.
 - ★ **Every storage figure a host or the storage guard reads is `host_storage_summary(uuid)`** (through
   `getHostStorageSummary`, on the admin client with the `getUser()` id): her albums, her Deleted and the system's part
-  of it, whatever the album's size, and what her plan holds is the first two together (`storedBytes`). Deleted is only
+  of it, whatever the album's size, and what her plan holds is the first two together (`storedBytes`). It reads the
+  sums, never her items (upload-sums): `host_storage_sums` and her deleted events' `event_storage_sums` rows, less
+  the binned items past their 30 days (found by `binned_since`), kept exact by the `media_storage_sums` statement
+  triggers on every media write; `host_storage_walk` is the walk they answer to, and `storage_sums_drift` holds
+  them to it. Deleted is only
   what the host can restore: a guest's own withdrawal counts in no figure, because a guest's own delete is gone
   everywhere for the host. `storage-summary.test.ts` reads both definitions off the migrations, and a failed read
   throws, because the guard would read a swallowed failure as an empty account and sell any size.
@@ -334,7 +338,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   cards over one `ESTIMATE_BASIS_NOTE`, a table under its caption).
 - **A size too small for what she stores is a door, not a dead end** (`components/app/storage/`): its card flips in
   place to the numbers, and "See what's using space" opens the size list (her items largest first, read under RLS,
-  Deleted at its head with Empty) with a goal strip that finishes that switch. The list frees room the one way room
+  each event's total its own `event_storage_sums` row, `live_*` column-granted, never a walk of her items; Deleted
+  at its head with Empty) with a goal strip that finishes that switch. The list frees room the one way room
   frees, Delete for good, behind a confirm (nothing comes back). The strip only ever calls change-plan, which checks
   again, and its button deletes what is only selected first ("Delete and switch", the same confirm), because a
   selection has freed nothing yet; it counts from what she stored before this visit's deletions, so nothing is counted

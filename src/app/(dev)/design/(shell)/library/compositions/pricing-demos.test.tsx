@@ -156,8 +156,8 @@ describe("a press that would leave for Stripe never does", () => {
       get.click();
     });
     expect(
-      within(sheet()).getByRole("button", { name: /starting/i }),
-    ).toBeDisabled();
+      within(sheet()).getByRole("button", { name: /opening billing/i }),
+    ).toHaveAttribute("aria-busy", "true");
     expect(toast).not.toHaveBeenCalled();
     await advance(1000);
     expect(toast).toHaveBeenCalledWith(

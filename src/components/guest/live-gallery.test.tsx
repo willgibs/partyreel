@@ -279,6 +279,7 @@ type RowsProps = {
   onWindowChange?: (ids: readonly string[]) => void;
   arrivals?: readonly string[];
   onNeedLinks?: (ids: readonly string[]) => void;
+  own?: readonly string[];
 };
 const lastRows = () => rowsSpy.mock.calls.at(-1)![0] as RowsProps;
 const shownIds = () => lastRows().items.map((i) => i.id);
@@ -425,6 +426,38 @@ describe("LiveGallery: the album's order and her lens", () => {
     expect(shownIds()).toEqual(["m2", "m3"]);
     expect(lastRows().lens).toBe("all");
     expect(screen.queryByText("Showing videos")).toBeNull();
+  });
+});
+
+/**
+ * SHOW YOURS, FROM THE SEND'S TOAST (album-moments-wiring; `live-gallery-lens.ts`): the toast is the page's and her
+ * lens is the album's, so the press travels on the lens channel and the album answers it: Yours, the album brought
+ * into view, and the lens line's Show all the way back, as the View menu's own Yours.
+ */
+describe("LiveGallery: Show yours, asked from outside the album", () => {
+  it("★ turns the album to hers and brings it into view", async () => {
+    const { guestLens } = await import("@/components/guest/live-gallery-lens");
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled;
+    try {
+      await mount(
+        { isAuthed: true, canDeleteIds: ["m2"] },
+        fullSeed({ entries: ["m1", "m2", "m3"] }),
+      );
+      expect(shownIds()).toEqual(["m1", "m2", "m3"]);
+      await act(async () => guestLens.showYours());
+      expect(shownIds()).toEqual(["m2"]);
+      expect(lastRows().lens).toBe("yours");
+      expect(screen.getByText("Showing yours")).toBeTruthy();
+      expect(scrolled).toHaveBeenCalledWith(
+        expect.objectContaining({ block: "start" }),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Show all" }));
+      expect(shownIds()).toEqual(["m1", "m2", "m3"]);
+    } finally {
+      // jsdom has none of its own: leave it as it was found.
+      delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+    }
   });
 });
 
@@ -1105,7 +1138,10 @@ describe("LiveGallery: the arrival", () => {
     );
   });
 
-  it("never hands this device's own upload over as an arrival: it sweeps, it does not wait", async () => {
+  // ★ RESHAPED (album-moments-wiring): titled "it sweeps, it does not wait"; the sweep retired at guest-moments r1's
+  // `own=glow`, so the scar kept is the second half: hers never waits at the door, and it is handed as her own, to
+  // stand and glow at once.
+  it("never hands this device's own upload over as an arrival: it is her own, it does not wait", async () => {
     const ref = createRef<LiveGalleryHandle>();
     await mount({ ref, isAuthed: true, canDeleteIds: [] });
     // The manifest brings the photograph this device just sent (m9), as it brings anyone's.
@@ -1125,6 +1161,7 @@ describe("LiveGallery: the arrival", () => {
     // and this device's own landing must appear the moment it is sent.
     expect(shownIds()).toContain("m9");
     expect(lastRows().arrivals ?? []).toEqual([]);
+    expect(lastRows().own).toEqual(["m9"]);
   });
 });
 

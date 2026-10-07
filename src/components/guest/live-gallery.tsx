@@ -5,7 +5,7 @@
  * STATE it draws (the manifest and its links, the optimistic upload tiles, the doorbell and the
  * delta poll, this device's own ids) lives one level up, in `GalleryLiveProvider` (gallery-live.tsx),
  * since the reel reads the same album: one live source for album and reel. What stays here is what
- * only the album draws: the two arrival marks, the upload tiles at its head, the hearts, the View
+ * only the album draws: the arrival light, the upload tiles at its head, the hearts, the View
  * menu (Size, Sort and Filter: `gallery-view.ts`), the delete consequence, and the teaser CTA.
  *
  * ★ THE ALBUM'S ORDER AND HER LENS ARE PRESENTATION (album-order): the live source keeps its newest-first
@@ -33,6 +33,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
 } from "react";
@@ -62,6 +63,7 @@ import {
   buildGuestViewGroups,
   LENS_WORDS,
 } from "@/components/guest/gallery-view";
+import { guestLens } from "@/components/guest/live-gallery-lens";
 import { GuestSaveChoice } from "@/components/guest/live-gallery-save";
 import {
   guestSelect,
@@ -75,12 +77,7 @@ import { lensAlbum, type AlbumFilter } from "@/lib/shared/album-order";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
-import {
-  ARRIVAL_GLOW_MS,
-  ARRIVAL_SWEEP_MS,
-  arrivalMarks,
-  useArrivalMarks,
-} from "@/lib/shared/arrival";
+import { ARRIVAL_GLOW_MS, arrivalMarks } from "@/lib/shared/arrival";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { useRowStep } from "@/lib/shared/use-tile-size";
@@ -246,20 +243,14 @@ function LiveGalleryView({
     [closesOnLastRemoval, ownIds, liveOwnCount],
   );
 
-  // THE TWO MARKS, from the two lists. Memoized because `useArrivalMarks` keys its work off the
-  // array it is handed.
+  // THE ONE LIGHT, from the two lists (guest-moments r1, `own=glow`): what arrived by itself waits at the
+  // album's door until its photograph is drawn, and hers stands at once; both glow, and the glow is the rows'
+  // own (`GalleryRows`), lit as each lands, per id (overlapping arrivals each get a full life), never at the
+  // delta. Memoized because the gate keys its work off the arrays it is handed.
   const marks = useMemo(
     () => arrivalMarks({ arrivals, ownLandings }),
     [arrivals, ownLandings],
   );
-  const landedList = useMemo(
-    () => (marks.landed ? [marks.landed] : []),
-    [marks.landed],
-  );
-  // The sweep is EXCLUSIVE (only the newest own landing). The glow is the rows' own (`GalleryRows`, given
-  // the arrivals): each arrival is held out of the rows until its photograph is decoded, so its light is
-  // lit when it lands, per id (overlapping arrivals each get a full life), never at the delta.
-  const landedIds = useArrivalMarks(landedList, ARRIVAL_SWEEP_MS, true);
 
   /* ────────────────────────────────────────────────────────────────────────
      WHAT THIS DEVICE DRAWS AT THE ALBUM'S HEAD: the files still in the air,
@@ -305,6 +296,24 @@ function LiveGalleryView({
   const lens = useMemo(
     () => lensAlbum(items, ownIds, lensIntent),
     [items, ownIds, lensIntent],
+  );
+  // ★ SHOW YOURS, FROM THE SEND'S TOAST (`live-gallery-lens.ts`): her lens turns to Yours and the album comes into view
+  // at its top, at once under reduced motion. The lens line under the count is its way back (Show all), as it is for
+  // the View menu's own Yours.
+  const albumRef = useRef<HTMLElement | null>(null);
+  useEffect(
+    () =>
+      guestLens.onShowYours(() => {
+        setLensIntent("yours");
+        const still = window.matchMedia?.(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        albumRef.current?.scrollIntoView?.({
+          block: "start",
+          behavior: still ? "instant" : "smooth",
+        });
+      }),
+    [],
   );
   const sort = access === "full" ? (order?.sort ?? "newest") : "newest";
   const turn = live.inOrder;
@@ -418,13 +427,13 @@ function LiveGalleryView({
   return (
     <>
       <section
-        className="mt-3"
-        // Each mark's life, written once where every tile inherits it, so the sheet's keyframes and
-        // the state that holds `data-arrived` / `data-landed` are ONE pair of numbers.
+        ref={albumRef}
+        className="mt-3 scroll-mt-4"
+        // The light's life, written once where every tile inherits it, so the sheet's keyframe and
+        // the state that holds `data-arrived` are ONE number.
         style={
           {
             "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
-            "--arrival-sweep-ms": `${ARRIVAL_SWEEP_MS}ms`,
           } as CSSProperties
         }
         // The rows a develop holds and raises (the-wait r2), beside its sheet in the album's box.
@@ -509,12 +518,12 @@ function LiveGalleryView({
                 onWindowChange={onWindowChange}
                 onViewerNeedLinks={onViewerNeedLinks}
                 shareUrl={joinUrl}
-                // The two arrival marks on the tile box — the light is shared/arrival.css: the glow of what
-                // arrived by itself (held at the door until it can land complete, `use-arrival-gate.ts`, and
-                // its links asked for there) and the sweep of this device's own landing.
+                // The one arrival light on the tile box (shared/arrival.css): what arrived by itself, held at
+                // the door until its batch can land complete (`use-arrival-gate.ts`, its links asked for
+                // there), and this device's own landings, which stand at once.
                 arrivals={marks.arrived}
                 onNeedLinks={ensureLinks}
-                landedIds={landedIds}
+                own={marks.own}
                 // A guest removes THEIR OWN photograph and no other: omitted where the feature does not
                 // apply (the demo, a locked gallery) rather than passed with an empty set.
                 canDelete={

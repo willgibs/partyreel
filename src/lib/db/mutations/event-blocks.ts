@@ -1,6 +1,6 @@
 /**
  * THE PER-EVENT BLOCK'S TWO ACTS (event-safety r1, migration 20260928120000): block_from_event, with
- * its preview, and let_back_in, with its restore. Both are SECURITY DEFINER RPCs that re-check the
+ * its preview, and let_back_in, with its restore and its Let in (20261007020000). Both are SECURITY DEFINER RPCs that re-check the
  * caller is the event's host on `auth.uid()`, so they run on the HOST'S OWN client after `getUser()`
  * (the house rule: every write re-verifies), never the admin client: a host can only ever act on an
  * event they own, whatever a client sends. Every answer is a jsonb, read defensively.
@@ -142,14 +142,24 @@ export async function blockFromEvent(
   };
 }
 
-/** Lift a block; with `restore`, bring back what the block itself removed (Will's switch, off by default). */
+/**
+ * Lift a block; with `restore`, bring back what the block itself removed (Will's switch, off by default); with
+ * `letIn`, answer the ask the block held yes in the same press (host-moments r1, `let-back=straight`). `admitted` is
+ * everyone the lift let in, the door's own arms (Public, the list) and her answer together, so a Let in that let
+ * nobody in (a password ended the ask under the press) is told apart from one that did.
+ */
 export async function letBackIn(
   blockId: string,
-  options: { restore: boolean },
+  options: { restore: boolean; letIn: boolean },
 ): Promise<
   | {
       ok: true;
-      data: { eventId: string; restored: number; noRoom: number };
+      data: {
+        eventId: string;
+        restored: number;
+        noRoom: number;
+        admitted: number;
+      };
     }
   | BlockFailure
 > {
@@ -157,6 +167,7 @@ export async function letBackIn(
     supabase.rpc("let_back_in", {
       p_block_id: blockId,
       p_restore: options.restore,
+      p_let_in: options.letIn,
     }),
   );
   if (!result.ok) return result;
@@ -167,6 +178,7 @@ export async function letBackIn(
       eventId: typeof d.event_id === "string" ? d.event_id : "",
       restored: count(d.restored),
       noRoom: count(d.no_room),
+      admitted: count(d.admitted) + count(d.let_in),
     },
   };
 }

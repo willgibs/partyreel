@@ -45,6 +45,12 @@ view) is plain to anyone already.
   captions and hints, never a sentence, a control's only label or under a further alpha (`faint-copy-policy.test.tsx`).
 - **Status is light**: a state is a light and its word, and "nothing here yet" is one atom, `ui/empty.tsx` (the shared
   `EmptyState` and the feed's section empty are it).
+- ★ **A count that needs her is one token, `--needs-you`** (event-header r6, Will's `attention=tally`), with
+  `--needs-you-foreground` for its figures: the camera's tally, the red the palette already holds (paper's is
+  `--signal` itself; the room's a step deeper than its bright signal, so white figures hold 4.6:1). It is worn solid
+  and hard-edged by every count that waits on her (the hub's badges and their pills, the code's corner), never a glow,
+  so a screen's one light stays its light; no utility maps it, so a part reads it by name (`bg-(--needs-you)`). A
+  count hers that waits on nobody (steps left, a pause) is never it.
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` is the one home of its path (its comment says how
   to replace it), drawn by `Logo` and the social card alike; the mark (`markOnly`) is a stand-in mounted nowhere until
   the icon lands. `--brand` is an alias of `--primary` (ink).
@@ -116,6 +122,10 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, or in the admin.
 - **Gallery arrivals wear their own glow** (`shared/arrival.css`) rather than a lamp: a second light at the album's head
   on every beat reads as a pulse, not light, and a batch of them would bury the album's top.
+- **Afterglow's first light in production is the hub's Seam** (event-header r6; its facts are
+  [host-app.md](host-app.md)'s): born at the cover photograph's edge in that edge's own colours, read at runtime off the
+  crop the eye sees, at the brand's reach in the room and inside a strip of the room on paper, never on the page itself.
+  It is neither this engine nor the lamp set, and a status beside it is a solid point (`--needs-you`), never a glow.
 - **A new lamp answers four questions first**: what emits (or what place is lit), from where, sampled from what, and
   what above admits it.
 - **The lamp set is light, never UI**: five hues in three registers, each at its home: ambient `--lamp-1..5`
@@ -431,9 +441,10 @@ production build with `scripts/album-perf.mjs` at `/design/album-scale` (the gri
   pill (`album-window-news.tsx`).
 - **The rows mount only around the view** (`lib/shared/album-window.ts`), the keyboard's row pinned; a scroll reads the
   view by arithmetic on a cached offset, never a rect, since a rect read mid-frame forces a layout every frame.
-- **An arrival pushes**: the rows write `data-entering` on what their reflow brought in, in the same render (a
-  surface's mark lands a commit later and would flash the tile whole), and `arrival.css` wipes it in while the
-  neighbours glide.
+- **An arrival settles** (guest-moments r1's `batch=settle`): the rows write `data-entering` on what their reflow
+  brought in, in the same render (a surface's mark lands a commit later), and `arrival.css` lifts it, whole and lit,
+  over the neighbours gliding out of its place (never a wipe or a fade: its batch was let in drawn,
+  `use-arrival-gate.ts`).
 - **Density is the View menu's slider and a pinch** (`density-control.tsx`): the slider's stops are menu radio items,
   since a thumb inside a menu is unreachable by keyboard; a pinch, a trackpad pinch or ctrl and the wheel over the grid
   steps, anchored on the photo under the gesture.
@@ -674,9 +685,10 @@ board, its own sheet and scenes), found by the registry and the board route and 
   scene mounts once the frame's copied sheets have loaded; the media hooks read the frame's window
   (`MediaWindowProvider`), so a frame at 375 draws the phone's branch; a layer opens inside it, its scroll lock and
   focus guards on the frame's body; and it carries its own `GlowFilter`. Still the lab's: a direct `window.matchMedia`
-  in production, radix's focus trap, and history (a place popup drawn open at a hand's width costs the tab's Back one
-  press); and a frame's elements wear the frame's own prototypes, so production's `instanceof HTMLElement` answers false
-  there.
+  in production, radix's focus trap, an `IntersectionObserver` with no root (its root is the lab's viewport, so the
+  hub's cards row folds into its pills wherever its frame stands: a board draws the resting row from its parts), and
+  history (a place popup drawn open at a hand's width costs the tab's Back one press); and a frame's elements wear the
+  frame's own prototypes, so production's `instanceof HTMLElement` answers false there.
 - **A frame takes its pane's theme and its option's pause** (`frame-theme.ts`, `frame-pause.ts`). A portalled scene
   wears the class of the nearest `.dark` or `.surface-paper` above its frame (the page's with none) and follows it while
   open, so the Specimen's light and dark split draws it once in each; a routed frame keeps its site's own provider's

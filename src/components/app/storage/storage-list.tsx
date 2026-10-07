@@ -80,6 +80,11 @@ export type SwitchGoal = {
 export type FitGoal = {
   kind: "fit";
   capBytes: number;
+  /**
+   * Her plan, named with its size ("Pro 50 GB": the over-cap banner's own words), for the strip's line; a door that
+   * does not know it leaves it out, and the strip says "your plan" and the size alone.
+   */
+  plan?: string;
 };
 
 export type StorageGoal = SwitchGoal | FitGoal;

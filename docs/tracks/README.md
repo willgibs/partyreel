@@ -87,7 +87,7 @@ live.
 
 - none yet
 
-## Deferred (ROADMAP one-liners, bucket named)
+## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
 - none yet
 

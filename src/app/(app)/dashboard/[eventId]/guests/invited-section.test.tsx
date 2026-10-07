@@ -19,6 +19,8 @@ vi.mock("@/app/(app)/dashboard/[eventId]/guests/actions", () => ({
 }));
 
 const { InvitedSection } = await import("./invited-section");
+const { settingsPageHref } =
+  await import("@/components/app/event-settings/settings-pages");
 
 const EVENT = "11111111-2222-4333-8444-555555555555";
 
@@ -151,5 +153,67 @@ describe("the invite list", () => {
       document.querySelector("[data-invited='jay@example.com']"),
     ).not.toBeNull();
     expect(toast.error).toHaveBeenCalled();
+  });
+});
+
+describe("★ a list nobody is on, under a door that is not the list, sleeps (crumbs-87, the gap audit)", () => {
+  const maya = { email: "maya@example.com", joined: true };
+
+  it("says what the list does and what wakes it, with the way there, and draws no field to type into", () => {
+    render(
+      <InvitedSection eventId={EVENT} invited={[]} listIsTheDoor={false} />,
+    );
+    const section = document.querySelector("[data-invited-section]");
+    expect(section?.hasAttribute("data-invited-asleep")).toBe(true);
+    const line = document.querySelector("[data-dormant-summary]");
+    // What it does when awake, and that it sends nothing: the paste box read as the way to invite her guests.
+    expect(line?.textContent).toContain("does nothing yet");
+    expect(line?.textContent).toContain("come straight in once they confirm");
+    expect(line?.textContent).toContain("sends nothing");
+    expect(
+      screen.getByRole("link", { name: "Change who can get in" }),
+    ).toHaveAttribute("href", settingsPageHref(EVENT, "door"));
+    expect(screen.queryByLabelText("Add or paste addresses")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("is the whole section where the list is the way in, even with nobody on it yet", () => {
+    render(<InvitedSection eventId={EVENT} invited={[]} listIsTheDoor />);
+    expect(document.querySelector("[data-invited-asleep]")).toBeNull();
+    expect(screen.getByLabelText("Add or paste addresses")).toBeEnabled();
+  });
+
+  it("keeps a list that already holds addresses awake under any door: they are hers to see and to remove", () => {
+    render(
+      <InvitedSection eventId={EVENT} invited={[maya]} listIsTheDoor={false} />,
+    );
+    expect(document.querySelector("[data-invited-asleep]")).toBeNull();
+    expect(screen.getByLabelText("Add or paste addresses")).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Remove maya@example.com" }),
+    ).toBeInTheDocument();
+    // The note it always wore there, with its way to the door: nothing here says the list does something it does not.
+    expect(
+      screen.getByRole("link", { name: "Change who can get in" }),
+    ).toHaveAttribute("href", settingsPageHref(EVENT, "door"));
+  });
+
+  it("does not fold under her hand when she removes the last address: the room's next read decides", async () => {
+    removeInviteAction.mockResolvedValue({ ok: true });
+    const view = render(
+      <InvitedSection eventId={EVENT} invited={[maya]} listIsTheDoor={false} />,
+    );
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Remove maya@example.com" }),
+      );
+    });
+    expect(document.querySelector("[data-invited-asleep]")).toBeNull();
+    expect(screen.getByLabelText("Add or paste addresses")).toBeInTheDocument();
+    // The removal's own revalidation brings the empty list: now the section is the sleeping one.
+    view.rerender(
+      <InvitedSection eventId={EVENT} invited={[]} listIsTheDoor={false} />,
+    );
+    expect(document.querySelector("[data-invited-asleep]")).not.toBeNull();
   });
 });

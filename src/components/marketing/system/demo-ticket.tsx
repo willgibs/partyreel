@@ -38,14 +38,16 @@ export type DemoFrameSize = "row" | "nav";
  *  so one number (the mat's height) is what changes place to place. */
 const FRAME_PHOTO: Record<DemoFrameSize, { w: number; h: number }> = {
   row: { w: 200, h: 240 },
-  nav: { w: 84, h: 101 },
+  // The pane is as tall as the Features list beside it, and the frame stands in its middle (mega-panel.tsx), so
+  // it is sized to fill that pane, not the 16:9 box it once sat in at the top.
+  nav: { w: 140, h: 168 },
 };
 
 /** The code's rendered edge, quiet zone included (see the header note on the
  *  trade each size makes against scanning). */
 const FRAME_QR: Record<DemoFrameSize, number> = {
   row: 92,
-  nav: 34,
+  nav: 56,
 };
 
 /** The one still every frame carries (the fixture the site already holds,

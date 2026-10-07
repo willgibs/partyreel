@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
+import { ArrivalLight } from "@/components/marketing/sections/shared/arrival-light";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { cn } from "@/lib/utils";
@@ -236,8 +237,8 @@ const ROLL_IDS = [
  * The camera roll with three picked, and the action bar's own pill underneath
  * (event-experience.tsx's ImageUp + "Add photos"; the uploading chip is the
  * floating button's). The companion is what happens next: the three on their
- * way, one still climbing, one landed and wearing a success check (a picture of
- * the landing: the product marks it with a pass of light, shared/arrival.css).
+ * way, one still climbing, one landed and wearing the album's own pass of light
+ * (`ArrivalLight`, shared/arrival.css: yours is in).
  */
 export function AddPicture() {
   return (
@@ -251,7 +252,9 @@ export function AddPicture() {
                 key={id}
                 className="flex items-center gap-2.5 rounded-lg border bg-card p-1.5 ring-1 ring-foreground/5"
               >
-                <Tile id={id} className="size-10 shrink-0" sizes="40px" />
+                <Tile id={id} className="size-10 shrink-0" sizes="40px">
+                  {i === 0 && <ArrivalLight kind="landed" every={3600} />}
+                </Tile>
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="h-1 w-full overflow-hidden rounded-full bg-muted">
                     <span
@@ -265,11 +268,6 @@ export function AddPicture() {
                     {i === 0 ? "Added" : "Uploading"}
                   </span>
                 </span>
-                {i === 0 && (
-                  <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-success text-white">
-                    <Check className="size-2.5" strokeWidth={3} />
-                  </span>
-                )}
               </div>
             ),
           )}
@@ -375,11 +373,7 @@ export function RoomPicture() {
                 className={i % 3 === 0 ? "aspect-[3/4]" : undefined}
                 sizes="100px"
               >
-                {i === 1 && (
-                  <span className="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-success text-white">
-                    <Check className="size-2" strokeWidth={3} />
-                  </span>
-                )}
+                {i === 1 && <ArrivalLight kind="arrived" every={4800} />}
               </Tile>
             ))}
           </div>

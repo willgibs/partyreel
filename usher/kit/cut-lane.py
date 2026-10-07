@@ -93,7 +93,7 @@ working.
 
 - none yet
 
-## Deferred (ROADMAP one-liners, bucket named)
+## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
 - none yet
 
@@ -107,7 +107,7 @@ working.
 - Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
 - Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
+- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
 - Look at first: ...
 """
     out = pathlib.Path("docs/tracks") / f"{track}.md"

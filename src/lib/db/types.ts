@@ -809,17 +809,55 @@ export type Database = {
           },
         ]
       }
+      event_storage_sums: {
+        Row: {
+          binned_bytes: number
+          binned_count: number
+          binned_since: string | null
+          event_id: string
+          host_id: string
+          live_bytes: number
+          live_count: number
+          system_bytes: number
+          system_count: number
+        }
+        Insert: {
+          binned_bytes?: number
+          binned_count?: number
+          binned_since?: string | null
+          event_id: string
+          host_id: string
+          live_bytes?: number
+          live_count?: number
+          system_bytes?: number
+          system_count?: number
+        }
+        Update: {
+          binned_bytes?: number
+          binned_count?: number
+          binned_since?: string | null
+          event_id?: string
+          host_id?: string
+          live_bytes?: number
+          live_count?: number
+          system_bytes?: number
+          system_count?: number
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           accepting_uploads: boolean
           allow_videos: boolean
           capture: string
+          create_key: string | null
           created_at: string
           custom_slug: string | null
           deleted_at: string | null
           description: string | null
           develops_at: string | null
           display_in_profile: boolean
+          email_held: boolean
           event_date: string | null
           event_end_date: string | null
           event_password_hash: string | null
@@ -848,12 +886,14 @@ export type Database = {
           accepting_uploads?: boolean
           allow_videos?: boolean
           capture?: string
+          create_key?: string | null
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
           develops_at?: string | null
           display_in_profile?: boolean
+          email_held?: boolean
           event_date?: string | null
           event_end_date?: string | null
           event_password_hash?: string | null
@@ -882,12 +922,14 @@ export type Database = {
           accepting_uploads?: boolean
           allow_videos?: boolean
           capture?: string
+          create_key?: string | null
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
           develops_at?: string | null
           display_in_profile?: boolean
+          email_held?: boolean
           event_date?: string | null
           event_end_date?: string | null
           event_password_hash?: string | null
@@ -1076,6 +1118,44 @@ export type Database = {
             foreignKeyName: "guests_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      host_storage_sums: {
+        Row: {
+          binned_bytes: number
+          binned_count: number
+          host_id: string
+          live_bytes: number
+          live_count: number
+          system_bytes: number
+          system_count: number
+        }
+        Insert: {
+          binned_bytes?: number
+          binned_count?: number
+          host_id: string
+          live_bytes?: number
+          live_count?: number
+          system_bytes?: number
+          system_count?: number
+        }
+        Update: {
+          binned_bytes?: number
+          binned_count?: number
+          host_id?: string
+          live_bytes?: number
+          live_count?: number
+          system_bytes?: number
+          system_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_storage_sums_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2545,6 +2625,10 @@ export type Database = {
           system_bytes: number
         }[]
       }
+      host_storage_walk: {
+        Args: { p_host_id: string }
+        Returns: Record<string, unknown>
+      }
       kept_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
       leave_deleted: {
         Args: {
@@ -2556,7 +2640,7 @@ export type Database = {
         Returns: Record<string, unknown>
       }
       let_back_in: {
-        Args: { p_block_id: string; p_restore?: boolean }
+        Args: { p_block_id: string; p_let_in?: boolean; p_restore?: boolean }
         Returns: Json
       }
       let_in_at_door: {
@@ -2623,6 +2707,7 @@ export type Database = {
           host_id: string
         }[]
       }
+      rebuild_storage_sums: { Args: { p_host_id: string }; Returns: Json }
       recompute_pass_entitlement: {
         Args: { p_host_id: string; p_now?: string }
         Returns: string
@@ -2704,6 +2789,10 @@ export type Database = {
           host_id: string
           standby_bytes: number
         }[]
+      }
+      storage_sums_drift: {
+        Args: { p_after?: string; p_limit?: number }
+        Returns: Json
       }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }

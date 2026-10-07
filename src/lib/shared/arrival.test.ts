@@ -3,23 +3,24 @@ import { describe, expect, it } from "vitest";
 import { arrivalMarks, newIds } from "@/lib/shared/arrival";
 
 /**
- * WHICH IDS GLOW AND WHICH ONE SWEEPS (Will, `landing=sweep`, 2026-09-21: "This
- * should be consistent across guest and host arrival experiences. Would feel
- * weird for it to be handled differently on either.").
+ * WHICH IDS WAIT AT THE ALBUM'S DOOR AND WHICH STAND AT ONCE, under the one light (Will, `landing=sweep`,
+ * 2026-09-21: "This should be consistent across guest and host arrival experiences. Would feel weird for it to be
+ * handled differently on either."; guest-moments r1, `own=glow`: her own photograph wears the rim and wash anyone's
+ * does).
  *
- * FUNCTION ONLY, and the function is the whole grammar: nothing here reads a
- * duration, an opacity or a keyframe. What is held is the two rules that decide
- * which mark an id takes, because both are invisible in the source and both
- * shipped as bugs before they were rules — a guest's own photograph lit as a
- * stranger's arrival, and a batch of twelve stacking the shimmer up the gallery
- * (which is why Will banked it in the first place).
+ * ★ RESHAPED ON PURPOSE (album-moments-wiring): this file pinned "your own never glows, it sweeps" and "only the
+ * newest of your own sweeps". The sweep retired at Will's `own=glow`, and both of its reasons went with it: a guest's
+ * own photograph lit as a stranger's arrival (it is one light for every arrival now, hers included) and a batch of
+ * twelve stacking the shimmer up the gallery (there is no shimmer to stack). THE SCAR KEPT: hers is still taken out of
+ * what waits at the door, because the poll hands her landing in as an arrival a beat after her tile already stood,
+ * and held there like a stranger's it would vanish from the rows for the hold.
  *
- * The HOLD (`useArrivalMarks`) is deliberately not pinned here: it is timers and
- * a ledger, and what it guarantees — an id is lit once, ever — is a statement
- * about React re-renders rather than about the grammar.
+ * FUNCTION ONLY, and the function is the whole grammar: nothing here reads a duration, an opacity or a keyframe.
+ * The HOLD (`useArrivalMarks`) is deliberately not pinned here: it is timers and a ledger, and what it guarantees
+ * (an id is lit once, ever) is a statement about React re-renders rather than about the grammar.
  */
-describe("your own never glows, it sweeps", () => {
-  it("subtracts every id this device landed from the glowing set", () => {
+describe("her own never waits at the door", () => {
+  it("subtracts every id this device landed from what waits", () => {
     const marks = arrivalMarks({
       arrivals: ["mine", "hers", "his"],
       ownLandings: ["mine"],
@@ -27,7 +28,7 @@ describe("your own never glows, it sweeps", () => {
     expect(marks.arrived).toEqual(["hers", "his"]);
   });
 
-  it("glows everything when this device has landed nothing", () => {
+  it("holds everything at the door when this device has landed nothing", () => {
     expect(
       arrivalMarks({ arrivals: ["a", "b"], ownLandings: [] }).arrived,
     ).toEqual(["a", "b"]);
@@ -36,31 +37,29 @@ describe("your own never glows, it sweeps", () => {
   it("is empty on a still album", () => {
     const marks = arrivalMarks({ arrivals: [], ownLandings: [] });
     expect(marks.arrived).toEqual([]);
-    expect(marks.landed).toBeNull();
+    expect(marks.own).toEqual([]);
   });
 });
 
-describe("only the newest of your own sweeps", () => {
-  it("takes the head of the landings, never the batch", () => {
-    // Newest first, which is the order the gallery prepends in.
+describe("every one of hers stands and glows, the batch whole", () => {
+  it("hands each of her landings to be lit at once, newest first, never only the newest", () => {
+    // Newest first, which is the order the gallery prepends in. The retired sweep took the head alone.
     expect(
       arrivalMarks({ arrivals: [], ownLandings: ["third", "second", "first"] })
-        .landed,
-    ).toBe("third");
+        .own,
+    ).toEqual(["third", "second", "first"]);
   });
 
-  it("is null before anything of yours has landed", () => {
-    expect(
-      arrivalMarks({ arrivals: ["a"], ownLandings: [] }).landed,
-    ).toBeNull();
+  it("names none before anything of hers has landed", () => {
+    expect(arrivalMarks({ arrivals: ["a"], ownLandings: [] }).own).toEqual([]);
   });
 
-  it("never marks one id both ways", () => {
+  it("never names one id both ways", () => {
     const marks = arrivalMarks({
       arrivals: ["mine"],
       ownLandings: ["mine"],
     });
-    expect(marks.landed).toBe("mine");
+    expect(marks.own).toEqual(["mine"]);
     expect(marks.arrived).not.toContain("mine");
   });
 });

@@ -52,8 +52,10 @@ A system doc (what exists) wins over the ROADMAP (what might be).
    what broke, and one reshaped on purpose keeps its real scar, drops its expired reason and says which. Leave
    WHY-comments.
 5. **Test**: Vitest for pure logic; a rolled-back Supabase-MCP check for new SQL; the gate.
-6. **Verify antagonistically**: force the error cases, the cross-tenant and abuse paths, malformed input; local first,
-   then live (below).
+6. **Verify antagonistically** what your change adds: its error cases, malformed input, and the cross-tenant and abuse
+   paths of anything that reaches data; local first, then live (below). Walk your own new paths once, reading the
+   page's text and state before a screenshot: the wide walk (every surface, width, theme and assistive setting) is the
+   milestone red-team's, where production readiness is proven.
 7. **Commit and hand off** on your own `lp/<track>` the moment the gate is green.
 8. **Record subtractively**: a fact inside your lane refined in place in its `docs/systems/` doc (listed in the
    manifest), and the manifest's Deferred lines; nothing else.

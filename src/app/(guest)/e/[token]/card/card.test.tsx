@@ -13,6 +13,11 @@
  *     album's card behind every closed door, a block and a private album alike, in the same bytes;
  *     a gated album (the doors, 20260929120000) names its name, as a password album does, over the
  *     private album's card, since the card route reads a gated album as private.
+ *
+ * ★ AND AN OPEN ALBUM'S LINK SAYS WHAT THE ALBUM IS RIGHT NOW (crumbs-87, the gap audit): it always unfurled as "Add
+ * photos to <name>" and "Add yours.", even after the host closed uploads. The state rides the card's address (`?add`),
+ * so the route stays one answer per address and the edge's hour never outlives a host's change; the page's title and
+ * line follow `accepting_uploads` in the same breath (`card/words.ts`).
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import type { ReactElement } from "react";
@@ -75,7 +80,9 @@ vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getHostAvatarSeed: vi.fn(),
   getOpenAlbumItemForCard: vi.fn(async () => null),
 }));
-vi.mock("@/lib/r2/presign", () => ({ presignDownload: vi.fn() }));
+vi.mock("@/lib/r2/presign", () => ({
+  presignDownload: vi.fn(async () => "https://r2.test/one-photo.webp"),
+}));
 vi.mock("@/components/guest/event-experience", () => ({
   EventExperience: () => null,
 }));
@@ -124,6 +131,8 @@ vi.mock("@/lib/demo", () => ({ isDemoToken: () => false }));
 
 const { GET } = await import("./route");
 const { generateMetadata } = await import("../page");
+const { getOpenAlbumItemForCard } =
+  await import("@/lib/db/queries/guest-events-admin");
 
 const QR = "0123456789abcdef0123456789abcdef";
 const NAME = "Maya's 30th";
@@ -232,6 +241,36 @@ describe("the card route: one answer per address", () => {
     expect(getEventCardName).not.toHaveBeenCalled();
   });
 
+  it("★ the plain address says what is true of every album, and ?add is the invitation (crumbs-87)", async () => {
+    getEventCardName.mockResolvedValue(NAME);
+    const plain = await card(`https://partyreel.test/e/${QR}/card`);
+    const adding = await card(`https://partyreel.test/e/${QR}/card?add`);
+    expect(plain.body).toContain("See the photos &amp; videos on Partyreel");
+    expect(plain.body).not.toContain("Add your photos");
+    expect(adding.body).toContain("Add your photos &amp; videos on Partyreel");
+    expect(adding.body).not.toContain("See the photos");
+    // The same album, the same name, the same hour at the edge: only the foot is the flag's.
+    expect(adding.body).toContain("Maya&#x27;s 30th");
+    expect(adding.cacheControl).toBe(plain.cacheControl);
+  });
+
+  it("★ the flag is honoured only where a name is: a private, unknown or ?private card never invites", async () => {
+    getEventCardName.mockResolvedValue(null);
+    const unnamed = await card(`https://partyreel.test/e/${QR}/card?add`);
+    expect(unnamed.body).toContain("A Partyreel event");
+    expect(unnamed.body).not.toContain("Add your photos");
+
+    getEventCardName.mockResolvedValue(NAME);
+    getEventCardName.mockClear();
+    const privateAdd = await card(
+      `https://partyreel.test/e/${QR}/card?private&add`,
+    );
+    expect(privateAdd.body).toContain("A Partyreel event");
+    expect(privateAdd.body).not.toContain("Add your photos");
+    expect(privateAdd.body).not.toContain("Maya");
+    expect(getEventCardName).not.toHaveBeenCalled();
+  });
+
   it("★ two viewers get the same bytes and headers, and nothing reads who is asking", async () => {
     getEventCardName.mockResolvedValue(NAME);
     const first = await card(`https://partyreel.test/e/${QR}/card`);
@@ -247,13 +286,79 @@ describe("the card route: one answer per address", () => {
 });
 
 describe("the page's metadata: which card each viewer's page names", () => {
-  it("an open door names the event's own card", async () => {
+  it("an open album that takes photos names the event's own card, the inviting one", async () => {
+    // Reshaped by crumbs-87. This read the bare `/card` for every open album, and its reason expired: the card's foot
+    // now follows whether the album takes photos, by its address (`?add`). What this keeps: an open door names the
+    // event's own card, never the private album's, by the canonical token.
     pageDoor.mockResolvedValue(openDoor(guestEvent()));
     const meta = await metadataFor(QR);
-    expect(imageUrls(meta)).toEqual([`/e/${QR}/card`, `/e/${QR}/card`]);
+    expect(imageUrls(meta)).toEqual([`/e/${QR}/card?add`, `/e/${QR}/card?add`]);
   });
 
-  it("a password album's door names the event's own card too (its name is link-shared)", async () => {
+  it("★ an open album whose host closed uploads is the album to look through, in its title, its line and its card", async () => {
+    pageDoor.mockResolvedValue(
+      openDoor(guestEvent({ accepting_uploads: false })),
+    );
+    const meta = await metadataFor(QR);
+    expect(meta.title).toBe(`Photos from ${NAME}`);
+    expect(meta.description).toBe(
+      "Photos and videos from the day. Take a look.",
+    );
+    // The plain card: no flag, so no invitation at the edge's hour of the old one.
+    expect(imageUrls(meta)).toEqual([`/e/${QR}/card`, `/e/${QR}/card`]);
+    // Nothing of it asks for what the page refuses, Open Graph and Twitter alike.
+    expect(JSON.stringify(meta)).not.toMatch(/Add (yours|photos)/);
+    expect(meta.openGraph?.title).toBe(meta.title);
+  });
+
+  it("an album that takes photos invites in its title and its line", async () => {
+    pageDoor.mockResolvedValue(openDoor(guestEvent()));
+    const meta = await metadataFor(QR);
+    expect(meta.title).toBe(`Add photos to ${NAME}`);
+    expect(meta.description).toBe("Photos and videos from the day. Add yours.");
+  });
+
+  it("a link to one photograph follows the album's state in its line, and keeps its own title and picture", async () => {
+    // One photograph for each of the two asks below, never left behind for a test that names none.
+    const item = {
+      type: "photo" as const,
+      originalKey: "events/e/o.jpg",
+      previewKey: "events/e/p.webp",
+      width: 800,
+      height: 600,
+    };
+    vi.mocked(getOpenAlbumItemForCard)
+      .mockResolvedValueOnce(item)
+      .mockResolvedValueOnce(item);
+    const photoId = "7d9c5d6e-2f4a-4b3c-8e1f-0a1b2c3d4e5f";
+    // A photograph unfurls only where the link alone opens the whole album: no email step in front of an unfurler.
+    pageDoor.mockResolvedValue(
+      openDoor(guestEvent({ require_verified_email: false })),
+    );
+    const adding = await metadataFor(QR, { photo: photoId });
+    expect(adding.title).toBe(`A photo from ${NAME}`);
+    expect(adding.description).toBe(
+      "Photos and videos from the day. Add yours.",
+    );
+    expect(imageUrls(adding)).toEqual([
+      "https://r2.test/one-photo.webp",
+      "https://r2.test/one-photo.webp",
+    ]);
+
+    pageDoor.mockResolvedValue(
+      openDoor(
+        guestEvent({ accepting_uploads: false, require_verified_email: false }),
+      ),
+    );
+    const closed = await metadataFor(QR, { photo: photoId });
+    expect(closed.title).toBe(`A photo from ${NAME}`);
+    expect(closed.description).toBe(
+      "Photos and videos from the day. Take a look.",
+    );
+    expect(JSON.stringify(closed)).not.toContain("Add yours");
+  });
+
+  it("a password album's door names the event's own card too (its name is link-shared), never the inviting one", async () => {
     pageDoor.mockResolvedValue(
       openDoor(guestEvent({ visibility: "password", has_password: true })),
     );

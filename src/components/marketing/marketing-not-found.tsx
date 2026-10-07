@@ -5,13 +5,10 @@ import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// The site/marketing 404 content (a lost visitor) — single-sourced so it can't drift
-// between the TWO places it renders: the root app/not-found.tsx (UNMATCHED URLs, which fall
-// through to the root layout with NO route-group chrome, so that file supplies its own
-// header/footer) and the (cinema) group's not-found.tsx (a notFound() thrown
-// INSIDE a marketing route, where the group layout ALREADY renders the header/footer — so
-// that file must NOT add chrome, or it double-stacks). Each caller wraps this with the
-// centering right for its context. NotFoundScreen is SHARED with the guest/host boundaries:
+// The site/marketing 404 content (a lost visitor), drawn by the site's one 404, the root
+// app/not-found.tsx (through not-found.site.tsx, which brings its own header and footer;
+// the cinema group's own 404 retired in marketing-crumbs, unreachable once every slug was
+// routing's), and by the help palette, which borrows the strip. NotFoundScreen is SHARED with the guest/host boundaries:
 // style AROUND it (icon choice, footnote content), never its internals.
 export function MarketingNotFound({
   /**
@@ -21,10 +18,8 @@ export function MarketingNotFound({
    * quieter voice: photographs, one of them missing. Two devices making one
    * point is noise, and the weaker of the two here is a row of grey placeholder
    * tiles sitting among real photographs, which reads as something still
-   * loading. So the root 404 turns it off and the trail carries the idea. The
-   * GROUP 404s keep it (a notFound() thrown inside a marketing route, dark or
-   * paper, in a 60vh box that is nobody's whole screen and carries no trail),
-   * and so do the 500 screen and the help palette that borrow it.
+   * loading. So the root 404 turns it off and the trail carries the idea; the
+   * 500 screen and the help palette that borrow it keep it.
    *
    * ★ AND WHERE IT RUNS, IT RUNS ABOVE THE WORDS NOW (Will, `picture=today`
    * with his note, 2026-09-19): "it does look weird beneath the content. It may

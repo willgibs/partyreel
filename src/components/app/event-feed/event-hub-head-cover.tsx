@@ -200,10 +200,13 @@ export function HostAlbumCover({
           straight away.
         </ConsequenceLine>
       ) : null}
+      {/* ★ THE PARTY'S PLACE, NAMED, WHERE ITS CLOCK IS NOT HERS (crumbs-87): the line above says the develop in the
+          party's zone ("9 am in Los Angeles"), so the sheet under it says both clocks the way her guests' does, and
+          never a second time in her own clock alone, unlabelled. */}
       <ContactSheet
         waiting={facts}
         hers={hers}
-        clock={{ kind: "develop", developsAt }}
+        clock={{ kind: "develop", developsAt, zone: develop.time_zone }}
       />
     </div>
   );

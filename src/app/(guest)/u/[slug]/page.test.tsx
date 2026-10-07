@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * A HANDLE NOBODY HOLDS DRAWS ITS OWN NOT-FOUND (stale-link). A `notFound()` thrown while this page rendered was
@@ -16,13 +16,22 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const stub = () => null;
+// What the page reads about this profile and this viewer's relation to it; a dead handle is the default.
+const read = vi.hoisted(() => ({
+  profile: null as unknown,
+  /** I blocked them. */
+  blocked: false,
+  /** Either of us blocked the other. */
+  blockedEitherWay: false,
+  viewer: null as { id: string } | null,
+}));
 vi.mock("@/lib/db/queries/social", () => ({
-  getPublicProfile: async () => null,
+  getPublicProfile: async () => read.profile,
   getPublicProfileAttendedCoverUrls: stub,
   getPublicProfileCoverUrls: stub,
-  hasBlocked: stub,
-  isBlockedEitherWay: stub,
-  isFollowing: stub,
+  hasBlocked: async () => read.blocked,
+  isBlockedEitherWay: async () => read.blockedEitherWay,
+  isFollowing: async () => false,
 }));
 vi.mock("@/components/app/event-card", () => ({
   EventCard: stub,
@@ -35,15 +44,20 @@ vi.mock("@/app/(guest)/u/[slug]/owner-sections", () => ({
   OwnerSections: stub,
 }));
 vi.mock("@/components/guest/guest-header", () => ({ GuestHeader: stub }));
-vi.mock("@/components/social/follow-button", () => ({ FollowButton: stub }));
+vi.mock("@/components/social/follow-button", () => ({
+  FollowButton: () => <button type="button">Follow</button>,
+}));
 vi.mock("@/components/social/profile-actions-menu", () => ({
-  ProfileActionsMenu: stub,
+  ProfileActionsMenu: () => <button type="button">More options</button>,
+}));
+vi.mock("@/app/(guest)/u/[slug]/blocked-well", () => ({
+  BlockedWell: ({ name }: { name: string }) => <p>the well for {name}</p>,
 }));
 vi.mock("@/lib/avatar/seed", () => ({ seedFor: stub }));
 vi.mock("@/lib/supabase/avatar-storage", () => ({ getAvatarUrl: stub }));
 // The viewer is asked beside the RPC (crumbs-44), so a dead handle meets an anonymous one.
 vi.mock("@/lib/supabase/request-auth", () => ({
-  getRequestAuth: async () => ({ supabase: null, user: null }),
+  getRequestAuth: async () => ({ supabase: null, user: read.viewer }),
 }));
 
 const { default: PublicProfilePage, generateMetadata } = await import("./page");
@@ -67,8 +81,77 @@ describe("a handle nobody holds", () => {
   it("is titled as the not-found it is, noindex, with the not-found's own metadata", async () => {
     const metadata = await generateMetadata({ params });
     expect(metadata).toBe(notFoundMetadata);
-    expect(boundaryMetadata).toBe(notFoundMetadata);
+    // The boundary takes the words alone: a thrown notFound() carries Next's one noindex (crumbs-86).
+    expect(boundaryMetadata).toEqual({ title: notFoundMetadata.title });
     expect(metadata.title).toBe("Profile not found");
     expect(metadata.robots).toEqual({ index: false, follow: false });
+  });
+});
+
+/**
+ * THE WELL ON A PAGE SHE BLOCKED (`account-moments` r1, `block=line`). The privacy is the whole of its contract: a
+ * block is private and mutual, and the page is public by existence, so what it says about a block can only ever be said
+ * to the one who made it. Pinned: the well is drawn for her own block alone, never when only they blocked her (that
+ * page is as it has always been, Follow not there and the menu still standing), and never to a visitor with no account.
+ */
+describe("a page the viewer blocked", () => {
+  const jordan = {
+    id: "jordan",
+    slug: "jordan",
+    display_name: "Jordan Pike",
+    bio: null,
+    avatar_updated_at: null,
+    created_at: "2026-03-14T10:00:00.000Z",
+    hosted_events: [],
+    attended_events: [],
+    private_event_count: 0,
+  };
+
+  beforeEach(() => {
+    read.profile = jordan;
+    read.viewer = { id: "priya" };
+    read.blocked = false;
+    read.blockedEitherWay = false;
+  });
+
+  async function visit() {
+    render(<>{await PublicProfilePage({ params })}</>);
+  }
+
+  it("★ says it where Follow stood, to the one who blocked, and Follow is gone", async () => {
+    read.blocked = true;
+    read.blockedEitherWay = true;
+    await visit();
+    expect(screen.getByText("the well for Jordan Pike")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
+    // The menu stays: it is her Unblock too, and a vanishing menu would tell the other side.
+    expect(
+      screen.getByRole("button", { name: "More options" }),
+    ).toBeInTheDocument();
+  });
+
+  it("★ never draws it, or anything else, for a viewer only THEY blocked: Follow is merely not there", async () => {
+    read.blockedEitherWay = true;
+    await visit();
+    expect(screen.queryByText(/the well for/)).toBeNull();
+    expect(screen.queryByText(/blocked/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "More options" }),
+    ).toBeInTheDocument();
+  });
+
+  it("draws neither where nothing is blocked, and nothing at all to a visitor with no account", async () => {
+    await visit();
+    expect(screen.queryByText(/the well for/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
+    cleanup();
+
+    read.viewer = null;
+    read.blocked = true;
+    read.blockedEitherWay = true;
+    await visit();
+    expect(screen.queryByText(/the well for/)).toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });

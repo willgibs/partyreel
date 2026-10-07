@@ -4,15 +4,19 @@ import Link from "next/link";
 
 import { EventCard, RoleMarker } from "@/components/app/event-card";
 import { PAGE_CHOICES_PATH } from "@/app/(app)/account/profile/invite";
+import { BlockedWell } from "@/app/(guest)/u/[slug]/blocked-well";
 import { emptyPageLine } from "@/app/(guest)/u/[slug]/empty-page";
-import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
+import {
+  OwnerNote,
+  OwnerSections,
+} from "@/app/(guest)/u/[slug]/owner-sections";
 import { OwnerSkeleton } from "@/app/(guest)/u/[slug]/owner-skeleton";
 import { partyCards } from "@/app/(guest)/u/[slug]/party-cards";
+import { ProfileHead } from "@/app/(guest)/u/[slug]/profile-head";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { seedFor } from "@/lib/avatar/seed";
@@ -204,66 +208,47 @@ export default async function PublicProfilePage({ params }: PageProps) {
       <GuestHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
-        {/* Identity block: avatar, name, handle, restraint (joined month only —
-            no counts by design: the graph is private, profiles-social.md point 4).
-
-            ★ THE AVATAR IS CENTRED ON THE NAME ROW AND THE BIO SITS OUTSIDE IT,
-            so the avatar stays aligned to the name and meta whether a bio is
-            missing or runs to any length. A bio inside this flex row would drag
-            the avatar down by half of whatever the person wrote.
-
-            ★ AND THE PHONE LAYOUT IS `max-sm:` ONLY: the name column
-            takes the rest of the row and the actions wrap under it at 375,
-            where a single row would squeeze all three into about 90px. No
-            wider screen is touched by it. */}
-        <section
-          data-arrive
-          style={{ "--arrive-i": 0 } as CSSProperties}
-          className="flex flex-wrap items-center gap-5"
-        >
-          {/* `xl` (80px, the Avatar's fourth size) keeps this row on the
-              shared component rather than a hand-rolled disc, so the seeded
-              colour and the component's clipping reach it the same way every
-              other avatar surface gets them. */}
-          <Avatar size="xl" seed={seedFor(profile.id)}>
-            <AvatarImage src={avatarUrl ?? undefined} alt="" />
-            <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1 max-sm:basis-[calc(100%-6.25rem)]">
-            <h1 className="font-heading text-page text-balance">{name}</h1>
-            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-              <span>@{profile.slug}</span>
-              <span aria-hidden className="text-faint">
-                ·
-              </span>
-              <span>Joined {joined}</span>
-            </p>
-          </div>
-          {(showFollow || showMenu) && (
-            <div className="flex items-center gap-2 max-sm:w-full">
-              {showFollow && (
-                <FollowButton
-                  profileId={profile.id}
-                  initialFollowing={following}
-                />
+        {/* The identity block is `profile-head.tsx`'s, the one head her own page wears before it is public
+            too (`/me`): avatar, name, handle, restraint (joined month only, no counts by design: the
+            graph is private, profiles-social.md). Its actions are this page's own. */}
+        <ProfileHead
+          seed={seedFor(profile.id)}
+          avatarUrl={avatarUrl}
+          name={name}
+          handle={profile.slug}
+          joined={joined}
+          actions={
+            <>
+              {(showFollow || showMenu) && (
+                <div
+                  data-profile-actions
+                  className="flex items-center gap-2 max-sm:w-full"
+                >
+                  {showFollow && (
+                    <FollowButton
+                      profileId={profile.id}
+                      initialFollowing={following}
+                    />
+                  )}
+                  {showMenu && (
+                    <ProfileActionsMenu
+                      profileId={profile.id}
+                      displayName={profile.display_name}
+                      blocked={viewerBlockedThem}
+                    />
+                  )}
+                </div>
               )}
-              {showMenu && (
-                <ProfileActionsMenu
-                  profileId={profile.id}
-                  displayName={profile.display_name}
-                  blocked={viewerBlockedThem}
-                />
+              {isSelf && (
+                <div className="flex items-center max-sm:w-full">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/account">Edit profile</Link>
+                  </Button>
+                </div>
               )}
-            </div>
-          )}
-          {isSelf && (
-            <div className="flex items-center max-sm:w-full">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/account">Edit profile</Link>
-              </Button>
-            </div>
-          )}
-        </section>
+            </>
+          }
+        />
 
         {profile.bio && (
           <p
@@ -273,6 +258,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
           >
             {profile.bio}
           </p>
+        )}
+
+        {/* ★ A PAGE SHE BLOCKED SAYS SO, TO HER ALONE (`block=line`): where Follow stood, a well with
+            Unblock beside it, on every visit. `viewerBlockedThem` is her own block (`hasBlocked`), never
+            "blocked either way": when only they blocked her this stays empty and Follow is merely not
+            there, as it has always been. The wrapper is a standing status region, so the well that
+            arrives when she blocks from the menu is announced, and the one a revisit finds is not. */}
+        {showMenu && (
+          <div role="status">
+            {viewerBlockedThem && (
+              <BlockedWell profileId={profile.id} name={name} />
+            )}
+          </div>
         )}
 
         {partyCount === 0 ? (
@@ -331,9 +329,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
             below is constructed, and not one of the three personal queries
             runs. */}
         {isSelf && (
-          <Suspense fallback={<OwnerSkeleton />}>
-            <OwnerSections />
-          </Suspense>
+          <div className="mt-10 space-y-8">
+            <OwnerNote />
+            <Suspense fallback={<OwnerSkeleton />}>
+              <OwnerSections />
+            </Suspense>
+          </div>
         )}
       </main>
 

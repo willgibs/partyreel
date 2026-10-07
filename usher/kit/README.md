@@ -35,21 +35,34 @@ the lines he holds stay his. Nothing here or anywhere lives only in an agent's m
 - **Pace the desk, not the plumbing.** New boards wait for his paste on the standing ones (one desk served at a time,
   the next pre-integrated behind it), since keeping standing asks true while production moves under them is rework;
   fixes and plumbing off the boards' surfaces run at full speed. His sitting never blocks the Orchestrator: say so.
-- **The calls lab** ([`docs/calls.md`](../../docs/calls.md)): lettered sections, each call in plain words (what and
-  why, then "Push back if"), open questions first, so he answers in batches; each merge's calls his to overrule join
-  as its own section at the record. A call about how something looks or moves is drawn on a board, never asked in
-  text, and an answer leaves the lab once it is routed.
+- **The calls lab** ([`docs/calls.md`](../../docs/calls.md); Will, 2026-10-07: never a decision log): only the
+  decisions built in that he cannot see by using the product, where his view may differ: plans, billing and renewals;
+  an event's lifecycle and timing; deletion, retention and privacy; safety and moderation policy; what the product
+  does on its own (a message, a pause, a limit). Never a screen, a word, a flow, a look or an engineering choice:
+  production and the lab show those, and he critiques them there. Open questions first, then calls by theme (never by
+  lane), three lines each with its "Change it if", at most 30 entries; an answer leaves the same day (kept: the system
+  doc holds the fact; changed: a ROADMAP line or a lane). At a record a lane's calls pass that test or live in its
+  merge commit alone; a call about how something looks or moves is drawn on a board.
 - **Standing permissions:** push and branch freely; the data architecture is the Orchestrator's to rebuild and optimize,
   drops included, timed so partyreel.com's live build never reads a dropped thing; a milestone needs his explicit yes; a
   one-way door goes to him with the Advisor's view beside the Orchestrator's. A classifier refusal, here or in a lane,
   stops that step and goes to him with the smallest action it needs, never re-run another way.
-- **Pacing and seats:** weekly usage is no constraint (two Claude accounts: willg97@gmail.com resets Sunday 9am ET,
-  hi@willgibs.com Tuesday 5pm ET; plus cloud credit), so lanes run to the machine's measured memory. Near a week's
-  end he may call a wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current into
-  the auto-kill at 100%, so the next account's Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
+- **Pacing and seats:** the 5-hour window paces the lanes, never a kill (Will, 2026-10-07): six to eight agents, with
+  `get_usage` read at every cut; when the window would run out before its reset, start nothing new, so the account
+  rolls into about 99% at the reset and this session goes on in context. Weekly usage is no constraint (two Claude
+  accounts, each resetting weekly, `get_usage` says when; plus cloud credit). Near a week's end he may call a
+  wind-down: no new lane, the running ones finish, and the pickup's handoff block stays current, so the next account's
+  Orchestrator, or one he seats in the cloud, picks up cleanly. Cloud
   lanes come first while cloud credit lasts: from a cloud seat, each lane is a cloud session of its own ("Cut a
   lane", step 4); from a desktop session the Agent tool's remote flag runs on the Mac, so the route there is a
   claude.ai routine (a saved item: his yes first).
+- **Who does the work** (Will, 2026-10-07): an Opus Orchestrator costs what an Opus lane costs, so a lane is cut for
+  the focus it buys, never to save tokens. Explorations, reviews of critical work, red-teams and multi-hour wiring stay
+  lanes, their depth the point. A small, well-specified change already in the Orchestrator's context (a fix met at an
+  integration, a board's retirement, a kit or doc fix, an Advisor-approved plan's mechanical steps) it makes itself,
+  gated by hand, sparing a lane's boot and handoff, while its orchestration across the lanes never thins. Every step a
+  lane runs is paid once per lane: a brief asks for the problem's depth and nothing ceremonial, and the wide checks
+  gather at the milestone (the red-team, the FULL gate, CI on `main`).
 - **His browser and accounts:** never click Copy or "Copy so far" in the built-in browser (a stray paste reads as a real
   answer); his Supabase dashboard is read-only to agents; Moltbook runs only on his word (`usher/moltbook/README.md`).
 - **The tools' reach:** the Cloudflare MCP cannot mint R2 tokens or set bucket CORS, and the Vercel MCP never sets env
@@ -138,8 +151,8 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included; the scratch is a
    lane's working area by design, so what a successor needs goes to the repo at the merge), one port each from 3131 to
    3139, as many lanes as measured memory allows (`memory_pressure` first, `free -g` on Linux: six to eight on the
-   36 GB Mac, at 60% free or more; full speed is the default and a 5-hour cut-off is accepted; near the weekly end keep the pickup's handoff block
-   current for the auto-kill at 100%), their production builds taking turns through
+   36 GB Mac, at 60% free or more, paced by the 5-hour window: "Working with Will"), their production builds taking
+   turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
    **From a cloud seat**, each lane is a cloud session of its own (`create_session`: `source_url` the repo,
@@ -184,15 +197,17 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    and `git commit -F $S/msg-<track>.txt`. The gate follows:
    `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`, read by its `SCOPE` and `EXIT[...]` lines.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
-   code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
-   their ROADMAP buckets; its asset asks into `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones
-   opened as boards; a one-way-door answer of Will's into the invariant it made; a change to the brand (tokens, the logo, type, or the
-   hero, demo and pricing pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs`
-   from partyreel.com; STATUS
-   rewritten by hand where the lane changed what is true now; a new board's `desk` line moved to its leverage place;
-   `sandbox/registry.test.ts` and `(shell)/lab/_desk/queue.test.ts` when the record touched the desk (a spec's `desk`
-   line or `docs/reviews/`: nothing else a record edits reaches them); stage by name; commit
-   `record: <track> ... [skip ci]`; push.
+   code, and `grep -rn` over `docs/` for each file, function or name the lane retired or renamed (a stale line its
+   Handoff missed is refined in place: marketing-crumbs' cinema 404); `python3 usher/kit/record.py
+   $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into their ROADMAP bucket and area
+   (placed, never appended; Immediate holds at most 40, so a line moves down first); its asset asks into
+   `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones opened as boards; a one-way-door answer of
+   Will's into the invariant it made; a change to the brand (tokens, the logo, type, or the hero, demo and pricing
+   pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs` from partyreel.com;
+   STATUS rewritten by hand where the lane changed what is true now; a new board's `desk` line moved to its leverage
+   place; `sandbox/registry.test.ts` and `(shell)/lab/_desk/queue.test.ts` when the record touched the desk (a spec's
+   `desk` line or `docs/reviews/`: nothing else a record edits reaches them); stage by name; commit `record: <track> ...
+   [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):
    `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`,
    `rm -rf ../partyreel-wt/_scratch/<track>`; kill its port.
@@ -241,8 +256,8 @@ tag; production READY at the merge SHA, then a verification pass on partyreel.co
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
 by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the same session.
 
-The standing compute budget, at every milestone: `pnpm compute:model --port <yours>` (about 20 minutes with its build;
-local only). Exit 1 is a scenario past `scripts/compute-model/budget.json`: read the scenario before the milestone; lower
+The standing compute budget, at every milestone: `pnpm compute:model --port <a free one of 3131 to 3139>` (about 20
+minutes with its build; local only; its guests upload, and R2's CORS refuses the gate's 3130: exit 2). Exit 1 is a scenario past `scripts/compute-model/budget.json`: read the scenario before the milestone; lower
 a line when a lever lands.
 
 ## Mutate config

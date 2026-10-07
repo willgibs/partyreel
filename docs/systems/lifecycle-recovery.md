@@ -41,6 +41,13 @@ PostgREST fake.
 - **`develop_rolls` runs first of the budgeted sweeps** (`develop_due_sweep`): it develops every album whose sealed
   rows disagree with its event (a develop time passed with nobody reading), a batch of albums a call, and deletes
   nothing; its own job and switch, since it reveals photographs ([disposable-mode.md](disposable-mode.md)).
+- ★ **`storage_sums` proves the storage sums, last of the budgeted sweeps** (`sweeps/storage-sums.ts`, a job of its
+  own though it writes nothing: its finding is a figure a host is capped by, and waits on a person). It holds every
+  host's sums to her items walked (`storage_sums_drift`, 50 hosts a call), after the night's own writes; a pass the
+  deadline stops resumes at its cursor, the hosts the last run named are checked again first (a drift stays named until
+  a check reads her at parity, or her account is gone), and any drift fails the run with both figures on its row, one
+  Sentry error and the ops mail once a day. It never mends: the card's Rebuild is the fix
+  ([admin-observability.md](admin-observability.md)). Each host costs two walks of her items (11 ms for 4,330 warm).
 - ★ **`album_log` prunes the paged album's change log under a watermark** (`album_prune_tombstones`): a purged item's
   change row (its tombstone) goes, and the album's watermark rises to its versions in the same transaction, so a
   client below the watermark is sent its album whole ([guest-flow.md](guest-flow.md)). It walks the log album by
@@ -92,14 +99,16 @@ PostgREST fake.
   only the media rows it can take at once (`FOR UPDATE SKIP LOCKED`), since `purge_media_rows` locks media before
   profiles.
 - **Making room from Deleted** (`profiles.make_room_from_deleted`, on by default and hers to write): when an upload's
-  complete would pass the cap and its 10% and the file fits beside her albums, `create_media*` call `leave_deleted`
-  for exactly what the file needs, under the lock they already hold; a refusal rolls the eviction back with it. Never
-  at the presign, whose size is the client's word: a phantom presign would empty her Deleted for nothing.
-  **Empty Deleted** (`empty_deleted(p_limit)`, her own act on `auth.uid()`) takes a batch a call, the system's
-  removals included, and the action calls again while `more`, within a time budget; every deleted event inside its
-  window leaves with the last batch, never before what is still in it. A row back in her album (`restore_media`, Let
-  back in) loses the reduce's flag (`removed_by_system`), and Deleted reads that flag on a removed row alone, so a
-  later removal of hers reads as hers.
+  complete would pass the cap and its 10% and the file fits beside her albums, `create_media*` call `leave_deleted` for
+  exactly what the file needs, under the lock they already hold; a refusal rolls the eviction back with it. Never at the
+  presign, whose size is the client's word: a phantom presign would empty her Deleted for nothing. **Empty Deleted**
+  (`empty_deleted(p_limit)`, her own act on `auth.uid()`) takes a batch a call, the system's removals included
+  (`EMPTY_DELETED_BATCH`, 2,000, each item one statement: the storage sums' trigger costs 1.46 ms a statement warm,
+  live, 5.9 ms for a connection's first, so about 3 s a batch inside the 8 s timeout; past ~2 ms a statement the batch
+  halves to 1,000, the Advisor's line, 2026-10-06), and the action calls again while `more`, within a time budget; every
+  deleted event inside its window leaves with the last batch, never before what is still in it. A row back in her album
+  (`restore_media`, Let back in) loses the reduce's flag (`removed_by_system`), and Deleted reads that flag on a removed
+  row alone, so a later removal of hers reads as hers.
 - ★ **A guest's own delete is final, for the host too.** Deleting an upload to someone else's event sets
   `media.removed_by_uploader = true`: `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate keeps it
   out of the host's bin (RLS does NOT filter it, so dropping that line shows the host a Restore the RPC always

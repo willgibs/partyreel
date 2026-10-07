@@ -1,0 +1,46 @@
+/* A FACE'S OWN SHEET (`face.tsx`): what a face with no photograph is made of,
+   where a palette draws it other than production's `Avatar` does. */
+
+/* ── lit: her hue as light in a piece of the room ────────────────────────── */
+
+/* LIT: a disc of the room with her light falling into it from just past its
+   rim, where her orb's light sits (the numbers are hers, `litLight`): whole at
+   the edge it enters by, her own hue as it crosses, then cooler and spent, so
+   the far side is the room with only her light left in it.
+
+   ★ HER LIGHT DIMS TOWARD BLACK, NEVER TOWARD A GREY: each step is her light
+   at a share of its strength (mixed with black in oklab, which lowers its
+   lightness and its colour together, as a light dims), so the dark side is a
+   lit room's deep colour. Mixed toward the room's grey instead (the first
+   draw), every face went dusty mid-way across, and drawn mostly dark it read
+   as a row of black buttons; drawn mostly light it read as pastel paint.
+
+   ★ THE SAME DISC ON EVERY GROUND: it carries its own dark, so on paper it is
+   a piece of the room, as bright as in the room, and on a photograph it is
+   the same face, never a hole (it is coloured all the way across).
+
+   ★ NO LINE, NO SHINE: no hairline round it (a coloured edge is a ring, and a
+   row's one ring is the newest's) and no highlight inside it (a highlight
+   makes a ball). */
+.pr-lit[data-pr-lit] {
+  /* ★ HER COLOUR AT DUSK, NEVER A MARBLE (the creative director's pass): no
+     hot spot where the light enters (it starts a step under her full light),
+     and the far side spent to a little under half her light, never to black,
+     so a face is a deep, even colour with light falling across it rather than
+     a lit ball, and never a pastel. */
+  background: radial-gradient(
+    in oklab 140% 140% at var(--pr-lit-x) var(--pr-lit-y),
+    color-mix(in oklab, var(--pr-lit-body) 86%, black) 0%,
+    color-mix(in oklab, var(--pr-lit-body) 72%, black) 30%,
+    color-mix(in oklab, var(--pr-lit-body) 57%, black) 58%,
+    color-mix(in oklab, var(--pr-lit-deep) 46%, black) 88%
+  );
+}
+
+/* Her initial stands in that light: near-white with a breath of her hue, and
+   a soft shadow falling away from the light, which also holds it clear where
+   the light reaches its strokes. */
+.pr-lit-initial {
+  color: var(--pr-lit-ink);
+  text-shadow: var(--pr-lit-sx) var(--pr-lit-sy) 0.14em rgb(0 0 0 / 0.4);
+}

@@ -10,14 +10,15 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 
 import { useAddChoice } from "@/components/app/create-event-wizard/add-step";
-import {
-  BeatActs,
-  BeatCode,
-} from "@/components/app/create-event-wizard/beat";
+import { BeatCode } from "@/components/app/create-event-wizard/beat";
 import { useCarry } from "@/components/app/create-event-wizard/carry";
+import {
+  DEVELOP_QUESTION,
+  DEVELOP_SUB,
+  DevelopStep,
+} from "@/components/app/create-event-wizard/develop-step";
 import { LookStep } from "@/components/app/create-event-wizard/look-step";
 import { NameStep } from "@/components/app/create-event-wizard/name-step";
 import {
@@ -29,90 +30,89 @@ import {
   RoomStage,
 } from "@/components/app/create-event-wizard/room";
 import { Button } from "@/components/ui/button";
-import { Toaster } from "@/components/ui/sonner";
 import { DEFAULT_QR_PRESET, type QrStyleKey } from "@/lib/constants/qr-presets";
 import type { AlbumStyle } from "@/lib/disposable/album-style";
-import { DEFAULT_ERROR_MESSAGE } from "@/lib/errors/codes";
 import { cn } from "@/lib/utils";
 
-import { Close, type CloseWay } from "./close";
+import type { ArrivalWay } from "./arrival";
+import {
+  BEAT_GO,
+  BEAT_SUB,
+  BeatUnder,
+  type CloseWay,
+  GO_IN,
+  INVITE_QUESTION,
+  INVITE_SUB,
+  InviteScreen,
+  PHOTOS_WORKING,
+  type PhotosPhase,
+} from "./close";
+import { motionIn, playEntry } from "./entry";
 import {
   CREATE_MS,
   EVENT,
-  FAILED_TITLE,
-  LEFT,
+  HER_PHOTOS,
+  LANDED_MS,
+  PHOTO_MS,
   REAL_LINK,
   SAMPLE_LINK,
   SITE,
 } from "./fixtures";
-import {
-  DEVELOP_QUESTION,
-  DEVELOP_SUB,
-  DevelopScreen,
-  StylesCentre,
-  type StylesWay,
-} from "./styles";
+import { Hub } from "./hub";
+import type { Moment } from "./pictures";
+import { PreviewsCentre, type PreviewsWay } from "./previews";
 
 /**
- * CREATE, RUNNING, IN PRODUCTION'S OWN ROOM, ONE OPTION'S WAY AT A TIME.
+ * CREATE, RUNNING, IN PRODUCTION'S OWN ROOM, AND ON INTO HER EVENT.
  *
- * Composed as `create-event-wizard.tsx` composes it (the room, the head, its
- * hairlines and Back, the question, the foot, the carry, the name, the add
- * step, the look and the beat, all imported), with the four answers this
- * round asks threaded through: the style step's arrangement, what the beat
- * closes on, the wait while the event is made, and where a failure lands.
- * Every option draws the room as built on the three axes it does not ask
- * (`TODAY`), or as he answered them where a decision waits on another.
+ * Composed as `create-event-wizard.tsx` composes it (the room, the head, its hairlines and Back, the question, the foot,
+ * the carry, the name, the style step, Disposable's own screen, the look and the beat, all imported), with this round's
+ * three answers threaded through: what the beat says and where its button leads (`close`), how her event first greets
+ * her (`arrival`), and how the style step's pictures tell the three apart (`previews`). Past the beat it goes where
+ * production does not yet: an invite screen of the room, her photos going up, and the room opening into her event
+ * (`entry.ts`), where the hub stands as production draws it (`hub.tsx`).
  *
- * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond
- * the stills and the code's renderer: Create event answers after a wait with
- * a stand-in event (or a failure, or nothing at all), and every link in the
- * room (the close, Print) is held, so a press in a frame never leaves the
- * board. A frame's toasts go to its own toaster (sonner's `toasterId`), never
- * the lab's.
+ * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond the stills and the code's renderer: Create
+ * event answers after a wait with a stand-in event, her photos "go up" on a clock, and every link (the close, Print,
+ * the hub's doors) is held, so a press in a frame never leaves the board. In her event, the app bar's logo starts the
+ * run again, as New event would.
  */
 
-export type WaitWay = "breath" | "tray" | "inplace";
-export type FailWay = "back" | "held" | "line";
 export type Ways = {
-  styles: StylesWay;
   close: CloseWay;
-  wait: WaitWay;
-  failed: FailWay;
+  arrival: ArrivalWay;
+  previews: PreviewsWay;
 };
 
-/** Production as built on every axis: what an option wears on the axes it does not ask. */
-export const TODAY: Ways = {
-  styles: "built",
-  close: "marks",
-  wait: "breath",
-  failed: "back",
-};
+type Step = "name" | "add" | "develop" | "look" | "beat" | "invite" | "hub";
+
+/** The code's ways out in Create: the beat's rounds and the invite's. A press of one is a share she made. */
+const SHARES = "[data-beat-rounds] .cr-act, [data-cw-invite-acts] .cr-act";
 
 /**
- * What Create event does: makes the event, fails every time, fails once and
- * then makes it (the line came back), or never answers (the wait, held).
+ * Holds every link in the frame; the app bar's logo (Partyreel, home) starts the run again. It notes a press of the
+ * code's ways out, so her event knows she has already sent it.
  */
-export type Outcome = "made" | "fails" | "fails-once" | "hangs";
-
-type Step = "name" | "add" | "develop" | "look" | "beat";
-
-/** The beat's moment: the event being made, made, or held after a failure (`held`). */
-type Beat = "making" | "made" | "failed";
-
-/** The room's own words for a failure said in the room (`line`, and `held` on the look). */
-const FAILED_LINE = "Couldn't create the event. Nothing was lost.";
-const HELD_QUESTION = "Couldn't create it yet";
-const HELD_LINE =
-  "Nothing was lost: your name, style and look are kept. Check your connection and try again.";
-
-/** Holds every link in the room: a frame's press never navigates the lab. */
-function Held({ children }: { children: ReactNode }) {
+function Held({
+  children,
+  again,
+  onShared,
+  ...data
+}: {
+  children: ReactNode;
+  again: () => void;
+  onShared?: () => void;
+} & Record<`data-${string}`, string | undefined>) {
   const hold = (e: MouseEvent) => {
-    if ((e.target as Element | null)?.closest?.("a")) e.preventDefault();
+    const target = e.target as Element | null;
+    if (target?.closest?.(SHARES)) onShared?.();
+    const link = target?.closest?.("a");
+    if (!link) return;
+    e.preventDefault();
+    if (link.getAttribute("aria-label") === "Partyreel dashboard") again();
   };
   return (
-    <div onClickCapture={hold} className="contents">
+    <div onClickCapture={hold} className="contents" {...data}>
       {children}
     </div>
   );
@@ -120,73 +120,64 @@ function Held({ children }: { children: ReactNode }) {
 
 export type RunProps = {
   ways: Ways;
-  /** The screen the run opens on. */
-  opens: Exclude<Step, "beat">;
-  /** What Create event does. */
-  outcome: Outcome;
-  /** How long Create takes to answer, ms. */
-  ms?: number;
+  /** The screen the run opens on; `beat`, `invite` and `hub` open with the event already made. */
+  opens: Step;
   /** The style picked as the run opens (Live, as production opens). */
   style?: AlbumStyle;
-  /** Press Create event as the run opens: a frame that rests on the wait, the beat or the failure. */
-  pressed?: boolean;
+  /** The picked card's story pinned at a moment, for a frame read still (`previews`). */
+  pin?: Moment;
+  /** Her photos, pinned: going up on the beat, or in her event (`close=photos`). */
+  photos?: "going" | "in";
 };
 
 /**
- * CREATE FROM THE MOMENT ASKED. Back and the hairlines go back; Continue
- * goes on (carrying the pick into its hairline); Create event plays the wait
- * in the way asked and answers as `outcome` says; Get it ready, or Try again
- * once the line is back, runs it again from where it opened.
+ * CREATE FROM THE MOMENT ASKED. Back and the hairlines go back; Continue goes on (carrying the pick into its hairline);
+ * Create event makes the stand-in event after a round trip's wait; the beat's button does what the answer asks; the
+ * room opens into her event; the logo in her event's bar starts it all again.
  */
 export function CreateRun(props: RunProps) {
   const [run, setRun] = useState(0);
-  return (
-    <Run key={run} {...props} again={() => setRun((n) => n + 1)} />
-  );
+  const again = useCallback(() => setRun((n) => n + 1), []);
+  return <Run key={run} {...props} again={again} />;
 }
 
 function Run({
   ways,
   opens,
-  outcome,
-  ms = CREATE_MS,
   style,
-  pressed = false,
+  pin,
+  photos,
   again,
 }: RunProps & { again: () => void }) {
+  const made0 = opens === "beat" || opens === "invite" || opens === "hub";
   const [step, setStep] = useState<Step>(opens);
   const [name, setName] = useState<string>(EVENT.name);
   const [nameError, setNameError] = useState<string | null>(null);
   const [look, setLook] = useState<QrStyleKey>(DEFAULT_QR_PRESET);
-  const [beat, setBeat] = useState<Beat>("making");
-  // The wait on the look (`inplace`), and a failure held there.
-  const [working, setWorking] = useState(false);
-  const [lookFailed, setLookFailed] = useState(false);
-  // A failure said in the room, under the look's question (`line`).
-  const [lookLine, setLookLine] = useState<string | null>(null);
+  const [made, setMade] = useState(made0);
+  const [phase, setPhase] = useState<PhotosPhase>(
+    photos === "going" ? "going" : photos === "in" ? "landed" : "none",
+  );
+  const [up, setUp] = useState(photos === "going" ? 2 : 0);
+  const [entering, setEntering] = useState(false);
+  // A press of Print, Share or Copy link in Create: her event greets her as one who has sent it.
+  const [shared, setShared] = useState(false);
+  const onShared = useCallback(() => setShared(true), []);
   const add = useAddChoice();
   const [played, setPlayed] = useState(opens !== "add");
   const onPlayed = useCallback(() => setPlayed(true), []);
-  const tries = useRef(0);
-  const timer = useRef<number | null>(null);
+  const timers = useRef<number[]>([]);
   const room = useRef<HTMLDivElement | null>(null);
   const moved = useRef(false);
   const carry = useCarry();
   const questionId = useId();
   const formId = useId();
   const errorId = useId();
-  const toasterId = useId();
-  // The frame's own toast, so a dismissal never reaches the lab's.
-  const said = useRef<string | number | null>(null);
-  const unsay = () => {
-    if (said.current !== null) toast.dismiss(said.current);
-    said.current = null;
-  };
 
   const { land, take, settle } = carry;
   const { pick } = add;
   useLayoutEffect(() => {
-    land(room.current);
+    if (step !== "hub") land(room.current);
   }, [step, land]);
 
   // The style she arrives with, picked once as the run opens.
@@ -202,128 +193,124 @@ function Run({
       room.current
         ?.querySelector<HTMLInputElement>("[data-room-name-input]")
         ?.focus({ preventScroll: true });
-    } else if (step !== "beat") {
+    } else if (step !== "beat" && step !== "hub") {
       doc?.getElementById(questionId)?.focus({ preventScroll: true });
     }
   }, [step, questionId]);
 
   useEffect(
     () => () => {
-      if (timer.current !== null) window.clearTimeout(timer.current);
-      if (said.current !== null) toast.dismiss(said.current);
+      for (const t of timers.current) window.clearTimeout(t);
     },
     [],
   );
+  const later = (ms: number, fn: () => void) =>
+    timers.current.push(window.setTimeout(fn, ms));
 
-  // The focused screen is a step only while Disposable is picked.
+  // Disposable's own screen is a step only while it is picked (production's `DISPOSABLE_STEPS`).
   const steps: Step[] =
-    ways.styles === "focused" && add.style === "disposable"
+    add.style === "disposable"
       ? ["name", "add", "develop", "look", "beat"]
       : ["name", "add", "look", "beat"];
-  const at = steps.indexOf(step) + 1;
-  // Read by what answers after a wait, so it goes from where she is then, never where she pressed.
-  const now = useRef({ step, steps });
-  useLayoutEffect(() => {
-    now.current = { step, steps };
-  });
+  const at =
+    step === "invite" || step === "hub"
+      ? steps.length
+      : steps.indexOf(step) + 1;
 
   function goTo(next: Step) {
-    const { step: from, steps: order } = now.current;
-    if (next === from) return;
-    take(room.current, order.indexOf(next) > order.indexOf(from) ? 1 : -1);
+    if (next === step) return;
+    const order: Step[] = [...steps, "invite"];
+    take(room.current, order.indexOf(next) > order.indexOf(step) ? 1 : -1);
     moved.current = true;
-    now.current = { step: next, steps: order };
     setStep(next);
   }
 
-  function fail() {
-    const f = ways.failed;
-    if (f === "held") {
-      if (ways.wait === "inplace") {
-        setWorking(false);
-        setLookFailed(true);
-      } else setBeat("failed");
-      return;
-    }
-    setWorking(false);
-    goTo("look");
-    if (f === "line") {
-      setLookLine(FAILED_LINE);
-      return;
-    }
-    said.current = toast.error(FAILED_TITLE, {
-      description: DEFAULT_ERROR_MESSAGE,
-      toasterId,
-    });
-  }
-
-  function answer() {
-    tries.current += 1;
-    const ok =
-      outcome === "made" || (outcome === "fails-once" && tries.current > 1);
-    if (outcome === "hangs") return;
-    timer.current = window.setTimeout(
-      () => {
-        timer.current = null;
-        if (!ok) {
-          fail();
-          return;
-        }
-        setWorking(false);
-        if (ways.wait === "inplace") {
-          settle();
-          moved.current = true;
-          setStep("beat");
-        }
-        setBeat("made");
-      },
-      pressed && tries.current === 1 && outcome !== "fails-once" ? 0 : ms,
-    );
-  }
-
   function onCreate() {
-    if (working || (step === "beat" && beat === "making")) return;
     if (!add.confirm()) {
-      goTo("add");
+      goTo(add.style === "disposable" ? "develop" : "add");
       return;
     }
-    unsay();
-    setLookLine(null);
-    setLookFailed(false);
-    if (ways.wait === "inplace") {
-      setWorking(true);
-    } else {
-      // The beat lands at once, the code's own arrival, never a carry.
-      settle();
-      moved.current = true;
-      setBeat("making");
-      setStep("beat");
+    // The beat lands at once, the sample developing while the event is made: the code's own arrival, never a carry.
+    settle();
+    moved.current = true;
+    setMade(false);
+    setStep("beat");
+    later(CREATE_MS, () => setMade(true));
+  }
+
+  /** The room opens into her event: the hub mounted under it, the flight played, the room gone. */
+  const enter = useCallback(() => {
+    const doc = room.current?.ownerDocument;
+    if (!motionIn(doc)) {
+      setStep("hub");
+      return;
     }
-    answer();
-  }
-
-  function retryHeld() {
-    setBeat("making");
-    answer();
-  }
-
-  // A frame that rests on the wait, the beat or the failure presses Create event as it opens (a tick
-  // later, so a remount in development presses once, never twice).
-  const press = useRef(onCreate);
+    setEntering(true);
+  }, []);
   useLayoutEffect(() => {
-    press.current = onCreate;
-  });
+    if (!entering) return;
+    const el = room.current;
+    let gone = false;
+    // A frame for the hub under the room to lay out, then the flight from what stands to where it lands.
+    const raf = el?.ownerDocument.defaultView?.requestAnimationFrame(() => {
+      if (!el) return;
+      void playEntry(el).then(() => {
+        if (gone) return;
+        setEntering(false);
+        setStep("hub");
+      });
+    });
+    return () => {
+      gone = true;
+      if (raf !== undefined)
+        el?.ownerDocument.defaultView?.cancelAnimationFrame(raf);
+    };
+  }, [entering]);
+
+  function onBeatGo() {
+    if (!made) return;
+    if (ways.close === "invite") {
+      goTo("invite");
+      return;
+    }
+    if (ways.close === "photos") {
+      if (phase !== "none") return;
+      setPhase("going");
+      HER_PHOTOS.forEach((_, i) =>
+        later(PHOTO_MS * (i + 1), () => setUp((n) => Math.max(n, i + 1))),
+      );
+      later(PHOTO_MS * HER_PHOTOS.length + LANDED_MS, () => {
+        setPhase("landed");
+        enter();
+      });
+      return;
+    }
+    enter();
+  }
+
+  // A frame opened on the beat, the invite or her event stands with the event already made.
   useEffect(() => {
-    if (!pressed) return;
-    const t = window.setTimeout(() => press.current(), 0);
-    return () => window.clearTimeout(t);
-  }, [pressed]);
+    if (made0) moved.current = true;
+  }, [made0]);
 
   const trimmed = name.trim() || EVENT.name;
   const titled = step === "add" || step === "develop" || step === "look";
   const onBeat = step === "beat";
-  const made = onBeat && beat === "made";
-  const heldFail = onBeat && beat === "failed";
+  const realUrl = made ? REAL_LINK : null;
+
+  if (step === "hub") {
+    return (
+      <Held again={again} data-cw-run="hub">
+        <Hub
+          name={trimmed}
+          look={look}
+          arrival={ways.arrival}
+          photos={phase === "landed"}
+          shared={shared}
+        />
+      </Held>
+    );
+  }
 
   let page: ReactNode;
   let foot: ReactNode;
@@ -369,11 +356,12 @@ function Run({
         questionId={questionId}
         sub="Change it any time in Settings"
       >
-        <StylesCentre
-          way={ways.styles}
+        <PreviewsCentre
+          way={ways.previews}
           choice={add}
           played={played}
           onPlayed={onPlayed}
+          pin={pin}
         />
       </RoomPage>
     );
@@ -382,12 +370,9 @@ function Run({
         type="button"
         size="cta"
         data-cw-go=""
-        onClick={() => {
-          const focused =
-            ways.styles === "focused" && add.style === "disposable";
-          if (!focused && !add.confirm()) return;
-          goTo(focused ? "develop" : "look");
-        }}
+        onClick={() =>
+          goTo(add.style === "disposable" ? "develop" : "look")
+        }
         className={footButton}
       >
         Continue
@@ -401,7 +386,7 @@ function Run({
         questionId={questionId}
         sub={DEVELOP_SUB}
       >
-        <DevelopScreen choice={add} />
+        <DevelopStep choice={add} />
       </RoomPage>
     );
     foot = (
@@ -424,15 +409,7 @@ function Run({
         key="look"
         question="Pick the code’s look"
         questionId={questionId}
-        sub={
-          lookLine ? (
-            <span data-cw-failed="line" role="alert" className="text-destructive">
-              {lookLine}
-            </span>
-          ) : (
-            "Change it any time from Share"
-          )
-        }
+        sub="Change it any time from Share"
       >
         <LookStep
           look={look}
@@ -444,96 +421,94 @@ function Run({
       </RoomPage>
     );
     foot = (
-      <div className="flex w-full flex-col items-center gap-2.5">
-        {lookFailed ? (
-          <p
-            data-cw-failed="held"
-            role="alert"
-            className="text-center text-caption text-pretty text-destructive"
-          >
-            {FAILED_LINE}
-          </p>
-        ) : null}
-        <Button
-          type="button"
-          size="cta"
-          data-cw-go=""
-          onClick={onCreate}
-          working={working}
-          workingLabel="Creating your event"
-          className={footButton}
-        >
-          {lookFailed ? "Try again" : "Create event"}
-        </Button>
-      </div>
+      <Button
+        type="button"
+        size="cta"
+        data-cw-go=""
+        onClick={onCreate}
+        className={footButton}
+      >
+        Create event
+      </Button>
+    );
+  } else if (step === "invite") {
+    page = (
+      <RoomPage
+        key="invite"
+        question={INVITE_QUESTION}
+        questionId={questionId}
+        sub={INVITE_SUB}
+      >
+        <InviteScreen name={trimmed} joinUrl={REAL_LINK} />
+      </RoomPage>
+    );
+    foot = (
+      <Button
+        type="button"
+        size="cta"
+        data-cw-go=""
+        onClick={enter}
+        className={footButton}
+      >
+        {GO_IN}
+      </Button>
     );
   } else {
+    const sub = BEAT_SUB[ways.close];
     page = (
       <RoomPage
         key="beat"
-        question={heldFail ? HELD_QUESTION : `${trimmed} is live`}
+        question={`${trimmed} is live`}
         questionId={questionId}
-        questionHidden={!made && !heldFail}
+        questionHidden={!made}
+        sub={
+          sub ? (
+            <span data-cw-sub="" data-held={made ? undefined : ""}>
+              {sub}
+            </span>
+          ) : undefined
+        }
       >
         <div
-          data-beat={made ? "arrived" : heldFail ? "failed" : "developing"}
-          data-cw-wait={ways.wait}
+          data-beat={made ? "arrived" : "developing"}
           className="flex w-full flex-col items-center"
         >
           <BeatCode
             look={look}
             name={trimmed}
             sampleUrl={SAMPLE_LINK}
-            realUrl={made ? REAL_LINK : null}
+            realUrl={realUrl}
           />
-          {heldFail ? (
-            <p
-              data-cw-failed="held"
-              role="alert"
-              className="mt-9 max-w-[19rem] text-center text-working text-pretty text-muted-foreground md:mt-11"
-            >
-              {HELD_LINE}
-            </p>
-          ) : (
+          <div className="cr-beat-under mt-9 w-full md:mt-11">
             <div
               aria-hidden={made ? undefined : true}
               inert={!made}
-              className="cr-beat-below mt-9 flex w-full flex-col items-center gap-7 md:mt-11 md:gap-9"
+              className="cr-beat-below flex w-full flex-col items-center"
             >
-              <BeatActs
-                eventId="maya-jay"
+              <BeatUnder
+                way={ways.close}
                 eventName={trimmed}
-                joinUrl={made ? REAL_LINK : SAMPLE_LINK}
+                joinUrl={realUrl ?? SAMPLE_LINK}
+                phase={phase}
+                up={up}
               />
-              <Close way={ways.close} r={LEFT} />
             </div>
-          )}
+          </div>
         </div>
       </RoomPage>
     );
-    foot = heldFail ? (
+    const going = ways.close === "photos" && phase !== "none";
+    foot = (
       <Button
         type="button"
         size="cta"
         data-cw-go=""
-        onClick={retryHeld}
-        className={footButton}
-      >
-        Try again
-      </Button>
-    ) : (
-      <Button
-        type="button"
-        size="cta"
-        data-cw-go=""
-        onClick={() => {
-          if (made) again();
-        }}
-        working={!made}
-        workingLabel="Creating your event"
+        onClick={onBeatGo}
+        working={!made || going}
+        workingLabel={going ? PHOTOS_WORKING : "Creating your event"}
         className={cn(footButton, made && "cr-beat-go")}
       >
-        Get it ready
+        {BEAT_GO[ways.close]}
       </Button>
     );
   }
@@ -542,29 +517,44 @@ function Run({
     if (titled && step !== "add")
       return () => goTo(steps[steps.indexOf(step) - 1] ?? "name");
     if (step === "add") return () => goTo("name");
-    if (heldFail) return () => goTo("look");
     return undefined;
   })();
 
+  const exists = made && (onBeat || step === "invite");
   return (
-    <Held>
+    <Held
+      again={again}
+      onShared={onShared}
+      data-cw-run={step}
+      data-cw-close-way={ways.close}
+      data-cw-made={exists ? "" : undefined}
+    >
+      {entering ? (
+        <Hub
+          name={trimmed}
+          look={look}
+          arrival={ways.arrival}
+          photos={phase === "landed"}
+          shared={shared}
+        />
+      ) : null}
       <RoomGround
         onRoom={(el) => {
           room.current = el;
         }}
         screen={step}
         light={onBeat ? "low" : "floor"}
-        busy={(onBeat && beat === "making") || working}
+        busy={(onBeat && !made) || (ways.close === "photos" && phase === "going")}
       >
         <RoomHead
           step={{ at, of: steps.length }}
-          name={titled || heldFail ? trimmed : undefined}
+          name={titled || step === "invite" ? trimmed : undefined}
           onBack={back}
-          onStep={titled ? (n) => goTo(steps[n - 1]!) : undefined}
+          onStep={titled ? (n) => goTo(steps[n - 1] ?? "name") : undefined}
           onName={titled ? () => goTo("name") : undefined}
           close={
-            made
-              ? { href: "/dashboard", label: "Go to your event" }
+            exists
+              ? { href: "/dashboard/create-wizard-r5", label: "Go to your event" }
               : { href: "/dashboard", label: "Close" }
           }
         />
@@ -580,15 +570,10 @@ function Run({
           {onBeat
             ? made
               ? `${trimmed} is live`
-              : heldFail
-                ? HELD_QUESTION
-                : `Creating ${trimmed}…`
-            : working
-              ? `Creating ${trimmed}…`
-              : ""}
+              : `Creating ${trimmed}…`
+            : ""}
         </span>
       </RoomGround>
-      <Toaster id={toasterId} position="top-center" />
     </Held>
   );
 }

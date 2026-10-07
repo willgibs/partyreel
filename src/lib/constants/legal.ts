@@ -126,7 +126,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
 
 /**
  * The launch fill-ins. Bracketed UPPERCASE tokens, replaced in this one place
- * when the entity is formed and counsel has signed (ROADMAP launch checkpoint).
+ * when the entity is formed and counsel has signed (ROADMAP's Launch bucket).
  * `privacyEmail` is a real address by ruling (Will, 2026-09-01); the alias is a
  * launch-checkpoint human task, so the text must not promise a reply from it
  * before then, only name it as the channel.

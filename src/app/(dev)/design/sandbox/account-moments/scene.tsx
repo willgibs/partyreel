@@ -96,18 +96,22 @@ export function Story({
 }
 
 /**
- * Brings the piece it wraps to the top of the frame once drawn: the moment
- * sits below the page's fold (Account's Connections card), and the frame
- * opens where she is, as she would have scrolled.
+ * Brings the piece it wraps to the top of the frame once drawn, when it ends
+ * below the frame's fold: Account's Connections card sits under her plan and
+ * page cards, and the frame opens where she is, as she would have scrolled. A
+ * piece already whole on the first screen (the card at a desk) stays where
+ * the page put it, so the app's see-through header never sits over a heading.
  */
 export function Reveal({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const timer = setTimeout(
-      () =>
-        ref.current?.scrollIntoView({ block: "start", behavior: "instant" }),
-      500,
-    );
+    const timer = setTimeout(() => {
+      const el = ref.current;
+      const view = el?.ownerDocument.defaultView;
+      if (!el || !view) return;
+      if (el.getBoundingClientRect().bottom > view.innerHeight)
+        el.scrollIntoView({ block: "start", behavior: "instant" });
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
   return (
@@ -115,30 +119,4 @@ export function Reveal({ children }: { children: ReactNode }) {
       {children}
     </div>
   );
-}
-
-/**
- * Marks one of production's own pieces for the caption once it is drawn: a
- * popup portals to the frame's body a beat late, out of reach of a wrapper.
- */
-export function Mark({ at, as }: { at: string; as: string }) {
-  const probe = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const doc = probe.current?.ownerDocument;
-    if (!doc) return;
-    let tries = 0;
-    let found: HTMLElement | null = null;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const find = () => {
-      found = doc.querySelector<HTMLElement>(at);
-      if (found) found.dataset.amRead = as;
-      else if (tries++ < 60) timer = setTimeout(find, 50);
-    };
-    find();
-    return () => {
-      clearTimeout(timer);
-      if (found) delete found.dataset.amRead;
-    };
-  }, [at, as]);
-  return <span ref={probe} hidden />;
 }

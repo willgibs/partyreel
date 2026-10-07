@@ -27,7 +27,7 @@ import { filesUnder } from "@/testing/source-tree";
  * ★ EVERY GROUP'S 404 IS THE SAME RULE (crumbs-25). A route group's or segment's own `not-found.tsx` is
  * rendered into every page UNDER it by the same mechanism, so the screen it drew rode each of them: the guest
  * link's about 17.5 KB of HTML on every album load (6 KB gzipped, most of it `GuestBar`'s wordmark path), the
- * cinema group's about 5 KB on every marketing page, the guest profile's about 14.7 KB, the host app's about
+ * guest profile's about 14.7 KB, the host app's about
  * 3.5 KB on every dashboard page and the portal's about 2.2 KB. Each now keeps its metadata and renders one
  * reference into the ONE boundary (`not-found.lazy.tsx`, the root's: a boundary per group was built first, and
  * each carried its own copy of `next/dynamic`'s runtime, 1.3 KB gzipped on every page of the group, more than a
@@ -339,14 +339,6 @@ const GROUP_LIST: Group[] = [
         page: "src/app/(guest)/u/[slug]/page.tsx",
         line: "if (!profile) return <ProfileNotFoundScreen />;",
       },
-    ],
-  },
-  {
-    name: "cinema group",
-    dir: "src/app/(marketing)/(cinema)",
-    draws: [
-      "src/components/marketing/marketing-not-found.tsx",
-      "src/components/shared/not-found-screen.tsx",
     ],
   },
   {

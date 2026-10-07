@@ -1,0 +1,35 @@
+/* THE `over` QUESTION'S OWN SHEET (`over.tsx`): the hub cover's room at a hand
+   while a row stands on its foot, and the wrap's own row where a recap folds
+   it in. Production's sheets draw everything else (`event-hub-head-seam.css`
+   the cover's foot, `room-card.css` the doors).
+
+   ★ UNLAYERED, SO IT OUTRANKS THE COVER'S OWN UTILITIES (Tailwind's, in a
+   layer), as the lab's traps say a board must. */
+
+/* ★ A ROW TAKES ITS OWN ROOM, NEVER THE PHOTOGRAPH'S. The cover is
+   bottom-aligned on a floor (20.5rem in a hand, 25rem from a tablet), which
+   leaves about 4.5rem of photograph above the name in a hand; a row of words
+   and keys on its foot (an offer, its receipt) grew the cover from the top
+   down, so the name met the app's bar and the code's corner mark was cut by
+   the cover's edge. At a desk the floor's room hid it until a cover said more
+   (the recap's turned cover, with the wrap on its foot, left 30px). While a row
+   stands, the cover keeps 4.5rem above the name at every width and grows by
+   the row instead; under the floor nothing moves. */
+[data-ap-hub-head]:has([data-ap-foot]) [data-event-head] {
+  padding-top: 4.5rem;
+}
+
+/* THE WRAP FOLDED INTO A RECAP, IN THE ROOM (`WrapFold`, on the hub's plate
+   and her home's stage): its line and its hairline key in one row, the words
+   taking the room and the key at the row's end, under the words once the row
+   is narrower than both (a phone). Where the row stands (and what separates
+   it from the recap's acts) is the recap's own sheet's to say (`recap.css`). */
+.ap-wrap-room {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+.ap-wrap-room > p {
+  flex: 1 1 16rem;
+}

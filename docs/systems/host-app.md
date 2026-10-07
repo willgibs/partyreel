@@ -24,7 +24,8 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
 - **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`): the
-  name, the album's style (a Disposable's develop time and roll under its pick), the code's look, then the beat. It
+  name, the album's style (a Disposable adds its own screen after it, the develop time and the roll, so the steppers
+  count five), the code's look, then the beat. It
   creates once, at commit (an abandoned Create leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
   Settings (below). The look step's codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in
@@ -40,7 +41,10 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   header's `group-has-[[data-app-room]]/shell:hidden`, since a page cannot hand its layout a prop), so nothing of the
   app waits in the tab order behind Create.
 - **The beat happens once in an event's life**: only Create event reaches it, and nothing leads Back once the event
-  exists. Nothing on it says live before the event is (a refused Create returns to the look, her name and look kept).
+  exists. Nothing on it says live before the event is: a failed Create is held on it, never a toast (`held.ts`: the
+  sample stands, the words say nothing was lost and the way to put it right, the foot is Try again or, at the plan's
+  limit, Upgrade, and Back leads to the look). It closes on one line, what guests still need, read off the new event's
+  readiness (`stillNeeded`).
 - **The cap is a door, not a dead button**, so a host never does the work of an event and only then learns the plan
   cannot hold it: the route computes `atCap` with `enforce_event_limit`'s own math (`profile.event_slots ??
   MAX_EVENTS[tier]`), and the wizard draws the refusal in the room instead of its screens, so New event stays a live
@@ -155,12 +159,27 @@ hub and closes back to it.
   as her guests do. Its photographs are the guests' cover's rule (`event-hub-head-stills.ts`, pure, read on both sides):
   the reel's opening stills while it plays (`readHubReel`'s), else the newest a guest can see (approved, never hidden,
   held or a clip), so a still she hides, removes or sends back leaves it the moment the album's store has it. ★ **Its
-  foot is a seam** (`event-hub-head-seam.css`): the photograph dissolves into the page and the cards row stands across
-  it. The cover and the row read one set of numbers (`--hub-rise`, how far the cards stand up into the photograph, which
-  the foot's own padding clears, and `--hub-fade`) at the three widths the hub meets, since they are siblings in the
-  hub's `space-y-6` (whose 24px the row takes back as `--hub-gap`) and cannot read each other's box. The fade is the
-  page's own colour, read outside the cover (always the room), and the cover grows (`min-h`) rather than clips a long
-  name.
+  foot is where the hub's one light is born** (event-header r6, the Seam made Afterglow's): the cards stand on the
+  cover's foot, the photograph runs on under them to its own edge (never dissolving into the page), and the Seam
+  (`event-hub-head-light.tsx`, drawn by the row after its footprint) falls from that edge into the page, its reach the
+  brand's (120px at a desk, 104 at a tablet, 72 in a hand) in the room, and on paper Aperture's strip of the room (36 or
+  30px, wearing `dark`) with the light inside it; the album starts 8px past it. The cover, the row and the light read
+  one set of numbers (`event-hub-head-seam.css`: `--hub-rise`, the cards' height and the photograph under them, which
+  the foot's padding clears; `--hub-reach`, `--hub-strip`) at the widths the doors change at (640px, 1088px), since
+  they are siblings in the hub's `space-y-6` (whose 24px the row and the light take back as `--hub-space`) and cannot
+  read each other's box. The hub's cover lifts its own scrim at its foot (overriding the album's `.head-scrim` there)
+  so the edge the light is born at is seen, and grows (`min-h`) rather than clips a long name.
+- ★ **The Seam's colours are read at runtime, off the crop the eye sees** (`event-hub-head-edge.ts`, pure): each cover
+  photograph's preview is read once a page through `decodeImage` (CORS, `no-store`: a tile's plain read poisons the
+  cache for a CORS one, [uploads-and-r2.md](uploads-and-r2.md)), drawn 192px wide, and its edge read again from that
+  copy at every cover size (the visible crop's last rows, sixth by sixth, at most three hues; a grey sixth borrows a
+  neighbour, then the photograph's key), its chroma its own midtones' 95th percentile, inside the room's range. Only
+  previews are read (a photograph without one shows its original, megabytes for six rows); the first at once, the rest
+  at idle: at most six GETs of about 16KB a hub view, no Vercel, no database. A still not yet read borrows a read
+  one's light, the Seam is unlit until the first is read, and a cover with no photograph or none readable wears the
+  house's dusk (`HOUSE_LIGHT`); a cover none of whose previews could be read warns once a page (`hub_light_unread`).
+  Each light slot is keyed and delayed as `HeadStills`' own, rendered with the cover from the server, so the two
+  crossfade on one clock (`head-crossfade`, `HOLD_SEC` held to the cover's by its test).
 - **The album's facts are the strip along the cover's foot** (`event-hub-head-strip.tsx`, its maths in
   `event-hub-head-strip-marks.ts`): a mark a photograph in the album's own order, so no shape of event leans on a
   timeline. It reads the page's store: its marks are what the hub's album holds (approved and hidden, never Review's) on
@@ -172,27 +191,38 @@ hub and closes back to it.
   render (they have no clock of hers). With no store and no `arrivals` it draws a flat quiet line, never a shape it does
   not know.
 - **The code stands beside the h1**, never inside it (an h1 holding a control stops being the page's accessible name).
-  It wears the door on its corner (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`) and
-  dims where a guest who scans cannot add (paused, Only me). The mark is its own button beside the code's, since
+  It wears the door on its corner (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`), its
+  count of who waits at the door in the needs-you status the cards' badges wear (one token, so the two never disagree),
+  and dims where a guest who scans cannot add (paused, Only me). The mark is its own button beside the code's, since
   pressing the code opens the card and asking what a corner means must not, and it sits outside the mat, so nothing
   lands on the modules; the tooltip primitive refuses a tap on purpose, so the mark opens its own words on a tap.
 - **The cards row** (Highlight reel, Guests, Review, Settings, then See it as a guest, `AS_GUEST_DOOR`, which is never
-  one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is cards over the seam
-  (event-header r4): one door element (`room-card-door.tsx`) that is a card at rest and a pill under the bar, the same
-  DOM in both. It is a group of links, never tabs, since nothing switches a panel in place: each door is the room's real
-  address (`roomHref`), its ordinary press opening the room in place and a modified click a tab of its own; a room's
-  code is a chunk of its own, asked for on intent with what the room shows first (`share/room-chunks.ts`). ★ Every door
-  is in sight at every width, so the row never scrolls sideways: a hand's two by two with See it as a guest the width
-  under it, a tablet's five tiles from 640px, a desk's five cards from 1100px, and stuck, pills of a glyph and its count
-  under 800px (sized for a 320px phone) and a glyph, its word and its count from it, all CSS (`room-card.css`) so the
-  server's paint is right at every width. Each door's words are `room-card.ts`'s (`reelCardFace`, `guestsCardFace`,
-  `reviewCardFace`, `settingsCardFace`), the page's first paint and the row's live counts alike, and a count from 1,000
-  reads `1.2K` on the door and whole in its name. ★ The row condenses in place (a remount would drop the code chip's
-  `view-transition-name` mid-morph), written as one `data-stuck` by the fold (`event-cards-row-fold.ts`: FLIP between
-  two reads, so a fold reversed mid-flight starts from where each piece is; reduced motion and a first report below the
-  bar flip at once), and inside the resting row's footprint (`useStuckBand`), because a band that moved the album let
-  scroll anchoring flip it across the threshold and back for ever. Stuck, it carries the cover's face (and from 1100px
-  its name) and, while the head's code is off screen, the code as a chip (`ui/code-chip.tsx`).
+  one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is cards on the cover's foot
+  (event-header r4's cards, as r6 drew them): one door element (`room-card-door.tsx`) that is a card at rest and a pill
+  under the bar, the same DOM in both. It is a group of links, never tabs, since nothing switches a panel in place: each
+  door is the room's real address (`roomHref`), its ordinary press opening the room in place and a modified click a tab
+  of its own; a room's code is a chunk of its own, asked for on intent with what the room shows first
+  (`share/room-chunks.ts`). ★ **A count that needs her rides its glyph's shoulder** (r6's `card=shoulder`): Review's
+  waiting uploads and the people at her door wear a badge in the needs-you status (`--needs-you`, r6's
+  `attention=tally`, the code's corner wearing the same token) and the line keeps the word it counts; every other glyph
+  is bare and in the ink, the reel's too. Settings' steps left and paused uploads are hers, never a status: a quiet
+  badge only where a door has no line (a hand's tile, a pill), `data-hers`. The badge caps at 99+ (`badgeCount`), the
+  door's name keeping the whole number ("Review: 140 waiting"), and ticks down on return. ★ Every door is in sight at
+  every width, so the row never scrolls sideways: a hand's one row of five tiles (76px), a tablet's five tiles from
+  640px (108px, the long names from 740px), a desk's five cards from 1088px (72px); stuck, a hand's five slots sharing
+  the band (44px tall), a glyph and its badge to 800px, its word beside them from 800 (124px each), all CSS
+  (`room-card.css`) so the server's paint is right at every width. Each door's words are `room-card.ts`'s
+  (`reelCardFace`, `guestsCardFace`, `reviewCardFace`, `settingsCardFace`), the page's first paint and the row's live
+  counts alike. ★ The row condenses in place (a remount would drop the code chip's `view-transition-name` mid-morph),
+  written as one `data-stuck` by the fold (`event-cards-row-fold.ts`: FLIP between two reads taken before the flights
+  in the air are cancelled, so a fold reversed mid-flight starts from where each piece is; Review first, its neighbours
+  12ms after, the ends last; reduced motion dissolves what stands on the band over 150ms and moves nothing; a first
+  report below the bar flips at once), and inside the resting row's footprint (`useStuckBand`), because a band that
+  moved the album let scroll anchoring flip it across the threshold and back for ever. Stuck, the band is the bar's own
+  material and puts everything back where the cover had it: the cover's face at its left end (and from 1088px its name,
+  truncating to its column), the doors in the middle, and, while the head's code is off screen, the code at its right
+  end as a pill of the band's material (`ui/code-chip.tsx`, restyled by the row's sheet). The hub's loading skeleton
+  draws the row and the light's box in their own classes, so it cannot drift from them.
 - **Every room is a place over the hub, one way in and out**: Review, Guests and Settings stand in one panel
   (`share/room-panel.tsx` for the first two, Settings' own kind and head), the share kit, See it as a guest in a phone
   over the dimmed hub (below), and the Highlight reel is a door: the guests' own view at `?reel` ([reel.md](reel.md)),
@@ -348,11 +378,13 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
 
 - ★ **`set_event_door` is the one writer of the pair** (`setEventDoorAction` re-verifies with `getUser()`). A move
   that changes things for people already in or waiting (Only me with guests in; Public, only people already in or a
-  password with newcomers waiting) says what happens first and waits for the confirm. Opening an album to Public lets
+  password with newcomers waiting) says what happens first and waits for the confirm; a first password says it at its
+  field, before she types, a line a group (`passwordGroups`: the guests in stay in on every phone, the people at the
+  door stop waiting on her and get in with it), in place of the gates' inside note. Opening an album to Public lets
   everyone waiting in but an ask a block holds (`events_door_opened`, reading the one set `event_door_asks`), so a
-  declined newcomer waits through a Public trip for Let back in rather than walking into an album its host never let
-  her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks leave
-  At the door, the dashboard and the bell.
+  declined newcomer waits through a Public trip for the host's Let in rather than walking into an album its host never
+  let her into; a password ends every ask (`events_door_to_password`, [guest-flow.md](guest-flow.md)), so those asks
+  leave At the door, the dashboard and the bell.
 - ★ **The Guests room is one read, after `getEvent` has proved the host** (`guests/room.server.ts`: the door's lists are
   the service role's, and a confirmed guest's address re-proves inside its own read). The hub's render reads it whenever
   the address names the room, and the room's own ask (`readGuestsRoomAction`) when a card opens it in place; the panel
@@ -364,12 +396,15 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   from `countWaitingGuestShots`, which the hub reads only while a develop time is ahead (`hubCovered`), after
   `getEvent`, and never worth the page (a failed read leaves the guests' count, captured).
 - **The Guests room's At the door** heads it: Let in (`let_in_at_door`) opens her door on every device, and her held
-  door opens by itself at its next check-in. ★ Decline is a block (the account where there is one, else the row), with
-  Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and cannot keep
-  re-asking. Back from either, she returns to the door and still needs Let in unless the door as it stands lets her in
-  (the invite list naming her, or a Public album), and Let back in's words say which (`BlockedPerson.lands`, read from
-  the door as it stands, once for the whole Blocked list). A waiting newcomer counts on the hub's Guests card, the
-  dashboard and the bell, and sends no mail.
+  door opens by itself at its next check-in (at Only me the toast says she meets the album closed instead). ★ Decline
+  is a block (the account where there is one, else the row), so a declined newcomer meets the one shut screen and
+  cannot keep re-asking. Her ask stands under the block, so the way back answers it: Let in, on the decline's own
+  toast and on her Blocked row, lifts the block and lets her in on every device she asked from in one call
+  (`let_back_in`'s `p_let_in`, 20261007020000; one press on the row unless a restore can be chosen or the album is Only
+  me, whose confirm says so first). A newcomer whose ask ended (a password) gets Let back in, and its words say where she
+  lands; every landing is `BlockedPerson.lands`, read from the door as it stands, once for the whole Blocked list, and
+  every Let in says what its answer says (`admitted`: one let in by nobody promises nothing past the lifted block). A
+  waiting newcomer counts on the hub's Guests card, the dashboard and the bell, and sends no mail.
 - **Invited**: one field takes a typed address or a pasted list (`readAddresses`: the readable saved at once and
   counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address reads
   Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it let
@@ -455,9 +490,10 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   and which offers An email first, off, on a names-only album. It keys on the account, the confirmed address or the
   guest row, never a device or an IP, so a typed name is held on the phone that used it. Their live uploads move to
   Deleted in the same step as the host's own removal (a held one stays, as every host write leaves it). The Guests
-  room's foot lists the blocks with Let back in (`let_back_in`), whose restore is off unless the host turns it on and
-  brings back only what this block removed and still waits in Deleted, to the status each had, newest first within
-  the cap. What the person meets is [guest-flow.md](guest-flow.md)'s.
+  room's foot lists the blocks with their way back (`let_back_in`: Let in for a newcomer whose ask stands, above, Let
+  back in for anyone else), whose restore is off unless the host turns it on and brings back only what this block
+  removed and still waits in Deleted, to the status each had, newest first within the cap. What the person meets is
+  [guest-flow.md](guest-flow.md)'s.
 
 ## The highlight reel, the host's side
 

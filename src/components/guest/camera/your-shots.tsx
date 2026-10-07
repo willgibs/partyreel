@@ -12,7 +12,8 @@
  * until the album develops, or held for the host, as her tracker's rule (`upload-tracker.tsx`'s `removable`). A shot in
  * the album is removed from the album, where the photo viewer's Delete is its door. No confirm, as in her tracker: it
  * says Removing while it works, leaves the list when the server agrees, and the count steps back up as the camera reads
- * her roll again.
+ * her roll again. ★ Its head counts her re-shoots ("6 of 24 · 2 re-shoots left", guest-moments r1's `limit=three`),
+ * and once they are spent its foot says a removal frees no frame now, so the X never promises one.
  */
 import { ChevronDown, Loader2, Play, RefreshCw, X } from "lucide-react";
 import type { Ref } from "react";
@@ -72,6 +73,7 @@ export function YourShots({
   count,
   removing,
   canFreeFrames,
+  spentLine = null,
   onRemove,
   onRetry,
   onBack,
@@ -83,8 +85,10 @@ export function YourShots({
   /** "6 of 24", or her count where no roll binds her. */
   count: string;
   removing: ReadonlyMap<string, "working" | "failed">;
-  /** Removing a shot frees a frame here (a guest's roll, short of the ceiling). */
+  /** Removing a shot frees a frame here (a guest's roll, a re-shoot left). */
   canFreeFrames: boolean;
+  /** Said under her shots once her re-shoots are spent, where removing one frees nothing (`removingSpentLine`). */
+  spentLine?: string | null;
   onRemove: (mediaId: string) => void;
   onRetry: (queueId: string) => void;
   onBack: () => void;
@@ -114,7 +118,9 @@ export function YourShots({
           >
             {YOUR_SHOTS}
           </h2>
-          <p className="text-micro text-white/60 tabular-nums">{count}</p>
+          {/* Proportional figures: tabular ones set the re-shoots' hyphen a figure wide ("re - shoots"), and the line
+              never moves under her eye (it changes as a shot lands or leaves, never by the frame). */}
+          <p className="text-micro text-white/60">{count}</p>
         </div>
         <span aria-hidden className="size-11" />
       </div>
@@ -201,9 +207,9 @@ export function YourShots({
             })}
           </ul>
         )}
-        {anyRemovable && canFreeFrames && (
-          <p className="mt-5 text-center text-caption text-white/50">
-            {REMOVING_FREES}
+        {anyRemovable && (canFreeFrames || spentLine) && (
+          <p className="mt-5 text-center text-caption text-pretty text-white/50">
+            {canFreeFrames ? REMOVING_FREES : spentLine}
           </p>
         )}
       </div>

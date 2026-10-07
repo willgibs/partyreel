@@ -106,8 +106,14 @@ export async function setEventDoor(
   | {
       ok: true;
       data: {
-        /** The email step was turned on with it (an address gate holds it on). */
+        /** The email step was turned on with it, from off (an address gate holds it on, and the event remembers). */
         emailHeld: boolean;
+        /**
+         * ★ The door left a gate that had turned the email step on from off, and the database gave her names-only
+         * door back with it (`events_email_held`, 20261007140000). Null where the database answers no such key (one
+         * before that migration, which remembers nothing): it gave nothing back, and nothing may say it did.
+         */
+        emailRestored: boolean | null;
         /**
          * People waiting at the door who came in with it: everyone, as the album turned Public, or
          * those the list names, as the invite list became the door (20260929220000).
@@ -121,10 +127,12 @@ export async function setEventDoor(
     supabase.rpc("set_event_door", { p_event_id: eventId, p_door: door }),
   );
   if (!result.ok) return result;
+  const restored = result.data.email_restored;
   return {
     ok: true,
     data: {
       emailHeld: result.data.email_held === true,
+      emailRestored: typeof restored === "boolean" ? restored : null,
       admitted: count(result.data.admitted),
     },
   };

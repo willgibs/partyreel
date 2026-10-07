@@ -1,12 +1,12 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DoorParts, doorAttrs, doorName } from "./room-card-door";
 
 /**
- * THE DOOR, A CARD AT REST AND A PILL UNDER THE BAR (event-header r4's cards over the seam): its name, its pieces in both
- * forms, and what each face puts on it. How it looks and where it stands are the sheet's (`room-card.css`) and the
- * browser's; what is held here is what a reader, a count and the fold's own hooks depend on.
+ * THE DOOR, A CARD AT REST AND A PILL UNDER THE BAR (event-header r4's cards, as r6 drew them: `card=shoulder`): its name,
+ * its pieces in both forms, and what each face puts on it. How it looks and where it stands are the sheet's
+ * (`room-card.css`) and the browser's; what is held here is what a reader, a count and the fold's own hooks depend on.
  */
 
 /** A door as the row draws it: an element wearing the shared attributes, the pieces inside. */
@@ -39,7 +39,7 @@ describe("a door's name", () => {
   });
 
   it("is the one name: every piece inside says nothing twice", () => {
-    render(<Door face={{ value: "8 waiting", amber: true, count: 8 }} />);
+    render(<Door face={{ value: "8 waiting", needs: true, count: 8 }} />);
     const door = screen.getByRole("link", { name: "Review: 8 waiting" });
     // Everything drawn inside the door is hidden from a reader; the name carries it all.
     for (const child of door.children) {
@@ -55,15 +55,16 @@ describe("the pieces the fold carries", () => {
     for (const name of ["skin", "disc", "glyph", "title", "text", "word"]) {
       expect(piece(door, name), name).not.toBeNull();
     }
-    // Nothing waits, so there is no light and no numeral to carry.
-    expect(piece(door, "light")).toBeNull();
-    expect(piece(door, "num")).toBeNull();
+    // Nothing waits, and nothing is hers to act on, so the glyph carries no badge.
+    expect(piece(door, "badge")).toBeNull();
   });
 
-  it("wears the sheet's hook and the room's own, for the row and the frames' captions to find it", () => {
+  it("wears the sheet's hook, the room's own and the house's press, for the row and the frames' captions to find it", () => {
     render(<Door room="guests" face={{ value: "31 guests" }} />);
     const door = screen.getByRole("link");
     expect(door).toHaveClass("hub-door");
+    // Identity r4's `press=shrink`: one press for every action, its give per form set by the sheet.
+    expect(door).toHaveClass("press-shrink");
     expect(door).toHaveAttribute("data-hub-door", "guests");
   });
 
@@ -92,50 +93,66 @@ describe("the pieces the fold carries", () => {
     expect(title.querySelector(".hub-door-full")).toBeNull();
     expect(title).toHaveTextContent("Review");
   });
+
+  // ★ RESHAPED ON PURPOSE (event-header r6's carried `reel-ink`): this pinned the reel's violet glyph as its one mark of its
+  // own; Will took every glyph in the ink, since Afterglow paints no hue on a control.
+  it("★ draws every glyph in the ink, the reel's too: no door wears a hue of its own", () => {
+    render(<Door room="reel" face={{ value: "Live for guests" }} />);
+    const door = screen.getByRole("link");
+    expect(door.querySelector(".hub-door-reel")).toBeNull();
+    expect(door.outerHTML).not.toMatch(/--reel|text-reel/);
+  });
 });
 
-describe("a waiting count", () => {
-  it("is a numeral and the waiting light, and the line keeps the word it counts", () => {
-    render(<Door face={{ value: "8 waiting", amber: true, count: 8 }} />);
+describe("a count that needs her", () => {
+  it("★ rides the glyph's shoulder as a badge in the status, and the line keeps the word it counts", () => {
+    render(<Door face={{ value: "8 waiting", needs: true, count: 8 }} />);
     const door = screen.getByRole("link");
-    expect(piece(door, "num")).toHaveTextContent("8");
-    expect(piece(door, "light")).toHaveClass("hub-door-light");
+    const badge = piece(door, "badge")!;
+    expect(badge).toHaveTextContent("8");
+    expect(badge).toHaveAttribute("data-badge", "needs");
+    // On the glyph, so title and count read in one glance (his r5 note), never at the card's far end.
+    expect(badge.closest(".hub-door-glyph")).not.toBeNull();
     expect(piece(door, "text")).toHaveTextContent("waiting");
     expect(piece(door, "text")).not.toHaveTextContent("8");
+    // The line names what waits on her, so it reads in the ink.
+    expect(piece(door, "text")?.className).toContain("text-foreground");
   });
 
-  it("★ is never a wash: the card itself wears no waiting colour", () => {
-    render(<Door face={{ value: "8 waiting", amber: true, count: 8 }} />);
+  it("★ is never a wash: the card itself wears no status colour", () => {
+    render(<Door face={{ value: "8 waiting", needs: true, count: 8 }} />);
     const door = screen.getByRole("link");
-    // The needs-action token appears only as the light's own (the sheet), never as a class on the card or its line.
-    expect(door.outerHTML).not.toMatch(/warning/);
+    // The status is the sheet's, on the badge alone (`room-card.css`), never a class on the card or its line.
+    expect(door.outerHTML).not.toMatch(/warning|needs-you|signal/);
   });
 
-  it("★ gives a count past 999 the compact numeral a card and a pill have room for, the exact number in the name", () => {
-    render(
-      <Door
-        face={{ value: "1,234 waiting", amber: true, count: 1234 }}
-        room="review"
-      />,
-    );
-    const door = screen.getByRole("link", { name: "Review: 1,234 waiting" });
-    expect(piece(door, "num")).toHaveTextContent("1.2K");
-    expect(piece(door, "text")).toHaveTextContent("waiting");
-  });
+  // ★ RESHAPED ON PURPOSE (Will, event-header r5: "Can max at 99+ so it never overflows into card title"): this gave a
+  // count past 999 the compact numeral ("1.2K") a card and a pill had room for; the count now rides a badge that caps at
+  // 99+. What it guarded stands: the exact number is in the door's name and the room it opens.
+  it.each([
+    [140, "99+"],
+    [1234, "99+"],
+    [100, "99+"],
+    [99, "99"],
+  ])(
+    "★ caps a count of %i on the badge at %s, the whole number in the name",
+    (n, said) => {
+      const value = `${n.toLocaleString("en-US")} waiting`;
+      render(<Door face={{ value, needs: true, count: n }} room="review" />);
+      const door = screen.getByRole("link", { name: `Review: ${value}` });
+      expect(piece(door, "badge")).toHaveTextContent(said);
+      expect(piece(door, "text")).toHaveTextContent("waiting");
+    },
+  );
 
-  it("whole to 999", () => {
-    render(<Door face={{ value: "128 waiting", amber: true, count: 128 }} />);
-    expect(piece(screen.getByRole("link"), "num")).toHaveTextContent("128");
-  });
-
-  it("lights nothing for an amber face with no count", () => {
-    render(<Door face={{ value: "8 waiting", amber: true }} />);
-    expect(piece(screen.getByRole("link"), "light")).toBeNull();
+  it("draws no badge for a face that needs her with no count", () => {
+    render(<Door face={{ value: "8 waiting", needs: true }} />);
+    expect(piece(screen.getByRole("link"), "badge")).toBeNull();
   });
 });
 
 describe("the carried call G4: Settings' count is plain, and paused uploads read Paused", () => {
-  it("★ draws the steps left in the ink and as an unlit mark for a pill, never amber", () => {
+  it("★ draws the steps left in the ink and as a quiet badge where the door has no line, never the status", () => {
     render(
       <Door
         room="settings"
@@ -146,64 +163,34 @@ describe("the carried call G4: Settings' count is plain, and paused uploads read
     expect(piece(door, "text")).toHaveTextContent("2 left");
     expect(piece(door, "text")?.className).toContain("text-foreground");
     expect(piece(door, "text")?.className).not.toContain("muted");
-    const light = piece(door, "light");
-    expect(light).toHaveClass("hub-door-unlit");
-    expect(light).not.toHaveClass("hub-door-light");
-    expect(piece(door, "num")).toHaveTextContent("2");
-    // Only a pill shows it: the card's own line already says it.
-    expect(light?.closest(".hub-door-count")).toHaveClass("hub-door-left");
-    expect(door.outerHTML).not.toMatch(/warning/);
+    const badge = piece(door, "badge")!;
+    expect(badge).toHaveAttribute("data-badge", "quiet");
+    expect(badge).toHaveTextContent("2");
+    // Hers, so the sheet shows it only where the door has no line to say it in (a hand's tile, a pill).
+    expect(badge).toHaveAttribute("data-hers");
   });
 
-  it("★ says Paused in the ink, with the plain pause for a pill", () => {
+  it("★ says Paused in the ink, with the plain pause on a quiet badge", () => {
     render(<Door room="settings" face={{ value: "Paused", paused: true }} />);
     const door = screen.getByRole("link", { name: "Settings: Paused" });
     expect(piece(door, "text")).toHaveTextContent("Paused");
     expect(piece(door, "text")?.className).toContain("text-foreground");
-    expect(door.querySelector(".hub-door-pause svg")).not.toBeNull();
-    expect(piece(door, "num")).toBeNull();
+    const badge = piece(door, "badge")!;
+    expect(badge).toHaveAttribute("data-badge", "quiet");
+    expect(badge).toHaveAttribute("data-hers");
+    expect(badge.querySelector("svg")).not.toBeNull();
   });
 
   it("is quiet, in the muted grey, for a line that is neither", () => {
     render(<Door room="settings" face={{ value: "Public" }} />);
     const door = screen.getByRole("link");
     expect(piece(door, "text")?.className).toContain("text-muted-foreground");
-  });
-});
-
-describe("the light that follows the pointer (the room's one delight)", () => {
-  it("writes the pointer's place on the card for a mouse, and leaves a finger alone", () => {
-    render(<Door face={{ value: "All caught up" }} />);
-    const door = screen.getByRole("link");
-    vi.spyOn(door, "getBoundingClientRect").mockReturnValue({
-      left: 100,
-      top: 40,
-      width: 200,
-      height: 72,
-      right: 300,
-      bottom: 112,
-      x: 100,
-      y: 40,
-      toJSON: () => ({}),
-    });
-    fireEvent.pointerMove(door, {
-      pointerType: "mouse",
-      clientX: 130,
-      clientY: 60,
-    });
-    expect(door.style.getPropertyValue("--hub-door-x")).toBe("30px");
-    expect(door.style.getPropertyValue("--hub-door-y")).toBe("20px");
-    fireEvent.pointerMove(door, {
-      pointerType: "touch",
-      clientX: 250,
-      clientY: 90,
-    });
-    expect(door.style.getPropertyValue("--hub-door-x")).toBe("30px");
+    expect(piece(door, "badge")).toBeNull();
   });
 });
 
 /**
- * THE COUNT TICKS DOWN ON RETURN: a host clears nine photographs in Review and comes back; the numeral sliding 12 to 3
+ * THE COUNT TICKS DOWN ON RETURN: a host clears nine photographs in Review and comes back; the badge sliding 12 to 3
  * says what she just did. First paint never animates; reduced motion shortens the travel to one frame.
  */
 describe("the waiting count's travel", () => {
@@ -214,31 +201,45 @@ describe("the waiting count's travel", () => {
 
   const face = (n: number) => ({
     value: `${n} waiting`,
-    amber: true,
+    needs: true,
     count: n,
   });
-
-  it("slides to the new count, through the numbers between", async () => {
-    vi.useFakeTimers();
+  const moving = () =>
     vi.stubGlobal(
       "matchMedia",
       (query: string) =>
         ({ matches: false, media: query }) as unknown as MediaQueryList,
     );
+
+  it("slides to the new count, through the numbers between", async () => {
+    vi.useFakeTimers();
+    moving();
     const { rerender } = render(<Door face={face(12)} />);
-    expect(piece(screen.getByRole("link"), "num")).toHaveTextContent("12");
+    expect(piece(screen.getByRole("link"), "badge")).toHaveTextContent("12");
     rerender(<Door face={face(3)} />);
     // Mid-travel it shows a number between, never the target at once.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
     });
-    const mid = Number(piece(screen.getByRole("link"), "num")?.textContent);
+    const mid = Number(piece(screen.getByRole("link"), "badge")?.textContent);
     expect(mid).toBeGreaterThan(3);
     expect(mid).toBeLessThan(12);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(300);
     });
-    expect(piece(screen.getByRole("link"), "num")).toHaveTextContent("3");
+    expect(piece(screen.getByRole("link"), "badge")).toHaveTextContent("3");
+  });
+
+  it("says the badge's own words at every step, so a count clearing from past the cap reads 99+ until it is under it", async () => {
+    vi.useFakeTimers();
+    moving();
+    const { rerender } = render(<Door face={face(140)} />);
+    expect(piece(screen.getByRole("link"), "badge")).toHaveTextContent("99+");
+    rerender(<Door face={face(120)} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(piece(screen.getByRole("link"), "badge")).toHaveTextContent("99+");
   });
 
   it("★ lands on the new count one frame later under reduced motion, never skipping the frame", async () => {
@@ -256,6 +257,6 @@ describe("the waiting count's travel", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(40);
     });
-    expect(piece(screen.getByRole("link"), "num")).toHaveTextContent("3");
+    expect(piece(screen.getByRole("link"), "badge")).toHaveTextContent("3");
   });
 });

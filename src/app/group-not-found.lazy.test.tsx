@@ -30,10 +30,8 @@ describe("the guest link's 404", () => {
   it("is a reference until its chunk lands, then the whole screen under the session-less bar", async () => {
     const { default: GuestNotFound, metadata } =
       await import("./(guest)/e/[token]/not-found");
-    expect(metadata).toMatchObject({
-      title: "Event not found",
-      robots: { index: false, follow: false },
-    });
+    // Next's own noindex is the 404's one robots meta (crumbs-86): the boundary says none beside it.
+    expect(metadata).toEqual({ title: "Event not found" });
     render(<GuestNotFound />);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 
@@ -53,7 +51,7 @@ describe("the guest link's 404", () => {
     expect(
       screen.getByText(/mistyped, or the host may have deleted/),
     ).toBeInTheDocument();
-    // It never says an event "ended": there is no end date (constants/tiers.ts).
+    // It never says an event "ended": an event never expires (constants/tiers.ts).
     expect(screen.queryByText(/ended/i)).toBeNull();
     expect(
       screen.getByRole("link", { name: "What is Partyreel?" }),
@@ -82,10 +80,8 @@ describe("the guest profile's 404", () => {
   it("is a reference until its chunk lands, then the screen that says nothing about why", async () => {
     const { default: ProfileNotFound, metadata } =
       await import("./(guest)/u/[slug]/not-found");
-    expect(metadata).toMatchObject({
-      title: "Profile not found",
-      robots: { index: false, follow: false },
-    });
+    // Next's own noindex is the 404's one robots meta (crumbs-86): the boundary says none beside it.
+    expect(metadata).toEqual({ title: "Profile not found" });
     render(<ProfileNotFound />);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 
@@ -110,54 +106,11 @@ describe("the guest profile's 404", () => {
   });
 });
 
-describe("the cinema group's 404", () => {
-  it("is a reference until its chunk lands, then the centred words and no chrome of its own", async () => {
-    const { default: CinemaNotFound, metadata } =
-      await import("./(marketing)/(cinema)/not-found");
-    // Next's own noindex is the 404's one robots meta (red-team 56's NIT): the cinema's says none beside it.
-    expect(metadata).toEqual({ title: "Page not found" });
-    const { container } = render(<CinemaNotFound />);
-    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
-
-    const title = await screen.findByRole("heading", {
-      level: 1,
-      name: "We lost this page",
-    });
-    // The cinema layout draws the header and footer around it; a second set here would double-stack.
-    expect(screen.queryByRole("banner")).toBeNull();
-    expect(screen.queryByRole("contentinfo")).toBeNull();
-    // The box the layout's grown <main> expects: min-h, never flex-1.
-    const box = container.firstElementChild as HTMLElement;
-    expect(box).toContainElement(title);
-    expect(box).toHaveClass(
-      "flex",
-      "min-h-[60vh]",
-      "flex-col",
-      "items-center",
-      "justify-center",
-      "px-6",
-      "py-24",
-    );
-    expect(box).not.toHaveClass("flex-1");
-    expect(screen.getByRole("link", { name: "Back home" })).toHaveAttribute(
-      "href",
-      "/",
-    );
-    expect(
-      screen.getByRole("link", { name: "Visit the help center" }),
-    ).toHaveAttribute("href", "/help");
-    expect(screen.getByRole("link", { name: "contact us" })).toHaveAttribute(
-      "href",
-      "/contact",
-    );
-  });
-});
-
 describe("the host app's 404", () => {
   it("is a reference until its chunk lands, then the block that sits inside the shell's own container", async () => {
     const { default: AppNotFound, metadata } =
       await import("./(app)/not-found");
-    expect(metadata).toMatchObject({ title: "Event not found" });
+    expect(metadata).toEqual({ title: "Event not found" });
     const { container } = render(<AppNotFound />);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 
@@ -193,10 +146,7 @@ describe("the operations portal's 404", () => {
   it("is a reference until its chunk lands, then the block inside AdminShell, its help line unlinked", async () => {
     const { default: AdminNotFound, metadata } =
       await import("./admin/not-found");
-    expect(metadata).toMatchObject({
-      title: "Page not found",
-      robots: { index: false, follow: false },
-    });
+    expect(metadata).toEqual({ title: "Page not found" });
     const { container } = render(<AdminNotFound />);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 

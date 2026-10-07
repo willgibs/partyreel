@@ -2,7 +2,14 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Globe, Info, Lock, UserRound, UsersRound } from "lucide-react";
+import {
+  Globe,
+  Info,
+  KeyRound,
+  Lock,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import { toast } from "sonner";
 
@@ -55,6 +62,12 @@ import { cn } from "@/lib/utils";
  * line): Only me closes them out; Public lets everyone waiting straight in; a password ends every ask at
  * the door (migration 20260929230000: nobody waits on the host there), so the people waiting need it too.
  *
+ * ★ A FIRST PASSWORD SAYS BOTH GROUPS WHERE SHE TYPES IT (host-moments r1, `password=both`): a gate going on
+ * mid-party is the moment a host fears she is locking her own guests out, so before she types it the field
+ * says, a line a group, that the guests in stay in on every phone and that the people at the door stop waiting
+ * on her and get in with it. The two lines take the place of the field's waiting line and the gates' inside
+ * note, so neither group is said twice; with nobody in and nobody waiting, nothing more is said.
+ *
  * ★ WHAT DOES NOTHING RIGHT NOW STAYS IN VIEW, DORMANT: under Only me the steps after the first (nobody
  * reaches them), under Public the gates (a hint at what Private keeps), and A photo first while uploads
  * are paused.
@@ -75,11 +88,113 @@ const people = (n: number, one: string, many: string) =>
 const passwordLine = (waiting: number) =>
   `${people(waiting, "person is", "people are")} waiting at the door. A password asks them for it too.`;
 
-/** A consequential door: what the line says, and what its button does. */
-function consequenceOf(
+/**
+ * WHAT A FIRST PASSWORD DOES TO EACH GROUP (`password=both`): its count and its fact first, what it means after,
+ * a line only for a group someone is in.
+ */
+export function passwordGroups(counts: { in: number; waiting: number }): {
+  group: "in" | "waiting";
+  lead: string;
+  rest: string;
+}[] {
+  const lines: { group: "in" | "waiting"; lead: string; rest: string }[] = [];
+  // Each verb agrees with its count ("1 guest is in, and stays in"), as the door's other lines do.
+  if (counts.in > 0) {
+    lines.push({
+      group: "in",
+      lead: `${people(counts.in, "guest is in, and stays in", "guests are in, and stay in")}`,
+      rest: "on every phone they used. Nobody inside is asked for it.",
+    });
+  }
+  if (counts.waiting > 0) {
+    lines.push({
+      group: "waiting",
+      lead: `${people(counts.waiting, "person waits", "people wait")} at the door`,
+      rest: `and ${counts.waiting === 1 ? "stops" : "stop"} waiting on you: they get in with the password, like anyone new.`,
+    });
+  }
+  return lines;
+}
+
+const GROUP_ICON = { in: UsersRound, waiting: KeyRound } as const;
+
+/**
+ * What a gate does to everyone already in, said under the gates (`data-door-inside`). ★ TRUE OF THE GUESTS IN BY NAME
+ * TOO (crumbs-89): while An email first is on, a guest in on a name alone confirms an email before she adds again, so
+ * "everyone in keeps adding" says when for them, where any are in.
+ */
+export function insideNote(inByName: number, emailOn: boolean): string {
+  if (!emailOn || inByName <= 0) {
+    return "A gate stops newcomers; everyone in keeps adding.";
+  }
+  return `A gate stops newcomers; everyone in keeps adding, the ${formatCount(inByName)} in by name once they confirm an email.`;
+}
+
+/**
+ * The two groups, said above the field before she types (the board's drawn lines, in the inside note's own flat
+ * note: the track's tone, never a field or a card). ★ ANNOUNCED AS THEY OPEN, as the consequence line is: a host
+ * on a screen reader picks A password and hears what it does to her guests before she reaches the field.
+ */
+function PasswordGroups({
+  counts,
+}: {
+  counts: { in: number; waiting: number };
+}) {
+  const lines = passwordGroups(counts);
+  if (lines.length === 0) return null;
+  return (
+    <div
+      data-door-password-groups=""
+      aria-live="polite"
+      className="mb-2.5 space-y-1.5"
+    >
+      {lines.map((line) => {
+        const Icon = GROUP_ICON[line.group];
+        return (
+          <p
+            key={line.group}
+            data-door-password-group={line.group}
+            className="flex items-start gap-2 rounded-lg bg-(--track) px-3 py-2 text-sm text-pretty"
+          >
+            <Icon
+              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
+            <span>
+              <span className="font-medium tabular-nums">{line.lead}</span>{" "}
+              <span className="text-muted-foreground">{line.rest}</span>
+            </span>
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * A consequential door: what the line says, and what its button does. `emailOn` is whether An email first is on now.
+ */
+export function consequenceOf(
   next: Door,
-  counts: { in: number; waiting: number },
+  counts: { in: number; inByName: number; waiting: number },
+  emailOn: boolean,
 ): { line: string; confirm: string } | null {
+  // ★ AN ADDRESS GATE TURNS AN EMAIL FIRST ON FOR EVERYONE ALREADY IN TOO (crumbs-89; crumbs-87's walk: a guest on a
+  // phone). Letting each person in and the invite list match a confirmed address, so choosing either from names only
+  // asks every guest in on a name alone to confirm an email before they see everything or add again ("Confirm your
+  // email to see everything"), the people a gate otherwise leaves alone. So the move says so first, with their count,
+  // as a first password says what it does to each group; only where the step is off now (her own step on already asked
+  // them) and someone is in by name. Her names-only door comes back when the gate goes (the event remembers it).
+  if (
+    (next === "approve" || next === "invite") &&
+    !emailOn &&
+    counts.inByName > 0
+  ) {
+    return {
+      line: `${people(counts.inByName, "guest is", "guests are")} in on a name alone. ${next === "approve" ? "Letting each person in" : "Your invite list"} asks them to confirm an email too, before they see everything or add more.`,
+      confirm: "Ask for an email",
+    };
+  }
   if (next === "private" && counts.in > 0) {
     return {
       line: `${people(counts.in, "guest is", "guests are")} already in. Only me closes them out completely, until you open it again.`,
@@ -157,7 +272,7 @@ function GateHelp({ gate }: { gate: PrivateGate }) {
         <button
           type="button"
           aria-label={`What ${GATE_LABELS[gate].toLowerCase()} is for`}
-          className="relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground focus-halo motion-reduce:transition-none"
+          className="relative z-10 flex size-6 shrink-0 focus-halo items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground motion-reduce:transition-none"
         >
           <Info className="size-4" aria-hidden />
         </button>
@@ -180,6 +295,8 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
   const [pending, setPending] = useState<Door | null>(null);
   const [settingPassword, setSettingPassword] = useState(false);
   const passwordLocked = isSettingLocked("password", s.tier);
+  // A first password is being typed: its field says both groups, so the gates' inside note stands down.
+  const typingFirst = settingPassword && !(passwordLocked && !v.hasPassword);
 
   async function apply(next: Door) {
     setPending(null);
@@ -204,14 +321,16 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
       return;
     }
     setSettingPassword(false);
-    if (consequenceOf(next, counts)) {
+    if (consequenceOf(next, counts, v.requireVerifiedEmail)) {
       setPending(next);
       return;
     }
     void apply(next);
   }
 
-  const consequence = pending ? consequenceOf(pending, counts) : null;
+  const consequence = pending
+    ? consequenceOf(pending, counts, v.requireVerifiedEmail)
+    : null;
   // ★ WHAT THE LIST WOULD DO, said on its row before it is chosen (crumbs-23, build 26's NIT-C): the
   // people waiting whom it names come straight in, in the words the door menu says it in.
   const listedLine = listedWouldComeInLine(counts.waitingListed);
@@ -262,7 +381,7 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                         // ★ A CHOICE SITS ON ONE LINE (red-team 46's NIT: "Only me" wrapped beside "Public" and "Private"
                         // at 375): its words never wrap, and its small padding leaves them the whole third.
                         "flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-[color,background-color,scale] duration-150 ease-emphasis outline-none",
-                        "hover:text-foreground focus-halo press-shrink [--press-scale:0.95]",
+                        "press-shrink focus-halo [--press-scale:0.95] hover:text-foreground",
                         "data-[state=on]:afloat",
                       )}
                     >
@@ -332,7 +451,7 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               role="radio"
                               aria-checked={on}
                               onClick={() => choose(candidate)}
-                              className="absolute inset-0 rounded-xl outline-none focus-halo halo-inset"
+                              className="absolute inset-0 focus-halo rounded-xl outline-none halo-inset"
                             >
                               <span className="sr-only">{GATE_LABELS[g]}</span>
                             </button>
@@ -390,26 +509,25 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                                 />
                               ) : (
                                 <>
-                                  {/* The first password opens the door as it is set, so its
-                                      consequence stands beside the field it is set in. */}
-                                  {settingPassword && counts.waiting > 0 ? (
-                                    <p
-                                      data-door-password-waiting=""
-                                      className="mb-2.5 text-caption text-pretty text-muted-foreground"
-                                    >
-                                      {passwordLine(counts.waiting)}
-                                    </p>
+                                  {/* The first password opens the door as it is set, so what it does to
+                                      each group stands beside the field it is set in, read before she types. */}
+                                  {typingFirst ? (
+                                    <PasswordGroups counts={counts} />
                                   ) : null}
                                   <EventPasswordControl
                                     eventId={s.eventId}
                                     hasPassword={v.hasPassword}
                                     locked={passwordLocked}
-                                    onPasswordSet={() =>
-                                      setSettingPassword(false)
-                                    }
-                                    onPasswordCleared={() =>
-                                      setSettingPassword(false)
-                                    }
+                                    // Its success is the door's answer (it writes the door itself): the provider lays
+                                    // what it did, a held step given back included, never left to the hub's next read.
+                                    onPasswordSet={() => {
+                                      setSettingPassword(false);
+                                      s.passwordSet();
+                                    }}
+                                    onPasswordCleared={() => {
+                                      setSettingPassword(false);
+                                      s.passwordCleared();
+                                    }}
                                   />
                                 </>
                               )}
@@ -441,7 +559,8 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                       );
                     })}
                   </div>
-                  {gate && counts.in > 0 ? (
+                  {/* The field's in-line says it while a first password is being typed: never twice. */}
+                  {gate && counts.in > 0 && !typingFirst ? (
                     <p
                       data-door-inside=""
                       // A note, flat (identity r5): the track's tone with no line, never a field or a card.
@@ -456,7 +575,10 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                           {`${people(counts.in, "guest is", "guests are")} already in.`}
                         </span>{" "}
                         <span className="text-muted-foreground">
-                          {"A gate stops newcomers; everyone in keeps adding."}
+                          {insideNote(
+                            counts.inByName,
+                            v.requireVerifiedEmail || Boolean(heldEmail),
+                          )}
                         </span>
                       </span>
                     </p>

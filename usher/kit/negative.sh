@@ -18,9 +18,15 @@ BEFORE="$(git status --short)"; S="$T" zsh "$KIT/merge-lane.sh" no-such-lane dea
 mkdir -p "$T/docs"; echo '{"changelog": "x"}' > "$T/rec0.json"; echo '{"status": [{"id": "x", "state": "y"}]}' > "$T/rec1.json"
 (cd "$T" && python3 "$KIT/record.py" rec0.json > "$T/rec0.out" 2>&1); R0=$?; (cd "$T" && python3 "$KIT/record.py" rec1.json > "$T/rec1.out" 2>&1); R1=$?
 [ $R0 != 0 ] && [ $R1 != 0 ] && grep -q "no CHANGELOG" "$T/rec0.out" && grep -q "snapshot" "$T/rec1.out" && ok "record.py refuses a changelog and a STATUS row" || bad "record.py accepted a changelog or a STATUS row"
-# 4. record.py refuses a ROADMAP retirement that matches nothing, and writes nothing
-printf '%s\n' "## Now" "" "- a line" > "$T/docs/ROADMAP.md"; echo '{"retire_roadmap": ["no such line"]}' > "$T/rec.json"
-(cd "$T" && python3 "$KIT/record.py" rec.json > "$T/rec.out" 2>&1); grep -q "need exactly one" "$T/rec.out" && grep -q "^- a line" "$T/docs/ROADMAP.md" && ok "record.py refuses an unmatched retirement and writes nothing" || bad "record.py retired nothing but reported success, or wrote"
+# 4. record.py refuses a ROADMAP retirement that matches nothing, a line it is not told where to place (never appended to
+#    a pile: Will, 2026-10-06), and a line past Immediate's 40; each refusal writes nothing
+printf '%s\n' "## Immediate" "" "### Code hygiene" "" "- a line" "" "## Upcoming" "" "## Before launch" "" "## Launch" "" "## After launch" > "$T/docs/ROADMAP.md"
+cp "$T/docs/ROADMAP.md" "$T/roadmap.before"; echo '{"retire_roadmap": ["no such line"]}' > "$T/rec.json"
+(cd "$T" && python3 "$KIT/record.py" rec.json > "$T/rec.out" 2>&1); grep -q "need exactly one" "$T/rec.out" && cmp -s "$T/roadmap.before" "$T/docs/ROADMAP.md" && ok "record.py refuses an unmatched retirement and writes nothing" || bad "record.py retired nothing but reported success, or wrote"
+echo '{"roadmap": ["- a line with no bucket"]}' > "$T/rec2.json"
+(cd "$T" && python3 "$KIT/record.py" rec2.json > "$T/rec2.out" 2>&1); R2=$?; [ $R2 != 0 ] && grep -q "placed, never appended" "$T/rec2.out" && cmp -s "$T/roadmap.before" "$T/docs/ROADMAP.md" && ok "record.py refuses a ROADMAP line with no bucket and area" || bad "record.py appended a line it was not told where to place"
+python3 -c 'import json; json.dump({"roadmap": [{"bucket": "immediate", "area": "Code hygiene", "line": f"- filler {i}"} for i in range(40)]}, open("'"$T"'/rec3.json", "w"))'
+(cd "$T" && python3 "$KIT/record.py" rec3.json > "$T/rec3.out" 2>&1); R3=$?; [ $R3 != 0 ] && grep -q "past its 40" "$T/rec3.out" && cmp -s "$T/roadmap.before" "$T/docs/ROADMAP.md" && ok "record.py refuses an Immediate past 40 and writes nothing" || bad "record.py let Immediate pass 40, or wrote"
 # 5. moltbook.mjs refuses to send the key anywhere but www.moltbook.com (the guard is in the client's one fetch path)
 grep -q 'the key goes nowhere but www.moltbook.com/api/v1' "$KIT/moltbook.mjs" && grep -q 'startsWith("https://www.moltbook.com/api/v1/")' "$KIT/moltbook.mjs" && ok "moltbook.mjs keeps the key on www.moltbook.com" || bad "moltbook.mjs lost its host guard"
 # 6. review-sheet.mjs refuses to run without a paste, and reports zero verdicts on a paste with no review line (never a crash)

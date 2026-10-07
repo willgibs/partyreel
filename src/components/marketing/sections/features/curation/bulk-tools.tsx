@@ -11,9 +11,9 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 /**
  * Curation page section 5: the bulk sweep (copy absorbed from FEATURE_GROUPS
  * hosts "Approve in bulk"). The visual quotes the gallery selection state
- * (selectable-media-grid.tsx's scrim + corner check) AND the bar it summons
- * (the album header's bulk slot holding gallery-actions.tsx's
- * GalleryBulkBar). Static on purpose: the interactive triage lives in the
+ * (selectable-media-grid.tsx's scrim + corner check) AND the bar it summons,
+ * in the album header's row above the tiles (its bulk slot holding
+ * gallery-actions.tsx's GalleryBulkBar). Static on purpose: the interactive triage lives in the
  * signature demo above; this one shows that selection scales to a batch, and
  * ends where the app ends it, on the actions.
  *
@@ -51,7 +51,8 @@ export function BulkTools() {
           className="relative rounded-2xl border bg-card p-4 ring-1 ring-foreground/5 sm:p-5"
           style={{ "--i": 3 } as CSSProperties}
         >
-          <div className="grid grid-cols-4 gap-1.5">
+          <BulkBarMock count={selectedCount} total={GRID.length} />
+          <div className="mt-2.5 grid grid-cols-4 gap-1.5">
             {GRID.map((tile) => (
               <SelectTile
                 key={tile.id}
@@ -61,14 +62,10 @@ export function BulkTools() {
               />
             ))}
           </div>
-          {/* The bar the selection summons, straddling the album's edge. */}
-          <span className="absolute inset-x-0 -bottom-5 flex justify-center">
-            <BulkBarMock count={selectedCount} />
-          </span>
         </div>
         <Caption
           data-mkt-reveal
-          className="mt-9 text-center tabular-nums"
+          className="mt-5 text-center tabular-nums"
           style={{ "--i": 3 } as CSSProperties}
         >
           {selectedCount} selected · long-press to start, tap to add more

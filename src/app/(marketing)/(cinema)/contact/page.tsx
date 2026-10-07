@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import {
   HelpPaletteProvider,
@@ -145,22 +144,13 @@ export default function ContactPage() {
         <SectionShell
           eyebrow="Self-serve"
           heading="Answers, ready now."
-          subhead="Search the help center without leaving this page, or start from a common question."
+          subhead="Search the help center without leaving this page."
           className="border-b bg-muted/40"
         >
-          <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-5">
+          {/* The field alone, as on /help: the palette's Suggested list (the same HELP_QUICK_LINKS) drops from it
+              the moment it opens, so chips under it said those questions twice. */}
+          <div className="mx-auto mt-10 flex max-w-xl flex-col items-center">
             <HelpSearchTrigger variant="hero" />
-            <div className="flex flex-wrap justify-center gap-2">
-              {HELP_QUICK_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="rounded-full border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
           </div>
         </SectionShell>
 

@@ -25,6 +25,7 @@ import {
   useGalleryLive,
 } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
+import { PartyZoneContext } from "@/components/guest/party-zone";
 import {
   LiveGallery,
   type GalleryPayload,
@@ -98,6 +99,8 @@ export function AsGuestView({
   host,
   guests,
   shut,
+  waitingOnArrival = false,
+  partyZone = null,
   initialRowStep,
   firstPaintWidth = null,
   rhythmSeed = 0,
@@ -112,6 +115,10 @@ export function AsGuestView({
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
   shut: boolean;
+  /** Something already waits in an album empty to the eye (`readAsGuest`'s `albumWaits`): the Add's first words. */
+  waitingOnArrival?: boolean;
+  /** The party's zone for words only (`PartyZoneContext`, the guest page's own); null, her own clock. */
+  partyZone?: string | null;
   initialRowStep?: RowStep;
   firstPaintWidth?: number | null;
   rhythmSeed?: number;
@@ -134,20 +141,26 @@ export function AsGuestView({
       </div>
     );
   }
+  // ★ THE PARTY'S ZONE FOR WORDS, AS THE GUEST PAGE HANDS IT (crumbs-86): every develop time the album says (the sheet,
+  // its rule) is read here, so a far party's reads in both clocks, as its guests read it.
   return (
-    <AlbumAsGuest
-      event={event}
-      joinUrl={joinUrl}
-      galleryPromise={galleryPromise}
-      albumOrder={albumOrder}
-      stats={stats}
-      host={host}
-      guests={guests}
-      initialRowStep={initialRowStep}
-      firstPaintWidth={firstPaintWidth}
-      rhythmSeed={rhythmSeed}
-      back={back}
-    />
+    <PartyZoneContext value={partyZone}>
+      <AlbumAsGuest
+        event={event}
+        joinUrl={joinUrl}
+        galleryPromise={galleryPromise}
+        albumOrder={albumOrder}
+        stats={stats}
+        host={host}
+        guests={guests}
+        waitingOnArrival={waitingOnArrival}
+        partyZone={partyZone}
+        initialRowStep={initialRowStep}
+        firstPaintWidth={firstPaintWidth}
+        rhythmSeed={rhythmSeed}
+        back={back}
+      />
+    </PartyZoneContext>
   );
 }
 
@@ -172,6 +185,8 @@ function AlbumAsGuest({
   stats,
   host,
   guests,
+  waitingOnArrival,
+  partyZone,
   initialRowStep,
   firstPaintWidth,
   rhythmSeed,
@@ -184,6 +199,8 @@ function AlbumAsGuest({
   stats: { approvedTotal: number; guestCount: number };
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
+  waitingOnArrival: boolean;
+  partyZone: string | null;
   initialRowStep?: RowStep;
   firstPaintWidth: number | null;
   rhythmSeed: number;
@@ -206,10 +223,10 @@ function AlbumAsGuest({
   const camera = event.capture === "camera";
   // ★ "THE FIRST PHOTO" ONLY OVER AN ALBUM NOTHING HAS BEEN ADDED TO, VISIBLE OR WAITING (red-team 46's NIT: this view
   // said it over 102 developing shots, where a newcomer to the same album reads "Take photos"). What waits is read off the
-  // guests' own live source (`waiting.count`, the fact the guest page's `albumWaits` asks the same albums), told up by
-  // `WaitingBridge` once the source has it; until then the Add stands on the visible count alone, as every album's did.
+  // guests' own live source (`waiting.count`), told up by `WaitingBridge` once the source has it; before it, the server's
+  // own `albumWaits` (`waitingOnArrival`, crumbs-86), so the first byte already says the Add's words.
   const [waiting, setWaiting] = useState(0);
-  const empty = mediaCount === 0 && waiting === 0;
+  const empty = mediaCount === 0 && waiting === 0 && !waitingOnArrival;
   /* ★ WHAT WAITS, AS A GUEST MEETS IT (the-wait r1, `wait=sheet`, `name=disposable`): the contact sheet over the album
      wherever photos wait, off the guests' own live source (numbers only; nothing of hers: no ticket), the album's rule
      before anything waits, and the cover's word over the name on a disposable. Read on the reader's clock once it is
@@ -220,8 +237,9 @@ function AlbumAsGuest({
       waitWords(
         uploadsWait(event, wallClock ?? undefined),
         event.host_display_name ?? null,
+        partyZone,
       ),
-    [event, wallClock],
+    [event, wallClock, partyZone],
   );
   const eyebrow = coverEyebrow(
     {

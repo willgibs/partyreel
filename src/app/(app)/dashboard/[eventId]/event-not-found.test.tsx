@@ -223,6 +223,7 @@ describe.each([
 
 describe("the host app's not-found boundary", () => {
   it("heads a thrown notFound() with the same words, one home for both", () => {
-    expect(boundaryMetadata).toBe(appNotFoundMetadata);
+    // The words alone: a thrown notFound() carries Next's one noindex, and a second meta said it twice (crumbs-86).
+    expect(boundaryMetadata).toEqual({ title: appNotFoundMetadata.title });
   });
 });

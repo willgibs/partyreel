@@ -96,20 +96,59 @@ describe("what each act sends", () => {
 describe("what comes back", () => {
   it("the door reports whether the email step came with it and who it let in", async () => {
     rpc.mockResolvedValue({
-      data: { ok: true, email_held: true, admitted: 3 },
+      data: { ok: true, email_held: true, email_restored: false, admitted: 3 },
       error: null,
     });
     await expect(setEventDoor(EVENT, "invite")).resolves.toEqual({
       ok: true,
-      data: { emailHeld: true, admitted: 3 },
+      data: { emailHeld: true, emailRestored: false, admitted: 3 },
     });
     rpc.mockResolvedValue({
-      data: { ok: true, email_held: "yes", admitted: -2.5 },
+      data: {
+        ok: true,
+        email_held: "yes",
+        email_restored: false,
+        admitted: -2.5,
+      },
       error: null,
     });
     await expect(setEventDoor(EVENT, "open")).resolves.toEqual({
       ok: true,
-      data: { emailHeld: false, admitted: 0 },
+      data: { emailHeld: false, emailRestored: false, admitted: 0 },
+    });
+  });
+
+  /* ★ THE EVENT REMEMBERS HER NAMES-ONLY DOOR (crumbs-89, 20261007140000): a door that leaves a gate that turned the email
+     step on from off gives it back in the same write, and says so. A database before that migration answers no such key,
+     which is no memory: null, so nothing is said of a giving back that never happened (milestone 38's schema). */
+  it("★ says the database gave her names only back, and reads a database that answers nothing of it as none", async () => {
+    rpc.mockResolvedValue({
+      data: { ok: true, email_held: false, email_restored: true, admitted: 0 },
+      error: null,
+    });
+    await expect(setEventDoor(EVENT, "open")).resolves.toEqual({
+      ok: true,
+      data: { emailHeld: false, emailRestored: true, admitted: 0 },
+    });
+    rpc.mockResolvedValue({
+      data: { ok: true, email_held: false, admitted: 0 },
+      error: null,
+    });
+    await expect(setEventDoor(EVENT, "open")).resolves.toEqual({
+      ok: true,
+      data: { emailHeld: false, emailRestored: null, admitted: 0 },
+    });
+    rpc.mockResolvedValue({
+      data: {
+        ok: true,
+        email_held: false,
+        email_restored: "true",
+        admitted: 0,
+      },
+      error: null,
+    });
+    await expect(setEventDoor(EVENT, "open")).resolves.toMatchObject({
+      data: { emailRestored: null },
     });
   });
 

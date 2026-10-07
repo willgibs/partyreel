@@ -11,6 +11,8 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { HostEvent } from "@/lib/db/queries/events";
+
 const { toast } = vi.hoisted(() => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -286,6 +288,295 @@ describe("the party's zone on a save of a time", () => {
     });
     expect(updateEvent).toHaveBeenLastCalledWith(hostEvent().id, {
       time_zone: "America/Mexico_City",
+    });
+  });
+});
+
+/* ★ A GATE THAT LETS GO GIVES HER CHOICE BACK, AND THE DATABASE DOES IT (crumbs-89, red-team 57b's MEDIUM; crumbs-87's
+   Q1). Letting each person in and the invite list hold "An email first" on ("On while you let each person in"). A gate
+   that turned it on from off is remembered by the event (`events.email_held`), and the door's leaving it gives her names
+   only back in the same write (`events_email_held`, 20261007140000), whichever page, device or load moved it, the
+   password's first set included. So the page says it from the save's own answer, never a later read of the hub's row.
+   ★ RESHAPED ON PURPOSE (scar kept: a host's names-only door comes back when the gate goes, said in the row's words).
+   The expired reason: "the provider notes on this device, and writes the switch back off when the ROW shows the door
+   has left". The row stops taking the saves after a load (red-team 57b, 7 of 12), so the note was lost to a reload, a
+   restored tab and the phone's door page, and it never reached another device or the password's first set. */
+describe("the email step a gate held on", () => {
+  /** The provider over a row the test moves, as the server's revalidation would (when it lands). */
+  function mountRow(first: HostEvent, writes: Partial<Writes>) {
+    let event = first;
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <SettingsProvider
+        event={event}
+        tier="pro"
+        counts={NO_COUNTS}
+        pendingCount={0}
+        social={null}
+        reelSample={null}
+        writes={writes as Writes}
+      >
+        {children}
+      </SettingsProvider>
+    );
+    const view = renderHook(() => useSettings(), { wrapper });
+    return {
+      view,
+      settings: view.result,
+      /** The server's next row for this event. */
+      row(over: Partial<HostEvent>) {
+        event = hostEvent(over);
+        act(() => view.rerender());
+      },
+    };
+  }
+
+  /** A row as the database holds it, with its memory of a hold (`email_held`). */
+  const rowOf = (over: Partial<HostEvent>) => hostEvent(over);
+
+  /** `set_event_door`'s answers, as the database gives them (20261007140000). */
+  const held = { ok: true, emailHeld: true, emailRestored: false, admitted: 0 };
+  const moved = {
+    ok: true,
+    emailHeld: false,
+    emailRestored: false,
+    admitted: 0,
+  };
+  const restored = {
+    ok: true,
+    emailHeld: false,
+    emailRestored: true,
+    admitted: 0,
+  };
+  const flush = () => act(async () => {});
+
+  it("★ names only, a gate, then Public: the switch is off at once, from the save's own answer, and she is told in the row's words", async () => {
+    const updateEvent = vi.fn();
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce(held)
+      .mockResolvedValueOnce(restored);
+    const { settings } = mountRow(rowOf({ require_verified_email: false }), {
+      setDoor,
+      updateEvent,
+    } as unknown as Partial<Writes>);
+
+    await act(async () => {
+      await settings.current.saveDoor("approve");
+    });
+    expect(settings.current.values.requireVerifiedEmail).toBe(true);
+    expect(settings.current.values.emailHeld).toBe(true);
+    expect(toast.success).not.toHaveBeenCalled();
+
+    // ★ The hub's row never moves here (a hard load's stale row): the answer alone says what the database did.
+    await act(async () => {
+      await settings.current.saveDoor("open");
+    });
+    expect(settings.current.values.door).toBe("open");
+    expect(settings.current.values.requireVerifiedEmail).toBe(false);
+    expect(settings.current.values.emailHeld).toBe(false);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while you let each person in.",
+    });
+    // The database gave it back: the page writes nothing of its own.
+    expect(updateEvent).not.toHaveBeenCalled();
+  });
+
+  it("says the invite list's own words when that was the gate, and gives back on every way out (Only me here)", async () => {
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce(held)
+      .mockResolvedValueOnce(restored);
+    const { settings } = mountRow(rowOf({ require_verified_email: false }), {
+      setDoor,
+    } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveDoor("invite");
+    });
+    await act(async () => {
+      await settings.current.saveDoor("private");
+    });
+    expect(settings.current.values.requireVerifiedEmail).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while your invite list was the way in.",
+    });
+  });
+
+  it("★ from one gate to the other the memory stands, and the second gate's own leave is said in its words (the live walk's catch)", async () => {
+    // As the database answers: the first gate turned the step on, the second found it on and turned nothing on.
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce(held)
+      .mockResolvedValueOnce(moved)
+      .mockResolvedValueOnce(restored);
+    const { settings } = mountRow(rowOf({ require_verified_email: false }), {
+      setDoor,
+    } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveDoor("approve");
+    });
+    await act(async () => {
+      await settings.current.saveDoor("invite");
+    });
+    expect(settings.current.values.requireVerifiedEmail).toBe(true);
+    expect(settings.current.values.emailHeld).toBe(true);
+    expect(toast.success).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await settings.current.saveDoor("closed");
+    });
+    expect(settings.current.values.requireVerifiedEmail).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while your invite list was the way in.",
+    });
+  });
+
+  it("★ another device, or a load after the hold: the row's memory is read, and the leave's answer is said", async () => {
+    // The hold was made elsewhere; this page loads onto it.
+    const { settings } = mountRow(
+      rowOf({
+        door: "approve",
+        require_verified_email: true,
+        email_held: true,
+      }),
+      {
+        setDoor: vi.fn().mockResolvedValue(restored),
+      } as unknown as Partial<Writes>,
+    );
+    expect(settings.current.values.emailHeld).toBe(true);
+    await act(async () => {
+      await settings.current.saveDoor("open");
+    });
+    expect(settings.current.values.requireVerifiedEmail).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while you let each person in.",
+    });
+  });
+
+  it("★ a door this page never saw holding it (another device's gate) is said without naming a gate", async () => {
+    const { settings } = mountRow(rowOf({ require_verified_email: false }), {
+      setDoor: vi.fn().mockResolvedValue(restored),
+    } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveDoor("closed");
+    });
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description:
+        "It was only on while the door asked for a confirmed address.",
+    });
+  });
+
+  it("★ gives nothing back to a host whose step was already on: the gate turned nothing on, and nothing is said", async () => {
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce(moved)
+      .mockResolvedValueOnce(moved);
+    const { settings } = mountRow(hostEvent(), {
+      setDoor,
+    } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveDoor("approve");
+    });
+    expect(settings.current.values.emailHeld).toBe(false);
+    await act(async () => {
+      await settings.current.saveDoor("open");
+    });
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(settings.current.values.requireVerifiedEmail).toBe(true);
+  });
+
+  it("★ the password's first set while held: its success lays the password door and the step off, and says so", async () => {
+    const { settings } = mountRow(rowOf({ require_verified_email: false }), {
+      setDoor: vi.fn().mockResolvedValue(held),
+    } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveDoor("approve");
+    });
+    // `set_event_password` answered success alone; it cleared the gate, and the event gave her names only back.
+    act(() => settings.current.passwordSet());
+    expect(settings.current.values.door).toBe("password");
+    expect(settings.current.values.hasPassword).toBe(true);
+    expect(settings.current.values.requireVerifiedEmail).toBe(false);
+    expect(settings.current.values.emailHeld).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("An email first is off again.", {
+      description: "It was only on while you let each person in.",
+    });
+  });
+
+  it("a password set with nothing held moves the door and says nothing of the email step; Remove turns a password door Public", async () => {
+    const { settings } = mountRow(hostEvent(), {} as Partial<Writes>);
+    act(() => settings.current.passwordSet());
+    expect(settings.current.values.door).toBe("password");
+    expect(settings.current.values.requireVerifiedEmail).toBe(true);
+    expect(toast.success).not.toHaveBeenCalled();
+    act(() => settings.current.passwordCleared());
+    expect(settings.current.values.door).toBe("open");
+    expect(settings.current.values.hasPassword).toBe(false);
+  });
+
+  it("Remove under a gate keeps the gate: only the password goes", async () => {
+    const { settings } = mountRow(
+      rowOf({ door: "approve", has_password: true }),
+      {} as Partial<Writes>,
+    );
+    act(() => settings.current.passwordCleared());
+    expect(settings.current.values.door).toBe("approve");
+    expect(settings.current.values.hasPassword).toBe(false);
+  });
+
+  it("★ a database that remembers nothing (before 20261007140000) gives nothing back, and nothing is claimed", async () => {
+    // Its answer carries no `emailRestored`: the switch stays as the database left it (on, live, one tap from off).
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, emailHeld: true, admitted: 0 })
+      .mockResolvedValueOnce({ ok: true, emailHeld: false, admitted: 0 });
+    const { settings } = mountRow(rowOf({ require_verified_email: false }), {
+      setDoor,
+    } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveDoor("approve");
+    });
+    expect(settings.current.values.requireVerifiedEmail).toBe(true);
+    expect(settings.current.values.emailHeld).toBe(false);
+    await act(async () => {
+      await settings.current.saveDoor("open");
+    });
+    act(() => settings.current.passwordSet());
+    expect(settings.current.values.requireVerifiedEmail).toBe(true);
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("the row catching up lets every key the answers laid go, the memory's included", async () => {
+    const setDoor = vi
+      .fn()
+      .mockResolvedValueOnce(held)
+      .mockResolvedValueOnce(restored);
+    const { settings, row } = mountRow(
+      rowOf({ require_verified_email: false }),
+      {
+        setDoor,
+      } as unknown as Partial<Writes>,
+    );
+    await act(async () => {
+      await settings.current.saveDoor("approve");
+    });
+    row({ door: "approve", require_verified_email: true, email_held: true });
+    await act(async () => {
+      await settings.current.saveDoor("open");
+    });
+    row({ door: "open", require_verified_email: false, email_held: false });
+    await flush();
+    expect(settings.current.values).toMatchObject({
+      door: "open",
+      requireVerifiedEmail: false,
+      emailHeld: false,
+    });
+    // A later change from elsewhere reaches the page: nothing of the overlay stands over the row.
+    row({ door: "approve", require_verified_email: true, email_held: true });
+    expect(settings.current.values).toMatchObject({
+      door: "approve",
+      requireVerifiedEmail: true,
+      emailHeld: true,
     });
   });
 });

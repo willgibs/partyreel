@@ -11,10 +11,12 @@
  *   - storedBytes  = activeBytes + deletedBytes: what her plan's cap holds. A delete moves bytes from her albums to
  *                    Deleted and frees nothing; an item frees room only when it leaves Deleted for good.
  *
- * ★ ONE AGGREGATE, `public.host_storage_summary(uuid)` (its third column from 20261003220000): a SUM each in SQL, so
- * every page reads one row whatever the account's size. The definitions live there alone (`storage-summary.test.ts`
- * reads them off the migrations): the cap checks in SQL (`create_media*`, `meter_upload`, the advisories) read the same
- * function, so no figure on screen can disagree with a refusal.
+ * ★ ONE AGGREGATE, `public.host_storage_summary(uuid)` (its third column from 20261003220000): one row whatever the
+ * account's size, and since 20261006180000 (upload-sums) read off the per-event and per-host sums the database keeps at
+ * every write to `media`, so it costs a 5,000-event account what it costs a 50-event one. The definitions live in the
+ * walk the sums answer to, `host_storage_walk` (`storage-summary.test.ts` reads them off the migrations; the
+ * migration's proof and the nightly `storage_sums_drift` hold the sums to it): the cap checks in SQL (`create_media*`,
+ * `meter_upload`, the advisories) read the same function, so no figure on screen can disagree with a refusal.
  *
  * ★ IT IS ALSO THE STORAGE GUARD'S NUMBER (billing-caps.md, "no plan change leaves a host storing more than the new
  * cap"): checkout and change-plan refuse a smaller plan off `storedBytes`, so an undercount here SELLS a plan she does not

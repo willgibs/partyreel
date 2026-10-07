@@ -255,7 +255,7 @@ export function AlbumPicker({
                             disabled={a.items === 0 || (!on && full)}
                             onClick={() => toggle(a.eventId)}
                             data-drive-pick={a.eventId}
-                            className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
+                            className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left outline-none hover:bg-muted/60 focus-halo halo-inset disabled:opacity-50"
                           >
                             <span
                               aria-hidden

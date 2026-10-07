@@ -20,7 +20,7 @@ import {
   isRowStep,
   type RowStep,
 } from "@/lib/shared/album-rows";
-import { ARRIVAL_GLOW_MS, ARRIVAL_SWEEP_MS } from "@/lib/shared/arrival";
+import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 
 import { scaleAlbum, scaleItem } from "./fixtures";
 
@@ -227,7 +227,6 @@ export function AlbumScale({
       style={
         {
           "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
-          "--arrival-sweep-ms": `${ARRIVAL_SWEEP_MS}ms`,
         } as CSSProperties
       }
     >

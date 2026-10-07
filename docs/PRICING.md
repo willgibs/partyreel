@@ -440,8 +440,9 @@ in). Rule 2 holds only with it.
    Albums and dashboards answer sooner.
 6. **Attribution rides the sync:** a confirmation sends the changed names, never a re-mint of every open tab's 600
    links. Medium. A confirmed guest's name reaches every album in the same beat.
-7. **The dashboard and the storage list page:** a first page of events, per-event sums in SQL, the hub's Reel card from
-   the take's head, so a 5,000-event account costs what a 50-event one does and "unlimited events" stays true by
+7. **The dashboard and the storage list page:** a first page of events, per-event sums in SQL (built:
+   `event_storage_sums`, upload-sums; an upload's summary read 228 ms to 1.8 ms at 5,000 events), the hub's Reel card
+   from the take's head, so a 5,000-event account costs what a 50-event one does and "unlimited events" stays true by
    engineering. Medium. Big accounts load faster.
 8. **The screen rests** (built as the poll's rest, `shared/use-live-poll.ts`): a visible tab ten untouched minutes polls
    every five, the doorbell still ringing at once, and past two untouched hours a page stops asking while the reel's
@@ -618,7 +619,7 @@ personal access token; the Supabase MCP has no tool for it:
   ([rate limits](https://supabase.com/docs/guides/auth/rate-limits), read 2026-10-03: 2 with Supabase's own sender,
   editable only with custom SMTP on, where it started at 30) and sits at 100 an hour. It is the code emails' bound and
   the first wall a large door meets ("What it costs us": what breaks first); raising it before a large
-  Require-verified-emails event is in ROADMAP's launch checkpoint.
+  Require-verified-emails event is in ROADMAP's Launch bucket.
 - **The quota is shared**: auth codes and lifecycle email draw on one Resend quota, so a crowd confirming emails in
   one evening can reach the free tier's daily cap; the paid tier lifts it.
 - **Verify a change** by requesting a sign-in code at `/login`: it arrives from `noreply@partyreel.com` (never

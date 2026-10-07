@@ -300,6 +300,7 @@ describe("the head hears the album it stands above", () => {
       open: () => {},
       preload: () => {},
       viewAsked: false,
+      close: () => {},
     },
   });
 

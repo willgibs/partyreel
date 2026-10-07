@@ -53,7 +53,7 @@ const SINGLE_ROW: Record<string, string> = {
   get_event_by_qr_token:
     "keyed on events.qr_token, which is UNIQUE: zero rows or one",
   host_storage_summary:
-    "one aggregate row (host_active_bytes beside two SUMs over host_deleted_media, no GROUP BY)",
+    "one aggregate row (her sums, her deleted events' rows and the aged removals, no GROUP BY)",
   tier_limits: "one row: the tier's limits, a constant per tier",
   purge_media_rows:
     "one row per host among at most its input; callers pass at most 1,000 ids (the cron) and purge_media_now sums it in SQL",

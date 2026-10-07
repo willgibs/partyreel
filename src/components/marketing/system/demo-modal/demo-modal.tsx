@@ -6,12 +6,7 @@ import type { ComponentProps } from "react";
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Popup, PopupContent, PopupHeader } from "@/components/ui/popup";
 import { trackAttrs } from "@/lib/analytics/events";
 import { SITE_URL } from "@/lib/constants/site";
 
@@ -23,13 +18,15 @@ import { SITE_URL } from "@/lib/constants/site";
  * phone, its short link in words, and the demo itself one press away in a new
  * tab. A phone never sees it (`opens.ts`): it opens the demo directly.
  *
- * ★ ITS KIND IS `share`, THE CODE CARD (the `popups` board's `share=card`,
- * `app/share/event-code-modal.tsx`): a 384 card at a desk with the code on
- * white and the action under it. Built on the Dialog as it stands; the kinds'
- * table `popups-wiring` is adding beside `floating-layer.ts` takes this one
- * under `share`.
+ * ★ ITS KIND IS `share`, THE CODE CARD'S (the `popups` board's `share=card`,
+ * `app/share/code-card.tsx`): it names the kind on the product's one popup
+ * (`<PopupContent kind="share">`, `ui/popup.tsx`) and the one table places it,
+ * so a later answer on `share` moves it with every other code card. The row's
+ * own shape (`card`) is the product code card's primitive to draw; asked to
+ * stand, `PopupContent` stands it where a dialog would at a desk, a 384 card in
+ * the middle, which is the only width this ever opens at (`opens.ts`).
  *
- * ★ THE CARD IS PAPER WHEREVER IT OPENS. The Dialog portals to <body>, outside
+ * ★ THE CARD IS PAPER WHEREVER IT OPENS. The popup portals to <body>, outside
  * the cinema room's `.dark` and outside `[data-mkt]`, and the session's own
  * theme is whatever the visitor's OS says; `surface-paper` pins the pearl
  * register on the panel itself (and `dark:` stands down inside it, theme.css's
@@ -64,24 +61,30 @@ export function DemoModal({
   /** Where "Open the demo" goes: the door's own link. */
   href: string;
   /** Where focus lands on the way out (the door returns it to its opener). */
-  onCloseAutoFocus?: ComponentProps<typeof DialogContent>["onCloseAutoFocus"];
+  onCloseAutoFocus?: ComponentProps<typeof PopupContent>["onCloseAutoFocus"];
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        data-slot="demo-modal"
+    <Popup open={open} onOpenChange={onOpenChange}>
+      <PopupContent
+        kind="share"
+        data-demo-modal=""
         onCloseAutoFocus={onCloseAutoFocus}
-        className="surface-paper justify-items-center gap-0 p-6 pt-8 text-center"
+        className="surface-paper items-center p-6 pt-8 text-center"
       >
         {/* The plate is FooterQr's own white, invisible on the paper card, and
             the quiet zone is inside the drawn edge, so nothing framing it can
             eat the margin a scanner needs. */}
         <FooterQr value={CODE_VALUE} size={CODE_PX} />
-        <DialogTitle className="mt-5">Try our demo event</DialogTitle>
-        <DialogDescription className="mt-2 max-w-[18rem] text-pretty">
-          Scan the code with your phone to join as a guest would, or open it
-          here.
-        </DialogDescription>
+        <PopupHeader
+          className="mt-5 items-center gap-2 p-0"
+          title="Try our demo event"
+          description={
+            <span className="block max-w-[18rem]">
+              Scan the code with your phone to join as a guest would, or open it
+              here.
+            </span>
+          }
+        />
         <Caption className="mt-3 select-all">{CODE_WORDS}</Caption>
         <Button asChild size="lg" className="mt-6 w-full">
           <a
@@ -98,7 +101,7 @@ export function DemoModal({
             <span className="sr-only">(opens in a new tab)</span>
           </a>
         </Button>
-      </DialogContent>
-    </Dialog>
+      </PopupContent>
+    </Popup>
   );
 }

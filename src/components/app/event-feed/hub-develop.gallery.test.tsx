@@ -112,7 +112,11 @@ class FakeRO {
   disconnect() {}
 }
 
-type Develop = { develops_at: string | null; sealed_from: string | null };
+type Develop = {
+  develops_at: string | null;
+  sealed_from: string | null;
+  time_zone?: string | null;
+};
 
 function Hub({ develop }: { develop: Develop }) {
   return (
@@ -155,6 +159,43 @@ afterEach(() => {
   document.documentElement.removeAttribute("data-develop");
   vi.useRealTimers();
   vi.unstubAllGlobals();
+});
+
+describe("★ the cover says the develop in one clock, or both named (crumbs-87)", () => {
+  const clockOf = (c: HTMLElement) =>
+    [...c.querySelectorAll("[data-wait-clock]")]
+      .map((el) => el.textContent ?? "")
+      .join(" ");
+  const sayLine = (c: HTMLElement) =>
+    c.querySelector("[data-host-cover-say]")?.textContent ?? "";
+  const develop = (time_zone: string | null) => ({
+    develops_at: new Date(2026, 9, 10, 9, 0).toISOString(),
+    sealed_from: new Date(2026, 9, 9, 18, 0).toISOString(),
+    time_zone,
+  });
+
+  it("★ a far party: the line above names the party's clock and its place, and so does the held card under it, with hers beside", () => {
+    const { container } = render(
+      <Hub develop={develop("Pacific/Kiritimati")} />,
+    );
+    expect(sayLine(container)).toContain("in Kiritimati");
+    // The card used to read "All at once tomorrow at ..." in her own clock alone, unlabelled, right under that line.
+    expect(clockOf(container)).toContain("in Kiritimati");
+    expect(clockOf(container)).toMatch(/yours/);
+  });
+
+  it("a party in her own zone, or one with none stored, says her clock alone, as it always did", () => {
+    for (const zone of [
+      null,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ]) {
+      const { container, unmount } = render(<Hub develop={develop(zone)} />);
+      expect(clockOf(container)).toContain("All at once");
+      expect(clockOf(container)).not.toMatch(/yours| in [A-Z]/);
+      expect(sayLine(container)).not.toMatch(/ in [A-Z]/);
+      unmount();
+    }
+  });
 });
 
 describe("★ the cover gives way to her rows with the develop over them", () => {

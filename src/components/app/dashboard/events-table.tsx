@@ -186,7 +186,7 @@ export function EventsTable({
                 ) : (
                   state?.tone === "waiting" && (
                     <>
-                      {/* The amber is the dot's, as on every mark: amber type is faint on paper. */}
+                      {/* The needs-you red is the dot's, as on every mark: the words stay in the ink. */}
                       <StateDot tone="waiting" className="size-1.5" />
                       <span className="text-foreground">{state.text}</span>
                     </>
