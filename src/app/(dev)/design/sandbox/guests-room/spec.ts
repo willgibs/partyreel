@@ -17,9 +17,11 @@ import { SCREEN } from "./knobs";
  * no viewer id is passed, so it never offers Follow, and Open full profile is
  * its loudest press.
  *
- * ★ TWO ASKS, THE SECOND STAGED: how each person reads in the room (three
- * whole rooms, each one grammar for every standing), then the card, drawn
- * opening from a name in the room he picked.
+ * ★ TWO ASKS, THE SECOND STAGED: how each person reads in the room (four
+ * whole rooms: today's, calm rows for everyone, faces first, and rows where
+ * she acts with the guests as faces), then the card, drawn opening from four
+ * names in the room he picked. The standing card takes the door's Decline off
+ * the row (`card.tsx`'s `declineOnRow`), so its pictures move the rows too.
  *
  * ★ NEVER ASKED, SETTLED: Let in is one press (at the door, and for a
  * declined newcomer whose ask stands); a decline is a block; Block is the
@@ -57,10 +59,10 @@ export const GUESTS_ROOM = defineExploration({
       "A new board from your host-moments note: the Guests room's people and a person's card, polished, each drawn whole on the room as wired.",
   },
   context:
-    "Maya & Jay's wedding, Saturday at 9:40 pm: the album is Private with Maya's invite list as the door, 31 guests have added photos, 3 wait at the door, 40 addresses are on the list (28 joined) and 2 people are blocked. Every frame is production's room over the hub, at her phone or her laptop (the Screen knob).",
+    "Maya & Jay's wedding, Saturday at 9:40 pm. The album is Private with Maya's invite list as the door: listed addresses come straight in, anyone else asks at the door. 31 guests have added photos, 3 wait at the door, 40 addresses are on the list (28 joined) and 2 people are blocked. Every frame is production's room over the hub, at her phone or her laptop (the Screen knob); a press answers and writes nothing.",
   opening: {
     about:
-      "The Guests room's people and a person's card, polished from your note: how each person stands (at the door, in, invited, blocked) and what can be done for them.",
+      "The Guests room's people and a person's card, polished from your note: how each person stands (at the door, a guest, invited, blocked) and what she can do.",
     settled: [
       "Let in is one press, at the door and for someone you declined who is still asking.",
       "A decline is a block: they meet a closed album and can't ask again.",
@@ -70,7 +72,7 @@ export const GUESTS_ROOM = defineExploration({
     earlier: [
       "Host-moments r1, on Let in: 'The UI design of how we present this (and guest card items in general) could definitely be polished.'",
       "Popups r1: a name opens a card beside it at a desk and the sheet in a hand, its photos drawn in it.",
-      "Account-moments r1: 'Don't want to overcrowd the row actions.'",
+      "Account-moments r1: 'Can guest names be clicked ... for additional actions beyond the row action flip? ... Don't want to overcrowd the row actions.'",
       "Your standing note: attention earned, never yelled; beautiful and inviting, never crowded.",
     ],
   },
@@ -93,93 +95,106 @@ export const GUESTS_ROOM = defineExploration({
       question:
         "How should each person read in the Guests room, wherever they stand?",
       where: ["Host", "The Guests room", "On the night"],
-      when: "Maya opens Guests from her hub at 9:40 pm: three people wait at the door, 31 are in, two are blocked.",
+      when: "Her invite list is the door. At 9:40 pm Maya opens Guests: three wait at the door, 31 guests are in, two are blocked.",
       matters:
         "It is where she answers people at her own party: the one who waits should be one glance and one press.",
       lands:
-        "Every person row in the Guests room: at the door, in, invited and blocked, and what each one's act looks like.",
+        "How every person in the Guests room reads (at the door, a guest, invited, blocked) and how their act looks.",
       context:
-        "Three frames down the room: opened, scrolled to the invite list, and its foot. Each option is a whole room in one grammar; a name opens today's card.",
+        "Four frames down the room: opened, scrolled to the guests, to the invite list, and its foot. Each option is a whole room; a name opens today's card, and a Let in pressed leaves its row, as production's does.",
       options: [
         {
           id: "today",
-          label: "As today: four shapes",
+          label: "As today",
           means:
-            "Door rows with their acts under three lines, the people in as one row of faces, every address with a remove, Blocked saying Let in twice.",
-          gains: "Built, and each section is already in the order she needs.",
-          costs: "Her guests are one line of faces; the door's rows are tall.",
+            "Door rows with their keys under three lines; the guests as one row of faces that opens a second panel; every address with a remove; Blocked says Let in twice.",
+          gains:
+            "Built, and each section already stands in the order she needs.",
+          costs: "Her guests are one line of faces; the door's rows run tall.",
         },
         {
           id: "list",
           label: "One calm row for everyone",
           means:
-            "Every person the same row: face, name, a line of how they stand, one act beside it. Let in is the one solid press; the door's count wears the tally.",
-          gains: "Scans like a list should; the door is one glance per person.",
-          costs: "Each row's photo count is a read the list doesn't carry yet.",
+            "Every person one row: face, name, how they stand, its act at the end (the door's Decline a quiet ✕ beside Let in). The door's count wears the tally.",
+          gains: "Reads like a list should: the door is one glance a person.",
+          costs:
+            "Photo counts are a read the list lacks; the ✕ is a block in a dismiss's shape.",
         },
         {
           id: "faces",
           label: "Faces first",
           means:
-            "The door as cards side by side, everyone in as a sheet of faces with names, the blocked as dimmed cards; acts only where someone waits.",
-          gains: "Feels like her party, and 31 guests fit on one screen.",
+            "The door as cards side by side, the guests as a sheet of faces, the invites as empty seats, the blocked as quiet cards.",
+          gains: "Feels like her party: all 31 guests on one screen.",
           costs:
-            "Addresses move into each person's card; a long list is tiles.",
+            "Addresses and removes move into cards and seats; the joined fold into faces.",
+        },
+        {
+          id: "mixed",
+          label: "Rows to act, faces to look",
+          means:
+            "The door, the invite list and Blocked as calm rows, where she acts; the guests as a sheet of faces, where she looks.",
+          gains:
+            "Each section in the shape of its job: the door scans, the party shows.",
+          costs:
+            "Guests' addresses move into their cards; two shapes in one room.",
         },
       ],
       recommended: "list",
       today: "today",
       because:
-        "One row reads the same at the door, in and blocked, and the one who waits gets the room's only solid press.",
+        "One row reads alike at the door, among the guests and in Blocked, the address stays in sight, and the one who waits has the only solid key.",
       overrule:
-        "If the room should feel like the party more than a list, faces.",
+        "If her guests should read as her party's faces, rows to act, faces to look.",
       configs: [SCREEN],
     },
     {
       id: "card",
       label: "A person's card",
-      question:
-        "When Maya presses a name, what should the card carry, and how should it offer what she can do?",
+      question: "What should open when Maya presses someone's name?",
       where: ["Host", "The Guests room", "A name, pressed"],
-      when: "Maya presses Priya Shah's name among the people in, then Aunt Rosa's, then Dev Kapoor's at the door.",
+      when: "Maya presses Priya Shah among the guests, then Aunt Rosa, Dev Kapoor at the door, and Chris Doyle in Blocked.",
       matters:
-        "The card is the one place a person is more than a row: what she can learn and do there decides what the rows can leave out.",
+        "The card is where a person is more than a row: what it holds decides what the rows can leave out.",
       lands:
-        "The card every name opens (the room, the album's guest list, a credit), minus the host's lines for a guest.",
+        "The card every name opens: in the room, the album's guest list and a photo's credit (a guest's has no host lines).",
       context:
-        "Three frames, drawn on the room you picked: Priya's card (a page, 24 photos), Aunt Rosa's (a typed name) and a name at the door.",
+        "Four frames on the room you picked: Priya's card (she has a page and 24 photos), Aunt Rosa's (a typed name), a name at the door and a blocked name. A name that opens nothing says so under its frame.",
       options: [
         {
           id: "today",
           label: "As today: who they are",
           means:
-            "Face, name, the handle or Confirmed their email, the address, Open full profile as its loudest press, Block last. A door name opens nothing.",
-          gains: "Small, and it never says more than the album did.",
+            "Face, name, the handle or Confirmed their email, the address, Open full profile as the loudest key, Block last. A door or Blocked name opens nothing.",
+          gains: "Small, and never says more than the album did.",
           costs: "For most guests it repeats the row: a name and an address.",
         },
         {
           id: "photos",
-          label: "What they added, first",
+          label: "Who they are, and their photos",
           means:
-            "Your popups r1 look built: their count and four of their photos lead, then who they are; Follow and their page a quiet pair; Block last.",
-          gains: "Every card shows something worth opening it for.",
-          costs: "A read of their photos, presigned and gated like the album.",
+            "Your popups r1 card, built: who they are, four of their photos and See all, Follow and their page quiet, Block last. Door and Blocked names open nothing.",
+          gains: "Every guest's card shows something worth opening it for.",
+          costs:
+            "A read of their photos, and See all wants the album filtered to one guest.",
         },
         {
           id: "standing",
-          label: "Their night, and what to do",
+          label: "Their night here, from every name",
           means:
-            "One line of how they stand here, their photos, and that standing's act; every name opens it, the door's and Blocked's too.",
-          gains: "One place for a person, wherever she meets their name.",
+            "The same card, plus how they stand tonight and its act; every name opens it, so the door's Decline moves off the row and into the card.",
+          gains: "Each row keeps one act; the acts beyond it are a press away.",
           costs:
-            "Two cards in one: the guest's side keeps only the social half.",
+            "A decline takes two presses; the guest's side gets the photos card.",
         },
       ],
-      recommended: "photos",
+      recommended: "standing",
       today: "today",
       because:
-        "The photos are why she opens a guest's card; the acts stay on the rows, so the card stays a look.",
-      overrule: "If the card should hold every act for a person, their night.",
+        "Your Connections note, answered: a name opens the card for the acts beyond the row's one, so every row keeps a single act.",
+      overrule:
+        "If the card should stay a look at a guest's photos, who they are and their photos.",
       after: { ask: "rows" },
       configs: [SCREEN],
     },

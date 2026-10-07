@@ -4,54 +4,54 @@ import type { ReactElement } from "react";
 
 import { BlockLookAction } from "@/components/app/event-blocks/block-look-action";
 
+import { CardShell, guestIdentity, Pair, Strip } from "./card-parts";
 import type { Guest } from "./fixtures";
-import { kindLine, LookShell, PageKey, QuietFollow, Strip } from "./look";
-import { Face } from "./people";
 
 /**
- * WHAT THEY ADDED, FIRST (the `card` ask's `photos`): the look Will picked at
- * popups r1 (`peek=card`), built whole. Their count and four of their
- * photographs in this album lead it, under who they are (the face, the name,
- * the handle or the mark; for the host, the confirmed address); their page and
- * Follow a quiet pair where there is a page; Block the quiet last line.
- * Opened from the people in alone, as today: the door's and Blocked's names
- * stay words.
+ * WHO THEY ARE, AND WHAT THEY ADDED (the `card` ask's `photos`): the look Will
+ * picked at popups r1 (`peek=card`, its strip drawn in it), built whole. Who
+ * they are, as one block beside their face; then their photographs in this
+ * album, leading the body as a contact strip under its count and See all; then
+ * Follow and their page, a quiet pair, where there is a page; Block the quiet
+ * last line (production's `BlockLookAction`). The card is a look: it opens
+ * from the people in alone, as today's does, and a name at the door or in
+ * Blocked stays words, its act on its row.
  *
- * ★ THE STRIP IS A READ THE LIST DOES NOT CARRY (ROADMAP's look strip): their
- * approved uploads by account or guest row, presigned and gated like the
- * album; the stills here stand in for theirs.
+ * ★ WHO FIRST IN BOTH SHAPES, THE PHOTOGRAPHS FIRST IN THE BODY: the sheet's
+ * head is the person (it names the sheet for a screen reader and sits beside
+ * its close, as every sheet's head does), the strip leads what is under it,
+ * where a thumb reaches it, and the card a host learns at her desk is the
+ * card in her hand. Above the name in a hand, the strip would stand where the
+ * thumb is furthest and put the close on a photograph.
+ *
+ * ★ ONE CARD, BOTH SIDES OF THE ALBUM: `host` draws her lines (the address,
+ * Block); a guest's album opens the same card without them.
  */
 export function PhotosCard({
   guest,
+  host = true,
   children,
 }: {
   guest: Guest;
+  /** The host's lines (the address, Block): her room passes them, a guest's album does not. */
+  host?: boolean;
+  /** The name that opens it: one button. */
   children: ReactElement;
 }) {
   return (
-    <LookShell
-      face={<Face name={guest.name} seed={guest.seed} className="size-12" />}
-      name={guest.name}
-      line={kindLine(guest)}
-      body={
-        <>
-          {guest.email ? (
-            <p className="-mt-1 truncate text-caption text-muted-foreground">
-              {guest.email}
-            </p>
-          ) : null}
+    <CardShell
+      who={guestIdentity(guest, host)}
+      body={(shape) => (
+        <div className="flex flex-col gap-4">
           <Strip guest={guest} />
-          {guest.slug ? (
-            <div className="grid grid-cols-2 gap-2">
-              <QuietFollow className="w-full" />
-              <PageKey className="w-full" />
-            </div>
+          {guest.slug ? <Pair shape={shape} /> : null}
+          {host ? (
+            <BlockLookAction onPress={() => {}} className="-mt-1" />
           ) : null}
-          <BlockLookAction onPress={() => {}} />
-        </>
-      }
+        </div>
+      )}
     >
       {children}
-    </LookShell>
+    </CardShell>
   );
 }

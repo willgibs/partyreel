@@ -10,10 +10,11 @@ import {
 
 import type { CardWay } from "./card";
 import { Room } from "./chrome";
-import { AT_THE_DOOR, PRIYA, ROSA } from "./fixtures";
+import { AT_THE_DOOR, CHRIS, PRIYA, ROSA } from "./fixtures";
 import { type ScreenId, screenOf } from "./knobs";
 import { FacesRoom } from "./room-faces";
 import { ListRoom } from "./room-list";
+import { MixedRoom } from "./room-mixed";
 import { Mark, Press, Reveal, Scene, Story } from "./scene";
 import { GUESTS_ROOM } from "./spec";
 import { TodayRoom } from "./today";
@@ -22,15 +23,16 @@ import { TodayRoomCards } from "./today-cards";
 /**
  * THE PREVIEWS, AND NOTHING ELSE: each option drawn whole as production's
  * room over the hub (`chrome.tsx`), at her phone or her laptop on the Screen
- * knob. `rows` draws three frames down the room; `card` opens a name in the
- * room he picked (its `after`), the presses production's own (`Press`).
+ * knob. `rows` draws four frames down the room (opened, its guests, the
+ * invite list, its foot); `card` opens four names in the room he picked (its
+ * `after`), the presses production's own (`Press`).
  * Every caption is read off its frame (`scene.tsx`).
  */
 
-type RowsWay = "today" | "list" | "faces";
+type RowsWay = "today" | "list" | "faces" | "mixed";
 
 const rowsOf = (v: unknown): RowsWay =>
-  v === "list" || v === "faces" ? v : "today";
+  v === "list" || v === "faces" || v === "mixed" ? v : "today";
 
 /**
  * The room the `rows` answer draws, its names opening the card the `card`
@@ -49,6 +51,7 @@ function RoomFor({
 }) {
   if (rows === "list") return <ListRoom card={card} />;
   if (rows === "faces") return <FacesRoom card={card} />;
+  if (rows === "mixed") return <MixedRoom card={card} />;
   return asked === "rows" ? <TodayRoom /> : <TodayRoomCards card={card} />;
 }
 
@@ -70,6 +73,27 @@ function rowsPreview(s: BoardState, way: RowsWay) {
         <Room screen={screen}>
           <RoomFor rows={way} card="today" asked="rows" />
           <RowsMarks />
+        </Room>
+      </Scene>
+      <Scene
+        id={`gr-rows-${way}-guests`}
+        screen={screen}
+        title="Scrolled to the guests"
+      >
+        <Room screen={screen}>
+          <RoomFor rows={way} card="today" asked="rows" />
+          {/* Today's guests are a row of faces that opens them in a second panel: that panel is how she sees
+              them, so today's frame is it, opened by its own press. */}
+          {way === "today" ? (
+            <Press
+              at="button"
+              text="guests added photos"
+              until="[data-guest-list-panel]"
+            />
+          ) : (
+            <Reveal at="#in" />
+          )}
+          <Mark at="#in, [data-guest-list-panel]" as="The guests" />
         </Room>
       </Scene>
       <Scene
@@ -166,6 +190,22 @@ function cardPreview(s: BoardState, way: CardWay) {
           <span hidden data-gr-expect-card="" />
         </Room>
       </Scene>
+      <Scene
+        id={`gr-card-${rows}-${way}-blocked`}
+        screen={screen}
+        title="A blocked name, pressed"
+      >
+        <Room screen={screen}>
+          <RoomFor rows={rows} card={way} asked="card" />
+          <Reveal at={`[data-gr-name="${CHRIS.id}"]`} offset={220} />
+          <Press
+            at={`[data-gr-name="${CHRIS.id}"]`}
+            until='[data-slot="guest-peek"]'
+          />
+          <Mark at='[data-slot="guest-peek"]' as="the card" />
+          <span hidden data-gr-expect-card="" />
+        </Room>
+      </Scene>
     </Story>
   );
 }
@@ -174,6 +214,7 @@ const PREVIEWS: PreviewsFor<typeof GUESTS_ROOM> = {
   "rows.today": (s) => rowsPreview(s, "today"),
   "rows.list": (s) => rowsPreview(s, "list"),
   "rows.faces": (s) => rowsPreview(s, "faces"),
+  "rows.mixed": (s) => rowsPreview(s, "mixed"),
   "card.today": (s) => cardPreview(s, "today"),
   "card.photos": (s) => cardPreview(s, "photos"),
   "card.standing": (s) => cardPreview(s, "standing"),

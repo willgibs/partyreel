@@ -8,7 +8,7 @@ import { EventShareProvider } from "@/components/app/share/event-share-provider"
 import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 
-import { EVENT, GUESTS, HOST, HUB_STILLS } from "./fixtures";
+import { ALBUM_STILLS, EVENT, GUESTS, HOST, HUB_STILLS } from "./fixtures";
 import type { ScreenId } from "./knobs";
 
 /**
@@ -20,7 +20,10 @@ import type { ScreenId } from "./knobs";
  * is inert, as it is behind the panel's scrim.
  */
 
-/** The hub behind the panel at a desk: quiet, inert, the wedding's own head. */
+/** The album's first photographs, a few rows of the wedding's stills. */
+const ALBUM = [...ALBUM_STILLS, ...ALBUM_STILLS].slice(0, 15);
+
+/** The hub behind the panel at a desk: quiet, inert, the wedding's own head and album. */
 function HubBehind() {
   return (
     <div className="min-h-screen bg-background text-foreground" inert>
@@ -51,6 +54,26 @@ function HubBehind() {
             }}
             stills={HUB_STILLS.map((s) => ({ id: s.id, tile: s.src }))}
           />
+          {/* The album under the head, as the hub's own grid stands there: the panel's scrim dims it, and a
+              head over an empty page read as unfinished behind the room. */}
+          <div
+            className="mt-8 grid grid-cols-5"
+            style={{ gap: "var(--gap-gallery)" }}
+          >
+            {ALBUM.map((s, i) => (
+              <span
+                key={`${s.id}-${i}`}
+                className="relative aspect-square overflow-hidden rounded-tile bg-muted"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- a marketing still standing in for the album */}
+                <img
+                  src={s.src}
+                  alt=""
+                  className="absolute inset-0 size-full object-cover"
+                />
+              </span>
+            ))}
+          </div>
         </EventShareProvider>
       </AppShell>
     </div>

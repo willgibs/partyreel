@@ -262,3 +262,9 @@ export const HUB_STILLS: readonly Still[] = STILL_IDS.slice(0, 5).map((id) => ({
   id,
   src: marketingImage(id).src,
 }));
+
+/** Every still the album draws, for the hub's grid behind the panel. */
+export const ALBUM_STILLS: readonly Still[] = STILL_IDS.map((id) => ({
+  id,
+  src: marketingImage(id).src,
+}));

@@ -100,10 +100,25 @@ export function Story({
   );
 }
 
+/**
+ * The first element matching a selector, and holding these words where some are
+ * given: production's own controls carry no hook of the board's, so a press on
+ * one is found by what it says ("31 guests added photos").
+ */
+function first(doc: Document, selector: string, text?: string) {
+  if (!text) return doc.querySelector<HTMLElement>(selector);
+  return (
+    [...doc.querySelectorAll<HTMLElement>(selector)].find((el) =>
+      (el.textContent ?? "").includes(text),
+    ) ?? null
+  );
+}
+
 /** Retries a find in the frame's document until production has drawn it (a popup portals a beat late). */
 function useFound(
   selector: string,
   run: (el: HTMLElement, doc: Document) => (() => void) | void,
+  text?: string,
 ) {
   const probe = useRef<HTMLSpanElement>(null);
   const runRef = useRef(run);
@@ -117,7 +132,7 @@ function useFound(
     let timer: ReturnType<typeof setTimeout> | undefined;
     let undo: (() => void) | void;
     const find = () => {
-      const el = doc.querySelector<HTMLElement>(selector);
+      const el = first(doc, selector, text);
       if (!el) {
         if (tries++ < 160) timer = setTimeout(find, 50);
         return;
@@ -129,7 +144,7 @@ function useFound(
       clearTimeout(timer);
       undo?.();
     };
-  }, [selector]);
+  }, [selector, text]);
   return probe;
 }
 
@@ -150,18 +165,31 @@ export function Mark({ at, as }: { at: string; as: string }) {
  * frame's first document can be drawn before production's handlers answer,
  * so a single press could land on a control that did nothing with it.
  */
-export function Press({ at, until }: { at: string; until: string }) {
-  const probe = useFound(at, (el, doc) => {
-    let tries = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const press = () => {
-      if (doc.querySelector(until)) return;
-      (doc.querySelector<HTMLElement>(at) ?? el).click();
-      if (tries++ < 14) timer = setTimeout(press, 450);
-    };
-    timer = setTimeout(press, 350);
-    return () => clearTimeout(timer);
-  });
+export function Press({
+  at,
+  until,
+  text,
+}: {
+  at: string;
+  until: string;
+  /** Words the control holds, where it has no hook of the board's (production's own). */
+  text?: string;
+}) {
+  const probe = useFound(
+    at,
+    (el, doc) => {
+      let tries = 0;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const press = () => {
+        if (doc.querySelector(until)) return;
+        (first(doc, at, text) ?? el).click();
+        if (tries++ < 14) timer = setTimeout(press, 450);
+      };
+      timer = setTimeout(press, 350);
+      return () => clearTimeout(timer);
+    },
+    text,
+  );
   return <span ref={probe} hidden />;
 }
 

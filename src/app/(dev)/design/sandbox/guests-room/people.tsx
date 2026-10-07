@@ -19,7 +19,11 @@ import type { Guest } from "./fixtures";
 export const doorName = (p: DoorPerson): string =>
   p.name?.trim() || p.email || "A guest";
 
-/** A face: production's seeded Avatar at a candidate's size, its initial the name's. */
+/**
+ * A face: production's seeded Avatar at a candidate's size, its initial the
+ * name's. ★ HIDDEN FROM A SCREEN READER: a face always stands beside its name,
+ * so its initial read aloud only prefixes the name ("D Dev Kapoor").
+ */
 export function Face({
   name,
   seed,
@@ -35,6 +39,7 @@ export function Face({
 }) {
   return (
     <Avatar
+      aria-hidden
       seed={seed ?? undefined}
       className={cn(className, dim && "opacity-45 grayscale")}
     >

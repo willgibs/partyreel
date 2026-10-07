@@ -37,6 +37,23 @@ export type Who =
   | { kind: "door"; person: DoorPerson }
   | { kind: "blocked"; person: BlockedPerson };
 
+/**
+ * Whether a name in this standing opens a card under the `card` answer: today's
+ * look and the photos card open from the people in alone, the standing card
+ * from every name. A room draws a name that opens none as plain words, never a
+ * press that does nothing.
+ */
+export const opensCard = (way: CardWay, kind: Who["kind"]): boolean =>
+  kind === "in" || way === "standing";
+
+/**
+ * Whether the door's Decline stands on its row. ★ THE STANDING CARD TAKES IT:
+ * every name at the door opens a card that offers Decline where a decline is
+ * explained, so the row keeps Let in alone; under today's look and the photos
+ * card a name at the door opens nothing, and Decline stays on the row.
+ */
+export const declineOnRow = (way: CardWay): boolean => way !== "standing";
+
 /** The name that opens a card, wrapped in the card the `card` answer draws (or bare, where it opens none). */
 export function PersonCard({
   way,

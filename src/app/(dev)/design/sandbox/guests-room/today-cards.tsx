@@ -26,7 +26,7 @@ import {
 } from "@/lib/events/event-blocks";
 
 import { INERT_INVITES } from "./acts";
-import { type CardWay, PersonCard } from "./card";
+import { type CardWay, declineOnRow, opensCard, PersonCard } from "./card";
 import { AT_THE_DOOR, BLOCKED, EVENT, GUESTS, INVITED } from "./fixtures";
 import { doorName, Face } from "./people";
 
@@ -73,15 +73,25 @@ function Door({ card }: { card: CardWay }) {
             >
               <Face name={name} seed={person.seed} className="size-8" />
               <div className="min-w-0 flex-1">
-                <PersonCard way={card} who={{ kind: "door", person }}>
-                  <button
-                    type="button"
+                {opensCard(card, "door") ? (
+                  <PersonCard way={card} who={{ kind: "door", person }}>
+                    <button
+                      type="button"
+                      data-gr-name={person.guestId}
+                      className="max-w-full focus-halo truncate rounded-sm text-left text-sm font-medium outline-none"
+                    >
+                      {name}
+                    </button>
+                  </PersonCard>
+                ) : (
+                  // Production's own words: a name at the door opens nothing today.
+                  <p
                     data-gr-name={person.guestId}
-                    className="max-w-full focus-halo truncate rounded-sm text-left text-sm font-medium outline-none"
+                    className="truncate text-sm font-medium"
                   >
                     {name}
-                  </button>
-                </PersonCard>
+                  </p>
+                )}
                 <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground">
                   {person.name && person.email ? (
                     <>
@@ -97,9 +107,12 @@ function Door({ card }: { card: CardWay }) {
                 </p>
               </div>
               <div className="flex w-full shrink-0 justify-end gap-2 sm:w-auto">
-                <Button type="button" variant="ghost" size="sm">
-                  Decline
-                </Button>
+                {/* Under the standing card, Decline leaves the row for the person's own card. */}
+                {declineOnRow(card) ? (
+                  <Button type="button" variant="ghost" size="sm">
+                    Decline
+                  </Button>
+                ) : null}
                 <Button type="button" size="sm">
                   {LET_IN}
                 </Button>
@@ -237,15 +250,21 @@ function Blocked({ card }: { card: CardWay }) {
               <Face name={who} seed={person.seed} className="size-8" />
               <div className="@container min-w-0 flex-1">
                 <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                  <PersonCard way={card} who={{ kind: "blocked", person }}>
-                    <button
-                      type="button"
-                      data-gr-name={person.id}
-                      className="focus-halo truncate rounded-sm text-left outline-none"
-                    >
+                  {opensCard(card, "blocked") ? (
+                    <PersonCard way={card} who={{ kind: "blocked", person }}>
+                      <button
+                        type="button"
+                        data-gr-name={person.id}
+                        className="focus-halo truncate rounded-sm text-left outline-none"
+                      >
+                        {who}
+                      </button>
+                    </PersonCard>
+                  ) : (
+                    <span data-gr-name={person.id} className="truncate">
                       {who}
-                    </button>
-                  </PersonCard>
+                    </span>
+                  )}
                 </p>
                 <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground @sm:flex-nowrap">
                   <span className="max-w-full min-w-0 truncate">
