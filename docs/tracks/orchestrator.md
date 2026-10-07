@@ -26,7 +26,10 @@ model Will seats (Fable or Opus); nothing here depends on which.
 Desk 8's wave runs (2026-10-07; at 23:20Z the week 85%, the 5-hour window 54% to 02:10Z, this context 82%). Merged,
 recorded and pruned since its cut: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring
 (80), brand-marks-wiring (81), crumbs-91 (82; its migration applied on the Advisor's Q45 as 20261007230050),
-no-signal-wiring (83). Running, their rows below: the boards event-page-r1 and brand-marks-r2 (told to sync for the
+no-signal-wiring (83), crumbs-92 (84; its migration applied on the Advisor's Q46 APPLY as 20261007233007: md5 equal,
+advisors 29/4/36; NEXT, the Orchestrator's own: regenerate `src/lib/db/types.ts` (two tables, three functions), drop
+the two `creditDb` seams in `src/lib/db/queries/uploads-credits.ts` and `src/lib/db/mutations/uploads-credit.ts`,
+gate, and the Advisor's billing-caps.md line: a credit outlives a downgrade, bounded and audited). Running, their rows below: the boards event-page-r1 and brand-marks-r2 (told to sync for the
 lines brand-marks-wiring and crumbs-91 left in its folder), cdn-version and crumbs-92. No new lane until those close: the
 week's last share goes to them and to milestone 40's red-team. Will's calls paste's first sections are routed; his
 Deletion and Safety sections are still to come (the Calls place holds 12, five of them new from lanes: CH1, CI1, CI2,
@@ -40,7 +43,7 @@ and every merge above. Milestone 39 (`0333cd705`) is live.
 | `cdn-version` | X5: an open album's "has anything changed?" answer cached at the CDN; AB5's cadence livelier where free | running (cut 5ed23311) | Opus, 3131 | `aa27be79bf2dd9424` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
-Q45 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
+Q46 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
 
 **Seats.** A successor in another session respawns a lane from its transcript
 (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`).
