@@ -99,9 +99,13 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
   all routed and retired); 8 calls remain, his Deletion, retention and privacy section (I7, R2, J5, AH4, CG6) and Safety
   (J2, J3, M1). His paste's AY1=keep crossed his chat answer ("when she closes", which crumbs-91 builds): asked in chat
   which stands. He asks direct questions in chat; answer in chat, never only in a file.
-- **Two tokens to mint (his hand; each a credential):** `VERCEL_USAGE_TOKEN` (X2: scoped to the Partyreel team, one-year
-  expiry) and `CLOUDFLARE_ANALYTICS_TOKEN` (X3: Account Analytics Read only), each into `.env.local` by him; the
-  Orchestrator then sets the Vercel envs by stdin through the REST API, and the plan limits' readers are wired.
+- **One token left, one sign-in from him:** `VERCEL_USAGE_TOKEN` is minted (X2: `partyreel-usage`, the Partyreel
+  team, expires 2027-10-08), in `.env.local` and on both Vercel projects (production and preview, non-sensitive until
+  launch), by the Orchestrator through his Chrome on 2026-10-07. `CLOUDFLARE_ANALYTICS_TOKEN` (X3: Account Analytics
+  Read on the Partyreel Team account, `8bd90d2f6a374d6cdff2f379e929b060`) waits on partyr33l@gmail.com's sign-in: his
+  Chrome holds his own Cloudflare user, which cannot see that account, and the built-in browser's Google holds no
+  session (its tab waits at Google's sign-in for him). The cloud environment takes both values when a cloud seat needs
+  them.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,
