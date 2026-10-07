@@ -1,4 +1,12 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -68,6 +76,7 @@ const EVENT = {
 };
 const REAL = `https://partyreel.com/e/${EVENT.qr_token}`;
 const SAMPLE = /\/e\/0{32}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 function renderWizard(storagePct = 10) {
   return render(
@@ -156,6 +165,7 @@ describe("the code develops (beat=develop)", () => {
     expect(createEventInWizard).toHaveBeenCalledTimes(1);
     expect(createEventInWizard).toHaveBeenCalledWith(
       expect.objectContaining({ name: EVENT.name, qr_style: "rounded" }),
+      expect.stringMatching(UUID),
     );
   });
 
@@ -388,7 +398,74 @@ describe("the way on", () => {
     await screen.findByRole("button", { name: /^get it ready$/i });
     expect(createEventInWizard).toHaveBeenLastCalledWith(
       expect.objectContaining({ name: EVENT.name, qr_style: "dots" }),
+      expect.stringMatching(UUID),
     );
+  });
+});
+
+/**
+ * ★ A CREATE WHOSE ANSWER IS LOST IS RETRIED UNDER THE SAME KEY (20261007120000, `events.create_key`). The server may have
+ * made the event before the line dropped, and a Try again that was a fresh Create made a second one: a Free host's one event
+ * spent on a duplicate. The key is the wizard's, one for the whole room: what the server does with it (hands the first
+ * event back, refuses the duplicate) is `lib/db/mutations/events.test.ts`'s and the migration's own check.
+ */
+describe("the key of one Create (a retry returns the event the first try made)", () => {
+  const keysSent = () => createEventInWizard.mock.calls.map((c) => c[1]);
+
+  it("★ sends the same key with Try again as with the press that lost its answer", async () => {
+    createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
+    renderWizard();
+    await toTheLook();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^try again$/i }),
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^try again$/i }),
+    );
+    await waitFor(() => expect(createEventInWizard).toHaveBeenCalledTimes(3));
+    const [first, ...rest] = keysSent();
+    expect(first).toMatch(UUID);
+    expect(rest).toEqual([first, first]);
+  });
+
+  it("★ keeps it across a Back and a changed answer: the retry is still that Create, whatever she changed", async () => {
+    createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
+    renderWizard();
+    await toTheLook();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^try again$/i });
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    await userEvent.click(screen.getByRole("radio", { name: /dots/i }));
+    createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^get it ready$/i });
+    const [first, second] = keysSent();
+    expect(first).toMatch(UUID);
+    expect(second).toBe(first);
+  });
+
+  it("makes the key at the press, never at mount: a room she leaves unpressed made none", async () => {
+    renderWizard();
+    await toTheLook();
+    expect(createEventInWizard).not.toHaveBeenCalled();
+  });
+
+  it("★ a new Create is a new room with a new key", async () => {
+    createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
+    await createIt();
+    cleanup();
+    await createIt();
+    const [a, b] = keysSent();
+    expect(a).toMatch(UUID);
+    expect(b).toMatch(UUID);
+    expect(b).not.toBe(a);
   });
 });
 

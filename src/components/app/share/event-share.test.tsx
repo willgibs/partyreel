@@ -29,7 +29,8 @@ import { CODE_MORPH_NAME } from "@/components/app/share/event-share-provider";
  *  4. Two elements carrying the morph's name at once, which the browser
  *     resolves by silently skipping the transition.
  *
- * No class, size, word or duration is pinned.
+ * No class, size, word or duration is pinned, but the one mark a keyboard sees on the link row's two stops (the house's
+ * halo, which fails quietly the day a stop falls back to the browser's own outline: red-team 57's NIT).
  */
 
 const ROOT = process.cwd();
@@ -146,6 +147,23 @@ describe("what the sharing surfaces encode", () => {
     );
     // What lands on the clipboard.
     expect(writeText).toHaveBeenCalledWith("https://partyreel.com/e/tok_123");
+  });
+
+  it("★ wears the house's halo on both its stops, so the cover has no keyboard stop in the browser's own outline", () => {
+    // The address link was the one stop on the hub's cover that took the browser's own focus outline, beside a copy
+    // control wearing the house ring: the halo alone draws the mark, and `outline-none` takes the browser's away.
+    render(
+      <EventLinkRow
+        prettyUrl="https://partyreel.com/e/sarah-and-tom"
+        permanentUrl="https://partyreel.com/e/tok_123"
+      />,
+    );
+    const link = screen.getByRole("link");
+    const copy = screen.getByRole("button", { name: /copy the link/i });
+    for (const stop of [link, copy]) {
+      expect(stop).toHaveClass("focus-halo");
+      expect(stop).toHaveClass("outline-none");
+    }
   });
 
   it("confirms a copy in place and says so once in a live region", async () => {

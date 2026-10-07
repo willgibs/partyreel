@@ -1,0 +1,393 @@
+-- =============================================================================================
+-- A CREATE'S RETRY RETURNS THE EVENT THE FIRST TRY MADE (lane `crumbs-88`; the ROADMAP's "Create: a Create whose answer is lost
+-- after the server made the event, and Try again makes a second event").
+--
+-- THE BUG: Create is held as failed when its answer never arrives (a dropped line, a lid closed on the press) even though the
+-- server made the event, and Try again then made a second one: a Free host's one event spent on a duplicate she did not ask
+-- for (her retry reads the plan's limit, with the first event standing on her dashboard), and a Pro host's dashboard holding
+-- the same party twice.
+--
+-- WHAT IT GIVES: the wizard makes ONE key per Create (a uuid) and sends it with every try. The event the first try made
+-- carries it (`events.create_key`), unique per host, so a retry asks for its event under the key BEFORE it makes one and is
+-- handed the first back (`createEvent`, `src/lib/db/mutations/events.ts`).
+--
+-- THE MODEL, AS BUILT:
+--   1. `events.create_key uuid`, nullable, no default: NULL for every row that exists and for every event a build that sends no
+--      key makes. A uuid, never text, so the type bounds what a host's own PostgREST write can store (her INSERT grant,
+--      below) and no envelope CHECK is needed.
+--   2. A unique index, `events_host_create_key_unique`, on (host_id, create_key) where create_key is not null: one event a
+--      key PER HOST, never across hosts, so a key answers nothing about another account's (a 23505 cannot be made to say
+--      whether some other host holds a key) and a host's retry can never meet another's event. NULL keys never collide, so
+--      keyless creates are exactly what they were. It spans soft-deleted rows on purpose: restoring an event
+--      (`restore_event` clears `deleted_at`) can then never put two live rows on one key; the app makes a retry whose
+--      first event she has deleted since a keyless create (the key is spent, and her deleting it says she does not want it).
+--   3. The host's grant is INSERT only, on the one column: `grant insert (create_key)`. A key is made once, at birth. With no
+--      UPDATE grant nobody can re-key an event (an event could otherwise be handed the key of an attempt that is still
+--      in flight), and SELECT is table-level (RLS scopes the rows), so it reads with no grant. `anon` holds nothing on the
+--      table. Additive: a table-level revoke would cascade to every column grant on events (database-security.md, Gotchas).
+--   4. Nothing in the database reads it: no function, trigger, policy, view or RPC names the column, and
+--      `get_event_by_qr_token`'s RETURNS TABLE (the allow-list) is untouched, so the key never reaches an anon read.
+--
+-- ★ THE CAP AND EVERY TRIGGER ON `events` READ AS THEY STAND. `enforce_event_limit` (BEFORE INSERT, which takes the host's
+--   profiles row first) runs ahead of any unique index, so a Free host at her one event who inserts a second under the SAME
+--   key is refused by the CAP (check_violation), never by the key: that is why the app asks for the key's event first (a retry
+--   whose first try landed never reaches the insert, so the cap is never asked) and, on ANY refusal of the insert, asks once
+--   more before it answers (a retry that raced the first try's commit meets the cap or the index, 23505, and is then handed
+--   the event that won). The reveal stamp, the purge stamp and the other triggers fire on a keyed insert exactly as on a
+--   keyless one (the rolled-back check proves it row against row).
+--
+-- AN EXPAND: partyreel.com's build (milestone 38) never names the column. It inserts the columns it always has, none of them
+-- the key, so nothing it does changes: a new nullable column with no default, an index no row it writes belongs to, and
+-- one column grant. What it meets meanwhile: its Create sends no key, so an event it makes carries NULL and its own retry
+-- still makes a second event, until the build that carries this lane (the fix is the build's, not the schema's).
+--
+-- LOCKS AT APPLY: `alter table` on events takes ACCESS EXCLUSIVE for an instant (no rewrite: a NULL column, no default); the
+-- partial index builds over zero rows (every key is NULL) under a SHARE lock for no time at all.
+--
+-- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (0) ★ APPLY BEFORE THE ALIAS BUILD THAT CARRIES THE LANE: its Create reads the column to ask for the key's event and
+--       inserts it (PostgREST refuses an unknown column on either, 42703 and PGRST204: Create down without it). The build
+--       before it needs nothing and is never harmed.
+--   (1) drift, read-only: no `create_key` column on events, and no index named `events_host_create_key_unique`.
+--   (2) the rolled-back check at the foot: red on today's schema (0 fixtures green; 1 to 9 red, the column missing; 10 holds
+--       either way, since nothing names a column that does not exist yet), green with this file between `begin;` and the
+--       block (all eleven rows ok); then apply verbatim.
+--   (3) get_advisors, EXPECTED DELTA: none (no function, table or policy).
+--   (4) regenerate src/lib/db/types.ts (events.create_key), then retire the typed seam the lane names in its handoff
+--       (src/lib/db/mutations/events.ts: `CREATE_KEY`, the filter's name spelled as a column the types know, and the
+--       `Object.assign` that puts the key on the insert; both become the plain column).
+-- =============================================================================================
+
+-- =============================================================================================
+-- 1. The column, its index and its words.
+-- =============================================================================================
+alter table public.events add column create_key uuid;
+
+comment on column public.events.create_key is
+  'One key per Create: the wizard makes it once and sends it with every try (a uuid), and the event the first try made carries it, so a retried Create returns that event instead of making a second. NULL for an event made without one (every older row, a build that sends none). Written once at birth (no UPDATE grant), unique per host and spanning her deleted events, read by her own session only.';
+
+create unique index events_host_create_key_unique
+  on public.events (host_id, create_key)
+  where create_key is not null;
+
+-- =============================================================================================
+-- 2. The host writes it once, at birth: a bare additive column grant, INSERT only.
+-- =============================================================================================
+grant insert (create_key) on public.events to authenticated;
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Proved before applying, each run ONE execute_sql call of `begin;`, this file's statements (GREEN),
+-- the block below with its `-- ` stripped and `rollback;` (RED: the block alone, where every step after the fixtures fails on
+-- the missing column). Fixtures: a Pro host, a Free host (one event, the plan's cap) and another Pro host, all test
+-- accounts that exist only inside the transaction; each step traps its own failure into `proof`, and the last statement
+-- reads it. The statements are the ones the app issues (`createEvent`: the key's read, the insert, the read again), run
+-- as `authenticated` with the host's own claim, never as the owner.
+--
+-- create temp table proof (n serial, step text, ok boolean, detail text) on commit drop;
+-- create temp table fx (k text primary key, id uuid) on commit drop;
+--
+-- do $$
+-- declare
+--   v_pro uuid := 'c2c20000-0000-4000-8000-000000000001';
+--   v_free uuid := 'c2c20000-0000-4000-8000-000000000002';
+--   v_other uuid := 'c2c20000-0000-4000-8000-000000000003';
+-- begin
+--   insert into auth.users (id, email, email_confirmed_at) values
+--     (v_pro, 'ck-pro@check.invalid', now()),
+--     (v_free, 'ck-free@check.invalid', now()),
+--     (v_other, 'ck-other@check.invalid', now());
+--   update public.profiles set tier = 'pro' where id in (v_pro, v_other);
+--   insert into fx values ('pro', v_pro), ('free', v_free), ('other', v_other);
+--   insert into proof (step, ok, detail) values ('0 fixtures', true, 'a Pro host, a Free host, another Pro host');
+-- exception when others then insert into proof (step, ok, detail) values ('0 fixtures', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 1. the column: a nullable uuid with no default, NULL on every row that exists, its unique partial index and its words ──
+-- do $$
+-- declare t text; ix text; filled int;
+-- begin
+--   select data_type || ':' || is_nullable || ':' || coalesce(column_default, 'none') into t from information_schema.columns
+--    where table_schema = 'public' and table_name = 'events' and column_name = 'create_key';
+--   if t is distinct from 'uuid:YES:none' then raise exception 'column %', coalesce(t, 'missing'); end if;
+--   select count(*) into filled from public.events where create_key is not null;
+--   if filled <> 0 then raise exception 'rows filled: %', filled; end if;
+--   select indexdef into ix from pg_indexes
+--    where schemaname = 'public' and tablename = 'events' and indexname = 'events_host_create_key_unique';
+--   if ix is null or ix not like 'CREATE UNIQUE INDEX%' or ix not like '%(host_id, create_key)%'
+--      or ix not like '%WHERE (create_key IS NOT NULL)%' then
+--     raise exception 'index %', coalesce(ix, 'missing');
+--   end if;
+--   if col_description('public.events'::regclass,
+--        (select attnum from pg_attribute where attrelid = 'public.events'::regclass and attname = 'create_key'))
+--      not like '%unique per host%' then
+--     raise exception 'comment';
+--   end if;
+--   insert into proof (step, ok, detail) values ('1 the column, its unique partial index and its words', true, ix);
+-- exception when others then insert into proof (step, ok, detail) values ('1 the column, its unique partial index and its words', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 2. the grant: INSERT alone, hers, anon none, nothing cascaded or widened ──
+-- do $$
+-- declare bad text := '';
+-- begin
+--   if not has_column_privilege('authenticated', 'public.events', 'create_key', 'INSERT') then bad := bad || ' auth-insert'; end if;
+--   if has_column_privilege('authenticated', 'public.events', 'create_key', 'UPDATE') then bad := bad || ' auth-update'; end if;
+--   if not has_column_privilege('authenticated', 'public.events', 'create_key', 'SELECT') then bad := bad || ' auth-select'; end if;
+--   if has_column_privilege('anon', 'public.events', 'create_key', 'SELECT')
+--      or has_column_privilege('anon', 'public.events', 'create_key', 'INSERT')
+--      or has_column_privilege('anon', 'public.events', 'create_key', 'UPDATE') then bad := bad || ' anon-holds'; end if;
+--   -- Additive: the columns granted before it still are (a table-level revoke would have cascaded them away).
+--   if not has_column_privilege('authenticated', 'public.events', 'name', 'INSERT')
+--      or not has_column_privilege('authenticated', 'public.events', 'time_zone', 'INSERT')
+--      or not has_column_privilege('authenticated', 'public.events', 'develops_at', 'UPDATE')
+--      or not has_column_privilege('authenticated', 'public.events', 'deleted_at', 'UPDATE') then bad := bad || ' cascaded'; end if;
+--   -- No table-level write grew, and no column the host may not write joined it.
+--   if has_table_privilege('authenticated', 'public.events', 'INSERT') or has_table_privilege('authenticated', 'public.events', 'UPDATE') then
+--     bad := bad || ' table-level';
+--   end if;
+--   if has_column_privilege('authenticated', 'public.events', 'qr_token', 'UPDATE')
+--      or has_column_privilege('authenticated', 'public.events', 'qr_token', 'INSERT')
+--      or has_column_privilege('authenticated', 'public.events', 'event_password_hash', 'UPDATE') then bad := bad || ' widened'; end if;
+--   if bad <> '' then raise exception 'grants:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('2 the grant: insert only, hers, anon none, nothing cascaded', true,
+--     'authenticated insert and select, no update; anon none; name, time_zone, develops_at, deleted_at grants intact; no table-level write; qr_token and the password hash still not hers');
+-- exception when others then insert into proof (step, ok, detail) values ('2 the grant: insert only, hers, anon none, nothing cascaded', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 3. the build before it: keyless creates are what they were, and NULL keys never collide ──
+-- do $$
+-- declare v_pro uuid; v_a uuid; v_b uuid; n int;
+-- begin
+--   select id into v_pro from fx where k = 'pro';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_pro::text, true);
+--   insert into public.events (host_id, name) values (v_pro, 'Keyless one') returning id into v_a;
+--   insert into public.events (host_id, name) values (v_pro, 'Keyless two') returning id into v_b;
+--   reset role;
+--   select count(*) into n from public.events where id in (v_a, v_b) and create_key is null;
+--   if n <> 2 then raise exception 'keyless rows: %', n; end if;
+--   insert into proof (step, ok, detail) values ('3 keyless creates: two of them, both NULL, no collision', true,
+--     'a Pro host made two events with no key, as the milestone-38 build does');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('3 keyless creates: two of them, both NULL, no collision', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 4. the duplicate refused and the first returned (a host with room): the retry's read finds the event, an insert under the
+-- --      key again is the index's 23505, and the key still names the first ──
+-- do $$
+-- declare v_pro uuid; v_key uuid := 'c2c20000-0000-4000-8000-0000000000a1'; v_first uuid; v_seen uuid; v_name text; n int; bad text := '';
+-- begin
+--   select id into v_pro from fx where k = 'pro';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_pro::text, true);
+--   insert into public.events (host_id, name, create_key) values (v_pro, 'First try', v_key) returning id into v_first;
+--   -- The retry's read, as `createEvent` asks it.
+--   select id into v_seen from public.events where host_id = v_pro and create_key = v_key;
+--   if v_seen is distinct from v_first then bad := bad || ' read-missed'; end if;
+--   begin
+--     insert into public.events (host_id, name, create_key) values (v_pro, 'Second try', v_key);
+--     bad := bad || ' duplicate-admitted';
+--   exception when unique_violation then
+--     if sqlerrm not like '%events_host_create_key_unique%' then bad := bad || ' words:' || sqlerrm; end if;
+--   end;
+--   -- After the refusal the key still names the first, and it is the only event under it.
+--   select count(*), max(name) into n, v_name from public.events where host_id = v_pro and create_key = v_key;
+--   if n <> 1 or v_name is distinct from 'First try' then bad := bad || ' not-the-first:' || n || ':' || coalesce(v_name, 'none'); end if;
+--   select id into v_seen from public.events where host_id = v_pro and create_key = v_key;
+--   if v_seen is distinct from v_first then bad := bad || ' reread-missed'; end if;
+--   reset role;
+--   insert into fx values ('first', v_first);
+--   if bad <> '' then raise exception 'duplicate:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('4 the duplicate refused and the first returned', true,
+--     'the key''s read finds the first event; the second insert under it is 23505 on events_host_create_key_unique; one row under the key, named First try');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('4 the duplicate refused and the first returned', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 5. ★ the cap reads as it stands: a Free host at her one event is refused by the CAP before the index is asked, a
+-- --      new key is refused the same, and the retry's read still hands her the first ──
+-- do $$
+-- declare v_free uuid; v_k1 uuid := 'c2c20000-0000-4000-8000-0000000000b1'; v_k2 uuid := 'c2c20000-0000-4000-8000-0000000000b2';
+--         v_first uuid; v_seen uuid; n int; bad text := '';
+-- begin
+--   select id into v_free from fx where k = 'free';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_free::text, true);
+--   insert into public.events (host_id, name, create_key) values (v_free, 'Her one event', v_k1) returning id into v_first;
+--   -- The same key again: the trigger runs ahead of the index, so the refusal is the plan's limit.
+--   begin
+--     insert into public.events (host_id, name, create_key) values (v_free, 'Her duplicate', v_k1);
+--     bad := bad || ' same-key-admitted';
+--   exception
+--     when check_violation then
+--       if sqlerrm not like '%Event limit reached%' then bad := bad || ' same-key-words:' || sqlerrm; end if;
+--     when unique_violation then bad := bad || ' index-answered-before-the-cap';
+--   end;
+--   -- A new key is the plan's limit too: a key never buys a second event.
+--   begin
+--     insert into public.events (host_id, name, create_key) values (v_free, 'A second event', v_k2);
+--     bad := bad || ' new-key-admitted';
+--   exception when check_violation then
+--     if sqlerrm not like '%Event limit reached%' then bad := bad || ' new-key-words:' || sqlerrm; end if;
+--   end;
+--   -- And the retry's read, asked first, hands her the event she made.
+--   select id into v_seen from public.events where host_id = v_free and create_key = v_k1;
+--   if v_seen is distinct from v_first then bad := bad || ' read-missed'; end if;
+--   select count(*) into n from public.events where host_id = v_free and deleted_at is null;
+--   if n <> 1 then bad := bad || ' live-events:' || n; end if;
+--   reset role;
+--   if bad <> '' then raise exception 'cap:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('5 the cap reads as it stands: a Free host gets her first back, never a second', true,
+--     'the same key and a new key are both the plan''s limit (check_violation, the index never asked); the key''s read returns her one event; one live event');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('5 the cap reads as it stands: a Free host gets her first back, never a second', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 6. the key is per host: another account may hold the same uuid, and neither can read the other's event by it ──
+-- do $$
+-- declare v_pro uuid; v_other uuid; v_first uuid; v_key uuid := 'c2c20000-0000-4000-8000-0000000000a1'; v_theirs uuid; v_seen uuid; bad text := '';
+-- begin
+--   select id into v_pro from fx where k = 'pro';
+--   select id into v_other from fx where k = 'other';
+--   select id into v_first from fx where k = 'first';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_other::text, true);
+--   -- Hers is not theirs: the same uuid is free under another host.
+--   insert into public.events (host_id, name, create_key) values (v_other, 'Their event', v_key) returning id into v_theirs;
+--   select id into v_seen from public.events where host_id = v_other and create_key = v_key;
+--   if v_seen is distinct from v_theirs then bad := bad || ' own-read-missed'; end if;
+--   -- A read that names the first host sees nothing: RLS, not the filter, is what holds it.
+--   select id into v_seen from public.events where host_id = v_pro and create_key = v_key;
+--   if v_seen is not null then bad := bad || ' read-another-hosts-event'; end if;
+--   select id into v_seen from public.events where create_key = v_key;
+--   if v_seen is distinct from v_theirs then bad := bad || ' unfiltered-read-saw:' || coalesce(v_seen::text, 'none'); end if;
+--   reset role;
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_pro::text, true);
+--   select id into v_seen from public.events where host_id = v_pro and create_key = v_key;
+--   if v_seen is distinct from v_first then bad := bad || ' first-host-read-missed'; end if;
+--   reset role;
+--   if bad <> '' then raise exception 'tenants:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('6 the key is per host: shared uuid free, no cross-host read', true,
+--     'another host inserted under the first host''s uuid; each reads only her own event under it; a read naming the other host returns nothing');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('6 the key is per host: shared uuid free, no cross-host read', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 7. the key is written once, and only by its owner: no UPDATE, no anon, and the other columns still write ──
+-- do $$
+-- declare v_pro uuid; v_first uuid; n int; bad text := '';
+-- begin
+--   select id into v_pro from fx where k = 'pro';
+--   select id into v_first from fx where k = 'first';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_pro::text, true);
+--   begin
+--     update public.events set create_key = gen_random_uuid() where id = v_first;
+--     bad := bad || ' re-keyed';
+--   exception when insufficient_privilege then null;
+--   end;
+--   update public.events set name = 'First try, renamed' where id = v_first;
+--   get diagnostics n = row_count;
+--   if n <> 1 then bad := bad || ' rename-failed'; end if;
+--   reset role;
+--   if (select create_key from public.events where id = v_first) is distinct from 'c2c20000-0000-4000-8000-0000000000a1'::uuid then
+--     bad := bad || ' key-moved';
+--   end if;
+--   set local role anon;
+--   perform set_config('request.jwt.claim.sub', '', true);
+--   begin
+--     insert into public.events (host_id, name, create_key) values (v_pro, 'Anon''s event', gen_random_uuid());
+--     bad := bad || ' anon-inserted';
+--   exception when insufficient_privilege then null;
+--   end;
+--   reset role;
+--   if bad <> '' then raise exception 'write-once:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('7 written once: no update of the key, other columns still write, anon refused', true,
+--     'update of create_key is 42501; a rename lands; the key is unmoved; an anon insert is 42501');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('7 written once: no update of the key, other columns still write, anon refused', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 8. a deleted event keeps its key: the read still finds it (the app reads `deleted_at`), the key stays spent, and
+-- --      restoring one can never meet a second live row ──
+-- do $$
+-- declare v_pro uuid; v_first uuid; v_key uuid := 'c2c20000-0000-4000-8000-0000000000a1'; v_deleted timestamptz; n int; bad text := '';
+-- begin
+--   select id into v_pro from fx where k = 'pro';
+--   select id into v_first from fx where k = 'first';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_pro::text, true);
+--   update public.events set deleted_at = now() where id = v_first;
+--   select deleted_at into v_deleted from public.events where host_id = v_pro and create_key = v_key;
+--   if v_deleted is null then bad := bad || ' deleted-event-not-read'; end if;
+--   begin
+--     insert into public.events (host_id, name, create_key) values (v_pro, 'Third try', v_key);
+--     bad := bad || ' key-reused-after-delete';
+--   exception when unique_violation then null;
+--   end;
+--   select count(*) into n from public.events where host_id = v_pro and create_key = v_key;
+--   if n <> 1 then bad := bad || ' rows:' || n; end if;
+--   reset role;
+--   if bad <> '' then raise exception 'deleted:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('8 a deleted event keeps its key', true,
+--     'the read returns the soft-deleted row with its deleted_at; an insert under the key is still 23505; one row');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('8 a deleted event keeps its key', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 9. every trigger on events reads as it stands: a keyed insert is a keyless one in every derived column ──
+-- do $$
+-- declare v_pro uuid; v_a uuid; v_b uuid; a record; b record; bad text := '';
+-- begin
+--   select id into v_pro from fx where k = 'pro';
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_pro::text, true);
+--   -- A develop time ahead: the reveal stamp (BEFORE INSERT) writes `sealed_from`; the purge stamp and the defaults run too.
+--   insert into public.events (host_id, name, capture, develops_at, qr_style)
+--     values (v_pro, 'Like for like, keyless', 'upload', now() + interval '2 days', 'rounded') returning id into v_a;
+--   insert into public.events (host_id, name, capture, develops_at, qr_style, create_key)
+--     values (v_pro, 'Like for like, keyed', 'upload', now() + interval '2 days', 'rounded', gen_random_uuid()) returning id into v_b;
+--   reset role;
+--   select * into a from public.events where id = v_a;
+--   select * into b from public.events where id = v_b;
+--   if a.sealed_from is null or b.sealed_from is null then bad := bad || ' reveal-stamp-missed'; end if;
+--   if (a.sealed_from is null) is distinct from (b.sealed_from is null) then bad := bad || ' sealed-differs'; end if;
+--   if a.purge_at is distinct from b.purge_at then bad := bad || ' purge-differs'; end if;
+--   if a.visibility is distinct from b.visibility or a.moderation_mode is distinct from b.moderation_mode
+--      or a.accepting_uploads is distinct from b.accepting_uploads or a.require_verified_email is distinct from b.require_verified_email
+--      or a.capture is distinct from b.capture or a.roll_size is distinct from b.roll_size or a.gate is distinct from b.gate then
+--     bad := bad || ' defaults-differ';
+--   end if;
+--   if b.create_key is null or a.create_key is not null then bad := bad || ' keys-wrong'; end if;
+--   if bad <> '' then raise exception 'triggers:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('9 every trigger reads as it stands: keyed is keyless in every derived column', true,
+--     'sealed_from stamped on both, purge_at, visibility, moderation, capture, roll and gate equal; only the key differs');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('9 every trigger reads as it stands: keyed is keyless in every derived column', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 10. nothing in the database reads it: no function, trigger, policy or view names the column, and the anon read's allow-list is whole ──
+-- do $$
+-- declare bad text := '';
+-- begin
+--   if exists (select 1 from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+--               where s.nspname = 'public' and p.prosrc like '%create\_key%') then bad := bad || ' a-function-reads-it'; end if;
+--   if exists (select 1 from pg_policies where qual like '%create\_key%' or with_check like '%create\_key%') then bad := bad || ' policy'; end if;
+--   if exists (select 1 from pg_trigger where not tgisinternal and pg_get_triggerdef(oid) like '%create\_key%') then bad := bad || ' trigger'; end if;
+--   if exists (select 1 from pg_views where schemaname = 'public' and definition like '%create\_key%') then bad := bad || ' view'; end if;
+--   if pg_get_function_result('public.get_event_by_qr_token'::regproc) like '%create\_key%' then bad := bad || ' anon-read-carries-it'; end if;
+--   if bad <> '' then raise exception 'reads:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('10 nothing reads it: no function, trigger, policy or view, and the anon read is untouched', true,
+--     'no public function body, policy, trigger or view names create_key; get_event_by_qr_token returns no such column');
+-- exception when others then insert into proof (step, ok, detail) values ('10 nothing reads it: no function, trigger, policy or view, and the anon read is untouched', false, sqlerrm);
+-- end $$;
+--
+-- select n, step, ok, detail from proof order by n;

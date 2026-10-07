@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -148,6 +151,65 @@ describe("a count that needs her", () => {
   it("draws no badge for a face that needs her with no count", () => {
     render(<Door face={{ value: "8 waiting", needs: true }} />);
     expect(piece(screen.getByRole("link"), "badge")).toBeNull();
+  });
+
+  // ★ THE FOLDED PILL'S BADGE GROWS OUTWARD (red-team 57): where a word stands beside the glyph, the sheet leaves the
+  // room the count's width needs, so the badge carries how many characters it ends on, the CAP's (past 99 it is "99+",
+  // three) and never the number that is ticking toward it.
+  it.each([
+    [1, "1"],
+    [8, "1"],
+    [9, "1"],
+    [10, "2"],
+    [42, "2"],
+    [99, "2"],
+    [100, "3"],
+    [1234, "3"],
+  ])("★ says a count of %i ends on %s character(s)", (n, len) => {
+    render(
+      <Door
+        face={{ value: `${n} waiting`, needs: true, count: n }}
+        room="review"
+      />,
+    );
+    expect(piece(screen.getByRole("link"), "badge")).toHaveAttribute(
+      "data-len",
+      len,
+    );
+  });
+});
+
+describe("the folded pill's badge, in the sheet (`room-card.css`)", () => {
+  // Where the badge stands is the sheet's, and no layout runs in jsdom: what is held is the one choice that failed. Pinned
+  // by its right edge a wide count grew back over the 16px glyph ("99+" hid the whole icon, so the pill read only its
+  // count), and that is the choice a later edit could restore without a test noticing.
+  const sheet = readFileSync(
+    join(process.cwd(), "src/components/app/event-feed/room-card.css"),
+    "utf8",
+  ).replace(/\/\*[\s\S]*?\*\//g, "");
+  const rule = (selector: string) =>
+    sheet.match(
+      new RegExp(`${selector.replace(/[[\].]/g, "\\$&")}\\s*\\{([^}]*)\\}`),
+    )?.[1] ?? "";
+
+  it("★ pins the badge by its LEFT edge at the glyph's shoulder, so a wider count grows away from the icon", () => {
+    const folded = rule("[data-stuck] .hub-door-badge");
+    expect(folded, "the folded badge's rule was not found").not.toBe("");
+    expect(folded).toMatch(/\bleft:\s*calc\(100% - 6px\)/);
+    expect(folded).toMatch(/\bright:\s*auto/);
+    // The card's own badge (a count there has no icon under it to grow over) keeps its right edge, which is what stops
+    // it short of the title beside the glyph.
+    expect(rule(".hub-door-badge")).toMatch(/\bright:\s*-8px/);
+  });
+
+  it("★ leaves a word its 3px of the room a wider count reaches into, from 800px", () => {
+    // 13px is the one-digit badge's gap; two characters need one pixel more, "99+" seven.
+    expect(sheet).toMatch(
+      /\[data-stuck\] \.hub-door:has\(\.hub-door-badge\[data-len="2"\]\)\s*\{\s*gap:\s*14px/,
+    );
+    expect(sheet).toMatch(
+      /\[data-stuck\] \.hub-door:has\(\.hub-door-badge\[data-len="3"\]\)\s*\{\s*gap:\s*20px/,
+    );
   });
 });
 

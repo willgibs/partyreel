@@ -109,11 +109,21 @@ function TickingCount({ value }: { value: number }) {
 /**
  * THE BADGE ON THE GLYPH'S SHOULDER, or nothing: a count that waits on her in the status, else a count hers to act on
  * (steps left, paused uploads) as a quiet ring, marked `data-hers` so the sheet shows it only where the door has no line.
+ *
+ * ★ `data-len` IS THE CHARACTERS THE COUNT ENDS ON (1, 2, or the 3 of "99+"), for the one place the badge's width matters
+ * to a neighbour: a folded pill's badge grows OUTWARD from the glyph's shoulder, so where a word stands beside the glyph
+ * the sheet leaves the room that width needs (`room-card.css`). It is the target's width, never the number ticking toward
+ * it, so the room does not move while the count slides.
  */
 function Badge({ face, waits }: { face: RoomFace; waits: number }) {
   if (waits)
     return (
-      <span data-fold="badge" data-badge="needs" className="hub-door-badge">
+      <span
+        data-fold="badge"
+        data-badge="needs"
+        data-len={badgeCount(waits).length}
+        className="hub-door-badge"
+      >
         <TickingCount value={waits} />
       </span>
     );
