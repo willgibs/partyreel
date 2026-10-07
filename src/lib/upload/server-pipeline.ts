@@ -539,8 +539,9 @@ type CompleteCommon = {
    */
   captured_at?: string | null;
   /**
-   * The original's zoneless wall clock as it is (`captureWall`, `YYYY-MM-DDTHH:mm:ss`), or null: a guest's strategy reads
-   * it in the party's zone (`wallInPartyZone`), and the claim above is the fallback. The host's route takes none.
+   * The original's zoneless wall clock as it is (`captureWall`, `YYYY-MM-DDTHH:mm:ss`), or null: each strategy reads it
+   * in the party's zone (`wallInPartyZone`: the guest's by her ticket's event, the host's by the body's id, which her
+   * `create_media_as_host` then proves hers), and the claim above is the fallback.
    */
   captured_wall?: string | null;
   upload_id: string | null;

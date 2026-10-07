@@ -8,6 +8,10 @@
  * spent run, so the reel can say their minutes, which is a video, and which are still going. An earlier visit's
  * frames are sealed glass with nothing on them.
  *
+ * ★ A FRAME WAITING FOR THE LINE IS SPENT, AND SAYS IT WAITS (no-signal r1, Will's `roll=taken`): its shot is on the
+ * roll from the press, sent or not, like film, so it stands among the spent frames with its minute, marked `waiting`
+ * (half-lit and still, `camera-roll.css`) where one still going up is marked `sending` (the pulsing dot).
+ *
  * Pure, so every rule is a unit test.
  */
 
@@ -25,6 +29,8 @@ export type ReelCell = {
   video?: number;
   /** Its bytes are still on their way. */
   sending?: boolean;
+  /** It waits for the line: spent, on the roll, and not yet sent (`roll=taken`). */
+  waiting?: boolean;
 };
 
 /** A minute as the reel prints it, on the clock of the party: "10:41", "9:05". */
@@ -48,6 +54,8 @@ export function reelCells(input: {
     kind: "photo" | "video";
     seconds?: number;
     sending: boolean;
+    /** It waits for the line (optional, so every caller before the line's wait reads as before). */
+    waiting?: boolean;
   }[];
 }): ReelCell[] {
   const cap = Math.max(1, Math.floor(input.cap));
@@ -68,7 +76,11 @@ export function reelCells(input: {
               ...(shot.kind === "video"
                 ? { video: Math.max(1, Math.round(shot.seconds ?? 0)) }
                 : {}),
-              ...(shot.sending ? { sending: true } : {}),
+              ...(shot.waiting
+                ? { waiting: true }
+                : shot.sending
+                  ? { sending: true }
+                  : {}),
             }
           : { n, state: "exposed" },
       );

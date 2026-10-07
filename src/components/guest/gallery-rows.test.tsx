@@ -585,3 +585,189 @@ describe("GalleryRows: the stack out of her sight stands in view", () => {
     expect(standIn()).toBeNull();
   });
 });
+
+/**
+ * ★ A SEND THAT WAITS FOR THE LINE STANDS BY WHERE IT IS (no-signal r1, Will's `drop=standby`): the stack and its stand-in
+ * read the wait off the progress store they already read (`QueueProgress.waits`), say "No connection" with the promise
+ * in the bar's place, keep the x, open nothing by themselves, and a press on either opens the whole send.
+ */
+describe("GalleryRows: a send standing by for the line", () => {
+  let sight: ((inView: boolean) => void)[] = [];
+  class FakeObserver {
+    constructor(private cb: IntersectionObserverCallback) {
+      sight.push((inView) =>
+        this.cb(
+          [
+            {
+              isIntersecting: inView,
+              intersectionRatio: inView ? 1 : 0,
+            } as IntersectionObserverEntry,
+          ],
+          this as unknown as IntersectionObserver,
+        ),
+      );
+    }
+    observe() {}
+    disconnect() {}
+  }
+  /** A store where these files wait for the line, each kept on her phone or not. */
+  const waitingStore = (
+    holds: Record<string, "kept" | "page">,
+  ): QueueProgress => ({
+    get: () => 0,
+    subscribe: () => () => {},
+    stop: async () => null,
+    waits: (id) => holds[id] ?? null,
+  });
+
+  beforeEach(() => {
+    sight = [];
+    vi.stubGlobal("IntersectionObserver", FakeObserver);
+  });
+
+  it("★ the stack says the state and her phone's promise where the bar was, and keeps its x", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued"), pending("w2", "queued")]}
+        progress={waitingStore({ w1: "kept", w2: "kept" })}
+      />,
+    );
+    const pane = document.querySelector("[data-stack-standby]") as HTMLElement;
+    expect(pane).toHaveTextContent("No connection");
+    expect(pane).toHaveTextContent("Kept on this phone");
+    expect(document.querySelector("[data-pending-progress]")).toBeNull();
+    expect(document.querySelector("[data-stop-upload]")).not.toBeNull();
+    // Nothing opened by itself.
+    expect(document.querySelector("[data-waiting-sheet]")).toBeNull();
+  });
+
+  it("★ says to keep the page open where her phone could not hold the file", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued")]}
+        progress={waitingStore({ w1: "page" })}
+      />,
+    );
+    expect(
+      (document.querySelector("[data-stack-standby]") as HTMLElement)
+        .textContent,
+    ).toContain("Keep this page open");
+  });
+
+  it("★ the stand-in says it too, with no bar and its x, when the stack is out of her sight", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        anchor="start"
+        pending={[pending("w1", "queued"), pending("w2", "queued")]}
+        progress={waitingStore({ w1: "kept", w2: "kept" })}
+      />,
+    );
+    act(() => sight.at(-1)!(false));
+    act(() => vi.advanceTimersByTime(300));
+    const pill = document.querySelector(
+      "[data-sending-stand-in]",
+    ) as HTMLElement;
+    expect(pill).toHaveTextContent("No connection");
+    expect(pill.textContent).not.toContain("to go");
+    expect(pill.querySelector("[data-stand-in-progress]")).toBeNull();
+    expect(pill.querySelector("[data-stop-upload]")).not.toBeNull();
+  });
+
+  it("★ a press on the stack opens the whole send under its promise, each photograph and where it stands", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[
+          pending("w1", "queued"),
+          pending("w2", "queued"),
+          pending("w3", "queued"),
+        ]}
+        progress={waitingStore({ w1: "kept", w2: "kept", w3: "kept" })}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "See what waits for your connection",
+      }),
+    );
+    const sheet = document.querySelector("[data-waiting-sheet]") as HTMLElement;
+    expect(sheet).not.toBeNull();
+    expect(sheet).toHaveTextContent("Waiting for your connection");
+    expect(sheet).toHaveTextContent(
+      "Your 3 photos are kept on this phone and go by themselves once your connection is back.",
+    );
+    expect(sheet.querySelectorAll('[data-waiting-row="waiting"]')).toHaveLength(
+      3,
+    );
+    expect(sheet).toHaveTextContent("w2.jpg");
+  });
+
+  it("★ the list closes once nothing waits (the line is back), and a later wait never opens it by itself", () => {
+    const view = render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued")]}
+        progress={waitingStore({ w1: "kept" })}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "See what waits for your connection",
+      }),
+    );
+    expect(document.querySelector("[data-waiting-sheet]")).not.toBeNull();
+    // The line is back: the file goes again, and the list that said it waits closes.
+    view.rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "uploading", 10)]}
+        progress={waitingStore({})}
+      />,
+    );
+    act(() => vi.advanceTimersByTime(400));
+    expect(document.querySelector("[data-waiting-sheet]")).toBeNull();
+    // It drops again: the stack stands by, and nothing opens.
+    view.rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued")]}
+        progress={waitingStore({ w1: "kept" })}
+      />,
+    );
+    act(() => vi.advanceTimersByTime(400));
+    expect(document.querySelector("[data-stack-standby]")).not.toBeNull();
+    expect(document.querySelector("[data-waiting-sheet]")).toBeNull();
+  });
+
+  it("goes back to its bar the moment the file goes again", () => {
+    const view = render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "queued")]}
+        progress={waitingStore({ w1: "kept" })}
+      />,
+    );
+    expect(document.querySelector("[data-stack-standby]")).not.toBeNull();
+    view.rerender(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[pending("w1", "uploading", 10)]}
+        progress={waitingStore({})}
+      />,
+    );
+    expect(document.querySelector("[data-stack-standby]")).toBeNull();
+    expect(document.querySelector("[data-pending-progress]")).not.toBeNull();
+  });
+});

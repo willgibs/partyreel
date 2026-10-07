@@ -21,6 +21,7 @@ import { addsWaitFor } from "@/components/guest/event-experience-wait";
 import { useGalleryLive } from "@/components/guest/gallery-live";
 import { usePartyZone } from "@/components/guest/party-zone";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
+import { WaitPoint } from "@/components/guest/upload/wait-point";
 import { Button } from "@/components/ui/button";
 import {
   Popup,
@@ -45,6 +46,8 @@ import {
   type TrackerRow,
   type TrackerStatus,
 } from "@/lib/guest/upload-tracker";
+import { waitsForLine } from "@/lib/guest/unsent/standby";
+import { WAITING_FOR_CONNECTION } from "@/lib/guest/unsent/words";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { cn } from "@/lib/utils";
 
@@ -82,6 +85,10 @@ import { cn } from "@/lib/utils";
  * for a guest's ticket, both of which take any of her rows not already removed), so a removed held upload
  * never reaches the host's Review. No confirm: nothing else in this list asks one. It says so the moment it
  * is pressed (Removing), leaves her list when the server agrees, and stays with a Try again when it does not.
+ *
+ * ★ A PHOTOGRAPH WAITING FOR THE LINE STANDS HERE, HALF-LIT (no-signal r1, the board's carried call `waits`): on an
+ * album that waits the album's head draws no stack, so her list is where a send that stands by is said, its row
+ * Standby's point and "Waiting for your connection" where a sending one spins (the queue's `waitsForLine`).
  *
  * ★ HER READS CARRY HER NEWS (crumbs-38, the approval toast's server half): each asks `tell`, and the
  * server answers which of hers a decision let into the album since she was last told, marking them told
@@ -510,6 +517,7 @@ export function UploadTracker({
                 <TrackerRowView
                   key={row.key}
                   row={row}
+                  waitsForLine={Boolean(queued && waitsForLine(queued))}
                   removing={
                     row.mediaId ? (removing.get(row.mediaId) ?? null) : null
                   }
@@ -570,6 +578,7 @@ function TrackerRowView({
   picture,
   removing = null,
   onRemove,
+  waitsForLine: standsBy = false,
 }: {
   row: TrackerRow;
   picture: React.ReactNode;
@@ -577,11 +586,14 @@ function TrackerRowView({
   removing?: "working" | "failed" | null;
   /** Hers to take back (`removable`): its Remove. */
   onRemove?: () => void;
+  /** On its way and standing by for the line (the queue's `waitsForLine`): Standby's point, never the spinner. */
+  waitsForLine?: boolean;
 }) {
   const Icon = ICON[row.status];
+  const line = standsBy && row.status === "sending";
   return (
     <li
-      data-upload-tracker-row={row.status}
+      data-upload-tracker-row={line ? "waiting-line" : row.status}
       data-removing={removing ?? undefined}
       className={cn(
         "flex items-center gap-3 py-2.5 transition-opacity duration-150 motion-reduce:transition-none",
@@ -598,20 +610,29 @@ function TrackerRowView({
       <p
         className={cn(
           "flex min-w-0 flex-1 items-center gap-1.5 text-sm",
-          TONE[row.status],
+          line ? "text-muted-foreground" : TONE[row.status],
         )}
       >
-        <Icon
-          className={cn(
-            "size-4 shrink-0",
-            row.status === "sending" && "motion-safe:animate-spin",
-          )}
-          aria-hidden
-        />
+        {line ? (
+          // Standby's point, still, in the row's own ink: the line is nobody's fault, and nothing here moves.
+          <span className="flex size-4 shrink-0 items-center justify-center">
+            <WaitPoint />
+          </span>
+        ) : (
+          <Icon
+            className={cn(
+              "size-4 shrink-0",
+              row.status === "sending" && "motion-safe:animate-spin",
+            )}
+            aria-hidden
+          />
+        )}
         <span className="truncate text-foreground">
           {removing === "failed"
             ? "Couldn't remove it"
-            : TRACKER_WORDS[row.status]}
+            : line
+              ? WAITING_FOR_CONNECTION
+              : TRACKER_WORDS[row.status]}
         </span>
       </p>
       {onRemove && (
