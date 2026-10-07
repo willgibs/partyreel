@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { FakeRow } from "@/lib/db/testing/fake-postgrest";
+import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
 import type { Deadline } from "@/lib/lifecycle/sweep-budget";
 import {
   createCronWorld,
@@ -51,8 +52,14 @@ const { sweepInactiveFreeEvents } =
   await import("@/lib/lifecycle/sweeps/inactivity");
 
 const NOW = new Date("2026-09-23T04:00:00.000Z");
-const LONG_AGO = "2026-01-01T00:00:00.000000+00:00"; // past 180 days: remove
-const WARN_AGE = "2026-04-01T00:00:00.000000+00:00"; // 175 days: warn
+// ★ The ages are the window's own (inactivity.ts), never calendar dates typed against its current value: a retune
+// would leave every event here reading "none" and the sweep's tests passing on nothing.
+const ago = (days: number) =>
+  new Date(NOW.getTime() - days * 86_400_000)
+    .toISOString()
+    .replace("Z", "000+00:00");
+const LONG_AGO = ago(INACTIVE_DAYS + 60); // past the window: remove
+const WARN_AGE = ago(INACTIVE_DAYS - WARN_BEFORE_DAYS + 5); // inside the warning lead: warn
 const RECENT = "2026-09-20T00:00:00.000000+00:00";
 
 function passesAfter(n: number): Deadline {

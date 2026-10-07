@@ -30,6 +30,8 @@
  * a migration.
  */
 
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
+
 export type JobId =
   | "purge_cron"
   // Our own spend guards (lane `spend-watch`): reads our counters, alerts past ten times the week's busiest, and
@@ -279,8 +281,7 @@ export const JOBS: JobDef[] = [
   {
     id: "purge_inactivity",
     label: "Inactivity sweep",
-    description:
-      "Warns, then soft-deletes free events with no activity for six months. It removes a host's event, so both a stall and a misfire have to be visible the next morning.",
+    description: `Warns, then soft-deletes free events with no activity for ${INACTIVE_MONTHS} months. It removes a host's event, so both a stall and a misfire have to be visible the next morning.`,
     kind: "scheduled",
     host: "purge_sweep",
     cron: "0 4 * * *",

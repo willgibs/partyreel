@@ -3,6 +3,7 @@ import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   planById,
 } from "@/lib/constants/tiers";
+import { INACTIVE_MONTHS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { formatBytes } from "@/lib/utils";
@@ -62,7 +63,7 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Do my events expire?",
-    a: `Never by date: an album stays until you delete it, and deletions wait 30 days in Deleted. The one exception is a Free event untouched for about six months, which gets a 14-day warning email before it's removed; any activity resets the clock. An Event Pass covers its event for about a year and renews for ${EVENT_PASS_RENEWAL_PRICE_LABEL}.`,
+    a: `Never by date: an album stays until you delete it, and deletions wait 30 days in Deleted. The one exception is a Free event untouched for about ${INACTIVE_MONTHS} months, which gets a ${WARN_BEFORE_DAYS}-day warning email before it's removed; any activity resets the clock. An Event Pass covers its event for about a year and renews for ${EVENT_PASS_RENEWAL_PRICE_LABEL}.`,
   },
   {
     q: "Can I cancel Pro anytime?",
