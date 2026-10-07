@@ -143,12 +143,12 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Door: a camera-only Disposable's welcome says "Add your photos and videos in seconds." where its guests only use the album's camera; and the door page's hidden summaries (Private, Only people already in) say uploads are paused while they are open, a screen-reader check (app-gaps-r1).
 - Lab exploration: presence r2, the guest row where r1 did not reach (a photograph's credit in the viewer, the reel's closing credits, the host's dashboard stage on the party's day), and a person's seed as the light of her own page before her first photograph, after account-moments r2's invitation (presence r1).
 - Lab exploration: a guest's own "what happened to my photos" across albums (her sends, what landed, what waits, what was refused and why), after no-signal's carry is wired; and the install board's new reason (a home-screen album is exempt from Safari's 7-day eviction and can be granted `persist()`) (no-signal r1).
-- Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event", and it still wears the placeholder aperture tile left for the wordmark on 2026-09-17; the card's wiring loads its face (after-party r1).
 - Lab exploration: after-party r2, the album's later moments once Will picks where the recap lives: the anniversary a year on, and the keepsake's premiere (the reel opening by itself on a guest's return, with Skip: motion r1's stills could not judge) (after-party r1).
 - Album: the viewer draws nothing for a photograph its browser cannot decode (a HEIC with no preview in Chrome); say it as the tile's stand-in does, beside Save (crumbs-90).
 - Camera: at a roll of 1 the refusal says "You've taken all 1 shots on your roll." (`roll.ts`'s `rollSpentMessage` and `create_media`'s mirror, a migration) (crumbs-90).
 - Lab exploration: the album's controls (Will's own answer to X10, 2026-10-07): one gallery for every kind of event, with deeper optional filters, sort and views (smart views, perhaps), never a divided default: no day dividers or chapters drawn for her, since "our albums are built to be used dynamically across nearly any sort of event type or duration".
 - Lab exploration: the guestbook (Will's yes to X12, 2026-10-07): a short note, a voice memo or a video message to the hosts, moderated in Review like any upload, at the reel's end and in a place of its own; no captions or comments on photographs; "very natural, and likely a more underlying feature", never forced (the event-page board leaves its door).
+- Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event"; the card's wiring loads its face (after-party r1; its placeholder tile is the wordmark since brand-marks-wiring).
 
 ### Accounts and profiles
 
@@ -195,6 +195,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: the guest header's corner says Make one like this on a shut door too, where the album lends nothing and Create opens plain; the shut branch of `e/[token]/page.tsx` could hand the header a word (create-wizard-wiring-2).
 - Host: the Guests room reads the album's approved guest rows twice a read (`getEventGuests` for the list, `readHostGuestFacts` for the counts); one read could answer both (guests-room-wiring).
 - Host: a Decline or a Let in from a card leaves focus on the room's panel once its row leaves; move it to the next row's name, as the row's own act did before (guests-room-wiring).
+- Drive: the album tile's Standby dot (`drive-tile-mark.tsx`, `bg-info`) is now the page's muted ink on glass, the same grey as its stopped dot: draw it half-lit in the glass's white, as the Badge draws Standby (brand-marks-wiring).
+- Mail: every mail's head wears the wordmark as drawn at 22px (`public/email/wordmark-v1.png`): `scripts/build-email-wordmark.mjs` on the small cut into `wordmark-v2.png`, and `templates.ts`'s `WORDMARK` pointed at it, so his three near-touching pairs stop blotting (brand-marks-wiring).
 
 ### Admin and operations
 
@@ -204,6 +206,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Admin: an operator release for a squatted custom link, reached from a report on `/e/<slug>`; nothing in `/admin` reads or frees an event's slug, and a free account can now hold one.
 - Admin: `/admin/forensics`' held-media table names no uploader (`listHeldMedia`, `queries/forensics.ts`, reads none), so an operator opens each Record to learn it; an uploader column edits `trust-safety-forensics.md`'s "no page renders either" too.
 - **Admin deployment:** its own Sentry project; the portal shares the app's DSN today.
+- Admin: the portal's states in another tier's token: in progress drawn amber (`storage-sums-view.ts`, `reconcile-view.ts`, `restore-view.ts`), a failure amber (`drive-words.ts`'s stopped sends and its "Lanes dying" pause, `outcome-word.ts`'s refused Too large and Empty, failed copies), near a limit red (`limits-card.tsx`'s Critical and stale readings, `drive-section.tsx`'s Google client line), and a count that waits on the operator amber (`admin-bar.tsx`'s "N jobs need you", `queue.ts`'s open reports) where a count that waits is the tally (brand-marks-wiring).
 
 ### Design system and accessibility
 
@@ -233,6 +236,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: `halo-inset`'s forced-colours outline stands 2px outside its control, where a clipping box hides it; draw it inside, as the album tile's halo now does (crumbs-90).
 - Design, Library: RelationToggle's catalog entry could show her first follow (a specimen whose write answers `first: true`), the one state production shows only to an account that follows nobody (`library/components/gallery-demos.tsx` and `interactive-demos.tsx`, then `collect-specimens.mjs`'s `specimens.generated.json`) (account-moments-wiring-2).
 - Design: `settings-furniture.tsx`, `delete-event-row.tsx` and `attended-events-visibility.tsx` hand-roll a ringed card; each becomes the flat `Card` (the checklist and Settings' rail wear it since create-wizard-wiring-2).
+- Design: states still drawn in another tier's token (design-system.md's four tiers), each its surface's to move: Standby in green (`ui/progress.tsx` fills every meter in `--success`, so an upload or a Drive send under way reads done; the "Sending to Google Drive" toasts in `storage-door.tsx`, `take-home-panel.tsx` and `event-experience.tsx` are successes) and in amber (`upload-tracker.tsx`'s Developing); a warning in red (`grace-banner.tsx` and `goal-strip.tsx` over the cap inside the grace, the password gate's cooldown); a fault in amber (Drive's "Couldn't" notices in `send-steps.tsx`, `send-strip.tsx`'s warning toasts) (brand-marks-wiring).
 
 ### Marketing and content
 
@@ -252,6 +256,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Nav: `ui/navigation-menu.tsx`'s content spells its cross-slide inline (`data-[motion=…]`); move it onto `floatingCrossSlide` (`ui/floating-layer.ts`), the same slide, which also holds it to `motion-safe`.
 - Help: `content/help/the-disposable-camera.mdx` says "A roll allows only so many retakes"; name the 3 re-shoots and the reel's newest frame (Take it back, Keep it), in `lib/guest/camera/words.ts`'s words (camera-wiring).
 - Help: `content/help/share-the-album-after-the-event.mdx`'s keepsake step can say the link then unfurls as "Photos from <name>", not "Add photos to <name>" (crumbs-87).
+- Marketing: live drawn green on the site (`demo-modal/demo-door.tsx`'s LiveDot and its ring, `home/live-demo.tsx`, `live-album-stage.tsx`'s Live now, `feature-door.tsx`'s Filling live, `review-modes.tsx`'s Live icon): live is the recording red that breathes, as the app's `LiveDot` and the Badge's `live` draw it (brand-marks-wiring).
+- About: the press band's words (`ABOUT_PRESS_KIT.body`) name "the mark, the app icon, the share card and a QR code"; the kit now carries the wordmark in ink and in white beside the icon (brand-marks-wiring).
 
 ### The lab and the kit
 
@@ -287,6 +293,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The kit: a lane's "Calls for Will" handed off as `usher/kit/calls.py` entries (the shape in `cut-lane.py`'s Handoff template), so the record adds them in one `calls.py add` and the door judges them as written (calls-desk).
 - The lab: the desk is long at a phone (the Calls place alone about 10,500 px at 375, the queue above it more): fold an answered section to a line, or walk the calls as steps of the review like the boards' asks (calls-desk).
 - The Library: the "At the door and Invited" specimen's hint says "Let in · Decline, then Undo on its toast"; Decline is a name's card's now (`library/compositions/gallery-demos.tsx`) (guests-room-wiring).
+- Library: the Logo specimens (`library/patterns/gallery-demos.tsx`) still call the mark "a stand-in" until the v1 icon arrives, and draw the display size in the small cut: the Ring by name, and `cut="display"` on the 48px specimen (the specimens' JSON regenerated) (brand-marks-wiring).
 
 ### Code hygiene
 
@@ -363,7 +370,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: the guest door's sheet wears three lamps (red, amber, green) along its top, a traffic light where Afterglow draws one light sampled from the cover's photograph; for the brand-applied boards (desk 6) (identity-r5).
 - Accessibility: a keyboard cannot reach a toast while a modal holds focus (`ui/sonner.tsx`), and the rooms over the hub fire Undo toasts inside their panel (Review's triage, At the door's Decline); a keyboard way to Undo wants a design.
 - Toasts: a sweep so no toast fires where its control can show its own result; about 200 `toast(` calls across 75 files have never been read against that.
-- The brand pass the day the v1 icon lands `[eng]` (ASSETS row 19 names every seam it touches), adding the wordmark in white and in ink to the press kit (`scripts/build-press-kit.mjs`), which has never carried it.
 
 ### Marketing and content
 

@@ -40,7 +40,6 @@ Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../pa
 | --- | --- | --- | --- | --- |
 | `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
 | `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
-| `brand-marks-wiring` | the wordmark finished, the ember Ring icon, the room-black plate, the status tiers; retires the brand board | running (cut d4da2464) | Opus, 3131 | `a5b5ef7ec4210f810` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
 | `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
 
@@ -69,7 +68,8 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
    on the next surfaces in its language, by leverage: the dashboard home and its event cards, the door, her own page
    (`/me` and the public page, folding account-moments r3's teaser), Settings (only the optional and Create's changes,
    never steps: ROADMAP's "Settings' rail reads as steps" line).
-3. **Milestone 40** once wave 1 merges: red-team 58 on a desk refreshed to the tip (crumbs-88's emailed-link paths need
+3. **Milestone 40** once wave 1 merges (after it ships, the kit's screens refresh from partyreel.com by
+   `usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens): red-team 58 on a desk refreshed to the tip (crumbs-88's emailed-link paths need
    a real email: his walk or the red-team's), the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes.
 4. **His desk** (:3000, `b0eb89bc9`) has no open ask but the three `?` until event-page-r1 and brand-marks-r2 land;
    refresh it with `desk-refresh.sh` once both merge, never while a red-team walks it, and tell him which board opens
