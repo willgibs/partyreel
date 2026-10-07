@@ -20,6 +20,7 @@ import "server-only";
 import type { StagePhoto } from "@/lib/dashboard/stage";
 import { inChunks } from "@/lib/db/read-all";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { nowIso, unsealedFilter } from "@/lib/disposable/seal";
 import { presignDownload } from "@/lib/r2/presign";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
@@ -85,6 +86,15 @@ export async function countArrivalsSince(
  * THE STAGE'S PHOTOGRAPHS: an event's newest drawable uploads, newest first, at most `count` (the live
  * wall's nine). Drawable is the reel's own word for it: a photograph, or a video with its poster, since
  * the stage draws a still and never a file (`getReelProgress`).
+ *
+ * ★ HELD TO WHAT HER GUESTS SEE (crumbs-88). Her own session is exempt from a disposable album's seal at every
+ * SQL home (`e.host_id = auth.uid()`), so this read, on her RLS client, would draw on the wall the very photographs the
+ * hub covers until the develop (`hubCovered`: `host-cover.ts`) and her guests meet as a contact sheet. The wall is
+ * the album's face, so it asks the seal's own predicate (`unsealedFilter`, `lib/disposable/seal.ts`, on the column her
+ * grant reads), per row: a row sealed past now is not drawn, and an album with no develop time ahead holds none, so
+ * this is the read it was for every album that never waited. A covered album's wall then has nothing to draw until
+ * the first row developed or one of the album's older ones, and the stage stands on its code's plate (`stage.tsx`).
+ * The other `.or()` below is a second logic tree beside it, which PostgREST ANDs.
  */
 export async function getStagePhotos(
   eventId: string,
@@ -100,6 +110,7 @@ export async function getStagePhotos(
         .eq("event_id", eventId)
         .eq("status", "approved")
         .is("removed_at", null)
+        .or(unsealedFilter(nowIso()))
         .or("type.eq.photo,preview_key.not.is.null")
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })

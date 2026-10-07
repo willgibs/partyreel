@@ -315,7 +315,12 @@ function EventDatesField() {
         Event date
         <span className="font-normal text-muted-foreground"> (optional)</span>
       </label>
-      <div className="flex flex-wrap items-center gap-2">
+      {/* ★ ONE GUTTER FOR BOTH ROWS AT A PHONE (crumbs-88): the end date's row once wrapped under the first with "to" before
+          it and the × after it, so its field was indented by the one and cut short by the other and the two fields shared
+          neither edge. Under 640px the range is a column (the date, "to", the end date, and the way to take it away, the
+          same quiet words as "Add an end date" above it, in the same place), every field one width on one gutter; from 640
+          the pair keeps its row, as it always was (`to` and the × beside the end field). */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <Input
           id={id}
           type="date"
@@ -324,13 +329,13 @@ function EventDatesField() {
           value={shownStart}
           aria-invalid={refusal?.side === "start" ? true : undefined}
           aria-describedby={describedBy("start")}
-          className="w-auto min-w-36 flex-1"
+          className="w-full sm:w-auto sm:min-w-36 sm:flex-1"
           onKeyDown={(e) => fields.keyDown("start", e)}
           onChange={(e) => draft("start", e.target)}
           onBlur={(e) => fields.finish("start", e.currentTarget)}
         />
         {open ? (
-          <div className="flex min-w-48 flex-1 items-center gap-2">
+          <div className="flex flex-col gap-1.5 sm:min-w-48 sm:flex-1 sm:flex-row sm:items-center sm:gap-2">
             <span aria-hidden className="text-sm text-muted-foreground">
               to
             </span>
@@ -343,7 +348,7 @@ function EventDatesField() {
               value={shownEnd}
               aria-invalid={refusal?.side === "end" ? true : undefined}
               aria-describedby={describedBy("end")}
-              className="w-auto min-w-0 flex-1"
+              className="w-full sm:w-auto sm:min-w-0 sm:flex-1"
               onKeyDown={(e) => fields.keyDown("end", e)}
               onChange={(e) => draft("end", e.target)}
               onBlur={(e) => {
@@ -352,24 +357,28 @@ function EventDatesField() {
                   setAdding(false);
               }}
             />
+            {/* One control, two forms: the words of "Add an end date" in its place under a phone's fields, and the
+                round × beside the end field from 640px (its name is the same either way). */}
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
               aria-label="Remove the end date"
+              className="max-sm:h-auto max-sm:w-auto max-sm:self-start max-sm:rounded-sm max-sm:border-0 max-sm:px-0 max-sm:text-muted-foreground max-sm:underline max-sm:decoration-muted-foreground/40 max-sm:underline-offset-4 max-sm:hover:bg-transparent max-sm:hover:text-foreground"
               onClick={() => {
                 setAdding(false);
                 fields.settle("end");
                 commitEnd("");
               }}
             >
-              <X aria-hidden />
+              <X aria-hidden className="max-sm:hidden" />
+              <span className="sm:hidden">Remove the end date</span>
             </Button>
           </div>
         ) : v.eventDate ? (
           <button
             type="button"
-            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-halo"
+            className="focus-halo self-start text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground sm:self-auto"
             onClick={() => setAdding(true)}
           >
             Add an end date

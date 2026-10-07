@@ -20,8 +20,8 @@ npx wrangler deploy
 ```
 
 Then the app's env: `DRIVE_WORKER_URL` = this Worker's `*.workers.dev` origin, `DRIVE_WORKER_SECRET` = the same
-secret. `DRIVE_APP_URL` (wrangler.jsonc) names the app every lane leases from: the launch-prep alias until the
-milestone that ships Drive, then partyreel.com (a redeploy).
+secret. `DRIVE_APP_URL` (wrangler.jsonc) names the app every lane leases from: partyreel.com since milestone 39 shipped
+Drive.
 
 ## A local walk against the desk build (no deploy)
 

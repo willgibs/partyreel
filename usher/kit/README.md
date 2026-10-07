@@ -35,10 +35,14 @@ the lines he holds stay his. Nothing here or anywhere lives only in an agent's m
 - **Pace the desk, not the plumbing.** New boards wait for his paste on the standing ones (one desk served at a time,
   the next pre-integrated behind it), since keeping standing asks true while production moves under them is rework;
   fixes and plumbing off the boards' surfaces run at full speed. His sitting never blocks the Orchestrator: say so.
-- **The calls lab** ([`docs/calls.md`](../../docs/calls.md)): lettered sections, each call in plain words (what and
-  why, then "Push back if"), open questions first, so he answers in batches; each merge's calls his to overrule join
-  as its own section at the record. A call about how something looks or moves is drawn on a board, never asked in
-  text, and an answer leaves the lab once it is routed.
+- **The calls lab** ([`docs/calls.md`](../../docs/calls.md); Will, 2026-10-07: never a decision log): only the
+  decisions built in that he cannot see by using the product, where his view may differ: plans, billing and renewals;
+  an event's lifecycle and timing; deletion, retention and privacy; safety and moderation policy; what the product
+  does on its own (a message, a pause, a limit). Never a screen, a word, a flow, a look or an engineering choice:
+  production and the lab show those, and he critiques them there. Open questions first, then calls by theme (never by
+  lane), three lines each with its "Change it if", at most 30 entries; an answer leaves the same day (kept: the system
+  doc holds the fact; changed: a ROADMAP line or a lane). At a record a lane's calls pass that test or live in its
+  merge commit alone; a call about how something looks or moves is drawn on a board.
 - **Standing permissions:** push and branch freely; the data architecture is the Orchestrator's to rebuild and optimize,
   drops included, timed so partyreel.com's live build never reads a dropped thing; a milestone needs his explicit yes; a
   one-way door goes to him with the Advisor's view beside the Orchestrator's. A classifier refusal, here or in a lane,

@@ -133,7 +133,11 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **A person's block shapes the follow graph only,** never profile reads (the viewer may be anonymous). `follow_user`
   is block-silent, for privacy, and the `enforce_follow_not_blocked` trigger (DEFINER, since owner RLS cannot see
   "they blocked me") is the hard backstop; a block severs both directions atomically. The block menu stays visible
-  even when they blocked me (a vanishing menu would leak the block); only the follow button hides. Where Follow stood
+  even when they blocked me (a vanishing menu would leak the block); only the follow button hides. ★ **Follow is offered
+  nowhere a block stands either way,** since the write answers ok and nothing lands, and the button would read Following
+  over nothing: the album's guest list asks `getBlockedAmong` (the viewer's own relations, a yes or no for the names it
+  already holds, never which side blocked and never an id it did not ask about) and Connections' Blocked rows carry
+  `followBarred`, so an Unblock offers a Follow only where one could land. Where Follow stood
   on a page she blocked, a quiet well says so on every visit, with Unblock beside it (`u/[slug]/blocked-well.tsx`):
   drawn for `hasBlocked` alone, her own block, and never when only they blocked her. Every face of a follow or a
   block is one control (`relation-toggle.tsx`), whose Server Functions revalidate every profile and Account, so no
@@ -144,8 +148,8 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   Account, so the lists are read once from props and kept by the island, one answer per person for every control that
   shows it (a row's button, the look's Follow). Deriving them from props after mount would take the row out from
   under her again. A name opens `GuestPeek` (never a second card), whose Follow is offered only where the row's own
-  action is not the Follow and she does not block them; a follow from it joins Following, and a block that lands
-  takes the person's Following row (it severs the follow).
+  action is not the Follow, she does not block them and they have not blocked her (`followBarred`); a follow from it
+  joins Following, and a block that lands takes the person's Following row (it severs the follow).
 - **Email preferences follow the consent tiers:** transactional mail always sends and has no column by design;
   relationship and service mail default on with a per-category opt-out, for account holders only (a guest without an
   account receives none of it); marketing stays explicit opt-in. Every send resolves them through

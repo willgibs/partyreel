@@ -27,9 +27,15 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   name, the album's style (a Disposable adds its own screen after it, the develop time and the roll, so the steppers
   count five), the code's look, then the beat. It
   creates once, at commit (an abandoned Create leaves no row), through the non-redirecting `createEventInWizard`, which
-  returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  Settings (below). The look step's codes are samples and say so on the code: they encode `previewJoinUrl`'s stand-in
-  link, as long as a real one so the look is true, and it names nobody's album, so a test-scan meets a 404.
+  returns the id and token so the beat can draw the real code. ★ **However many times it is asked, a Create is one
+  event:** the wizard keeps one key (a UUID minted at its first press, kept across Back and edits) and `createEvent`
+  returns the event the host already made under it (`events.create_key`: unique per host, written at birth and never
+  after, read by no RPC and no guest), so a Try again after a lost answer is never a second event spending a Free host's
+  one. The match is read before the insert and again when the insert is refused; a deleted match (its key stays taken)
+  and a database without the column each make a keyless event, the second said to Sentry. Only the name is required;
+  everything else is edited in Settings (below). The look step's codes are samples and say so on the code: they encode
+  `previewJoinUrl`'s stand-in link, as long as a real one so the look is true, and it names nobody's album, so a
+  test-scan meets a 404.
 - ★ **The party keeps its own time zone, captured, never asked** (`events.time_zone`, `lib/event/zone.ts`): Create sends
   her browser's zone (`captured_zone`, every style), and the server stores it only where its runtime reads it (an
   unreadable one is stored as none and reported, never a refused Create); a Settings save of a time (the dates, the
@@ -56,8 +62,14 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 - **"An email first" is `require_verified_email`**, on by default and free on every tier (a verified email is safer and
   captures a real address); turning it off confirms the consequence through `ConfirmSwitch` (`ui/confirm-switch.tsx`),
   the one primitive for a consequential switch. ★ Letting each person in and the invite list hold it on
-  (`events_gate_needs_email`), because both key on a confirmed address, and the switch says why. What each side means
-  for a guest, and its enforcement, is [guest-flow.md](guest-flow.md)'s.
+  (`events_gate_needs_email`), because both key on a confirmed address, and the switch says why. ★ **A gate that lets
+  go gives her names-only back, on every path:** the event remembers a hold (`events.email_held`, written only by the
+  `events_email_held` trigger on a change of `gate`: an address gate that turns the step on from off sets it, any
+  other gate gives names-only back and clears it), so every door move, the password's first set and every device give
+  it back, said from the save's own answer (`set_event_door`'s `email_restored`), never from a later read of the hub;
+  a move from one address gate to the other keeps the first hold's memory, and her own step on before any gate is
+  never touched. The door page says what an address gate asks of the guests in by name before the move. What each side
+  means for a guest, and its enforcement, is [guest-flow.md](guest-flow.md)'s.
 - **"A photo first"** (`require_upload_to_view`, off by default, free on every tier) holds the full album until one of
   the guest's own uploads completes, and confirms on its ON edge (`confirmWhen`), the direction that asks something of
   guests. What counts and why it fails open are [guest-flow.md](guest-flow.md)'s; its one read is the service-role-only
@@ -281,8 +293,13 @@ hub and closes back to it.
   there and the name it answered by; a pick is the one save of the zone. Her browser's answers, so drawn once
   hydrated.
 - **A setting with no effect right now stays in view** as one quiet line under the switch that governs it
-  (`ui/dormant.tsx`, `inert` while asleep), and a change that affects people already in says so in its own place
-  before it happens (`ui/consequence-line.tsx`).
+  (`ui/dormant.tsx`, `inert` while asleep, and its folded side inert too, so the hidden line never takes a tap meant
+  for the label above it; the box that folds it clips, so it is padded a halo's reach and pulled back by the same, or
+  a control touching it would lose the side of its focus halo that does), and a change that affects people already in
+  says so in its own place before it happens (`ui/consequence-line.tsx`). ★ **A save answers for itself:** React's
+  canary bundled with Next 16.2.6 can park a revalidating Server Action's commit after a hard load until another
+  update, so Settings and the invite list say a save from its own answer and nudge React while its commit has not
+  landed (`settings-state-unpark.ts`; the Code hygiene line names its retirement).
 - **The QR mini-modal** (`share/event-code-modal.tsx`) takes no URL: a look at the code is a beat, not a destination. It
   grows out of the head's code on the native View Transitions API, name-scoped in `share/share.css`, and exactly one
   of the head's code, the band's chip and the modal carries the name at a time (a duplicate makes the browser skip the
@@ -365,7 +382,8 @@ phone over the dimmed hub at a desk, the whole screen in a hand, closing onto th
   `inert`, so nothing pressed there writes as a guest, and none of the guest page's hands mounted (the door, the
   upload queue, the keep, the claims, the tracker, the reel's controller). Its album opens in the order every guest
   meets (`readAsGuest`'s `albumOrder`, the turn read in the party's zone and handed on as an instant), and Sort answers
-  nothing there, since a choice would write a guest's remembered order on her own device.
+  nothing there, since a choice would write a guest's remembered order on her own device. Its cover counts as the
+  guest's does: named by kind from the first byte (`stats.kinds`, the guest page's own), then in the live album's own words.
 
 ## The door, the host's side
 
@@ -412,7 +430,10 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   becoming the list and Let back in each let her in, on every device she asked from, counted once. The menu and the
   steps page say so before the list is chosen, only where it would let someone in (`listedWouldComeInLine`, counted by
   `event_door_waiting_listed`, the admit's read-only twin: [database-security.md](database-security.md)). Invite is the
-  room's main action while it is empty: the event's code card, sending nothing.
+  room's main action while it is empty: the event's code card, sending nothing. ★ A list nobody is on, under a door
+  that is not the list, sleeps: one quiet line says what the list does and what wakes it (`ui/dormant.tsx`, no field,
+  the door's page one link away), and a list that holds addresses stays awake under any door, since they are hers to
+  see and to remove.
 
 ## Moderation and curation (host side)
 

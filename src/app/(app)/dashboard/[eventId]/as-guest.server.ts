@@ -63,8 +63,15 @@ export type AsGuestRead = {
    * party's zone and handed on as an instant, so the view lays the album as a guest who never chose meets it.
    */
   albumOrder: GuestAlbumOrder;
-  /** The cover's counts, as a guest's are counted (the album's approved total, THE ONE COUNT of guests). */
-  stats: { approvedTotal: number; guestCount: number };
+  /**
+   * The cover's counts, as a guest's are counted (the album's approved total, THE ONE COUNT of guests), and what the album
+   * holds by kind (`getGalleryStats`'s `kinds`), so the cover's count names it from the first byte (crumbs-88).
+   */
+  stats: {
+    approvedTotal: number;
+    guestCount: number;
+    kinds?: { photos: number; videos: number } | null;
+  };
   /** The byline's face, as the guest page resolves it (never the host's raw id). */
   host: { avatarUrl: string | null; seed: string | null } | null;
   /** The named Guests section under the album, as a guest reads it. */

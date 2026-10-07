@@ -26,13 +26,22 @@
 }
 
 /* The two contents crossfade inside the one pane: the bar's glyphs out, the dock's controls in, a
-   touch of blur while both are half there so the eye reads one thing changing shape. */
+   touch of blur while both are half there so the eye reads one thing changing shape.
+
+   ★ THE ONE THAT IS AWAY IS HIDDEN, NOT ONLY FADED AND INERT (red-team 56b's LOW: Tab stopped moving at "Make your own").
+   The view is a Radix dialog, whose focus scope wraps Tab from its LAST tabbable to its first, and it finds the last by
+   what is hidden (`visibility` and `display`), never by what is `inert`. The bar stands after the dock's controls, so
+   while the dock was up the bar, inert but visible, was the scope's last: Tab on "Make your own" was no edge, the browser
+   had nowhere to take it inside the view, and the scope put focus back where it was. So the content that is away turns
+   `visibility: hidden` once its fade has run (the delay below), and is visible again the instant it returns, and the
+   scope's edges are the controls she can actually reach. Reduced motion is instant, with no transition at all. */
 .lr-bar-content,
 .lr-dock-content {
   transition:
     opacity 160ms var(--ease-emphasis),
     filter 160ms var(--ease-emphasis),
-    transform 220ms var(--ease-drawer);
+    transform 220ms var(--ease-drawer),
+    visibility 0s linear 0s;
 }
 
 .lr-pane[data-state="rest"] .lr-dock-content {
@@ -40,12 +49,16 @@
   filter: blur(3px);
   transform: translateY(6px);
   pointer-events: none;
+  visibility: hidden;
+  transition-delay: 0s, 0s, 0s, 160ms;
 }
 
 .lr-pane[data-state="up"] .lr-bar-content {
   opacity: 0;
   filter: blur(3px);
   pointer-events: none;
+  visibility: hidden;
+  transition-delay: 0s, 0s, 0s, 160ms;
 }
 
 /* The dock's controls arrive one after another (30 ms apart): the grow reads as the controls

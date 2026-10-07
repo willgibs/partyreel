@@ -13,15 +13,13 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, milestone 39 ready for Will's yes
+## The current round: round 15, milestone 39 live
 
-- **Milestone 38 is live** (`90ab891c2`, 2026-10-06 21:37Z; its merge commit says what it holds), red-teamed by 56 and
-  56b (no HIGH or MEDIUM open); the legal text is rewritten once, right before launch.
-- **Milestone 39 is merged on `launch-prep`, both waves in one walk** (Will, 2026-10-07): the second wave (crumbs-86,
-  halo-last, marketing-crumbs, upload-sums), his desk batch's six wirings, the storage sums' signal (the Advisor's
-  condition) and crumbs-87, with three more migrations live; red-team 57 and 57b walked it, and 57b's one MEDIUM (a
-  names-only door after a load, worse in production) is being fixed (crumbs-89), re-walked, then his yes. Drive goes
-  live with it: its Worker deploys just before 39's production deploy (`tracks/orchestrator.md`).
+- **Milestone 39 is live** (`0333cd705`, 2026-10-07 16:15Z, tagged; its merge commit says what it holds): desk 7's
+  moments wired, the storage sums proven nightly, a names-only door the database remembers, the site brought to
+  today's product, and Send to Google Drive live (its Worker deployed with it). Red-teamed locally by 57, 57b and 57c
+  (nothing above LOW open); the FULL gate green at `3ec66b8fe`. Milestone 38 (`90ab891c2`) before it; the legal text
+  is rewritten once, right before launch.
 - **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
   hi@willgibs.com's wound down; its lanes run in local worktrees, paced by the 5-hour window.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and
@@ -37,9 +35,9 @@ guests-room r1 and presence r1; his desk serves the tip (refreshed 2026-10-07 fo
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at milestone 38 (`90ab891c2`, tagged `milestone-38`), both projects READY. Its
-  crons: the purge at 04:00 UTC and the spend watch at 05:00. Send to Google Drive reads "not set up" until its Worker
-  deploys with milestone 39 (`DRIVE_WORKER_URL` set then).
+- **Prod:** partyreel.com is `main` at milestone 39 (`0333cd705`, tagged `milestone-39`), both projects READY. Its
+  crons: the purge at 04:00 UTC and the spend watch at 05:00. Drive's Worker (`partyreel-drive`, version `96513f29`)
+  leases from partyreel.com every 15 minutes; `DRIVE_WORKER_URL` is set on production; Will's Drive walk is next.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
 - **The shared database** runs every migration through `event_create_key` (2026-10-07), each by protocol (the
@@ -49,11 +47,12 @@ guests-room r1 and presence r1; his desk serves the tip (refreshed 2026-10-07 fo
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 13,300 green. The gate is local to each seat: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
-- **Jobs:** the daily purge cron (Vercel Hobby fires it between 04:00 and 05:00 UTC; the album-log prune rides it), the
-  spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are live, and
-  the export Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware backup prune runs dry
-  (`PRUNE_MODE=live` is a launch flip); the backup Worker's reconcile and restore (`RESTORE_MODE` dryrun) deployed
-  2026-10-07 and read Needs a look until Will's two EXIF copies go; `BACKUP_WORKER_URL` waits on the admin's next deploy.
+- **Jobs:** the daily purge cron (Vercel Hobby fires it between 04:00 and 05:00 UTC; the album-log prune rides it),
+  the spend watch daily at 05:00 UTC (hourly at launch), the media-backup Worker and the daily DB-backup Action are
+  live, and the export Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware backup prune runs
+  dry (`PRUNE_MODE=live` is a launch flip); the backup Worker's reconcile and restore (`RESTORE_MODE` dryrun) deployed
+  2026-10-07 and read Needs a look until Will's two EXIF copies go; `BACKUP_WORKER_URL` is live with milestone 39's
+  admin deploy.
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.
 
 ## Infrastructure
@@ -73,8 +72,8 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 
 ## Waiting on Will
 
-- Milestone 39's yes (everything merged, red-team 57 clean, its FULL gate run first); the calls lab's open
+- His Drive walk on partyreel.com (P3's consent; drive-crumbs' Handoff lists what to press); the calls lab's open
   questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the
-  CDN-cached album, X6 the operator's uploads credit, X8 the policy tests' style picks) and the calls built for him to
-  overrule; the two backup copies with old EXIF to delete and the six retired Stripe price names to drop; the
-  walks only he can drive (`tracks/orchestrator.md`).
+  CDN-cached album, X6 the operator's uploads credit, X9 to X17 the gap audit's product decisions) and its 16 built
+  calls he cannot see by using the product; the two backup copies with old EXIF to delete and the six retired Stripe
+  price names to drop; the walks only he can drive (`tracks/orchestrator.md`).

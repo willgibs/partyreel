@@ -48,9 +48,11 @@ view) is plain to anyone already.
 - ★ **A count that needs her is one token, `--needs-you`** (event-header r6, Will's `attention=tally`), with
   `--needs-you-foreground` for its figures: the camera's tally, the red the palette already holds (paper's is
   `--signal` itself; the room's a step deeper than its bright signal, so white figures hold 4.6:1). It is worn solid
-  and hard-edged by every count that waits on her (the hub's badges and their pills, the code's corner), never a glow,
-  so a screen's one light stays its light; no utility maps it, so a part reads it by name (`bg-(--needs-you)`). A
-  count hers that waits on nobody (steps left, a pause) is never it.
+  and hard-edged by every count that waits on her, never a glow, so a screen's one light stays its light: the hub's
+  badges and their pills, the code's corner, Review's count, the card's "to review" chip and the dashboard's marks and
+  rows (`StateDot`, the row's pill); the stage's figures stay white beside its dot, since a deep red as type thins over
+  a photograph. No utility maps it, so a part reads it by name (`bg-(--needs-you)`). A count hers that waits on
+  nobody (steps left, a pause) is never it.
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` is the one home of its path (its comment says how
   to replace it), drawn by `Logo` and the social card alike; the mark (`markOnly`) is a stand-in mounted nowhere until
   the icon lands. `--brand` is an alias of `--primary` (ink).

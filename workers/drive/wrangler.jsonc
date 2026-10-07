@@ -56,11 +56,11 @@
 
   // DRIVE_MODE is the redeploy kill switch ("on"; "off" + redeploy: lanes end at once, the sweep sends nothing); the
   // app's `drive_export_enabled` switch pauses without a redeploy. DRIVE_APP_URL is the app every lane leases from and
-  // reports to: the launch-prep alias until the milestone that ships Drive, then partyreel.com (both apps share one
+  // reports to: partyreel.com since milestone 39 shipped Drive (the launch-prep alias before it; both apps share one
   // database, so a send started on either is leased by whichever this names). DRIVE_WORKER_SECRET is a SECRET:
   // `wrangler secret put DRIVE_WORKER_SECRET` (equal to the app's), `.dev.vars` for a local `wrangler dev`.
   "vars": {
     "DRIVE_MODE": "on",
-    "DRIVE_APP_URL": "https://partyreel-git-launch-prep-partyreel.vercel.app",
+    "DRIVE_APP_URL": "https://partyreel.com",
   },
 }

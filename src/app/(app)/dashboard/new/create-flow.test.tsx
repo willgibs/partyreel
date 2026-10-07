@@ -163,6 +163,8 @@ describe("what creating asks for", () => {
         moderation_mode: "live",
         develops_at: null,
       }),
+      // The Create's own key (the wizard's: `create-event-wizard.test.tsx` holds what it does with it).
+      expect.any(String),
     );
   });
 });

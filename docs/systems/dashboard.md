@@ -58,12 +58,18 @@ header holds its rule), the page only reads, and the composition is `components/
   again): on its day the stage hears the album's doorbell and asks `readStageLiveAction`
   (`lib/dashboard/stage-action.ts`) for its wall and counts on `useLivePoll`'s cadence, re-running the same pure rules.
   ★ The action proves the event is the caller's (`getEvent`, RLS) before it reads the door on the service role.
+  ★ The wall draws only what her guests could see: `getStagePhotos` (the page's first read and the action's alike) takes
+  the seal's own filter (`unsealedFilter`, [disposable-mode.md](disposable-mode.md)), since her session is exempt from a
+  Disposable's seal at every SQL home and the stage would show the photographs her hub covers until the develop. A
+  covered album with nothing unsealed stands as one with no photograph yet (its lamp), its counts staying hers.
 - **One item an event** (`itemFor`, `attention.ts`): the queues in every phase, the day's own steps on its day, before
   it the first essential readiness leaves undone (`lib/events/readiness.ts`, never a copy), then the code printed the
   day before. A party long over speaks only when someone waits, since a paused album after its day is a finished
   party, not a step; room is the storage ring's to say.
 - **This week** is every other party within seven days of its nearest day, either way, each with its item or its quiet
-  line; a queue on a party further off waits on its tile's mark and in the bell.
+  line; a queue on a party further off waits on its tile's mark and in the bell. ★ Its tally counts the stage's own
+  event where that is one of the week's (the stage stands above the cards, so it is not among them): "2 of 3 need you"
+  over the whole set, "Nothing else needs you" where only the stage does (`weekTally`, `StageTally`).
 - **The reads go only where the page will speak** (`dashboard/page.tsx`, each round bounded: `READY_READS`,
   `DAY_READS`, `ALTERNATE_READS`): readiness's reads for the week's parties and a stage before their day (and, only
   where she has a choice, for the at most three events her other rules would lead with, beside that bound), the day's
@@ -107,6 +113,13 @@ header holds its rule), the page only reads, and the composition is `components/
   number, her plan's line drawn across what she stores (`goal-strip.tsx`), with See plans beside it; it says nothing
   once she is no longer over, while the grace waits for the next sweep. New event stays live at the cap: the create
   route is the refusal.
+- **A link or Google that signs Create account into an address that already had an account says so once**, as the code
+  does in the door ([auth-accounts.md](auth-accounts.md)): the Create door marks the callback address it hands them
+  (`intent=create`, never on the admin host), the callback asks `checkExistingAccount` and, only for a landing of
+  exactly `/dashboard`, lands `?signed_in=existing`, and the page draws one dismissible line under the head, above the
+  grace banner (`account-door-existing-banner.tsx`), with her own address from her profile (never the mark's) and
+  "Not you?", which signs this device out as the menu does. The line cleans its address as it mounts, so a reload says
+  nothing, and a typed mark shows only the viewer's own session.
 - **The claims review** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED
   email at a names-mode door before that email was proved. A banner line above the events opens it
   (`claims-review.tsx`), one event at a time (`claims-card.tsx`), each with a few of its own approved photographs
