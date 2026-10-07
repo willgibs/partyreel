@@ -10,7 +10,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { EventCard } from "@/components/app/event-card";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
 import { Mark, StateDot } from "@/components/app/dashboard/marks";
 import type { EventListRow } from "@/lib/dashboard/events-view";
@@ -44,24 +43,6 @@ describe("the waiting dot", () => {
     const mark = screen.getByText("2 at the door").closest("[data-mark]");
     expect(markup(mark)).toContain(NEEDS_YOU);
     expect(markup(mark)).not.toContain("warning");
-  });
-});
-
-describe("the hosted card's review chip", () => {
-  it("is the needs-you status, solid, with its own figures' token", () => {
-    render(
-      <EventCard
-        variant="hosted"
-        href="/dashboard/e1"
-        name="Maya and Jay"
-        coverUrl={null}
-        dateLabel="June 14"
-        pendingCount={3}
-      />,
-    );
-    const chip = screen.getByText("3 to review");
-    expect(chip.style.background).toBe("var(--needs-you)");
-    expect(chip.style.color).toBe("var(--needs-you-foreground)");
   });
 });
 

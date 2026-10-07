@@ -402,14 +402,12 @@ export default async function GuestEventPage({
     );
   }
 
-  // ★ THE PARTY'S ZONE, ASKED NOW AND AWAITED WHERE THE ORDER IS DECIDED (event-zone): the album turns
-  // at 9 am the morning after in the party's own zone, one moment for every reader, so the one read it
-  // costs runs beside the door's and the gate's below, never after them. Only a dated album turns, and a
-  // date here is one this request may see (a gate's anon read blanks it), so nothing else asks. It never
-  // rejects: a failed read is the fallback, reported (`zone.server.ts`). ★ And an album with a develop time asks it
-  // too (crumbs-85): a far party's guest reads its develop time in both clocks, which names the party's place.
+  // ★ THE PARTY'S ZONE, FOR WORDS ALONE, ASKED NOW (crumbs-85): a far party's guest reads its develop time in both
+  // clocks, which names the party's place (`party-zone.tsx`), so only an album with a develop time asks, and its one
+  // read runs beside the door's and the gate's below, never after them. Nothing orders the album by it: the turn is
+  // the album's own state (album-order, AY1). It never rejects: a failed read is no zone, reported (`zone.server.ts`).
   const partyZone =
-    !isDemo && (event.event_date || event.develops_at)
+    !isDemo && event.develops_at
       ? readPartyZone(event.id)
       : Promise.resolve<string | null>(null);
 
@@ -503,22 +501,15 @@ export default async function GuestEventPage({
   const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
   const albumWidth = parseAlbumWidth(cookieJar.get(ALBUM_WIDTH_COOKIE)?.value);
   const rhythmSeed = randomInt(1_000_000);
-  // ★ AND THE ORDER IT OPENS IN (album-order, event-zone): the turn read in the PARTY's zone, one
-  // moment for every reader wherever they are, handed to the page as that instant and never as a zone
-  // (`guestAlbumOrder`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
-  // says when the party was (the shell blanks its days below), so neither does the order.
-  // The party's zone for words (a far party's develop time in both clocks), never behind a lock.
-  const zoneForWords = access === "none" ? null : await partyZone;
+  // ★ AND THE ORDER IT OPENS IN (album-order, AY1): the album's own, read off its state (newest first
+  // while it takes uploads, the night in order once its host closes adding or its develop has come), one
+  // moment for every reader wherever she is, and her remembered order on this album (`pr_album_sort`).
+  // Behind a gate the order knows no develop, as the shell does not (it blanks the time below).
   const albumOrder = guestAlbumOrder({
-    facts:
-      access === "none"
-        ? { eventDate: null }
-        : {
-            eventDate: event.event_date,
-            eventEndDate: event.event_end_date ?? null,
-            developsAt: event.develops_at ?? null,
-          },
-    zone: await partyZone,
+    facts: {
+      acceptingUploads: event.accepting_uploads,
+      developsAt: access === "none" ? null : (event.develops_at ?? null),
+    },
     chosen: readChosenSort(cookieJar.get(ALBUM_SORT_COOKIE)?.value, event.id),
     isDemo,
   });
@@ -559,6 +550,10 @@ export default async function GuestEventPage({
   // ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (crumbs-32): her own here are the
   // host's uploads, no guest row behind them, so hers is the host's read, and
   // each Delete goes to her Deleted, as the hub's would.
+  // The party's zone for words (a far party's develop time in both clocks), never behind a lock: awaited here, once
+  // the seed streams, since nothing before it waits on the zone any more.
+  const zoneForWords = access === "none" ? null : await partyZone;
+
   const [stats, canDeleteIds] = await Promise.all([
     getGalleryStats(event),
     userId && !isDemo && access !== "none"

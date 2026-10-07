@@ -71,6 +71,22 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(app)/dashboard/[eventId]/actions.ts
   - src/lib/db/mutations/event-doors-migration.test.ts
   - src/lib/db/restores-at-once-migration.test.ts
+  # claimed in the work: what the lines' own changes reach (line 15's last pin, line 12's specimen artifact, line 2's
+  # store mock beside the phone copy's presign, line 8's retired `Choice` named by a board's comment)
+  - src/lib/db/mutations/events-create-key.test.ts
+  - src/app/(dev)/design/gallery/specimens.generated.json
+  - src/app/api/r2/phone-copy.test.ts
+  - src/app/(dev)/design/sandbox/customize/settings.tsx
+  # claimed in the work: AY1's last words of a turn at 9 am (comments only)
+  - src/lib/event/zone.ts
+  - src/components/app/event-settings/party-zone.tsx
+  - src/components/app/create-event-wizard/add-step.tsx
+  - src/components/guest/event-experience-wait.ts
+  - src/components/shared/album-window-news.test.tsx
+  # claimed after the sync (create-wizard-wiring-2 integrated): the hub hands its album her word on adding (AY1), and
+  # line 12's retired chip leaves the share test's second assertion
+  - src/app/(app)/dashboard/[eventId]/page.tsx
+  - src/app/(app)/dashboard/new/create-flow.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/ROADMAP.md
   - docs/systems/guest-flow.md

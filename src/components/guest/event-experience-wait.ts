@@ -53,8 +53,8 @@ export function useLiveUploadsWait({
   developsAt: string | null;
   /**
    * ★ THE DEVELOP TIME THE ALBUM TURNS AT, AS THE PAGE KNOWS IT: the sync's word once it has spoken, a time taken away
-   * included (null: no develop, and the turn is the party's morning after again), else the page's own at render, ahead
-   * or reached. `developsAt` alone answered null both before the sync spoke (a reached develop the server's reading
+   * included (null: no develop, and only her close turns the album, AY1), else the page's own at render, ahead or
+   * reached. `developsAt` alone answered null both before the sync spoke (a reached develop the server's reading
    * leaves out) and for one taken away, so a page fell back to the render's time and kept obeying a develop the host
    * had removed until she reloaded (event-zone's Deferred line).
    */

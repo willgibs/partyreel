@@ -3,7 +3,6 @@ import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-tease
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { EventCard } from "@/components/app/event-card";
-import { EventCardQr } from "@/components/app/event-card-qr";
 import { HostMediaGrid } from "@/components/app/host-media-grid";
 import { RecentlyDeletedGrid } from "@/components/app/recently-deleted-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
@@ -70,19 +69,6 @@ import {
  * lab cannot supply, so they wait for a small in-lab harness rather than going
  * into the gallery as a mock of themselves.
  */
-
-// One share chip, rendered in two entries: as the hosted card's `qrSlot` and as
-// the Share suite's own specimen. Shared deliberately, so the two can never
-// drift into demonstrating different props.
-const qrSlot = (
-  <EventCardQr
-    eventId="demo"
-    eventName={SAMPLE.eventName}
-    qrToken={SAMPLE.qrToken}
-    qrStyle={SAMPLE.qrStyle}
-    siteUrl={SAMPLE.siteUrl}
-  />
-);
 
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   /* CREATE'S ROOM (library-specimens-2): the real wizard over the stand-in its `create` prop is for, in a real viewport
@@ -375,14 +361,14 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         prop: "variant",
         source: "prop",
         fallback: "hosted",
-        options: ["hosted", "guest", "trash"],
-        note: "What the chrome carries: hosted takes the QR slot and the needs-you review chip, guest (an event you added photos to) the profile's Guest marker and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
+        options: ["hosted", "guest"],
+        note: "What the chrome carries: hosted its pills alone, guest (an event you added photos to) the Guest marker and a byline. No sample row, because the specimens below already show both.",
       },
     ],
     specimens: [
       {
         label: "Hosted",
-        hint: "QR chip + review chip",
+        hint: "a password album: its door's pill",
         node: (
           <EventCard
             variant="hosted"
@@ -390,10 +376,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             name={SAMPLE.eventName}
             coverUrl={SAMPLE.cover}
             dateLabel={SAMPLE.dateLabel}
-            itemsLabel="128 items"
-            statusLabel="Open"
-            pendingCount={3}
-            qrSlot={qrSlot}
+            statusLabel="Password"
           />
         ),
       },
@@ -407,9 +390,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             name="Office Summer Party"
             coverUrl={null}
             dateLabel="Aug 2"
-            itemsLabel="0 items"
-            statusLabel="Open"
-            pendingCount={0}
           />
         ),
       },
@@ -424,20 +404,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             coverUrl={SAMPLE.cover2}
             dateLabel="May 30"
             byline="Hosted by Priya"
-          />
-        ),
-      },
-      {
-        label: "Deleted",
-        hint: "dimmed + countdown",
-        node: (
-          <EventCard
-            variant="trash"
-            href={null}
-            name="Old Test Event"
-            coverUrl={SAMPLE.cover3}
-            dateLabel="Mar 11"
-            statusLabel="6 days left"
           />
         ),
       },
@@ -521,28 +487,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Two doors",
         hint: "the meter's popover · a refused price in the plan",
         node: <StorageListDemo />,
-      },
-    ],
-  },
-  {
-    id: "event-card-qr",
-    family: "compositions",
-    section: "Share suite",
-    file: "src/components/app/event-card-qr.tsx",
-    title: "EventCardQr",
-    lede: "The card's top-left chip. It is a sibling of the card link, so tapping it goes to the event's share sheet and never to the event itself.",
-    specimens: [
-      {
-        label: "Share chip",
-        hint: "tap to open the share sheet",
-        node: (
-          <div className="flex items-center gap-3">
-            {qrSlot}
-            <span className="text-sm text-muted-foreground">
-              Opens the share sheet
-            </span>
-          </div>
-        ),
       },
     ],
   },

@@ -130,7 +130,6 @@ export function AppWithMenu({ screen }: { screen: ScreenId }) {
             name="Maya & Jay"
             coverUrl={STILLS[0]}
             dateLabel="Sat, Sep 12"
-            itemsLabel="1,284 items"
           />
           {desk ? (
             <EventCard
@@ -138,7 +137,6 @@ export function AppWithMenu({ screen }: { screen: ScreenId }) {
               name="Lena turns 30"
               coverUrl={STILLS[2]}
               dateLabel="Fri, Oct 2"
-              itemsLabel="312 items"
             />
           ) : null}
           <Storage />

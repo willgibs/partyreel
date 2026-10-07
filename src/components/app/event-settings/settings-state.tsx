@@ -97,8 +97,8 @@ export type SettingsValues = {
   developsAt: string | null;
   /**
    * The party's own zone as stored (`events.time_zone`, event-zone), or null for an event from before the column (it
-   * takes her own zone with its next save of a time). Its album's turn and its develop's 9 am read it; a host who never
-   * travels never sees it, and only the far-from-home choice writes it here.
+   * takes her own zone with its next save of a time). Its develop's 9 am and the words of a far party's times read it; a
+   * host who never travels never sees it, and only the far-from-home choice writes it here.
    */
   timeZone: string | null;
 };

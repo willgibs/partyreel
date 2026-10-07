@@ -67,7 +67,11 @@ export type HubAlbumSeed = {
  */
 export const FIRST_WINDOW = 96;
 
-/** The view's order: the album's own (newest first), or the host's "Oldest first" (album-order's two). */
+/**
+ * The view's order (album-order's two): the album's own, as her guests meet it (`albumOwnSort`: newest first while it
+ * takes uploads, the night in order once she closes adding or it develops, AY1), or her departure from it for the visit
+ * (`event-gallery.tsx`).
+ */
 export type HubSort = AlbumSort;
 
 /** Whether an entry is in the hub's album: approved or hidden (held items live in Review). */
