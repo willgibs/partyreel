@@ -12,6 +12,7 @@ import {
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { Button } from "@/components/ui/button";
+import { Dormant } from "@/components/ui/dormant";
 import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { INVITE_LIST_CAP, readAddresses } from "@/lib/event/door/invite-list";
 import { cameInLine } from "@/lib/event/door/words";
@@ -60,6 +61,15 @@ const NONE: ReadonlySet<string> = new Set();
  * ★ LISTING SOMEONE WHO WAITS LETS HER IN (build 23's BUG-2, 20260929220000): while the list is the door,
  * an address that asked at it comes in the moment it is listed, so she leaves At the door above (the
  * page's own read, revalidated by the save) and the line under the field says who came in.
+ *
+ * ★ A LIST NOBODY IS ON, UNDER A DOOR THAT IS NOT THE LIST, SLEEPS (crumbs-87, the gap audit): on a Public album the
+ * room drew an INVITED header over a paste box that let nobody in and sent nothing, beside an Invite that only opens
+ * the code card, so a host could read it as the way to invite her guests. It is a setting with no effect right now, so
+ * it is the house's dormant one (`ui/dormant.tsx`, Will: "I don't want the no current effect settings to fully
+ * disappear because they do an amazing job at hinting at unused features"): one quiet line that says what the list
+ * does and what wakes it, and no field to type into. The door is chosen on Settings' own page, a different panel from
+ * this room, so nothing here unfolds in front of her: the room draws the line while asleep and the list once awake. A
+ * list that already holds addresses stays awake under any door, since they are hers to see and to remove.
  */
 export function InvitedSection({
   eventId,
@@ -165,6 +175,40 @@ export function InvitedSection({
         .filter(Boolean)
         .join(" ")
     : "";
+
+  // Nobody on it and not the door: nothing for a field to do yet. Read off `invited`, never `list`, so an address she
+  // removes from a list she was holding does not fold the section under her hand before the room reads the list again.
+  if (!listIsTheDoor && invited.length === 0) {
+    return (
+      <section
+        id="invited"
+        aria-label="Invited"
+        data-invited-section=""
+        data-invited-asleep=""
+        className="space-y-2"
+      >
+        <FeedSectionHeader label="Invited" />
+        <Dormant
+          awake={false}
+          summary={
+            <>
+              {
+                "Your invite list isn't the way in right now, so it does nothing yet. When it is, the addresses you add come straight in once they confirm their email. It sends nothing to them. "
+              }
+              <Link
+                href={settingsPageHref(eventId, "door")}
+                className="font-medium text-foreground underline underline-offset-4"
+              >
+                Change who can get in
+              </Link>
+            </>
+          }
+        >
+          {null}
+        </Dormant>
+      </section>
+    );
+  }
 
   return (
     <section
