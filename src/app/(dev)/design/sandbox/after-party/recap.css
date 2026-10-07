@@ -1,0 +1,207 @@
+/* THE RECAP'S OWN SHEET (`recap.tsx`): where Maya meets what her party made, in each answer's place. Every class is
+   `ap-recap-…` or `ap-acts-…`, so nothing here reaches another question's drawing.
+
+   ★ THE LAYOUT LIVES HERE, NOT IN `sm:` UTILITIES (the `lab-utility-loses-to-production` trap): a board's responsive
+   utility sits in `utilities.lab` and loses to production's on the same property, so this sheet is unlayered and every
+   width's arrangement is said once, here. Type keeps production's own class pairs (`text-page lg:text-section`, the
+   stage's), which live in production's layer. */
+
+/* ══ THE THREE ACTS, ONE COMPONENT, THREE ARRANGEMENTS ═════════════════════════════════════════════════════════════ */
+
+/* In the room (the hub's recap, her home's stage): Share the album the whole width in a hand, Make a clip and Download
+   all its two halves under it (a phone's 311px holds two of the three words-wide keys, never three); one row from a
+   tablet up. */
+.ap-acts-stack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.ap-acts-stack > [data-ap-act="share"] {
+  grid-column: 1 / -1;
+}
+@media (width >= 40rem) {
+  .ap-acts-stack {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+
+/* On the cover at a desk, where the code stood: one row, the white key at the corner (the guest cover's own order,
+   `md:flex-row-reverse`), bottom-aligned with the name's block. */
+.ap-acts-corner {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* On the cover's foot in a hand: the white key takes the row, the two rounds beside it (the guest cover's own grammar
+   at a phone: Add photos and its rounds). */
+.ap-acts-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ap-acts-foot > [data-ap-act="share"] {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* ══ THE HUB'S RECAP: THE ROOM UNDER HER COVER HOLDS IT ═══════════════════════════════════════════════════════════════
+
+   ★ ONE LIGHT, THE HUB'S OWN (signature r1's carried `hub`: the Seam is the hub's one light; presence's creative
+   director: "one light a screen, on the hub too"). The recap is never a second lit object: while it stands, the Seam
+   born at the cover's edge, in the cover's own photographs' colours, falls into it, and the recap stands where the
+   light is spent. On paper (Aperture) the strip of the room under the photograph (`.hub-light-field`, the room's
+   popover fading to its card) deepens into the plate that holds the words, one piece of the room the page holds, its
+   light the cover's; in the room the page is the room, so the words stand on it under production's own fall
+   (`--hub-reach`). Put away, the plate folds back to the strip production draws today.
+
+   ★ A COMPACT OBJECT, NEVER A BANNER (account-moments' plate, its creative director's pass: words waiting below the
+   light's whole 120px made "a dark upsell banner"): on paper the light inside the plate is short, 56px in a hand and
+   64 from a tablet (that plate's own numbers), so the plate is only as tall as the light and its words. */
+[data-ap-hub]:has(.ap-recap-band) .hub-light {
+  height: 56px;
+  margin-bottom: 0;
+}
+@media (width >= 40rem) {
+  [data-ap-hub]:has(.ap-recap-band) .hub-light {
+    height: 64px;
+  }
+}
+.dark [data-ap-hub]:has(.ap-recap-band) .hub-light {
+  height: var(--hub-reach);
+}
+
+/* Bled to the window's edges as the cover and the strip are (the wide page's own gutter, `app-shell.tsx`). */
+.ap-recap-band {
+  position: relative;
+  margin-inline: -12px;
+}
+@media (width >= 40rem) {
+  .ap-recap-band {
+    margin-inline: -20px;
+  }
+}
+
+/* The plate's room: where the strip's field ends (the room's card), its words in the page's own gutter, and
+   nothing pressed in the light (the band starts where the light's reach ends). From a tablet up the words and the acts
+   share a row, and a wrap folded in (`WrapFold`) takes a row of its own under them. */
+.ap-recap-room {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 2px 12px 24px;
+  background: var(--card);
+}
+/* In the room the page is the room: the words stand on it, under the light, a breath clear of the album's head. */
+.dark .ap-recap-band .ap-recap-room {
+  background: none;
+  padding-bottom: 16px;
+}
+@media (width >= 40rem) {
+  .ap-recap-room {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px 32px;
+    padding: 4px 20px 32px;
+  }
+  .dark .ap-recap-band .ap-recap-room {
+    padding-bottom: 20px;
+  }
+}
+
+/* ★ THE WRAP, FOLDED IN (the `over` question's `wrap`): Sunday is one moment, so the wrap is the recap's own quiet last
+   line, never a second block. On the plate it runs the whole width under a hairline, a footer to the recap's words and
+   acts (they stand side by side above it at a desk); its words and key are the over question's (`over.tsx`). */
+.ap-recap-room > [data-ap-wrap] {
+  flex-basis: 100%;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+/* On her home's stage, beside the acts, a step under them: the quiet word production stands beside its acts. The
+   stage's column is narrow, so the wrap keeps the acts' left edge: its line, then its key under it. */
+.ap-recap-stage-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ap-recap-stage-foot > .ap-wrap-room {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ap-recap-stage-foot > .ap-wrap-room > p {
+  flex: none;
+}
+
+/* On the turned cover's foot in a hand: the acts' row, the wrap's line under it. */
+.ap-recap-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* The words, clear of the close in a hand. */
+.ap-recap-say {
+  min-width: 0;
+  padding-right: 40px;
+}
+/* From a tablet up the acts sit at the row's end, bottom-aligned with the party's line, the close above them. */
+@media (width >= 40rem) {
+  .ap-recap-say {
+    padding-right: 0;
+  }
+}
+
+/* Put away: the quiet close at the plate's top corner, level with its first word, never in the light. */
+.ap-recap-close {
+  position: absolute;
+  top: -4px;
+  right: 4px;
+}
+@media (width >= 40rem) {
+  .ap-recap-close {
+    top: -2px;
+    right: 12px;
+  }
+}
+
+/* ══ THE COVER TURNED: THE PARTY IN WORDS ON ITS OWN ROW ══════════════════════════════════════════════════════════════ */
+
+/* The facts' row is a wrapping flex (`HubHead`'s line): the headline takes a row of its own, its line and the status
+   after it on the next. */
+.ap-recap-cover-made {
+  flex-basis: 100%;
+}
+
+/* ★ IN A HAND THE TURNED COVER'S WORDS STAND HIGHER ON ITS PHOTOGRAPH THAN THE HUB'S OWN (the party's line under the
+   name, the acts and, in the wrap, its line on the foot), up where the hub's scrim has already lifted (`0.4` at 58% of
+   the cover, nothing at 72%), so her link and the party's line stood on the flowers unread. The scrim keeps its weight
+   behind the words as production's rule says it does ("its weight behind the name, the strip and the cards"), its fall
+   moved up to the name; the top's breath and the foot's lift are production's. A desk's cover holds its words low on a
+   wider photograph and keeps production's scrim. */
+@media (width < 40rem) {
+  [data-ap-hub-head]:has([data-ap-recap="cover"])
+    [data-event-head="hub"]
+    .head-scrim {
+    background:
+      linear-gradient(to bottom, rgb(0 0 0 / 0.42) 0, rgb(0 0 0 / 0) 7.5rem),
+      linear-gradient(
+        to top,
+        rgb(0 0 0 / 0.22) 0,
+        rgb(0 0 0 / 0.34) var(--hub-under),
+        rgb(0 0 0 / 0.78) var(--hub-rise),
+        rgb(0 0 0 / 0.78) calc(var(--hub-rise) + var(--hub-words) + 56px),
+        rgb(0 0 0 / 0.62) 70%,
+        rgb(0 0 0 / 0.3) 90%,
+        rgb(0 0 0 / 0) 100%
+      );
+  }
+}
