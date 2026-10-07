@@ -28,11 +28,12 @@ export const REVIEW_NOTE = "Anything you approve can still be hidden later.";
 
 /**
  * ★ THE ROOM'S ONE HEADING (crumbs-42, from crumbs-7). The page headed the room "Review" and the room
- * said Review again in the amber label over its grid: the stacked feed's section header, kept when the
+ * said Review again in the label over its grid: the stacked feed's section header, kept when the
  * queue became a room of its own. The room's title carries what that label carried now, the queue's
- * count beside it in the needs-action tone, and the room's actions sit on its row at a desk, as the
- * Guests room's Invite does. Every state draws it, so the title stands where it stood whatever the queue
- * does.
+ * count beside it in the needs-you status (`--needs-you`, solid, as the hub's Review badge wears it:
+ * one token for a count that waits on her, never a second red), and the room's actions sit on its row
+ * at a desk, as the Guests room's Invite does. Every state draws it, so the title stands where it stood
+ * whatever the queue does.
  *
  * ★ IN A HAND THE ACTIONS TAKE THEIR OWN ROW UNDER THE TITLE. The two faces are not one width (measured at
  * 375: the browse duo 188px, the bulk bar 204px), and beside the title (118px) the bar alone overflowed a
@@ -60,18 +61,19 @@ function RoomHead({
         <div className="flex min-w-0 items-center gap-2">
           <PageHeading>Review</PageHeading>
           {waiting ? (
-            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-warning/15 px-2 text-sm font-semibold text-warning tabular-nums">
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-(--needs-you) px-2 text-sm font-semibold text-(color:--needs-you-foreground) tabular-nums">
               {formatCount(waiting)}
               <span className="sr-only"> waiting</span>
             </span>
           ) : null}
         </div>
       ) : (
-        <p
-          data-review-waiting=""
-          className="text-sm font-medium text-warning tabular-nums"
-        >
-          {waiting ? `${formatCount(waiting)} waiting` : null}
+        <p data-review-waiting="" className="text-sm font-medium tabular-nums">
+          {waiting ? (
+            <span className="inline-flex h-6 items-center rounded-full bg-(--needs-you) px-2.5 font-semibold text-(color:--needs-you-foreground)">
+              {`${formatCount(waiting)} waiting`}
+            </span>
+          ) : null}
         </p>
       )}
       {action}
