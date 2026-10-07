@@ -44,13 +44,16 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `20261007120000_event_create_key.sql` (md5 8a1e9e56) with the Advisor (Q43), applied on its answer; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
-| `redteam-57b` | the second half of the walk before milestone 39: crumbs-87's eight fixes and the type change, on the desk build `cd38cf21a` (refreshed 10:26Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57b/brief.md` | RUNNING (from 10:28Z) | Opus, its own headless Chrome (never Will's) | `a81cf69c76e8039ff` |
+| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `event_create_key` APPLIED (20261007111050, md5 8a1e9e56 = the file's; the Advisor's Q43: APPLY; the column, index and insert-only grant as proved; advisors 27/4/36), the file reaching `launch-prep` with the merge; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
+| `redteam-57b` | the second half of the walk before milestone 39, on the desk build `cd38cf21a` | DONE 11:50Z: one MEDIUM (crumbs-87's names-only restore misses after a load: 7 of 12; production's 38 never restores, so 39 improves but does not close it) to `crumbs-89`, with its two LOWs (Settings' rows after a load, dormant's 12 px tap band); its six NITs Immediate lines; its four RT57b events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57b/ledger.txt` | Opus | `a81cf69c76e8039ff` |
+| `crumbs-89` | milestone 39's last MEDIUM at its source, the door page's consequence line, Settings' rows after a load (a React canary bug, nudged), dormant's tap band | MERGED at `cab0dc0ac` (gate 72 green); migration `email_first_memory` APPLIED (20261007135056, md5 4836beb3 = the file's; the Advisor's Q44: APPLY, the nudge SHIP; hashes as the proof's; advisors 27/4/36); types regenerated with `create_key` and its `heldOf` seam dropped; its stale `host-app.md` lines wait for crumbs-88's merge (both edit that doc): "An email first" (the event remembers the hold, every path gives names only back, `email_restored`), "A setting with no effect right now" (a folded side is inert), and a gotcha (a revalidating save's commit can be parked by React; `settings-state-unpark.ts`); PREMISE: guests-room's asks name `invited-section.tsx`, touched only by the save's nudge, so they stand; pruned | Opus, 3131 | `a02926c18b226cb2f` |
 | `after-party-r1` | board (desk place 12), the gap audit's highest design gap: what an album becomes once its party is over, for a returning guest, a shared link and the host the morning after | RUNNING (from 11:05Z) | Opus, 3135 | `a4c7c77694c1f980f` |
-| `no-signal-r1` | board (desk place 14), the gap audit's second: a party with no signal, what a guest sees and keeps when the line drops and what resumes, each option's engineering named | RUNNING (from 11:05Z) | Opus, 3136 | `aece05f608a1f0346` |
+| `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
+| `crumbs-90` | the guest's send and album: Immediate's upload and album lines (a hung complete, the heal beside a Retry, a HEIC with no preview, the failure sheet beside the toast and a roll's refusal, a tile's focus, a photo link's image size, two dead arms); merges after 39 and crumbs-88 | RUNNING (from 13:40Z) | Opus, 3132 | `a792a2c5719fc2ca0` |
+| `redteam-57c` | the re-walk that closes milestone 39: crumbs-89's fixes on every path 57b named, on the desk build `bea40689d` (refreshed 14:09Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57c/brief.md` | RUNNING (from 14:11Z) | Opus, its own headless Chrome (never Will's) | `a93c1b646bf62a281` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
-Q42 answered (each APPLY, each applied); the next migration's read goes to it.
+Q43 answered (each APPLY, each applied); the next migration's read goes to it.
 
 **Seats.** A local `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its
 merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). A successor in another session
@@ -62,13 +65,13 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 1. **The next desk is whole** (brand-marks r1, signature r1, account-moments r2, create-wizard r5, guests-room r1,
    presence r1, all merged): his desk refreshed to the tip at 10:30Z for red-team 57b's walk, which serves his next
    sitting too; tell him it is ready when he is back (never refreshed while a red-team walks it).
-2. **Milestone 39 on Will's yes** (one walk, both waves): everything it holds is merged and red-team 57 found nothing
-   above LOW, but `crumbs-87` merged after 57's build (`b1e219f26`), so **red-team 57b** walks its eight fixes and the
-   type change on a desk refreshed to the tip (its brief `../partyreel-wt/_scratch/redteam-57b/brief.md`, `<SHA>` filled
-   at the cut), cut at the 11:10Z reset. The FULL gate is green at `7572c6360` (gate 67, 579 s, red steps 0); a code
-   merge after it means the FULL gate again at the new tip before the merge to `main` (about ten minutes), and
-   `pnpm compute:model` runs once before his yes. Production lanes cut now (`crumbs-88`) integrate after 39 is on
-   `main`, so 39 is exactly what 57 and 57b walked; boards may merge meanwhile (lab only).
+2. **Milestone 39 on Will's yes** (one walk, both waves): red-team 57 (both waves, nothing above LOW) and 57b
+   (crumbs-87, merged after 57's build) walked it; 57b's one MEDIUM goes first: `crumbs-89` fixes it at its source,
+   its migration through the Advisor and the protocol, merged into 39; then **red-team 57c** re-walks exactly its
+   items on a desk refreshed to the tip; then the FULL gate at the tip (about ten minutes; gate 67 was green at
+   `7572c6360`) and his yes. `pnpm compute:model` ran (every production scenario within budget; lab-demo 24.5 calls a
+   step, its Immediate line). `crumbs-88` (handed off, its migration live) merges only after 39 is on `main`, so 39 is
+   exactly what 57, 57b and 57c walked; boards may merge meanwhile (lab only).
    **Drive goes live with 39** (Will, 2026-10-07): just before 39's production deploy, from this Mac (`wrangler` is
    logged in as P3), `workers/drive`'s `npm ci`, its two queues (README), `DRIVE_APP_URL` partyreel.com, its secret from
    `.env.local` by stdin, `wrangler deploy`, then `DRIVE_WORKER_URL` on production; his Drive walk follows (P3's
@@ -95,9 +98,10 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
    asks for by name; `node usher/kit/vercel-usage.mjs` before any.
 8. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill: six to eight agents, `get_usage`
    read at every cut, and nothing new started when the window would run out before its reset, so the account rolls
-   into about 99% at the reset and the session goes on in context. At 07:59Z the window read 48% (it resets 11:10Z)
-   with three boards running, so a new lane waits for a board's handoff or the reset; weekly 33% (resets 2026-10-13
-   21:00Z). Who does the work: the runbook's "Working with Will" (a lane for focus; small in-context work the
+   into about 99% at the reset and the session goes on in context. At 13:36Z the window read 34% (it resets 16:10Z)
+   with three lanes; ★ weekly 52% only 16 hours into this account's week (it resets 2026-10-13 21:00Z), so at this
+   pace it runs out around 2026-10-08 06:00Z: keep the handoff block current for the next account's seat, and tell
+   Will. Who does the work: the runbook's "Working with Will" (a lane for focus; small in-context work the
    Orchestrator's own).
 
 ## Waiting on Will

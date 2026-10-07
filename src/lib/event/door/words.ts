@@ -4,6 +4,7 @@
  *
  * Pure (the caller passes `now`, since a clock read in render is impure), so the words are tested.
  */
+import type { Door } from "@/lib/event/door/door";
 import { formatCount } from "@/lib/format/count";
 
 const MINUTE = 60_000;
@@ -50,4 +51,27 @@ export function cameInLine(n: number): string {
 export function listedWouldComeInLine(n: number): string | null {
   if (!(n > 0)) return null;
   return `Lets in the ${peopleWaiting(n)} waiting at the door ${n === 1 ? "who is" : "who are"} on your list.`;
+}
+
+/**
+ * WHAT THE HOST IS TOLD WHEN HER NAMES-ONLY DOOR COMES BACK (crumbs-89). Letting each person in and the invite list hold
+ * An email first on, and the switch says why ("On while you let each person in"); a gate that turned it on from off is
+ * remembered by the event, and the door's leaving it gives her names only back (`events_email_held`, 20261007140000).
+ * Said in the switch's own words, of the gate that has gone: the door the page showed when she moved it. A door the page
+ * never showed holding it (a move from another device the page had not seen) is said without naming a gate.
+ */
+export function emailBackLine(heldBy: Door): {
+  title: string;
+  description: string;
+} {
+  const why =
+    heldBy === "invite"
+      ? "while your invite list was the way in"
+      : heldBy === "approve"
+        ? "while you let each person in"
+        : "while the door asked for a confirmed address";
+  return {
+    title: "An email first is off again.",
+    description: `It was only on ${why}.`,
+  };
 }

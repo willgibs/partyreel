@@ -350,8 +350,16 @@ export async function setRowStepAction(step: number): Promise<void> {
 export type SetEventDoorResult =
   | {
       ok: true;
-      /** The email step was held on with it (letting each person in and the list match an address). */
+      /**
+       * The email step was turned on with it, from off (letting each person in and the list match an address), and the
+       * event remembers her names-only door until the gate goes.
+       */
       emailHeld: boolean;
+      /**
+       * The door left such a gate and the database gave her names only back (20261007140000). Null, or absent (a writer
+       * that is no database: the Library's), where nothing remembers: nothing was given back, and nothing may say so.
+       */
+      emailRestored?: boolean | null;
       /** People waiting at the door who came straight in because the album turned Public. */
       admitted: number;
     }
@@ -397,6 +405,7 @@ export async function setEventDoorAction(
   return {
     ok: true,
     emailHeld: result.data.emailHeld,
+    emailRestored: result.data.emailRestored,
     admitted: result.data.admitted,
   };
 }

@@ -36,8 +36,9 @@ const HALO_ROOM = "-m-3 p-3"
  * it: the door's two switches at the card's right edge (measured: 0px of room), the size select, the
  * first look and the first hold. The clip box is padded by `HALO_ROOM` and pulled back by the same, so
  * nothing in the layout moves and the clip stands a halo's reach outside the content. Its padding
- * takes no press (`pointer-events-none`; the content keeps its own), so the strip lying over a
- * neighbour never catches a tap meant for it.
+ * takes no press (`pointer-events-none`; the content keeps its own while it is shown), and a folded
+ * side is inert (crumbs-89: the folded line showed through that padding and took the press meant for
+ * the control under it), so the strip lying over a neighbour never catches a tap meant for it.
  */
 function Dormant({
   awake,
@@ -58,9 +59,14 @@ function Dormant({
       data-awake={awake ? "" : undefined}
       className={cn("group/dormant", className)}
     >
-      {/* The line: open while asleep, folded away as the controls unfold. */}
+      {/* The line: open while asleep, folded away as the controls unfold. ★ FOLDED, IT TAKES NO PRESS (crumbs-89, red-team
+          57b's LOW): its clip box stands a halo's reach outside the fold, so the folded line, invisible and in a layer of
+          its own (its fold's opacity), showed through the box's 12px under the fold and caught the taps meant for the
+          control drawn there (the "A photo first" label and "Max size", at every width). Inert, as the controls are
+          while asleep: no press, no focus, no reader, and the box still clips nothing of a halo. */}
       <div
         aria-hidden={awake}
+        inert={awake}
         className={cn(
           "grid transition-[grid-template-rows,opacity] duration-300 ease-emphasis motion-reduce:transition-none",
           awake ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
