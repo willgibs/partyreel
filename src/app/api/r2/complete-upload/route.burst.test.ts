@@ -433,7 +433,7 @@ describe("a burst the route cannot read is refused whole", () => {
   });
 });
 
-describe("★ a burst's files each carry their own capture time (capture-time, Will's X7)", () => {
+describe("★ a burst's files each carry their own capture time (capture-time, uploads-and-r2.md)", () => {
   it("one in the bounds is recorded, one lying is dropped, one with none says none, and all three land", async () => {
     vi.useFakeTimers({
       now: new Date("2026-10-05T12:00:00Z"),

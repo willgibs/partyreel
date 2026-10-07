@@ -5,9 +5,10 @@
  * and a socket whose state changes while the tab is hidden (the doorbell leaves its channel when the tab hides,
  * album-calm) re-ran the cadence and started it again, under a tab nobody was looking at.
  *
- * ★ AND THE POLLS REST (compute-levers, Will's X4): the net under a live doorbell rests at five minutes after ten
- * untouched minutes and stops after two untouched hours, a touch waking it; the fallback slows to a minute after a
- * quiet minute and returns to twelve seconds on a change; a page watched untouched (the reel's screen) never stops.
+ * ★ AND THE POLLS REST (compute-levers; guest-flow.md, "The conditional poll"): the net under a live doorbell rests
+ * at five minutes after ten untouched minutes and stops after two untouched hours, a touch waking it; the fallback
+ * slows to a minute after a quiet minute and returns to twelve seconds on a change; a page watched untouched (the
+ * reel's screen) never stops.
  */
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

@@ -470,8 +470,9 @@ describe("★ the Partyreel folder, one a Google account", () => {
 /** The album's mark, as her Drive keeps it: pinned literally (a rename would orphan every album folder already made). */
 const ALBUM_MARK = { pr_event: EVENT } as const;
 
-// ★ drive-crumbs (the calls lab's BE3): after a same-account Disconnect and Connect, sending an album again sent it
-// whole into a second same-named album folder, the forget having dropped the first one's id with its files'.
+// ★ drive-crumbs (drive-export.md, "Sending again never duplicates and never lies"): after a same-account Disconnect
+// and Connect, sending an album again sent it whole into a second same-named album folder, the forget having dropped
+// the first one's id with its files'.
 describe("★ the album's folder, found by its mark after a reconnect", () => {
   it("sends into the folder an earlier connection made, and says it was found so each file is looked up first", async () => {
     drive.add({ id: "ours", createdAt: 2, appProperties: { ...MARK } });

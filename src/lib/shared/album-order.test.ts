@@ -213,7 +213,7 @@ describe("the night in order", () => {
   });
 
   it("★ reads the capture time the album's wire carries: a late upload's own `captured_at` puts it mid-album", () => {
-    // Built by the wire's own mapper from rows as the manifest reads return them (capture-time, Will's X7): were the
+    // Built by the wire's own mapper from rows as the manifest reads return them (uploads-and-r2.md): were the
     // wire to stop carrying `captured_at`, the late upload would fall back to its arrival and land at the end.
     const row = (id: string, created: string, captured: string | null) =>
       toManifestEntry(

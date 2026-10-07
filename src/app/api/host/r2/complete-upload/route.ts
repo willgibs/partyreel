@@ -18,7 +18,7 @@ import { hostCompleteUploadSchema } from "@/lib/validation/upload";
  * time. `reel_eligible` is false only for a clip the host adds to the album from the reel (the clip
  * lane's client add is its one caller), so the live reel never plays a reel it made; absent is the
  * column's default (true), which is every photo and video a host uploads. `captured_at` is the
- * guest's own field (Will's X7: held to its bounds as it is parsed, none leaves the arrival to
+ * guest's own field (uploads-and-r2.md: held to its bounds as it is parsed, none leaves the arrival to
  * stand), and `captured_wall` the guest's too: a zoneless Exif clock, read in the PARTY's zone
  * (crumbs-86), so the host's own camera files sit where her guests' do. Extended here, as the guest
  * route extends its own, rather than in the shared validation module. Not a trust boundary: the

@@ -21,7 +21,8 @@ import { SCREEN } from "./knobs";
  *
  * Nothing here asks what another standing board asks: brand-marks r1 and signature r1 (the marks, the tokens, where the
  * light lives, so the beat's bloom and the hub's light stand as built), account-moments r2 (follow, the invitation on
- * her page), and the calls lab's H1 (a date in Create).
+ * her page), and a date in Create (the calls' X1 asks it; host-app.md's "The sole create path" holds that Create asks
+ * none today).
  */
 export const CREATE_WIZARD = defineExploration({
   id: "create-wizard",
@@ -77,7 +78,7 @@ export const CREATE_WIZARD = defineExploration({
     settled: [
       "Your round four picks are built: Disposable's own screen, one quiet line under the code, a failure held where she is.",
       "The beat's moment stays as built: the sample developing into her code, lit, and her event's name above it, live.",
-      "Not asked here: the light, the marks and the tokens (brand-marks r1, signature r1), nor a date in Create (H1).",
+      "Not asked here: the light, the marks and the tokens (brand-marks r1, signature r1), nor a date in Create (your calls' X1).",
     ],
     earlier: [
       "On the close: 'it felt weird to go through a create wizard, complete, then feel like you're only halfway done.'",

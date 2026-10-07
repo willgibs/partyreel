@@ -1,5 +1,5 @@
 /**
- * ★ A DRIVE COPY IS NAMED AND DATED BY WHEN IT WAS TAKEN (capture-time, Will's X7). The lease carries each original's
+ * ★ A DRIVE COPY IS NAMED AND DATED BY WHEN IT WAS TAKEN (uploads-and-r2.md). The lease carries each original's
  * `captured_at` (`cloud_export_lease`, 20261005200000; read by `leaseWork`), and the one naming function prefers it
  * (`driveMoment`), so a lane's file says the moment the shutter fired, in her zone, in its name, its description and
  * Drive's own `modifiedTime`; an upload that kept none says when it arrived, as before. Fails on the code before the

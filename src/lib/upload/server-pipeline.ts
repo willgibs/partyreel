@@ -533,7 +533,7 @@ type CompleteCommon = {
    */
   reel_eligible?: boolean;
   /**
-   * `media.captured_at` for the row this completion creates (Will's X7): the uploader's claim of when the original
+   * `media.captured_at` for this completion's row (uploads-and-r2.md): the uploader's claim of when the original
    * says it was taken, as `completeCaptureTime` left it (an instant inside the bounds, or null: the arrival stands).
    * The engine carries it to either strategy, and each writes it once through its create_media* call.
    */

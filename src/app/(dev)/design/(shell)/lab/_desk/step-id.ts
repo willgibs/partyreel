@@ -52,3 +52,13 @@ export function boardNoteHoldId(board: string): string {
  * folder is called `*`.
  */
 export const PROGRAM_NOTE_HOLD = "note:*";
+
+/**
+ * The key a CALL'S ANSWER is marked sent under (calls-desk, 2026-10-07). The
+ * answer itself is held under the bare id in the store's `calls` map, which
+ * needs no round: a call's id is never used again, so it can only ever mean
+ * the one entry. The mark carries the namespace, as a board note's does.
+ */
+export function callHoldId(id: string): string {
+  return `call:${id}`;
+}

@@ -22,7 +22,7 @@
  * integer: exact in a double until the year 2255, and the client's binary insertion on `(t, id)`
  * lands an upsert exactly where the server's order puts it. `timestampToMicros` is the one parser.
  *
- * ★ `c` IS `captured_at`, THE SAME WAY (Will's X7: a photograph keeps when it was taken), a seventh
+ * ★ `c` IS `captured_at`, THE SAME WAY (uploads-and-r2.md: a photograph keeps when it was taken), a seventh
  * element only where the upload kept one, after the duration (null where there is none). It orders
  * nothing here: the wire stays `(t, id)`, and a view that reads the night in order reads it
  * (`entryCaptureTime`). The contract's version does not move for it: no row carries a capture time
@@ -141,7 +141,7 @@ export type EntrySource = {
   reel_eligible: boolean | null;
   /** Microseconds (a SQL `extract(epoch)`) or the raw timestamp string PostgREST returned. */
   created_at: number | string;
-  /** `captured_at` the same two ways, or null/absent where the upload kept none (Will's X7). */
+  /** `captured_at` the same two ways, or null/absent where the upload kept none (uploads-and-r2.md). */
   captured_at?: number | string | null;
   /** Host scope reads it into the flags; a guest's entries never carry a status. */
   status?: AlbumMediaStatus;

@@ -1,5 +1,5 @@
 /**
- * ★ A FILE'S CAPTURE TIME RIDES ITS OWN COMPLETE (capture-time, Will's X7: "keep the capture time, never the place or
+ * ★ A FILE'S CAPTURE TIME RIDES ITS OWN COMPLETE (uploads-and-r2.md: "keep the capture time, never the place or
  * device"). The strip reads when the original says it was taken before rewriting a byte; the uploader turns that into
  * an ISO instant (`captureClaim`) and the complete carries it as `captured_at`, file by file, never the presign. A file
  * that said nothing carries no key at all (the server's default stands), and a kept complete sent again carries it as

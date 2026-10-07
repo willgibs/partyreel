@@ -26,7 +26,7 @@ import { completeUploadSchema } from "@/lib/validation/upload";
  * THE GUEST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field and the capture
  * time. `reel_eligible` is false only for a clip the on-device creator adds to the album
  * (`addClipToAlbum`), so the live reel never plays a reel; absent is the column's default (true).
- * `captured_at` is when the original says it was taken (Will's X7), held to its bounds as it is
+ * `captured_at` is when the original says it was taken (uploads-and-r2.md), held to its bounds as it is
  * parsed (`completeCaptureTime`): none, or one outside them, leaves the arrival to stand.
  * `captured_wall` is the original's zoneless wall clock as it is (`captureWall`), read here in the
  * PARTY's zone (`wallInPartyZone`, crumbs-85), the claim beside it the fallback. Extended here rather

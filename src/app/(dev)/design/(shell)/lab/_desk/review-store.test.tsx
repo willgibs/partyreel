@@ -3,17 +3,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   EMPTY_REVIEW,
   getReviewStore,
+  keepCalls,
   markSent,
   setAnswerNote,
   setBoardNote,
+  setCallNote,
   setItemNote,
   setProgramNote,
   setReviewStore,
   toggleAnswer,
+  toggleCallAnswer,
   toggleItemVerdict,
 } from "./review-store";
 import {
   boardNoteHoldId,
+  callHoldId,
   holdId,
   itemHoldId,
   PROGRAM_NOTE_HOLD,
@@ -220,5 +224,84 @@ describe("the note for the whole program", () => {
     expect(getReviewStore().sent[PROGRAM_NOTE_HOLD]?.build).toBe("abc1234");
     setProgramNote("every board, pictures first, and quiet");
     expect(getReviewStore().sent[PROGRAM_NOTE_HOLD]).toBeUndefined();
+  });
+});
+
+/**
+ * THE CALLS (calls-desk, 2026-10-07): his answers at the desk's Calls place, one more field of the same payload under
+ * the same key, picked and cleared by the same toggle rule, and a browser mid-sitting from before it loads whole.
+ */
+describe("the calls' answers", () => {
+  it("toggles a call's answer by the one rule, its words surviving a clear", () => {
+    expect(toggleCallAnswer("L2", "change")).toBe(true);
+    setCallNote("L2", "a week of grace");
+    expect(getReviewStore().calls.L2).toEqual({
+      answer: "change",
+      note: "a week of grace",
+    });
+    // Keep after Change keeps the words in the store: a Change pressed again
+    // finds them, and the composer never sends them with a keep.
+    expect(toggleCallAnswer("L2", "keep")).toBe(true);
+    expect(getReviewStore().calls.L2).toEqual({
+      answer: "keep",
+      note: "a week of grace",
+    });
+    expect(toggleCallAnswer("L2", "keep")).toBe(false);
+    expect(getReviewStore().calls.L2).toEqual({
+      answer: "",
+      note: "a week of grace",
+    });
+    setCallNote("L2", "");
+    expect(getReviewStore().calls.L2).toBeUndefined();
+  });
+
+  it("clears a call's sent mark when its answer or its words change", () => {
+    toggleCallAnswer("X2", "recommended");
+    markSent([callHoldId("X2")], "abc1234");
+    expect(getReviewStore().sent[callHoldId("X2")]?.build).toBe("abc1234");
+    setCallNote("X2", "and soon");
+    expect(getReviewStore().sent[callHoldId("X2")]).toBeUndefined();
+    markSent([callHoldId("X2")], "abc1234");
+    toggleCallAnswer("X2", "alt1");
+    expect(getReviewStore().sent[callHoldId("X2")]).toBeUndefined();
+  });
+
+  it("keeps every call still unanswered in one press, and never one he answered", () => {
+    toggleCallAnswer("R1", "change");
+    setCallNote("R1", "forgive a small overage");
+    toggleCallAnswer("AH1", "keep");
+    markSent([callHoldId("AH1")], "abc1234");
+    keepCalls(["L2", "R1", "AH1", "K5"]);
+    const calls = getReviewStore().calls;
+    expect(calls.L2?.answer).toBe("keep");
+    expect(calls.K5?.answer).toBe("keep");
+    expect(calls.R1).toEqual({
+      answer: "change",
+      note: "forgive a small overage",
+    });
+    // A call already answered is left as it was, its paste's mark with it.
+    expect(getReviewStore().sent[callHoldId("AH1")]).toBeDefined();
+  });
+
+  it("loads a payload from before the Calls place, everything else intact", async () => {
+    localStorage.setItem(
+      "partyreel.lab.review.v2",
+      JSON.stringify({
+        answers: { "a.r1.b": { choice: "x", note: "" } },
+        notes: {},
+        items: {},
+        sent: {},
+        program: "on the whole",
+      }),
+    );
+    vi.resetModules();
+    const fresh = await import("./review-store");
+    expect(fresh.getReviewStore().calls).toEqual({});
+    expect(fresh.getReviewStore().program).toBe("on the whole");
+    // And its first call answer writes into a fresh map.
+    expect(fresh.toggleCallAnswer("L2", "keep")).toBe(true);
+    expect(fresh.getReviewStore().calls).toEqual({
+      L2: { answer: "keep", note: "" },
+    });
   });
 });

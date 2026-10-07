@@ -93,7 +93,7 @@ describe("parseAlbumRead: album_changes_since's jsonb, defensively", () => {
     );
   });
 
-  it("reads a change's capture time, its twelfth element (capture-time, Will's X7), onto the entry it makes", () => {
+  it("reads a change's capture time, its twelfth element (uploads-and-r2.md), onto the entry it makes", () => {
     const taken = 1790200000000000;
     const r = parseAlbumRead({
       changes: [

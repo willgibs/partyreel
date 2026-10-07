@@ -988,8 +988,8 @@ async function runBurst(
         phone_key: landed.phoneKey,
         // Only a clip says anything (the live reel never plays a reel); every other entry is unchanged.
         ...(files[i].reelEligible === false ? { reel_eligible: false } : {}),
-        // When it was taken, where the original said (Will's X7): a claim the server holds to its bounds. A kept
-        // complete carries it again as it was first asked.
+        // When it was taken, where the original said (uploads-and-r2.md): a claim the server holds to its bounds.
+        // A kept complete carries it again as it was first asked.
         ...(p.capturedAt ? { captured_at: p.capturedAt } : {}),
         ...(p.capturedWall ? { captured_wall: p.capturedWall } : {}),
         upload_id: put.strategy === "multipart" ? put.upload_id : null,
@@ -1254,7 +1254,7 @@ async function prepare(
     //    orientation survives in every format. Best-effort like generatePreview: input the
     //    parsers cannot walk (truncated, malformed) comes back stripped:false with the
     //    ORIGINAL - a failed strip never blocks a guest. ★ The capture time is read in the
-    //    same walk, from the original before a byte is rewritten (Will's X7), and kept in the
+    //    same walk, from the original before a byte is rewritten (uploads-and-r2.md), and kept in the
     //    stored file's minimal Exif too.
     const cleaned = await stripFileMetadata(picked);
     const capturedAt =

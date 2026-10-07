@@ -251,7 +251,8 @@ export function removingSpentLine(allowance: number): string {
 /**
  * THE REEL'S NEWEST FRAME, PRESSED (guest-moments r1's `where=reel`, Will: "Both are probably the best option. That way,
  * if they naturally go to remove an image from their uploads, it inherently frees up a slot for them as well"): her
- * newest shot over the picture with two keys, since a mis-press on the reel must not delete (the board's carried BM1).
+ * newest shot over the picture with two keys, since a mis-press on the reel must not delete (disposable-mode.md, "Two
+ * doors take a shot back").
  */
 export const TAKE_BACK = {
   /** The newest frame's own name, as a button. */

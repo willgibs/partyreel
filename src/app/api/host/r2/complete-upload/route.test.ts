@@ -126,7 +126,7 @@ describe("the host's completion and the live reel", () => {
   });
 });
 
-describe("★ the capture time a host's complete claims (capture-time, Will's X7)", () => {
+describe("★ the capture time a host's complete claims (capture-time, uploads-and-r2.md)", () => {
   const recorded = () =>
     (createMediaAsHost.mock.calls.at(-1) as [Record<string, unknown>])[0]
       .capturedAt;
