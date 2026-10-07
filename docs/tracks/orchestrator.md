@@ -44,13 +44,13 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `20261007120000_event_create_key.sql` (md5 8a1e9e56) with the Advisor (Q43), applied on its answer; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
+| `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale | HANDED OFF at `8a0005679` (gates green on `f58fbb833`); its migration `event_create_key` APPLIED (20261007111050, md5 8a1e9e56 = the file's; the Advisor's Q43: APPLY; the column, index and insert-only grant as proved; advisors 27/4/36), the file reaching `launch-prep` with the merge; the merge waits until milestone 39 is on `main`, then `types.ts` regenerates and its seam retires (its Deferred line); its look-at-first's two emailed-link paths go to milestone 40's red-team | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
 | `redteam-57b` | the second half of the walk before milestone 39: crumbs-87's eight fixes and the type change, on the desk build `cd38cf21a` (refreshed 10:26Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57b/brief.md` | RUNNING (from 10:28Z) | Opus, its own headless Chrome (never Will's) | `a81cf69c76e8039ff` |
 | `after-party-r1` | board (desk place 12), the gap audit's highest design gap: what an album becomes once its party is over, for a returning guest, a shared link and the host the morning after | RUNNING (from 11:05Z) | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14), the gap audit's second: a party with no signal, what a guest sees and keeps when the line drops and what resumes, each option's engineering named | RUNNING (from 11:05Z) | Opus, 3136 | `aece05f608a1f0346` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
-Q42 answered (each APPLY, each applied); the next migration's read goes to it.
+Q43 answered (each APPLY, each applied); the next migration's read goes to it.
 
 **Seats.** A local `launch-prep` ahead of `origin` holds a merge made after this note: push it, then record it from its
 merge message and its lane's Handoff (`git show <merge>^2:docs/tracks/<track>.md`). A successor in another session

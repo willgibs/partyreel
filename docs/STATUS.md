@@ -42,7 +42,7 @@ guests-room r1 and presence r1; his desk serves the tip (refreshed 2026-10-07 fo
   deploys with milestone 39 (`DRIVE_WORKER_URL` set then).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
-- **The shared database** runs every migration through `storage_sums_signal` (2026-10-07), each by protocol (the
+- **The shared database** runs every migration through `event_create_key` (2026-10-07), each by protocol (the
   Advisor's read, the file's md5 matched), each an expand the older build ran beside; no build reads a dropped thing.
   Advisors stand at 27 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
