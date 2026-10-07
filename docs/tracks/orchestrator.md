@@ -23,14 +23,15 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Desk 8's wave runs (2026-10-07; this session's context about 73% at 22:58Z). Merged since its cut, each recorded and
-pruned: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring (80), brand-marks-wiring
-(81), crumbs-91 (82, AY1 built; its migration `20261008030000_crumbs_91.sql` applied on the Advisor's Q45 APPLY as
-20261007230050: md5 equal, hashes as its header, advisors 27/4/36, no type moved). Running: the two boards (event-page-r1, brand-marks-r2: told to sync for brand-marks-wiring's and
-crumbs-91's lines in its folder), no-signal-wiring, and the two cut at 22:00Z (cdn-version, crumbs-92). Will's calls
-paste's first sections are routed (`docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`); his Deletion and Safety
-sections are still to come. Both plan-limit tokens are minted and set (the ROADMAP's two readers ready). Milestone 40
-forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live.
+Desk 8's wave runs (2026-10-07; at 23:20Z the week 85%, the 5-hour window 54% to 02:10Z, this context 82%). Merged,
+recorded and pruned since its cut: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring
+(80), brand-marks-wiring (81), crumbs-91 (82; its migration applied on the Advisor's Q45 as 20261007230050),
+no-signal-wiring (83). Running, their rows below: the boards event-page-r1 and brand-marks-r2 (told to sync for the
+lines brand-marks-wiring and crumbs-91 left in its folder), cdn-version and crumbs-92. No new lane until those close: the
+week's last share goes to them and to milestone 40's red-team. Will's calls paste's first sections are routed; his
+Deletion and Safety sections are still to come (the Calls place holds 12, five of them new from lanes: CH1, CI1, CI2,
+CJ1). Both plan-limit tokens are minted and set. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk
+and every merge above. Milestone 39 (`0333cd705`) is live.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
@@ -50,15 +51,13 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
 
 ## Next, in order
 
-1. **Integrate wave 1 as each hands off** (one at a time, `integrate.sh`; the day's first runs `negative.sh` first). At each
-   record: the lane's board folder is gone in its branch, so delete its ledger (`docs/reviews/<board>.json`) and its
-   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`,
-   `after-party.json` and `create-wizard.json` (its manifest reads that one, so it outlives create-wizard-wiring-2's
-   merge; event-page's folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
-   retire G3`) and adds its successor only if the new checklist rule passes the calls test; ROADMAP lines each lane
-   names close through `record.py`. Migrations named in the manifests (`20261008010000_roll_taken`,
-   `20261008020000_guest_look`, `20261008030000_crumbs_91`, `20261008040000_first_follow`,
-   `20261008050000_create_like`), each only if the lane wrote it: the Advisor first, then the protocol.
+1. **Integrate each running lane as it hands off** (`integrate.sh` detached with a waiter; a Handoff read from its
+   Questions down). event-page-r1's record deletes the ledgers its folder retires (`presence.json`, `signature.json`,
+   `after-party.json`) and `create-wizard.json`, which its manifest read; then the desk refreshes (`desk-refresh.sh`)
+   and Will is told which board opens first (event-page, desk 4). cdn-version and crumbs-92 each may carry a migration
+   (crumbs-92's `20261008060000_crumbs_92.sql`): the Advisor (`af9f31cb46a4e98aa`) first, then the protocol. Waiting to
+   cut when the week allows: X1's develop time (the ROADMAP's Immediate Disposable line) with the two plan-limit
+   readers (Upcoming, Billing), and Settings' board.
 2. **Then, as seats free (six to eight agents, `get_usage` at every cut):** the event page's wiring once Will picks its
    direction (one lane builds the whole: faces, the offer, the keepsake, the light, the end line); fresh whole designs
    on the next surfaces in its language, by leverage: the dashboard home and its event cards, the door, her own page
