@@ -61,8 +61,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: on a Public album the room shows the INVITED list and its paste box, which let nobody in and send nothing there, beside an Invite that only opens Share (app-gaps-r1).
 
 ### Admin and operations
-
-- Jobs: the storage sums' nightly signal, the Advisor's condition for milestone 39 (upload-sums' Q1): a sub-sweep on the purge cron (`lifecycle/sweeps/storage-sums.ts`) paging `storage_sums_drift` under its deadline, a `storage_sums` entry in `admin/jobs/catalog.ts` whose run closes ERROR on any drifted host (the hosts and both figures in `counts`, never a mend), a Rebuild control on its card (AAL2, the drifted host named) calling `rebuild_storage_sums`, and `remove_my_upload`'s already-removed arm taking her profiles row first (the one deadlock the sums' trigger opens, against a Restore or Let back in).
+- Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
 
 ### Design system and accessibility
 
@@ -466,6 +465,10 @@ Bigger ideas that need product reshaping or a decision before they are roadmap-r
 - Host: her usual for new parties (the style, the roll, the develop's hour), set in Account, only if hosts ask; never offered in Create (customize r1's `mine`) (settings-wiring).
 - Dashboard: Last opened could say when ("opened yesterday") from production's `openedAt` (host-dashboard r4's idea).
 - Dashboard: a guest album she opened is in neither Recent nor Last opened (only a host's own event is stamped); stamping one wants a table of its own.
+
+### Admin and operations
+
+- Jobs: the storage sums' check at scale: past about 2,000 hosts a pass outlasts a night and reads Needs a look each night; give it a share or a cron of its own, or check only the hosts whose sums moved plus a weekly whole pass (storage-sums-signal's Q3).
 
 ### The lab and the kit
 

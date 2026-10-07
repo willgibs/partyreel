@@ -1342,3 +1342,17 @@ slow push on it.
 
 **CE5. A batch past the fetch cap (12) waits with its batch** rather than going in piecemeal.
 - *Push back if* the first twelve should land at once.
+
+## CF. The storage sums, proven every night (storage-sums-signal)
+
+What a host stores is now checked every night against a full walk, loud on any drift, with a Rebuild on the admin's
+jobs page; and the one deadlock the sums' trigger opened is closed. These are the calls built into it, yours to
+overrule.
+
+**CF1. There is no operator audit table yet,** so a Rebuild is recorded as the portal's other operator acts are (a
+Sentry line naming who, whom and both figures) plus a closed run of the check on its own card.
+- *Push back if* an audit table should come first.
+
+**CF2. A night's check that runs out of time reads Needs a look,** as the backup's reconcile does; at today's size it
+takes about 30 ms.
+- *Push back if* a partial pass should read clean until it finishes.
