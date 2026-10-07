@@ -97,13 +97,13 @@
 }
 
 /* ★ ON PAPER, APERTURE (brand r2, Will's pick): the light never touches the page. It lives in a strip of the room under the
-   photograph (this field wears `dark`, so its ground is the room's own, a step above the room fading to it), as bright
-   as in the room; in the room the field is clear and the page is the room. */
+   photograph (this field wears `dark`, so its ground is the room's own surfaces, the film's black: a layer's step fading
+   to a card's), as bright as in the room; in the room the field is clear and the page is the room. */
 .hub-light-field {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--muted) 0%, var(--background) 100%);
+  background: linear-gradient(180deg, var(--popover) 0%, var(--card) 100%);
 }
 .dark .hub-light .hub-light-field {
   background: none;

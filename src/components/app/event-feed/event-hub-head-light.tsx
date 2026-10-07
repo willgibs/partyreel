@@ -68,6 +68,12 @@ type Read = { thumb: Thumb; c: number };
 /** The page's reads, by still: one read a photograph a page, kept with the link it was read from. */
 const reads = new Map<string, { src: string; read: Promise<Read | null> }>();
 
+/**
+ * How many reads the page keeps: four covers' worth. A host moving between her events in one visit would otherwise keep
+ * every cover she ever opened (about 110KB of pixels a photograph); a cover read past this is simply read again.
+ */
+const KEPT = 24;
+
 /** A failed read says so once a page, never once a photograph. */
 let warned = false;
 
@@ -114,7 +120,13 @@ function readOnce(still: HeadStill): Promise<Read | null> {
   const read = had
     ? had.read.then((r) => r ?? readStill(still.tile).catch(() => null))
     : readStill(still.tile).catch(() => null);
+  reads.delete(still.id);
   reads.set(still.id, { src: still.tile, read });
+  // The oldest go first (a Map keeps its insertion order).
+  for (const id of reads.keys()) {
+    if (reads.size <= KEPT) break;
+    reads.delete(id);
+  }
   return read;
 }
 

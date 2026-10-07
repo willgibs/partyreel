@@ -122,6 +122,10 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, or in the admin.
 - **Gallery arrivals wear their own glow** (`shared/arrival.css`) rather than a lamp: a second light at the album's head
   on every beat reads as a pulse, not light, and a batch of them would bury the album's top.
+- **Afterglow's first light in production is the hub's Seam** (event-header r6; its facts are
+  [host-app.md](host-app.md)'s): born at the cover photograph's edge in that edge's own colours, read at runtime off the
+  crop the eye sees, at the brand's reach in the room and inside a strip of the room on paper, never on the page itself.
+  It is neither this engine nor the lamp set, and a status beside it is a solid point (`--needs-you`), never a glow.
 - **A new lamp answers four questions first**: what emits (or what place is lit), from where, sampled from what, and
   what above admits it.
 - **The lamp set is light, never UI**: five hues in three registers, each at its home: ambient `--lamp-1..5`
