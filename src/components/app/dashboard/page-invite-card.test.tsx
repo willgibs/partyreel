@@ -203,7 +203,20 @@ describe("its light", () => {
     expect(captureWarning).toHaveBeenCalledTimes(1);
   });
 
-  it("asks nothing of a plate that is gone before the page is idle: a dismissed or left invitation reads no photograph", () => {
+  it("asks nothing of a plate she dismissed before the page was idle, and nothing more once it is dismissed", () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(dismissPageInviteAction).mockResolvedValue({ ok: true });
+      render(<PageInviteCard />);
+      fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+      vi.advanceTimersByTime(3000);
+      expect(readInviteLight).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("asks nothing of a plate that is gone before the page is idle: a left invitation reads no photograph", () => {
     vi.useFakeTimers();
     try {
       const { unmount } = render(<PageInviteCard />);

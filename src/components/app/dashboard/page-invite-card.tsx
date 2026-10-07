@@ -69,10 +69,14 @@ function whenIdle(fn: () => void): () => void {
 /** A failed read says so once a page, never once a plate (a refused origin would otherwise dim every invitation silently). */
 let warned = false;
 
-/** Her light, read once the plate is up: null while it is read, then the ladder's answer (never a failure). */
-function useHerLight(): Lit | null {
+/**
+ * Her light, read once the plate is up: null while it is read, then the ladder's answer (never a failure). A plate she
+ * dismissed reads nothing (`enabled`), and one dismissed before the page is idle never asks.
+ */
+function useHerLight(enabled: boolean): Lit | null {
   const [lit, setLit] = useState<Lit | null>(null);
   useEffect(() => {
+    if (!enabled) return;
     let gone = false;
     const cancel = whenIdle(() => {
       void readInviteLight().then(({ lit: next, asked, read }) => {
@@ -90,7 +94,7 @@ function useHerLight(): Lit | null {
       gone = true;
       cancel();
     };
-  }, []);
+  }, [enabled]);
   return lit;
 }
 
@@ -147,7 +151,7 @@ export function PageInviteCard({
 }) {
   const [dismissed, setDismissed] = useState(false);
   const [pending, startTransition] = useTransition();
-  const lit = useHerLight();
+  const lit = useHerLight(!dismissed);
   const title = useId();
 
   if (dismissed) return null;
