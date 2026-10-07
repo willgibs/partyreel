@@ -32,6 +32,7 @@ import {
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import {
+  getBlockedAmong,
   getEventGuestList,
   getHostCard,
   getMyFollowing,
@@ -620,9 +621,21 @@ export default async function GuestEventPage({
       const listSaysCount = items.length > GUEST_LIST_FACES_THRESHOLD;
       // A Follow on somebody else's chip, only where it is not a no-op: one
       // owner-scoped read, and only for a signed-in viewer.
-      const followingIds = userId
-        ? new Set((await getMyFollowing()).map((f) => f.id))
-        : undefined;
+      //
+      // ★ NEVER ACROSS A BLOCK (crumbs-87): `followUser` is block-silent (ok,
+      // nothing written), so a Follow on the chip of someone she blocked, or who
+      // blocked her, would read Following over nothing. The viewer's own relations
+      // answer for the names this list already holds, as a yes or no and never
+      // which side blocked (`getBlockedAmong`, the profile page's rule for a list).
+      const [followingIds, blockedIds] = userId
+        ? await Promise.all([
+            getMyFollowing().then((f) => new Set(f.map((x) => x.id))),
+            getBlockedAmong(
+              userId,
+              cards.map((card) => card.id),
+            ),
+          ])
+        : [undefined, undefined];
       guestListSlot = (
         <section aria-label="Guests" className="mt-10 space-y-3">
           <h2 className="flex items-center gap-1.5">
@@ -639,6 +652,7 @@ export default async function GuestEventPage({
             items={items}
             viewerId={userId}
             followingIds={followingIds}
+            blockedIds={blockedIds}
           />
         </section>
       );

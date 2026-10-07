@@ -49,7 +49,12 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * ★ AND A HANDLED CHIP CAN BE FOLLOWED, by a signed-in viewer who is not already
  * following them and is not themselves. The album is where a guest meets the
  * other guests; making them open a profile first to do the one thing a profile
- * is for was a door with nothing behind it.
+ * is for was a door with nothing behind it. ★ NEVER ACROSS A BLOCK (crumbs-87):
+ * `followUser` is block-silent (ok, nothing written), so a Follow on the chip of
+ * someone she blocked, or who blocked her, would read Following over nothing.
+ * `blockedIds` is the people she has a block with in either direction, said as
+ * the profile page says it (`isBlockedEitherWay`): a yes or a no for a name the
+ * list already holds, never which side blocked.
  *
  * ★ ABOVE TWELVE IT BECOMES A ROW OF FACES (Will, `list=faces`, 2026-09-19:
  * "This is the condensed version once we exceed a certain count, but let's add
@@ -245,12 +250,14 @@ function Chips({
   items,
   viewerId,
   followingIds,
+  blockedIds,
   emails,
   blockFrom,
 }: {
   items: GuestListItem[];
   viewerId?: string | null;
   followingIds?: ReadonlySet<string>;
+  blockedIds?: ReadonlySet<string>;
   emails?: ReadonlyMap<string, string>;
   blockFrom?: { eventId: string };
 }) {
@@ -309,12 +316,14 @@ function Chips({
           </>
         );
         // Only where it earns its space: a signed-in viewer, somebody else, a
-        // real page to follow, and not one they already follow.
+        // real page to follow, not one they already follow, and no block between
+        // them (a Follow there writes nothing and would read Following).
         const canFollow = Boolean(
           viewerId &&
           item.slug &&
           item.id !== viewerId &&
-          !followingIds?.has(item.id),
+          !followingIds?.has(item.id) &&
+          !blockedIds?.has(item.id),
         );
         return (
           <li key={item.id} className="flex items-center gap-1.5">
@@ -345,6 +354,7 @@ export function GuestList({
   items,
   viewerId,
   followingIds,
+  blockedIds,
   emails,
   blockFrom,
 }: {
@@ -353,6 +363,11 @@ export function GuestList({
   viewerId?: string | null;
   /** Who this viewer already follows: no Follow on a chip that would be a no-op. */
   followingIds?: ReadonlySet<string>;
+  /**
+   * Who this viewer has a block with, either way, among the people listed (`getBlockedAmong`): no Follow on a chip
+   * that could only write nothing and read Following. Never says which side blocked.
+   */
+  blockedIds?: ReadonlySet<string>;
   /**
    * HOST-ONLY: a confirmed guest's address by user id, drawn under the name.
    * Only the Guests room passes it (`getConfirmedGuestAddresses`); a guest's
@@ -383,6 +398,7 @@ export function GuestList({
         items={items}
         viewerId={viewerId}
         followingIds={followingIds}
+        blockedIds={blockedIds}
         emails={emails}
         blockFrom={blockFrom}
       />
@@ -394,6 +410,7 @@ export function GuestList({
       items={items}
       viewerId={viewerId}
       followingIds={followingIds}
+      blockedIds={blockedIds}
       emails={emails}
       blockFrom={blockFrom}
     />
@@ -410,12 +427,14 @@ function GuestListPanel({
   items,
   viewerId,
   followingIds,
+  blockedIds,
   emails,
   blockFrom,
 }: {
   items: GuestListItem[];
   viewerId?: string | null;
   followingIds?: ReadonlySet<string>;
+  blockedIds?: ReadonlySet<string>;
   emails?: ReadonlyMap<string, string>;
   blockFrom?: { eventId: string };
 }) {
@@ -452,6 +471,7 @@ function GuestListPanel({
             items={page}
             viewerId={viewerId}
             followingIds={followingIds}
+            blockedIds={blockedIds}
             emails={emails}
             blockFrom={blockFrom}
           />
