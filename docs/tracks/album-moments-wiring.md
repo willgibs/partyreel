@@ -67,6 +67,13 @@ working.
 
 ## Handoff (replaces the chat report)
 
+- **Paused 2026-10-07 ~04:05Z (the Orchestrator's pacing), WIP, not handed off.** Built and committed: own=glow (the
+  sweep retired), batch=settle (the gate's batches, the settle's lift, held under reduced motion too), the send's
+  toast with Show yours, opening=still (the curtain first with the pinned still, Close, the 12 s ceiling; the view on
+  the same still; the take opens on it), the seed boundaries' hydration blink fixed. Walked locally on :3134 (ledger:
+  `_scratch/album-moments-wiring/rt/ledger.txt`, walks 1 to 11). Left: the reel from the cover's round at 1440, a
+  screen reader pass, docs (guest-flow.md, reel.md), Questions, the whole gate and lab:smoke, then this Handoff.
+
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code, and the sha they ran on

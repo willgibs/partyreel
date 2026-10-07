@@ -31,8 +31,12 @@
  * photograph that fails to decode (a dead link, a file no engine draws) is ready at once, and a batch that takes
  * longer than `ARRIVAL_DECODE_WAIT_MS` (a slow link, a hidden tab that decodes nothing) goes in when its wait runs
  * out: a photograph still not drawn then mounts as any tile does, its shimmer then its fade, which is the album as
- * it was. A video with no preview draws no <img> and waits only for its link; reduced motion glides nothing, so it
- * waits for nothing.
+ * it was. A video with no preview draws no <img> and waits only for its link.
+ *
+ * ★ AND UNDER REDUCED MOTION TOO (album-moments-wiring, measured: let straight in there, a batch stood as grey places
+ * for 150 ms until its photographs drew). The hold moves nothing, so it was never motion to remove: it was kept from
+ * reduced motion when it served the push's wipe, which reduced motion never ran. Under `batch=settle` it serves the
+ * photograph being whole the moment its place opens, which a reader who asked for no motion is owed as much as anyone.
  *
  * ★ ONLY WHAT THE ALBUM'S GRAMMAR CALLS AN ARRIVAL IS HELD. A filter's toggle, a step, a resize and the first
  * paint bring photographs the rows lay at once, and none is in `arrivals`; an arrival the Yours filter hides is
@@ -92,14 +96,6 @@ export type Gate = {
 /** One held arrival's work: whether its photograph has been sent for, and the image holding it. */
 type Job = { decoding: boolean; image?: HTMLImageElement };
 
-/** Reduced motion glides nothing and fades nothing, so there is nothing to wait for. */
-function reducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
 /** A gate being changed: copies of its parts, written in place, and handed back as the next `Gate`. */
 type Draft = {
   known: Set<string>;
@@ -151,12 +147,11 @@ function letReadyBatchesIn(d: Draft) {
 
 /**
  * THE GATE'S NEXT STATE for what the album hands it now, or the same object when nothing changed (so the render
- * that stores it settles). Pure: `ids` reads the album's ids and `still` reduced motion, each only when a decision
- * needs it.
+ * that stores it settles). Pure: `ids` reads the album's ids, only when a decision needs it.
  *  - her own landing never waits: one not judged yet is lit the moment it stands in the rows, and one held a beat
  *    earlier as an arrival (the manifest brought it before her landing was noted) goes in at once, lit;
  *  - an arrival never met before is judged once: not among `ids` (the Yours filter hides it) it is passed over,
- *    under reduced motion it goes straight in, else it is held with the rest of its answer, as one batch;
+ *    else it is held with the rest of its answer, as one batch;
  *  - a held arrival that is no longer an arrival or no longer in the album (hidden, removed) is not held any more,
  *    and a batch whose last unready photograph went that way is let in.
  */
@@ -165,7 +160,6 @@ export function advanceGate(
   arrivals: readonly string[],
   own: readonly string[],
   ids: () => ReadonlySet<string>,
-  still: () => boolean,
 ): Gate {
   const fresh = arrivals.filter((id) => !gate.known.has(id));
   const mine = own.filter((id) => !gate.known.has(id) || gate.waiting.has(id));
@@ -187,17 +181,12 @@ export function advanceGate(
     if (here.has(id)) d.released.push(id);
   }
   for (const id of dropped) unhold(d, id);
-  const calm = fresh.length > 0 && still();
   const n = d.next;
   let took = false;
   for (const id of fresh) {
     if (d.known.has(id)) continue;
     d.known.add(id);
     if (!here.has(id)) continue;
-    if (calm) {
-      d.released.push(id);
-      continue;
-    }
     // Past the cap a photograph is fetched by nobody here: it has nothing to wait for but its batch.
     const fetching = d.waiting.size - d.ready.size;
     d.waiting.add(id);
@@ -260,7 +249,6 @@ export function useArrivalGate<T extends GridMedia>(
     asked,
     own,
     () => new Set(items.map((item) => item.id)),
-    reducedMotion,
   );
   if (next !== gate) setGate(next);
 

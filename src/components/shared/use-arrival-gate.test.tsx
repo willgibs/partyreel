@@ -442,14 +442,17 @@ describe("only what the album's grammar calls an arrival is held", () => {
     expect(shown()).toEqual(["a", "b"]);
   });
 
-  it("★ holds nothing under reduced motion: nothing is pushed and nothing fades, so nothing waits", () => {
+  /* ★ RESHAPED (album-moments-wiring): this pinned "holds nothing under reduced motion: nothing is pushed and nothing
+     fades, so nothing waits". That reason expired with the push: the hold moves nothing, and under guest-moments r1's
+     `batch=settle` it is what keeps a place from standing empty (measured: let straight in, a batch stood as grey
+     places for 150 ms). The scar kept: reduced motion changes nothing about WHEN an arrival may stand. */
+  it("★ holds under reduced motion too: the hold is no motion, and a photograph stands whole there as anywhere", async () => {
     setReducedMotion(true);
     const view = render(<Harness items={SEED} arrivals={[]} />);
-    view.rerender(
-      <Harness items={[photo("c", false), ...SEED]} arrivals={["c"]} />,
-    );
+    view.rerender(<Harness items={[photo("c"), ...SEED]} arrivals={["c"]} />);
+    expect(shown()).toEqual(["a", "b"]);
+    await act(async () => decodes[0].resolve());
     expect(shown()).toEqual(["c", "a", "b"]);
-    expect(decodes).toHaveLength(0);
   });
 
   it("an arrival already standing when the album first draws is its opening paint: shown, glowing, never held", async () => {

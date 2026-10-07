@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createHeadBridge,
+  createOpeningPin,
   type HeadBridge,
   type HeadBridgeState,
 } from "@/components/guest/event-experience-head";
@@ -24,13 +25,29 @@ import {
 /** A seed that never arrives: the album's controller never mounts, and only the curtain answers. */
 const never = () => new Promise<GallerySeed>(() => {});
 
+/**
+ * A seed already in hand that names no photograph (a locked page's answer): the curtain then stands the live album's
+ * word, as it does wherever the seed carried no link for its pick.
+ */
+function arrived(): Promise<GallerySeed> {
+  const seed = Promise.resolve({ kind: "locked" }) as Promise<GallerySeed> & {
+    status?: string;
+    value?: unknown;
+  };
+  seed.status = "fulfilled";
+  seed.value = { kind: "locked" };
+  return seed;
+}
+
+const STILLS = [
+  { id: "m2", tile: "https://r2.test/p/m2.webp" },
+  { id: "m1", tile: "https://r2.test/p/m1.webp" },
+];
+
 function bridgeWith(over: Partial<HeadBridgeState["reel"]> = {}) {
   const bridge = createHeadBridge();
   bridge.set({
-    stills: [
-      { id: "m2", tile: "https://r2.test/p/m2.webp" },
-      { id: "m1", tile: "https://r2.test/p/m1.webp" },
-    ],
+    stills: STILLS,
     reportExpiry: () => {},
     reel: {
       available: true,
@@ -48,19 +65,25 @@ function bridgeWith(over: Partial<HeadBridgeState["reel"]> = {}) {
  * Mounted inside an awaited act: a curtain whose photograph is still on its way suspends its still's boundary, and
  * React commits a suspended tree in a test only once an act is awaited (a page commits it at once).
  */
-async function mount(bridge: HeadBridge, onClosed = vi.fn()) {
+async function mount(
+  bridge: HeadBridge,
+  onClosed = vi.fn(),
+  seed: Promise<GallerySeed> = bridge.get() ? arrived() : never(),
+) {
+  const pin = createOpeningPin();
   await act(async () => {
     render(
       <ReelCurtain
-        seed={never()}
+        seed={seed}
         bridge={bridge}
+        pin={pin}
         eventId="11111111-2222-4333-8444-555555555555"
         albumHref="/e/token"
         onClosed={onClosed}
       />,
     );
   });
-  return { onClosed };
+  return { onClosed, pin };
 }
 
 const curtain = () =>
@@ -81,7 +104,23 @@ describe("the curtain is the reel's first photograph", () => {
     expect(still()?.getAttribute("src")).toBe("https://r2.test/p/m2.webp");
     expect(still()?.dataset.reelCurtainStill).toBe("m2");
     expect(close().getAttribute("href")).toBe("/e/token");
-    expect(document.activeElement).toBe(close());
+    // She starts inside it, on the curtain itself (as the view puts her on its picture), not on Close.
+    expect(document.activeElement).toBe(curtain());
+  });
+
+  it("★ pins the photograph it stands, and keeps it while the album's first still changes (her own newest leading)", async () => {
+    const bridge = bridgeWith();
+    const { pin } = await mount(bridge);
+    expect(pin.get()).toEqual(STILLS[0]);
+    // The live album learns her own uploads: the cover now leads with her newest.
+    act(() => {
+      bridge.set({
+        ...bridge.get()!,
+        stills: [{ id: "mine", tile: "https://r2.test/p/mine.webp" }, ...STILLS],
+      });
+    });
+    expect(still()?.dataset.reelCurtainStill).toBe("m2");
+    expect(pin.get()?.id).toBe("m2");
   });
 
   it("keeps a quiet dark, with Close, where the album has no photograph to show (sealed, or the seed on its way)", async () => {
@@ -154,6 +193,8 @@ describe("the ceiling", () => {
     const again = screen.getByRole("button", {
       name: REEL_CURTAIN_WORDS.again,
     });
+    expect(document.activeElement).toBe(curtain());
+    fireEvent.keyDown(curtain(), { key: "Tab" });
     expect(document.activeElement).toBe(close());
     fireEvent.keyDown(curtain(), { key: "Tab" });
     expect(document.activeElement).toBe(again);

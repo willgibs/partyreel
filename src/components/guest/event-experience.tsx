@@ -38,6 +38,7 @@ import {
   CoverGround,
   CoverPicture,
   createHeadBridge,
+  createOpeningPin,
   useHeadBridge,
 } from "@/components/guest/event-experience-head";
 import { ReelCurtain } from "@/components/guest/event-experience-curtain";
@@ -827,6 +828,8 @@ function EventExperienceBody({
      cover's photographs and the reel's door here (`LiveReel`'s `headBridge`), as her tracker publishes
      its button's two facts through `trackerStore`. Null until the album has mounted. */
   const [headBridge] = useState(createHeadBridge);
+  // The reel's opening photograph, pinned by the curtain for the view to open on (`OpeningPin`).
+  const [openingPin] = useState(createOpeningPin);
   const head = useHeadBridge(headBridge);
   // ★ WHAT HER PICKS HOLD, FOR THE FOOT'S SAVE (red-team 49's NIT; `guest-action-dock-kinds.ts`): the album's kinds,
   // said from inside its live source while she selects, so her Save names photos, videos or both.
@@ -860,6 +863,10 @@ function EventExperienceBody({
   if (!curtainDown && head && !head.reel.viewAsked) setCurtainDown(true);
   const reelCurtain = !curtainDown;
   const dropCurtain = useCallback(() => setCurtainDown(true), []);
+  // The pin is the curtain's alone: once it goes, a reel opened from the cover opens on the cover's own first still.
+  useEffect(() => {
+    if (!reelCurtain) openingPin.set(null);
+  }, [reelCurtain, openingPin]);
   // Where the curtain's Close goes before the album's controller can close the reel: the album, with no `?reel`.
   const albumPath = useMemo(() => {
     try {
@@ -1389,6 +1396,7 @@ function EventExperienceBody({
         <ReelCurtain
           seed={galleryPromise}
           bridge={headBridge}
+          pin={openingPin}
           eventId={event.id}
           albumHref={albumPath}
           onClosed={dropCurtain}
@@ -1811,6 +1819,8 @@ function EventExperienceBody({
                       isOwner={isOwner}
                       // The cover's photographs and the reel's door, told to the head above the album.
                       headBridge={headBridge}
+                      // While the curtain stands, the photograph it stands is the one the view opens on.
+                      openingPin={reelCurtain ? openingPin : null}
                     >
                       {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just

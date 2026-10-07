@@ -9,7 +9,7 @@
  * view's chunk and the player's first window took (about a second on a slow phone, a third warmed), which at the very
  * start of the reel read as broken. The cover's first still is already on the page (`OpeningStill`: the seed's slot 0,
  * the reel's own opening), so it stands edge to edge at once, the view stands the same picture until its first frame
- * (`live-reel-view.tsx`'s `opening`) and the reel starts from it. An album with nothing to show (sealed until its
+ * (`live-reel-view.tsx`'s `opening`, the one photograph pinned for both: `OpeningPin`) and the reel starts from it. An album with nothing to show (sealed until its
  * develop, or a seed still on its way) keeps a quiet dark, with Close.
  *
  * ★ FROM THE FIRST BYTE, BEFORE THE HEAD. It is the page's first child (ROADMAP's curtain line: drawn after the album's
@@ -38,6 +38,7 @@ import {
 import {
   OpeningStill,
   type HeadBridge,
+  type OpeningPin,
 } from "@/components/guest/event-experience-head";
 import {
   REEL_CLOSE_SPOT,
@@ -70,12 +71,15 @@ export const REEL_CURTAIN_WORDS = {
 export function ReelCurtain({
   seed,
   bridge,
+  pin,
   eventId,
   albumHref,
   onClosed,
 }: {
   seed: Promise<GallerySeed>;
   bridge: HeadBridge;
+  /** Where the photograph it stands is pinned: the reel's view opens on that very photograph (`OpeningPin`). */
+  pin: OpeningPin;
   eventId: string;
   /** The album's own address, with no `?reel`: where Close goes before the album's controller can close the reel. */
   albumHref: string;
@@ -89,9 +93,10 @@ export function ReelCurtain({
     const t = setTimeout(() => setLate(true), REEL_CURTAIN_CEILING_MS);
     return () => clearTimeout(t);
   }, []);
-  // She starts inside it, as she would inside the view's own dialog (a pointer's arrival draws no halo).
+  // She starts inside it, on the curtain itself as the view puts her on its own picture: Tab reaches Close, and no halo
+  // stands on Close for an arrival that pressed nothing (a page's first focus draws one on a link).
   useEffect(() => {
-    closeRef.current?.focus({ preventScroll: true });
+    rootRef.current?.focus({ preventScroll: true });
   }, []);
 
   const onClose = useCallback(
@@ -138,14 +143,16 @@ export function ReelCurtain({
       role="dialog"
       aria-modal="true"
       aria-label={REEL_CURTAIN_WORDS.name}
+      tabIndex={-1}
       data-surface="photo"
       onKeyDown={onKeyDown}
       // Over everything on the page and under the view's own overlay (z-50), which lands on the same picture.
-      className="dark fixed inset-0 z-[49] touch-none overflow-hidden bg-black text-white"
+      className="dark fixed inset-0 z-[49] touch-none overflow-hidden bg-black text-white outline-none"
     >
       <OpeningStill
         seed={seed}
         bridge={bridge}
+        pin={pin}
         eventId={eventId}
         className="pointer-events-none absolute inset-0 size-full object-cover"
       />

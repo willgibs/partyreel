@@ -263,7 +263,7 @@ export function LiveReelView({
   standIn,
   screenLink = true,
   dockNote,
-  opening = null,
+  opening: openingAsked = null,
   onSetForEveryone,
   onClose,
 }: ReelViewProps) {
@@ -323,6 +323,10 @@ export function LiveReelView({
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
+
+  // ★ THE OPENING PHOTOGRAPH, HELD AS THE VIEW OPENED: it is the one the take leads with (`useLiveSource` reads it once,
+  // at the source's birth), so a later word from the album (the cover's deal moving) never swaps it mid-opening.
+  const [opening] = useState(openingAsked);
 
   /* ── the source: the album's live list, fed as it changes ────────────────── */
   // Stills that failed to decode are re-minted by id (the watchdog), never the whole album.

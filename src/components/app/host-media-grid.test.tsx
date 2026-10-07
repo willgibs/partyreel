@@ -247,13 +247,17 @@ describe("HostMediaGrid: an arrival is laid when it can land complete", () => {
     expect(laid()).toEqual(["c", "a", "b"]);
   });
 
-  it("holds nothing under reduced motion, which pushes nothing and fades nothing", async () => {
+  // ★ RESHAPED (album-moments-wiring): titled "holds nothing under reduced motion, which pushes nothing and fades
+  // nothing"; the push is retired (guest-moments r1's `batch=settle`) and the hold moves nothing, so reduced motion now
+  // holds as the album does anywhere, and its arrival stands whole.
+  it("holds under reduced motion too, and lays the arrival once it is drawn", async () => {
     setReducedMotion(true);
     const rows = hub(vi.fn());
     const view = render(<Grid items={SEED} rows={rows} />);
-    view.rerender(<Grid items={[photo("c", false), ...SEED]} rows={rows} />);
+    view.rerender(<Grid items={[photo("c"), ...SEED]} rows={rows} />);
+    expect(laid()).toEqual(["a", "b"]);
+    await act(async () => decodes[0].resolve());
     expect(laid()).toEqual(["c", "a", "b"]);
-    expect(decodes).toHaveLength(0);
   });
 
   it("with no hub behind it (the Library's plain grid) a linked arrival waits for its photograph alone", async () => {
