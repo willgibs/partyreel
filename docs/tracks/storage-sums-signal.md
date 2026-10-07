@@ -51,18 +51,51 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Q1 · `admin_actions` does not exist** (admin-observability.md: "No operator audit table exists"; ROADMAP's Admin
+  line calls it a proposal). Recommended, built: the Rebuild is recorded as the portal's other operator acts are (one
+  Sentry line naming who, whom and both figures, `operator_rebuilt_storage_sums`) plus a closed manual run of the
+  check on its own card (whom, before and after, whether she reads at parity again); the audit table stays the
+  ROADMAP's Admin line.
+- **Q2 · The sums' trigger opened a second deadlock of the same class:** `disown_guest_rows_by_email` re-marks a row
+  the host binned (its media rows, then her row in the trigger) against `restore_media` (her row, then the media).
+  One side's 40P01 and a retry, in the instant an address's owner releases a typed upload while its host restores it.
+  Recommended, nothing built here: a follow-up after host-moments-wiring's `let_back_in` lands, the rule "a writer
+  holding her profiles row never waits on a media row" for the restores themselves (`restore_media` takes its row
+  NOWAIT, `let_back_in` SKIP LOCKED), which closes this and the older takedown and Delete-permanently races at once;
+  disown's own multi-host statement cannot take her rows first without opening others. A Deferred line below.
+- **Q3 · A pass longer than a night** reads Needs a look each night it stops early (the reconcile's convention). Today
+  a pass is one call (3 hosts, ~30 ms); past about 2,000 hosts it spans nights. Recommended: keep the convention now;
+  a Deferred line for scale (its own share or cron, or only the hosts whose sums moved plus a weekly whole pass).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `lifecycle-recovery.md`, the purge cron: one bullet, the `storage_sums` sweep (last of the budgeted, its pass, the
+  re-check of named hosts, never a mend, its cost).
+- `admin-observability.md`, backend jobs: the sub-sweep line gains the per-sweep `counts` (`findings`); one bullet, the
+  Rebuild (AAL2, a host the record names, checked at once, a closed manual run, one Sentry line).
+- `database-security.md`, the lock order: the trigger's one deadlock closed (her row first, the media row NOWAIT, and
+  why her row first alone would not do), and the one of the class that stands (Q2).
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Immediate, Admin and operations (replaces "Jobs: the storage sums' nightly signal", done here): "Storage sums: the
+  restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED), closing
+  `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones
+  (storage-sums-signal's Q2), after host-moments-wiring's `let_back_in`."
+- Later, Admin and operations: "Jobs: the storage sums' check at scale: past ~2,000 hosts a pass outlasts a night and
+  reads Needs a look each night; give it a share or a cron of its own, or check only the hosts whose sums moved plus a
+  weekly whole pass (storage-sums-signal's Q3)."
 
 ## Handoff (replaces the chat report)
 
+- **PAUSED (2026-10-07 ~04:05Z, the Orchestrator's pacing request), where it stands:** work commit `2599932c1`
+  pushed; on it typecheck 0, lint 0, test 0 (1,065 files, 13,382; run with the component setup's env dummies,
+  NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, per the Orchestrator), build 0, lab:smoke 0
+  (159 checks) on 3137; the walk done (the purge cron on 3137 with a local CRON_SECRET, manual, 03:59Z: the
+  `storage_sums` row ok, 3 hosts at parity); migration RED/GREEN run live and rolled back. LEFT: the card's look at
+  375 and 1440, light and dark (its markup dumped with the real CSS, one shot of four taken), then this Handoff
+  whole, the migration's final md5 and the handoff commit. launch-prep moved (event-header-wiring-2) but touched none
+  of the lane's paths or reads: no sync.
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code, and the sha they ran on
