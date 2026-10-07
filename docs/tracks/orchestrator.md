@@ -29,9 +29,10 @@ from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on
 Merged since, gates 56 to 66, each recorded and pruned, each one's calls his to overrule in `docs/calls.md` (BZ to CF):
 the six wirings (`account-moments-wiring` `1fdeca5e0`, `create-wizard-wiring` `0617cac99`, `event-header-wiring-2`
 `273a911ac`, `camera-wiring` `770efb29d`, `host-moments-wiring` `a78930d9c`, `album-moments-wiring` `3eace21ad`),
-`storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and four boards for the next desk (`brand-marks-r1`
+`storage-sums-signal` `a72c8a64a`, `crumbs-87` `a7991bc30`, and six boards for the next desk (`brand-marks-r1`
 `3d2c9d1de`, `signature-r1` `556ad4dc1`, `account-moments-r2` `857376f49`, `create-wizard-r5` `7f228e58a`, gate 68,
-`guests-room-r1` `89c6a94c7`, gate 69; its 12 portraits joined ASSETS.md's row 41). Three migrations live by protocol
+`guests-room-r1` `89c6a94c7`, gate 69; its 12 portraits joined ASSETS.md's row 41; `presence-r1` `8b04c5afb`,
+gate 70). Three migrations live by protocol
 (`reshoots`, `let_in`, `storage_sums_signal`; the Advisor's Q40 to Q42), the types regenerated after them and the three
 typed seams dropped (`7600c223e`). The gap audit (`app-gaps-r1`, done): its nine product decisions are the calls lab's
 X9 to X17, its design gaps ROADMAP lab lines, its bugs closed by crumbs-87 (ledger
@@ -43,7 +44,6 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `presence-r1` | board (desk place 10): the guest row of faces (the newest ringed in light) and the hashvatar wherever they earn a place, in Aperture, inside the guest rules | RUNNING (cut at `3569b33b`) | Opus, 3134 | `a90f8538ce0861d2b` |
 | `crumbs-88` | red-team 57's LOW and NIT, Create's retry key (a migration), Immediate's app lines, the docs crumbs-87 left stale; integrates after 39 is on `main` | RUNNING (cut at `5cf32baf`) | Sonnet, 3131 | `a6dae4d7c2d5e78f5` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
@@ -56,9 +56,9 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 
 ## Next, in order
 
-1. **Integrate presence r1** when it hands off. The next desk serves brand-marks r1, signature r1, account-moments r2,
-   create-wizard r5, guests-room r1 and presence r1: once they land, refresh his desk to the tip (`desk-refresh.sh`, never while a red-team walks it) and
-   tell him it is ready.
+1. **The next desk is whole** (brand-marks r1, signature r1, account-moments r2, create-wizard r5, guests-room r1,
+   presence r1, all merged): his desk refreshed to the tip at 10:30Z for red-team 57b's walk, which serves his next
+   sitting too; tell him it is ready when he is back (never refreshed while a red-team walks it).
 2. **Milestone 39 on Will's yes** (one walk, both waves): everything it holds is merged and red-team 57 found nothing
    above LOW, but `crumbs-87` merged after 57's build (`b1e219f26`), so **red-team 57b** walks its eight fixes and the
    type change on a desk refreshed to the tip (its brief `../partyreel-wt/_scratch/redteam-57b/brief.md`, `<SHA>` filled

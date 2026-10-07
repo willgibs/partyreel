@@ -152,6 +152,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: the cover's eyebrow ("Disposable · develops Thursday at 2 AM", `coverEyebrow`) says only the reader's clock where the sheet under it says both; a far party's wants the party's clock too, on the guest page and See it as a guest (crumbs-86).
 - Door: a camera-only Disposable's welcome says "Add your photos and videos in seconds." where its guests only use the album's camera; and the door page's hidden summaries (Private, Only people already in) say uploads are paused while they are open, a screen-reader check (app-gaps-r1).
 - Lab exploration: the album after its party, the gap audit's highest design gap: a phase-aware album (live, then keepsake: its title, a card carrying its photographs, Add receding), the host's morning-after recap (Share, Make a clip, Download), a guest-to-host bridge into Create carrying this album's style, an anniversary; one card family for every shared link (`/e/[token]/card` draws the name alone) (app-gaps-r1).
+- Lab exploration: presence r2, the guest row where r1 did not reach (a photograph's credit in the viewer, the reel's closing credits, the host's dashboard stage on the party's day), and a person's seed as the light of her own page before her first photograph, after account-moments r2's invitation (presence r1).
 
 ### Accounts and profiles
 
@@ -267,6 +268,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Library: the hub-cover specimen (`HubCoverDemo`) draws the cover without its row, so the foot's clearance for the cards reads as an empty band; draw it with the row, as `HubBandDemo` does (event-header-wiring-2).
 - The lab and the kit: `pnpm compute:model` has not run end to end on Linux (its fixtures now come from `$PARTYREEL_TEST_MEDIA` or `media-gen.mjs`, and `--event-name` is new); milestone 38's run is its first (lab-kit-3).
 - The lab: a portalled frame's `IntersectionObserver` (the hub's cards row) watches the lab's viewport rather than the frame's, so the row reads stuck whenever its frame leaves the lab's screen (a beyond-viewport capture flips it); a `FrameWindow` observer shim, or a line in `traps.ts` (create-wizard r5).
+- The lab: at 375, once an option is picked, a step's dock wraps "Not clear to me" onto a row of its own under the note field, on every board (presence r1).
 
 ### Code hygiene
 
@@ -362,6 +364,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - `FAQPage` JSON-LD per help article, each a clean question-and-answer pair (the articles carry `ArticleJsonLd` and breadcrumbs today).
 - The marketing site tuned at phone widths, judged on Will's phone `[eng+human]`.
 - The marketing site on a real iPhone `[eng+human]`: the privacy lens on /features/privacy was never driven in WebKit, so its two mitigations (`isolation` on the pane's rounded clip, `will-change` on the filtered veil) wait on a first iPhone look.
+- Marketing: the guest row on the marketing site, from fixtures only (ASSETS row 41's portraits where a face needs a photograph), drawn in the marketing round (presence r1's carried `marketing`).
 
 ### The lab and the kit
 
