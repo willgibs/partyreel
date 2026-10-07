@@ -38,7 +38,8 @@
 -- binned (its media rows, then her row in the trigger) against `restore_media` (her row, then the media): the same
 -- 40P01 and a retry, in the instant an address's owner releases a typed upload while its host restores it. Its fix is
 -- the restores' own (a writer holding her profiles row never waits on a media row: `restore_media` NOWAIT,
--- `let_back_in` SKIP LOCKED), after host-moments-wiring's `let_back_in` lands.
+-- `let_back_in` SKIP LOCKED), and a change to `let_back_in` starts from let_in's three-argument body
+-- (20261007020000, `p_let_in`), never 20261003220000's, or it drops the argument.
 --
 -- WHAT THE DEPLOYED BUILDS MEET (milestone 38's build and the alias share this database): the same answers; in the race
 -- of 1, a busy error where there was a deadlock, which their `removeMyUpload` already words as a retry. The flag row is
@@ -64,6 +65,9 @@
 --     (*) two presses of one row across its restore: the arm, holding her row, waiting on the row the other press's
 --     main arm holds on its way to her row. NOWAIT is what takes the arm out of every cycle.
 --   storage_sums_drift empty after every race and every burst; a repeat press while her row is held answers at once.
+--   Again against let_in's three-argument `let_back_in` (20261007020000, applied live as 20261007042038), whose restore
+--   arm and all before it are 20261003220000's byte for byte: the race BEFORE 40P01, AFTER none; the pair stressed,
+--   restoring 72 deadlocks BEFORE and 0 AFTER, restoring and letting in (`p_let_in`) 63 and 0.
 --
 -- ADVISORS (security): no delta (no new function, table, policy or grant; the arm stays inside its SECURITY DEFINER
 -- body, `search_path` pinned).
@@ -198,8 +202,9 @@ on conflict (key) do nothing;
 --         re-mark in the body); 6 false (no `storage_sums_enabled` row); 7 true (the grants as they stand).
 --   GREEN 0 to 7 all true: the same answers through the new arm, its two locks before the write and only inside the
 --         candidate branch, the switch seeded ON, the grants unchanged. Nothing persists after the rollback.
---   The lane's own runs on the live schema (2026-10-07): RED exactly so (5 and 6 false, the rest true), GREEN 8 of 8;
---   after both, the live body's md5 still a77075737be38cc26fe61aa1e870e4db, no flag row, no fixture left.
+--   The lane's own runs on the live schema (2026-10-07): RED exactly so (5 and 6 false, the rest true), GREEN 8 of 8,
+--   and GREEN 8 of 8 again once let_in was applied (20261007042038); after each, the live body's md5 still
+--   a77075737be38cc26fe61aa1e870e4db, no flag row, no fixture left.
 -- =============================================================================================
 -- create temp table proof (n serial, step text, ok boolean, detail text);
 -- create temp table fx (k text primary key, id uuid);

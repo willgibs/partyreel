@@ -214,7 +214,8 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   an operator's removal, is on its way to her row: 55P03, and the guest presses again), so it sits in no cycle; her
   row first alone would only turn the cycle round. One of the class stands: `disown_guest_rows_by_email` re-marks a
   row the host binned (media, then her row) against `restore_media` (her row, then the media), one side's 40P01 and a
-  retry, until the restores take their rows NOWAIT (a ROADMAP line).
+  retry, until the restores take their rows without waiting (a ROADMAP line; `let_back_in`'s from let_in's
+  three-argument body, 20261007020000).
 - ★ **A write that bypasses triggers leaves the storage sums behind** (`session_replication_role = replica`, a
   data-only restore of `media` with its triggers off). A whole-database restore carries `event_storage_sums` and
   `host_storage_sums` in the same snapshot and stays exact; a partial restore of media rows runs
