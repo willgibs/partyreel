@@ -1,8 +1,9 @@
 /**
- * THE GUESTS ROOM, AS IT STANDS OVER THE HUB (event-header r2, `rooms=over`): its sections in their order, the
- * addresses handed to the one list allowed them, Invite the main action only while the room is empty, and a link into
- * a section landing on it. Its panel titles it, so it draws no heading of its own. The sections are their own tests';
- * here they are stood in for and what each is handed is pinned.
+ * THE GUESTS ROOM, AS IT STANDS OVER THE HUB (event-header r2, `rooms=over`; guests-room r1, `rows=list`): its sections
+ * in their order, the addresses and what each person added handed to the guests' rows alone, Invite the main action
+ * only while the room is empty (and the guests' head's quiet one after), and a link into a section landing on it. Its
+ * panel titles it, so it draws no heading of its own. The sections are their own tests'; here they are stood in for
+ * and what each is handed is pinned.
  */
 import { cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +13,7 @@ import type { GuestsRoomData } from "./room.server";
 const handed = vi.hoisted(() => ({
   list: [] as Record<string, unknown>[],
   invite: [] as Record<string, unknown>[],
+  invited: [] as Record<string, unknown>[],
 }));
 vi.mock("./at-the-door", () => ({
   AtTheDoor: ({ total }: { total: number }) => (
@@ -21,13 +23,16 @@ vi.mock("./at-the-door", () => ({
   ),
 }));
 vi.mock("./invited-section", () => ({
-  InvitedSection: ({ listIsTheDoor }: { listIsTheDoor: boolean }) => (
-    <section
-      id="invited"
-      aria-label="Invited"
-      data-door={String(listIsTheDoor)}
-    />
-  ),
+  InvitedSection: (props: { listIsTheDoor: boolean }) => {
+    handed.invited.push(props);
+    return (
+      <section
+        id="invited"
+        aria-label="Invited"
+        data-door={String(props.listIsTheDoor)}
+      />
+    );
+  },
 }));
 vi.mock("./guests-invite", () => ({
   GuestsInvite: (props: Record<string, unknown>) => {
@@ -38,10 +43,21 @@ vi.mock("./guests-invite", () => ({
 vi.mock("@/components/app/event-blocks/blocked-section", () => ({
   BlockedSection: () => <section aria-label="Blocked" />,
 }));
-vi.mock("@/components/social/guest-list", () => ({
-  GuestList: (props: Record<string, unknown>) => {
+// The guests' rows stand in as what they draw where nobody has added: the room's own line for why.
+vi.mock("./room-guests", () => ({
+  RoomGuests: (props: {
+    items: unknown[];
+    quiet: unknown[];
+    empty: React.ReactNode;
+    invite: React.ReactNode;
+  }) => {
     handed.list.push(props);
-    return <ul aria-label="Guests list" />;
+    return (
+      <section aria-label="Guests">
+        {props.invite}
+        {props.items.length === 0 ? props.empty : null}
+      </section>
+    );
   },
 }));
 
@@ -75,15 +91,16 @@ function room(data: GuestsRoomData = DATA, anchor: string | null = null) {
 beforeEach(() => {
   handed.list.length = 0;
   handed.invite.length = 0;
+  handed.invited.length = 0;
 });
 
 describe("the Guests room over the hub", () => {
   it("stands its sections in order: At the door, the guests, Invited, Blocked; no heading of its own", () => {
     room();
-    const order = [...document.querySelectorAll("section, ul")].map((el) =>
+    const order = [...document.querySelectorAll("section")].map((el) =>
       el.getAttribute("aria-label"),
     );
-    expect(order).toEqual(["At the door", "Guests list", "Invited", "Blocked"]);
+    expect(order).toEqual(["At the door", "Guests", "Invited", "Blocked"]);
     expect(screen.queryByRole("heading")).toBeNull();
     expect(screen.getByLabelText("Invited")).toHaveAttribute(
       "data-door",
@@ -91,11 +108,85 @@ describe("the Guests room over the hub", () => {
     );
   });
 
-  it("★ hands the addresses and Block to its one list, as the room alone may", () => {
+  it("★ hands the addresses, what each added and her relations to the guests' rows, as the room alone may", () => {
+    room({
+      ...DATA,
+      added: [["g1", { photos: 3, videos: 1, since: "6:03 PM" }]],
+      following: ["u1"],
+      barred: ["u2"],
+    });
+    const { ctx } = handed.list.at(-1) as {
+      ctx: Record<string, unknown>;
+    };
+    expect(ctx.eventId).toBe("e1");
+    expect(ctx.emails).toEqual(new Map([["u1", "maya@example.com"]]));
+    expect(ctx.added).toEqual(
+      new Map([["g1", { photos: 3, videos: 1, since: "6:03 PM" }]]),
+    );
+    expect(ctx.following).toEqual(new Set(["u1"]));
+    expect(ctx.barred).toEqual(new Set(["u2"]));
+  });
+
+  it("a read with none of the rows' facts (a stand-in's) draws them with nothing counted and nobody quiet", () => {
     room();
-    const props = handed.list.at(-1)!;
-    expect(props.emails).toEqual(new Map([["u1", "maya@example.com"]]));
-    expect(props.blockFrom).toEqual({ eventId: "e1" });
+    const props = handed.list.at(-1) as {
+      quiet: unknown[];
+      ctx: { added: Map<string, unknown> };
+    };
+    expect(props.quiet).toEqual([]);
+    expect(props.ctx.added.size).toBe(0);
+  });
+
+  it("★ hands a joined invite the face the room holds for its address: a listed guest's, or someone in with nothing yet", () => {
+    room({
+      ...DATA,
+      items: [
+        {
+          id: "u1",
+          displayName: "Maya",
+          slug: null,
+          avatarMarker: null,
+          avatarUrl: "https://cdn.test/maya.webp",
+          seed: "seed-u1",
+        },
+      ] as never,
+      quiet: [
+        {
+          id: "u2",
+          displayName: "Dev",
+          slug: null,
+          avatarMarker: null,
+          avatarUrl: null,
+          seed: "seed-u2",
+        },
+      ] as never,
+      emails: [
+        ["u1", "maya@example.com"],
+        ["u2", "dev@example.com"],
+      ],
+    });
+    const { faces } = handed.invited.at(-1) as {
+      faces: Map<string, unknown>;
+    };
+    expect(faces.get("maya@example.com")).toEqual({
+      name: "Maya",
+      seed: "seed-u1",
+      photo: "https://cdn.test/maya.webp",
+    });
+    expect(faces.get("dev@example.com")).toMatchObject({ name: "Dev" });
+  });
+
+  it("★ someone in with nothing added yet keeps the room from reading as empty", () => {
+    room({
+      ...DATA,
+      items: [],
+      doorTotal: 0,
+      invited: [],
+      quiet: [{ kind: "unverified", id: "g9", displayName: "Nina" }] as never,
+    });
+    expect(handed.invite.at(-1)).toMatchObject({ prominent: false });
+    expect(document.querySelector("[data-guests-empty]")).toBeNull();
+    expect(handed.list.at(-1)).toMatchObject({ quiet: [{ id: "g9" }] });
   });
 
   it("makes Invite its main action only while it is empty", () => {
@@ -156,11 +247,11 @@ describe("the Guests room over the hub", () => {
     it("★ says it even where someone waits at the door or is invited, since the list's own empty line would lie there too", () => {
       room(sealed(3, { doorTotal: 2 }));
       expect(screen.getByText(/3 shots are developing/)).toBeInTheDocument();
-      expect(handed.list).toHaveLength(0);
+      expect(screen.queryByText(/nobody has added photos/i)).toBeNull();
       cleanup();
       room(sealed(3, { invited: [{ email: "a@b.co", joined: false }] }));
       expect(screen.getByText(/3 shots are developing/)).toBeInTheDocument();
-      expect(handed.list).toHaveLength(0);
+      expect(screen.queryByText(/nobody has added photos/i)).toBeNull();
     });
 
     it("leaves the list to speak once a guest is on it, and keeps the empty room's own words for an album that holds nothing", () => {

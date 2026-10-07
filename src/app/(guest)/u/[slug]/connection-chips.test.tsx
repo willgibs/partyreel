@@ -49,9 +49,12 @@ describe("the Connections chips", () => {
   it("★ open a look with the handle and the way to the page, and no Follow", () => {
     render(<ConnectionChips items={[sam]} />);
     fireEvent.click(screen.getByRole("button", { name: "Sam Okafor" }));
-    expect(
-      screen.getByRole("link", { name: /open full profile/i }),
-    ).toHaveAttribute("href", "/u/samo");
+    // ★ RESHAPED BY guests-room r1 (`card=standing`): the card's door is its quiet pair's "Their page", where it was the
+    // look's "Open full profile"; that it opens their page is the scar kept.
+    expect(screen.getByRole("link", { name: /their page/i })).toHaveAttribute(
+      "href",
+      "/u/samo",
+    );
     expect(screen.getByText("@samo")).toBeInTheDocument();
     // Every chip is someone she already follows: the look has nothing to offer her to follow.
     expect(screen.queryByRole("button", { name: /follow/i })).toBeNull();

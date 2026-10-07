@@ -19,6 +19,12 @@ vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
   followProfileAction: vi.fn().mockResolvedValue({ ok: true }),
   unfollowProfileAction: vi.fn().mockResolvedValue({ ok: true }),
 }));
+// A name's card in the host's room reads that person's photographs (guests-room r1), through the look's own Server
+// Functions (server-only too): its strip is the card's contract (`guest-peek.test.tsx`), so here it reads nothing.
+vi.mock("@/app/(app)/dashboard/[eventId]/guests/look-actions", () => ({
+  readHostLookAction: vi.fn().mockResolvedValue({ ok: false }),
+  readAlbumLookAction: vi.fn().mockResolvedValue({ ok: false }),
+}));
 // The block screen is its own file's contract (event-blocks/block-confirm.test.tsx), and it reaches
 // the host's server actions; here it stands in as what it was opened for.
 vi.mock(
@@ -129,9 +135,12 @@ describe("GuestList", () => {
     expect(screen.queryByRole("link")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: /maya/i }));
-    expect(
-      screen.getByRole("link", { name: /open full profile/i }),
-    ).toHaveAttribute("href", "/u/maya");
+    // ★ RESHAPED BY guests-room r1 (`card=standing`): the page's key is the quiet pair's "Their page", where it was
+    // the look's loudest "Open full profile"; that it opens their page, and only where there is one, is the scar kept.
+    expect(screen.getByRole("link", { name: /their page/i })).toHaveAttribute(
+      "href",
+      "/u/maya",
+    );
   });
 
   it("gives a name with no page a look with no door", () => {
@@ -286,9 +295,10 @@ describe("GuestList: unverified guests", () => {
 
     // Nor does her look: the same answer, said once, for both places a Follow is offered.
     fireEvent.click(screen.getByRole("button", { name: /priya/i }));
-    expect(
-      screen.getByRole("link", { name: /open full profile/i }),
-    ).toHaveAttribute("href", "/u/priya");
+    expect(screen.getByRole("link", { name: /their page/i })).toHaveAttribute(
+      "href",
+      "/u/priya",
+    );
     expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
   });
 
@@ -480,7 +490,7 @@ describe("GuestList: Block in the host's room", () => {
     fireEvent.click(screen.getByRole("button", { name: /maya/i }));
     // Social first: the page is still the look's lead.
     expect(
-      screen.getByRole("link", { name: /open full profile/i }),
+      screen.getByRole("link", { name: /their page/i }),
     ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: /block from this event/i }),
@@ -493,9 +503,7 @@ describe("GuestList: Block in the host's room", () => {
     });
     expect(screenFor).toHaveTextContent("Maya");
     // The look closed as the screen opened.
-    expect(
-      screen.queryByRole("link", { name: /open full profile/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", { name: /their page/i })).toBeNull();
   });
 
   it("a typed name's Block names its guest row", () => {

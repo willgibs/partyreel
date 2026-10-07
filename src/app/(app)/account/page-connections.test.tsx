@@ -117,9 +117,12 @@ describe("a name opens the look, and the look says what is true now", () => {
   it("opens the person's door from the name, with no Follow where the row's own action is the Follow", () => {
     render(<ConnectionsLists following={[sam]} blocked={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "Sam Okafor" }));
-    expect(
-      screen.getByRole("link", { name: /open full profile/i }),
-    ).toHaveAttribute("href", "/u/samo");
+    // ★ RESHAPED BY guests-room r1 (`card=standing`): the door is the card's quiet pair's "Their page", where it was
+    // the look's "Open full profile"; that it opens their page is the scar kept.
+    expect(screen.getByRole("link", { name: /their page/i })).toHaveAttribute(
+      "href",
+      "/u/samo",
+    );
     // The row's button and the look's would be two controls for one relation in one row.
     expect(screen.getAllByRole("button", { name: /follow/i })).toHaveLength(1);
   });
@@ -131,7 +134,7 @@ describe("a name opens the look, and the look says what is true now", () => {
     fireEvent.click(name());
     expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
     expect(
-      screen.getByRole("link", { name: /open full profile/i }),
+      screen.getByRole("link", { name: /their page/i }),
     ).toBeInTheDocument();
     fireEvent.click(name());
 
@@ -173,9 +176,10 @@ describe("a name opens the look, and the look says what is true now", () => {
 
     // The Unblock stands as she asked for it, and the look still opens, with the way to his page.
     fireEvent.click(screen.getByRole("button", { name: "Ray Moss" }));
-    expect(
-      screen.getByRole("link", { name: /open full profile/i }),
-    ).toHaveAttribute("href", "/u/raym");
+    expect(screen.getByRole("link", { name: /their page/i })).toHaveAttribute(
+      "href",
+      "/u/raym",
+    );
     expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
     expect(screen.getByText(/not following anyone yet/i)).toBeInTheDocument();
     fireEvent.keyDown(document.activeElement ?? document.body, {
