@@ -169,27 +169,29 @@ export const BRAND_MARKS = defineExploration({
           id: "finished",
           label: "Your v1, finished",
           means:
-            "Your letters exactly, with a small cut for the bars: the three pairs that touch (Pa, ee, el) parted so the word never blots at 22 pixels.",
+            "Your letters exactly, with a small cut for the bars: the pairs that touch (Pa, yr, ee) parted and the rest evened, so the word reads at 22 pixels.",
           gains:
-            "Your drawing and its energy kept, crisp at every size it is drawn.",
-          costs: "A sporty italic is the loudest thing on a calm page.",
+            "Your drawing and its energy kept, every letter clear at the bars' size.",
+          costs:
+            "A sporty italic is the loudest thing on a calm page; the bars' cut is a touch looser.",
         },
         {
           id: "nameplate",
           label: "A nameplate in spaced capitals",
           means:
-            "PARTYREEL redrawn in wide capitals, spaced the way a camera engraves its name: the readout's voice made the mark.",
-          gains: "The calmest mark: one family with the camera's readouts.",
+            "PARTYREEL redrawn in wide capitals, spaced the way a camera engraves its name on its body: the readouts' own voice, made the mark.",
+          gains:
+            "The calmest mark: one voice with the camera's readouts, crisp from 16 pixels to a poster.",
           costs:
-            "Your v1 retired; capitals read formal, a wedding before a party.",
+            "Your v1 retired; spaced capitals are common and read formal, a wedding before a party.",
         },
         {
           id: "lowercase",
           label: "A lowercase word on the Ring",
           means:
-            "partyreel redrawn upright in lowercase, its p, a and e bowls the Ring's own circle, one family with the headings' Urbanist.",
+            "partyreel redrawn upright on the Ring's circle: one round draws every bowl and the r's shoulder, at Urbanist's weight; the t and l keep your v1's cut.",
           gains:
-            "Friendly and round, of a piece with the icon and the headings.",
+            "Friendly and calm, of a piece with the icon and the headings, and open down to 16 pixels.",
           costs:
             "Your v1 retired, and a round lowercase is the most common mark there is.",
         },
@@ -218,38 +220,38 @@ export const BRAND_MARKS = defineExploration({
           id: "ember",
           label: "Key-lit, as brand r2 drew it",
           means:
-            "The puck in its ring lit from the top-left by the house ember, the light spent to dark at the bottom-right: an object lit by one lamp.",
+            "The puck in its ring lit from the top-left by the house ember, deepening to an ember red at the bottom-right: one lamp, and a whole ring at every size.",
           gains:
-            "An object in a room, warm and calm: the brand's one light, drawn.",
+            "An object in a room, warm and calm: the brand's one light, drawn, and still a ring in a tab.",
           costs:
-            "Half the ring is dark, so the smallest sizes need a cut of their own.",
+            "The quietest of the three on a home screen, half its ring dim; at 16 pixels the lamp is a hint.",
         },
         {
           id: "whole",
-          label: "The whole ring, lit evenly",
+          label: "The whole ring, lit all round",
           means:
-            "The ring lit all the way round in the ember, amber at its top to coral at its foot, the puck dark inside: a sign before an object.",
+            "The ring lit all the way round, amber at its crown warming to coral at its foot, the puck dark inside: the album's shutter at rest, a sign before an object.",
           gains:
-            "One lit circle that reads at any size; the boldest on a home screen.",
+            "The clearest mark at every size, from a tab to a home screen: one warm ring.",
           costs:
-            "Less an object than a sign, and an even ring nears a ring light.",
+            "A sign, not an object lit from the top-left; in its tinted grey it nears a ring light.",
         },
         {
           id: "shutter",
           label: "The shutter, with its add",
           means:
-            "The album's Add itself: the puck carries the shutter's plus inside its key-lit ring, so the icon is the button a guest presses.",
+            "The album's Add itself: the shutter's plus on the puck, drawn as heavy as the ring and lit by the same lamp; a tab shows the ring alone.",
           gains:
-            "Says what Partyreel is for, before a word: add your photographs.",
+            "Says what Partyreel is for before a word: it is the button guests press to add photos.",
           costs:
-            "A plus reads as any 'add' app, and a glyph in an icon ages first.",
+            "A plus is any add app's glyph, and the Add must wear it too (today it wears a picture).",
         },
       ],
       recommended: "ember",
       because:
         "One lamp from the top-left is how the brand lights everything; its small sizes keep the whole ring lit faintly, so it never reads as a moon.",
       overrule:
-        "If the icon must read whole at a glance, the even ring; if it should say what it does, the shutter.",
+        "If the icon must read the same at every size, the whole ring; if it should say what it does, the shutter.",
       configs: [SCREEN],
     },
     {
@@ -270,30 +272,30 @@ export const BRAND_MARKS = defineExploration({
           id: "graphite",
           label: "Graphite, today's grade named",
           means:
-            "Production's cool graphite room and gallery white kept exactly; the plate, the printed rule and the ember's stops added as tokens beside them.",
+            "Production's cool graphite room and gallery white, value for value; only the light moves: the ember's four stops added and the five lamps relit as it.",
           gains:
             "Nothing you have seen moves but the light: the smallest change.",
           costs:
-            "The room keeps its cool cast, a blue-grey dark for a warm light.",
+            "The room keeps its cool cast: a blue-grey dark under a warm light.",
         },
         {
           id: "black",
           label: "Camera black, a step deeper",
           means:
-            "The blacks go neutral and a step deeper, the plate the room's own black, paper a hair whiter, the ink and the lines neutral.",
+            "Every dark goes neutral and a step deeper, and the foot and the menus on paper become the room's own black; paper a hair whiter, its cards white.",
           gains:
-            "The deepest dark, so the ember and every photograph read brightest.",
+            "The deepest dark, so the ember and every photograph read brightest; paper crisp and white.",
           costs:
-            "True black is starker on a phone's screen and on a long night.",
+            "On paper the foot and the menus go from a step to a hole in the page; the room barely moves.",
         },
         {
           id: "warm",
           label: "Warm dark, the ember's room",
           means:
-            "The room's blacks and its lines take a breath of the ember's warmth; paper stays gallery white.",
+            "The room's blacks, its lines and its words take a breath of the ember, felt beside graphite and never brown on its own; paper stays gallery white.",
           gains: "Room and light one family: the dark of a lit room at night.",
           costs:
-            "A warm black can read brown, and competes with warm photographs.",
+            "Warm photographs glow a little less on a warm dark, and the warm foot sits under cool paper.",
         },
       ],
       recommended: "graphite",
@@ -320,29 +322,31 @@ export const BRAND_MARKS = defineExploration({
           id: "pilot",
           label: "Green and red, like a camera",
           means:
-            "Standby half-lit, Ready a green point, Fault the red point; the tally keeps its red, and the word tells a fault from a count.",
-          gains: "Every state reads at a glance, as on any camera.",
+            "Standby half-lit, Ready a camera's green, Fault the red point; the tally keeps its red, and the word tells a fault from a count.",
+          gains:
+            "Every state its own lamp, read at a glance as on any camera: done looks done.",
           costs:
-            "Fault and 'needs you' share one red, told apart by their words.",
+            "Fault shares the tally's red, told apart by its word; to one man in twelve, green and red match.",
         },
         {
           id: "ink",
           label: "Ink until it needs you",
           means:
-            "Standby half-lit, Ready lit full in ink with no hue; Fault and the tally share the one red, which means 'act on this'.",
+            "Standby half-lit, Ready lit full in ink with no hue, a lamp's own levels; Fault and the tally share the one red, which means 'act on this'.",
           gains:
-            "One accent, as the brand asks: colour only where she must act.",
-          costs: "Done has no colour, so a success feels quieter.",
+            "One accent, as the brand asks: colour only where she must act, and every eye tells ink from red.",
+          costs:
+            "Done has no colour, so a success feels quieter, and approve gives up its green.",
         },
         {
           id: "amber",
           label: "A fault in amber",
           means:
-            "Standby half-lit, Ready green, Fault amber, since nothing was lost; red is the tally's alone.",
+            "Standby half-lit, Ready green, Fault a vivid amber that deepens to orange on white so it stands, since nothing was lost; red is the tally's alone.",
           gains:
             "Red means one thing, someone needs you, and a failure never alarms.",
           costs:
-            "Amber is the dull yellow you called out, and a real failure may be read past.",
+            "A fourth colour; on white it must turn orange to stand, and a real failure may be read past.",
         },
       ],
       recommended: "ink",

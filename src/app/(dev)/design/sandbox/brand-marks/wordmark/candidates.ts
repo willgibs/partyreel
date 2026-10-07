@@ -50,22 +50,20 @@ const BOX = 308;
  *
  * ★ THE SVG KEEPS ITS 308 BY 64 VIEWBOX, which a paste cannot touch: a wider
  * box (`aspect-ratio`) holds that viewBox centred at the same height, so the
- * drawing is moved left by half the extra width to start at the box's own
- * left edge, and `overflow: visible` lets it draw past the viewBox. A drawing
- * narrower than 308 keeps production's box and stands at its left.
+ * path is moved left by half the extra width (a transform, in the svg's own
+ * units) to start at the box's own left edge, and `overflow: visible` lets it
+ * draw past the viewBox. A drawing narrower than 308 keeps production's box
+ * and stands at its left.
+ *
+ * ★ A TRANSFORM, NEVER A REWRITE OF THE PATH'S NUMBERS: his path draws with
+ * `H` as well as `M` and `L`, and a rewrite that reads only x-y pairs moved
+ * some of his points and not others, bending his letters in every frame.
  */
 export function pasteFor(mark: Drawing): string {
   const w = Math.max(BOX, mark.w);
-  const shift = (w - BOX) / 2;
-  const d = shift
-    ? mark.d.replace(
-        /(-?\d+(?:\.\d+)?)([ ,])(-?\d+(?:\.\d+)?)/g,
-        (_, x, sep, y) =>
-          `${Math.round((Number(x) - shift) * 1000) / 1000}${sep}${y}`,
-      )
-    : mark.d;
+  const shift = Math.round(((w - BOX) / 2) * 1000) / 1000;
   return [
     `svg[role="img"][aria-label="Partyreel"] { aspect-ratio: ${(w / 64).toFixed(4)} !important; overflow: visible; }`,
-    `svg[role="img"][aria-label="Partyreel"] > path { d: path("${d}"); }`,
+    `svg[role="img"][aria-label="Partyreel"] > path { d: path("${mark.d}");${shift ? ` transform: translateX(-${shift}px);` : ""} }`,
   ].join("\n");
 }

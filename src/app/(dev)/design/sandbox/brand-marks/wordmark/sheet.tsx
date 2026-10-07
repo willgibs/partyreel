@@ -112,7 +112,15 @@ function Half({
   before?: Drawing;
 }) {
   const desk = screen === "1440";
-  const big = desk ? 104 : 46;
+  // ★ THE LARGE WORD FITS ITS HALF: a half is a flex item whose minimum is its
+  // content, so a wide drawing at a fixed height would grow its own half and
+  // clip the other's. Its height is the lesser of the sheet's size and what the
+  // half's width allows (720 less its padding at a desk, 375 less its own).
+  const room = desk ? 592 : 335;
+  const big = Math.min(
+    desk ? 104 : 46,
+    Math.floor((room * 64) / mark.display.w),
+  );
   const pixel = {
     ink: ground === "paper" ? "#141416" : "#f5f5f7",
     ground: ground === "paper" ? "#f6f6f8" : "#09090b",
@@ -127,7 +135,8 @@ function Half({
       style={{
         padding: desk ? "56px 64px" : "32px 20px",
         gap: desk ? 40 : 26,
-        flex: 1,
+        flex: "1 1 0",
+        minWidth: 0,
       }}
     >
       <Cap>{ground === "paper" ? "On paper" : "In the room"}</Cap>

@@ -2,8 +2,9 @@
 
 import type { ScreenId } from "../knobs";
 import { type Probe, Story } from "../scene";
-import { AppHome, SiteFoot } from "../surfaces";
+import { SiteFoot } from "../surfaces";
 import { gradePaste, GRADES, type GradeId } from "./grades";
+import { RoomGrounds } from "./room";
 import { GradeSheet } from "./sheet";
 
 /** The pricing page, read: paper's ground and the Pro card's, as the frame paints them. */
@@ -20,7 +21,8 @@ const readPricing: Probe = (root, win) => {
 /**
  * ONE GRADE'S FRAMES: the grade as its tokens, then production wearing it as
  * its paste: the real pricing page (paper, the Pro card, the cinema bar),
- * the host's app in the room (its photographs on the room's black) and the
+ * the host's app in the room (its card, its open menu, its lines and words
+ * on the room's black, where a grade shows; photographs look alike on any) and the
  * site's foot on its slab (the plate, the lamps relit as the ember).
  */
 export function GradeStory({
@@ -55,9 +57,9 @@ export function GradeStory({
         },
         {
           id: `bm-grade-${id}-app-${screen}`,
-          title: "The host's app, in the room",
+          title: "The host's app in the room, its menu open",
           css,
-          node: <AppHome ground="room" screen={screen} />,
+          node: <RoomGrounds screen={screen} />,
         },
         {
           id: `bm-grade-${id}-foot-${screen}`,

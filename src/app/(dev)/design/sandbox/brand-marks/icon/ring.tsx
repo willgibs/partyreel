@@ -28,13 +28,17 @@ export const LIGHTS: Record<IconId, Lighting> = {
   shutter: SHUTTER_LIGHT,
 };
 
-/** An annulus cut into `n` solid wedges, each its own colour. */
+/**
+ * An annulus cut into `n` solid wedges, each its own colour, each reaching
+ * `overlap` degrees past its neighbours so no seam shows between two.
+ */
 function wedges(
   c: number,
   r0: number,
   r1: number,
   n: number,
   colour: (deg: number) => string | { fill: string; opacity: number },
+  overlap = 0.35,
 ) {
   const out: { d: string; fill: string; opacity?: number }[] = [];
   const p = (r: number, g: number) =>
@@ -42,8 +46,8 @@ function wedges(
   for (let i = 0; i < n; i++) {
     const a0 = (i * 360) / n;
     const a1 = ((i + 1) * 360) / n;
-    const g0 = ((a0 - 90 - 0.35) * Math.PI) / 180;
-    const g1 = ((a1 - 90 + 0.35) * Math.PI) / 180;
+    const g0 = ((a0 - 90 - overlap) * Math.PI) / 180;
+    const g1 = ((a1 - 90 + overlap) * Math.PI) / 180;
     const col = colour((a0 + a1) / 2);
     out.push({
       d: `M${p(r0, g0)}L${p(r1, g0)}A${r1} ${r1} 0 0 1 ${p(r1, g1)}L${p(r0, g1)}A${r0} ${r0} 0 0 0 ${p(r0, g0)}Z`,
@@ -167,13 +171,24 @@ export function RingIcon({
       rD,
       corona: o.coronaOp ? wedges(c, rD, r1 + o.band * S * 4, 48, glow) : [],
       glow: o.glow ? wedges(c, r0, r1 + o.band * S * 0.5, 64, glow) : [],
-      ring: wedges(c, r0, r1, o.n, (deg) =>
-        light.band(deg, appearance, o.floor),
+      // ★ THE BAND'S SEAMS OVERLAP BY A PIXEL AT THE DRAWN SIZE: a fixed 0.35
+      // degrees is a hundredth of a pixel at 16 to 32 px, so the tile showed
+      // through every seam as faint spokes and grain in a tab. The band is
+      // opaque, so an overlap costs nothing; the glow's wedges are translucent
+      // and blurred, and keep the hair.
+      ring: wedges(
+        c,
+        r0,
+        r1,
+        o.n,
+        (deg) => light.band(deg, appearance, o.floor),
+        Math.max(0.35, (1024 / size / r1) * (180 / Math.PI)),
       ),
     };
   }, [
     light,
     appearance,
+    size,
     o.rDisc,
     o.gap,
     o.band,

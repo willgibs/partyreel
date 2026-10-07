@@ -3,13 +3,9 @@
 import type { ReactNode } from "react";
 
 import { LoginForm } from "@/components/auth/login-form";
-import { EventCard } from "@/components/app/event-card";
-import { UserMenu } from "@/components/app/user-menu";
 import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
-import { AppShell } from "@/components/shared/app-shell";
 import { Logo } from "@/components/shared/logo";
-import { PageHeading } from "@/components/shared/page-heading";
 import { Card, CardContent } from "@/components/ui/card";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
@@ -20,9 +16,8 @@ import type { ScreenId } from "./knobs";
  * PRODUCTION'S OWN SURFACES, COMPOSED AS PRODUCTION COMPOSES THEM: the
  * marketing site's head in the room (the cinema wrapper, its header, the
  * hero's first lines), the sign-in page on paper (`login/page.tsx`: the
- * wordmark over the card, the photographs beside it), the site's foot on its
- * slab (`MarketingFooter`) and the host's app in either ground (`AppShell`
- * with her menu, her events). The pages themselves are server pages, so their
+ * wordmark over the card, the photographs beside it) and the site's foot on
+ * its slab (`MarketingFooter`). The pages themselves are server pages, so their
  * markup is retyped here from the files, class for class; every component in
  * them is production's own, and each option reaches them only through the
  * frame's paste.
@@ -148,61 +143,5 @@ export function SiteFoot() {
         <MarketingFooter />
       </div>
     </Cinema>
-  );
-}
-
-const EVENTS = [
-  { name: "Maya & Jay", date: "Sat, Sep 12", cover: 0, items: "1,284 items" },
-  { name: "Lena turns 30", date: "Fri, Oct 2", cover: 2, items: "312 items" },
-  { name: "Ines & Tom", date: "Sat, Oct 17", cover: 9, items: "86 items" },
-] as const;
-
-/** The host's app in a ground: her bar with its wordmark, her events. */
-export function AppHome({
-  ground,
-  screen,
-}: {
-  ground: "room" | "paper";
-  screen: ScreenId;
-}) {
-  return (
-    <div
-      className={`${ground === "room" ? "dark" : "surface-paper"} min-h-screen bg-background text-foreground`}
-    >
-      <div
-        data-bm-where={`the wordmark in the app's bar ${ground === "room" ? "in the room" : "on paper"}`}
-      >
-        <AppShell
-          headerActions={
-            <UserMenu
-              email="maya@example.com"
-              displayName="Maya Lin"
-              avatarUrl={null}
-              seed="maya-lin"
-            />
-          }
-        >
-          <PageHeading>Your events</PageHeading>
-          <ul
-            className="mt-6 grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${screen === "1440" ? 3 : 1}, minmax(0, 1fr))`,
-            }}
-          >
-            {EVENTS.map((e) => (
-              <li key={e.name}>
-                <EventCard
-                  href={null}
-                  name={e.name}
-                  coverUrl={STILLS[e.cover]}
-                  dateLabel={e.date}
-                  itemsLabel={e.items}
-                />
-              </li>
-            ))}
-          </ul>
-        </AppShell>
-      </div>
-    </div>
   );
 }
