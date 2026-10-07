@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Check } from "lucide-react";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import {
+  type HeldCall,
   keepCalls,
   type ReviewStore,
   sentOf,
@@ -43,7 +45,7 @@ export function CallsPlace({
   const store = useReviewStore();
   const calls = themes.flatMap((t) => t.calls);
   // The calls with no answer yet: what "Keep the rest" would keep.
-  const open = calls.filter((c) => !store.calls?.[c.id]?.answer);
+  const open = calls.filter((c) => !heldOf(store, c.id).answer);
 
   if (questions.length === 0 && calls.length === 0) {
     return (
@@ -88,7 +90,7 @@ export function CallsPlace({
             type="button"
             data-dir-press
             onClick={() => keepCalls(open.map((c) => c.id))}
-            className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-border px-3 text-xs font-medium transition-colors duration-150 hover:bg-muted/40 motion-reduce:transition-none"
+            className="inline-flex h-9 shrink-0 focus-halo items-center justify-center rounded-lg border border-border px-3 text-xs font-medium transition-colors duration-150 hover:bg-muted/40 motion-reduce:transition-none"
           >
             {open.length === calls.length
               ? `Keep all ${calls.length}`
@@ -98,6 +100,22 @@ export function CallsPlace({
       )}
     </div>
   );
+}
+
+/**
+ * What the store holds for an entry, as two strings. The store is this browser's localStorage, so a value of another
+ * shape reads as nothing held rather than stopping the desk.
+ */
+function heldOf(store: ReviewStore, id: string): HeldCall {
+  const held: unknown = store.calls?.[id];
+  const field = (key: keyof HeldCall) => {
+    const value =
+      held && typeof held === "object"
+        ? (held as Record<string, unknown>)[key]
+        : undefined;
+    return typeof value === "string" ? value : "";
+  };
+  return { answer: field("answer"), note: field("note") };
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
@@ -171,9 +189,7 @@ function Question({
   entry: QuestionEntry;
   store: ReviewStore;
 }) {
-  const held = store.calls?.[entry.id];
-  const picked = held?.answer ?? "";
-  const words = held?.note ?? "";
+  const { answer: picked, note: words } = heldOf(store, entry.id);
   const options = [
     { answer: RECOMMENDED, label: "Recommended:", text: entry.recommended },
     ...entry.alternatives.map((text, i) => ({
@@ -208,7 +224,7 @@ function Question({
               aria-pressed={chosen}
               onClick={() => toggleCallAnswer(entry.id, o.answer)}
               className={cn(
-                "flex w-full min-w-0 items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors duration-150 outline-none focus-visible:border-foreground/40 motion-reduce:transition-none",
+                "flex w-full min-w-0 focus-halo items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors duration-150 motion-reduce:transition-none",
                 chosen
                   ? "border-foreground/40 bg-muted/40 ring-1 ring-foreground/40"
                   : "border-border hover:bg-muted/40",
@@ -263,14 +279,20 @@ function Question({
 }
 
 function Call({ entry, store }: { entry: BuiltCall; store: ReviewStore }) {
-  const held = store.calls?.[entry.id];
-  const answer = held?.answer ?? "";
-  const words = held?.note ?? "";
+  // ★ HIS PRESS ON CHANGE TAKES HIM TO ITS FIELD, A LOAD NEVER DOES. A change
+  // held from an earlier visit mounts its field when the store loads, and an
+  // `autoFocus` there pulled the desk down to it on every visit; so the press
+  // asks for the focus and the field takes it only then.
+  const focusNext = useRef(false);
+  const { answer, note: words } = heldOf(store, entry.id);
+  // ★ A PRESSED ANSWER IS QUIET: a sitting that keeps fifteen calls must not
+  // leave fifteen inked buttons down the page, so the held one is a muted
+  // fill, its ring and a check, the way the step's own picks read.
   const press = (on: boolean) =>
     cn(
-      "inline-flex h-8 min-w-16 items-center justify-center gap-1 rounded-lg border px-3 text-xs font-medium transition-colors duration-150 motion-reduce:transition-none",
+      "inline-flex h-9 min-w-16 items-center justify-center gap-1 rounded-lg border px-3 text-xs font-medium transition-colors duration-150 focus-halo motion-reduce:transition-none",
       on
-        ? "border-transparent bg-foreground text-background"
+        ? "border-foreground/40 bg-muted text-foreground ring-1 ring-foreground/40"
         : "border-border text-muted-foreground hover:bg-muted/40 hover:text-foreground",
     );
   return (
@@ -301,9 +323,12 @@ function Call({ entry, store }: { entry: BuiltCall; store: ReviewStore }) {
             type="button"
             data-dir-press
             aria-pressed={answer === CHANGE}
-            onClick={() => toggleCallAnswer(entry.id, CHANGE)}
+            onClick={() => {
+              focusNext.current = toggleCallAnswer(entry.id, CHANGE);
+            }}
             className={press(answer === CHANGE)}
           >
+            {answer === CHANGE && <Check className="size-3" aria-hidden />}
             Change
           </button>
         </div>
@@ -312,7 +337,12 @@ function Call({ entry, store }: { entry: BuiltCall; store: ReviewStore }) {
         <div className="mt-2">
           <Textarea
             rows={1}
-            autoFocus
+            ref={(el) => {
+              if (el && focusNext.current) {
+                focusNext.current = false;
+                el.focus();
+              }
+            }}
             value={words}
             onChange={(e) => setCallNote(entry.id, e.target.value)}
             aria-label={`What ${entry.id} should do instead`}

@@ -152,8 +152,11 @@ export function heldCallAnswers(
   for (const [id, h] of Object.entries(held ?? {})) {
     const open = openOf(id);
     if (!open) continue;
-    const words = (h.note ?? "").trim();
-    const answer = h.answer || (open.kind === "question" && words ? OWN : "");
+    // The store is this browser's localStorage, so a value of another shape
+    // reads as nothing held rather than stopping the desk.
+    const words = typeof h?.note === "string" ? h.note.trim() : "";
+    const picked = typeof h?.answer === "string" ? h.answer : "";
+    const answer = picked || (open.kind === "question" && words ? OWN : "");
     if (!answer || !open.answers.includes(answer)) continue;
     if (needsWords(answer) && !words) continue;
     const key = callHoldId(id);

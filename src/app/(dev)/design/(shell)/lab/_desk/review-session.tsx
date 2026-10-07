@@ -307,8 +307,9 @@ export function ReviewSession({
                 The Orchestrator runs it through{" "}
                 <code className="font-sans">pnpm lab:review</code>, which checks
                 every question, option and catalog item against the
-                board&rsquo;s own spec and appends to docs/reviews. Nothing in
-                this page writes the repo.
+                board&rsquo;s own spec and appends to docs/reviews, and every
+                call against the list it was drawn from. Nothing in this page
+                writes the repo.
               </p>
 
               <ul className="mt-6 space-y-3">

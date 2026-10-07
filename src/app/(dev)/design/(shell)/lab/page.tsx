@@ -215,7 +215,7 @@ export default async function DeskPage({
             build={build}
             transcribed={transcribed}
             title="The message"
-            blurb="One line per board, in the ledger grammar. Paste it into chat and the answers land in docs/reviews."
+            blurb="One line per board, and one for the calls, in the ledger grammar. Paste it into chat: the boards' answers land in docs/reviews, and each call goes where your answer sends it."
           />
         </div>
       );
