@@ -1,6 +1,6 @@
 ---
 track: camera-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2e094108"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -51,25 +51,124 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **How is "the first time" on a fresh roll known?** Built: the gate's roll names the period it counts in (`period`,
+  `events.sealed_from` in epoch ms, migration `20261007021000`), and her device keeps the period she last held shots on
+  (`pr_roll:<qrToken>`, `src/lib/guest/camera/fresh-roll.ts`). A roll read on another period lays the panel over the
+  finder, and the kept period moves as it shows: said once, never twice; a guest who never shot here keeps nothing, so
+  her first roll is never called fresh; a second device may say it once more. Recommended: as built (keying on the
+  develop time alone, client-side, misses Develop now followed by a new time, and a camera started again).
+- **Does the fresh-rolls line ask where nobody has shot yet?** Built: yes, on every running camera, since Settings holds
+  no count of the guests' rolls (a ticket with no name is in none of its numbers) and the line is true either way.
+  Recommended: as built. Overrule: ask only while the door counts guests in (`counts.in`), missing nameless tickets.
+- **Where does it ask?** Built: wherever a develop time comes ahead on a running camera (`events_reveal_stamp`'s own
+  condition): Customize's At a develop time, the Disposable style chosen from a camera mix, and a new time typed for a
+  camera that has developed (a close, which cannot ask, writes nothing of it). From approval with photos held, one line
+  says both ("2 photos under review join the roll, approved"). Recommended: as built.
+- **Which frame is the take-back's door?** Built: the reel's newest frame while it holds this visit's newest shot, on an
+  album that keeps shots out of sight (a develop time, or approval); an earlier visit's frames are glass (the reel never
+  knew their pictures) and Your shots' X takes those back; on an album that shows each shot the reel stays one door,
+  since a shot in the album is taken back from the album. Recommended: as built.
+- **A shot still on its way?** Built: the sheet opens at once, its Take it back waiting, said ("Sending… You can take it
+  back once it lands."), and live the moment it lands. Recommended: as built.
+- **Once her 3 are spent?** Built: both doors still take a shot back (hers to withdraw) and say it frees no frame (the
+  sheet's line; Your shots' foot: "Your 3 re-shoots are used, so removing a shot won't free its frame."). Recommended:
+  as built.
+- **The server's words past the ceiling?** Built: "You've used all 3 re-shoots on your roll." (it said "You've used every
+  retake this roll allows."), formatted from `c_roll_reshoots`, so the camera says one word for one idea. Recommended:
+  as built; it moved the literal in three tests outside the lane (the lane check).
+- **What the count says when the ceiling binds first** (the host removed some of her shots): built, what she can still
+  take, the frames left or the room under the ceiling, whichever ends first; a freed frame past it stays empty.
+  Recommended: as built.
+- **Settings' words:** "A roll of 24 shots each, plus 3 re-shoots: taking one back frees its frame for another." (one
+  shot: "One shot each, plus 3 re-shoots: taking it back frees the frame for another."). Recommended: as built.
+- **An open camera when the develop time is added:** built, it reads her roll again the moment its album turns to a
+  develop and says the fresh roll then, over the finder, the shutter waiting. Recommended: as built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/disposable-mode.md`: the ceiling is the roll plus 3 (`ROLL_RESHOOTS`) and its refusal's words; the gate's
+  `period`; the count as what she can still take and her re-shoots counted where she takes one back; the two doors;
+  the fresh roll said once; Settings' fresh-rolls question wherever a develop time comes ahead on a running camera.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Upcoming › Marketing and content: Help: `content/help/the-disposable-camera.mdx` says "A roll allows only so many
+  retakes"; name the 3 re-shoots and the reel's newest frame (Take it back, Keep it), in `lib/guest/camera/words.ts`'s
+  words.
+- Before launch › The guest's album: the privacy notice's local-storage inventory (`lib/constants/legal-privacy.tsx`'s
+  comment) names neither `pr_develop:<eventId>` nor `pr_roll:<qrToken>` (the period a device last held shots on); its
+  paragraph's "small flags" covers both in words.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the work `1ceffba76` and `965fe8d61` (a test alone: the phone's Back on the newest shot's sheet), then
+  this manifest alone, pushed to `lp/camera-wiring`; no sync: launch-prep moved only by records and the vitest env fix
+  (`e6fa3cc8f`..`e949f5501`: docs, `vitest.config.ts`, `vitest.setup.ts`), none in this lane's owns or reads.
+- **Gates** (base `156e30906`), each on its own exit code, logs in `../partyreel-wt/_scratch/camera-wiring/`: on
+  `965fe8d61`, `pnpm typecheck` 0, `pnpm lint` 0 and `pnpm test` 0 (1,059 files, 13,357 tests; `gate2-*.log`); on
+  `1ceffba76` (the same app code: the later commit adds a test alone), the same three 0 (13,356 tests; `gate-*.log`),
+  `zsh scripts/build-lock.sh pnpm build` 0 and `pnpm lab:smoke --base http://localhost:3133` 0 (204 checks; its scope:
+  the Library, the shell and the eight boards that import a changed file). Every `pnpm test` ran with
+  `NEXT_PUBLIC_SUPABASE_URL=https://test.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=test-publishable-key`
+  exported, the Orchestrator's note for this Mac until the vitest fix is synced. A first smoke 404'd every lab route on a
+  dev server started after the build; `rm -rf .next/dev` and a restart cleared it (testing-verification's stale cache).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned paths, `docs/systems/disposable-mode.md`
+  (Record subtractively) and this file, plus these exceptions:
+  - `src/lib/disposable/migration-guards.test.ts`: it pins `create_media`'s ceiling line and both reads' roll answer
+    word for word, which this migration moves (the roll plus `c_roll_reshoots`, the gate's `period`); reshaped, scar kept.
+  - `src/lib/upload/capture-time-migration.test.ts`: it pinned `create_media`'s winning file to capture-time's; this
+    file replaces the body in place, so the pin is "that file or a later one", as its neighbours pin.
+  - `src/app/api/r2/presign-upload/route.test.ts`, `route.burst.test.ts`, `src/lib/db/mutations/guest.test.ts`: the
+    ceiling's sentence typed out, now "You've used all 3 re-shoots on your roll." (one literal each, two in guest).
+  - `src/app/api/r2/presign-upload/route.ts`: one comment line said "a period takes three rolls' worth".
+  - `src/app/(dev)/design/sandbox/guest-moments/camera.tsx`: it imported `ROLL_RETAKES`, renamed `ROLL_RESHOOTS` with
+    its new meaning; the board's `rolls` (today) option now carries its own number (two rolls past hers).
+- **The items:**
+  - tell = line: a develop time onto a running camera asks Start fresh rolls or Keep it as it is in Settings' consequence
+    line ("Every guest's roll starts again: 24 fresh shots each, developing together tomorrow at 9 am. What's in the
+    album now stays in view."), at Customize's At a develop time, the Disposable style from a mix and a new time for a
+    developed camera (`camera-settings-fresh-rolls.ts`).
+  - fresh-roll = panel: `FreshRollPanel` over the finder, once (`fresh-roll.ts`, the gate's `period`), the shutter
+    waiting for Start shooting; an open camera reads her roll again when its album turns to a develop.
+  - limit = three: the server's ceiling the roll plus 3 (`create_media`, both reads); `roll-view.ts` counts what she can
+    still take and her re-shoots; Your shots' head ("6 of 24 · 2 re-shoots left") and foot, the sheet's line, the
+    camera's line after a take-back, the roll's end once spent ("Your 3 re-shoots are used."); Settings' line ("A roll
+    of 24 shots each, plus 3 re-shoots: taking one back frees its frame for another.").
+  - where = reel: the reel's newest frame is a door of its own (`camera-reel.tsx`), opening `TakeBackPanel` over the
+    picture with Take it back and Keep it (Keep it focused, Escape and Back keep it, a shot on its way waits, a failure
+    says so with its retry); Your shots keeps its X.
+- **The migration** `supabase/migrations/20261007021000_reshoots.sql`, md5 `16624fa3533352b77c069424721f59f1`, for the
+  Orchestrator to apply by the protocol (never applied here). Callers: `create_media` by `createMedia`
+  (`src/lib/db/mutations/guest.ts`) from the guest complete route; `get_upload_context` by `getUploadContext` (same
+  file) from the presign and complete routes; `get_upload_gate` by `getUploadGate` (`src/lib/db/queries/guest-gate.ts`)
+  from `gallery-access.server.ts` and `/api/guests/mine` (the camera's roll). Its header names what milestone 38 and the
+  alias meet meanwhile (an expand; their camera stops at 27 by the server's ceiling, their Settings line says "up to 72
+  shots in all" until this build ships). Drift read clean on 2026-10-07 (live hashes = repo); the rolled-back proof on
+  the live schema RED 2/7, GREEN 7/7, nothing persisted after (no fixture user or album, the old hashes standing); the
+  pre-flight on a throwaway Postgres 17 cluster GREEN, the deployed build's paths probed under `anon`, `authenticated`
+  and `service_role` (`_scratch/camera-wiring/preflight/`, `defs.diff` the before-and-after `pg_get_functiondef`).
+  Expected after apply: advisors unchanged at 27/4/36, `types.ts` unchanged.
+- **The walk** (local, port 3133, the walk's own headless Chrome with a fake camera; captures in
+  `_scratch/camera-wiring/rt/`): a guest shooting on a Disposable, taking one back from the reel (Keep it, then Take it
+  back, the frame freed and counted by the server) and from Your shots, the roll's end, a take-back at the end, a shot
+  on a throttled line (the sheet waiting, ready in about 4 s), a take-back on a blocked route (its words, then its
+  retry); the host adding a develop time mid-party in Settings (both answers, the period moved in the database), a new
+  time on the developed album in the room (both answers); her open camera hearing it and saying the fresh roll, then
+  never twice; the roll's end past her 3 (on a roll of 2: 5 taken, Your shots' foot, the ceiling with a frame free) at
+  375 and 1440; Tab with the halo and the screen reader's names. ★ The migrated server's two answers were stood in for
+  that walk (`rt/shim.js`: the ceiling the roll plus 3, and a period), since it is not applied; the counts were the live
+  server's.
+- **Walks for the desk, once the migration is applied:** a shot past the ceiling refused in the server's words ("You've
+  used all 3 re-shoots on your roll.") on the presign and on a raced complete; the fresh-roll panel from the real
+  `period` (a develop time added while a guest's camera is open, and on her next open); 27 of 24 on a real roll of 24;
+  the halo painted (headless paints none: its box-shadow was read instead); a real phone's thumb on the newest frame.
+- **Test data:** the three albums "camera-wiring (disposable) A/B/C" (`afef73fb…`, `dfd94d55…`, `37dce844…`, willg97's)
+  soft-deleted at 2026-10-07 03:45Z with their guests and shots; the purge takes them.
+- **Assets requested from Will:** none.
+- **Board ideas:** the reel's newest frame as a door is invisible until pressed (sealed glass like every frame): a board
+  on whether it shows her shot or a mark while it is a door; one verb for the act (the sheet's Take it back beside Your
+  shots' "Remove this shot" and Settings' "taking one back").
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** the migration above; nothing else.
+- **Calls his to overrule:** the Questions above, each built as recommended.
+- **Look at first:** `supabase/migrations/20261007021000_reshoots.sql`, then `src/components/guest/camera/album-camera.tsx`
+  (the newest frame's sheet and the fresh roll) and `src/lib/guest/camera/roll-view.ts` (what a take-back spends).
