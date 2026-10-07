@@ -1,6 +1,6 @@
 ---
 track: guests-room-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c04da309"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -56,25 +56,110 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended, and is Will's to overrule.
+
+- **The look's read: no migration?** Built: no. The person's tickets are the service role's behind each side's own
+  gate (the host proven inside the read, as `guest-addresses.ts` does; a guest behind `resolveAlbumViewer` at `full`),
+  the host's photographs her own RLS read, a guest's minted by the album's own gated minter. Why: today's grants and
+  gates serve both sides, the advisor set gains no authenticated function, and the lane walked every path end to end
+  before anything was applied. `supabase/migrations/20261008020000_guest_look.sql` is unused, its slot free.
+- **See all: where?** Built: a panel of their photographs (the list kind: beside the screen at a desk, the whole
+  screen in a hand, the phone's Back closing it), a page of 24, each one opening the shared viewer. Why: the album
+  pages themselves are other lanes' (the hub's, the guest page's); the album filtered in place is a board idea below.
+- **Which photographs, and "in since" what?** Built: what the album shows, approved and visible (never held, hidden or
+  sealed), on the host's card too, newest first; "In since" is their first such photograph's landing, in her zone.
+- **How does a guest's card know its album?** Built: from the page's own address (`/e/<token>`), so the album's list
+  (`guest-list.tsx`) and the guest page (crumbs-91's) moved nothing; anywhere else (Account's Connections, her page's
+  chips) a card shows no photographs. The explicit alternative is a provider around the list in `e/[token]/page.tsx`.
+- **A let-in guest who adds nothing: what does the room show?** Built: she is held in a quiet fold at the guests' foot,
+  "N in, nothing added yet", uncounted (the head keeps the one count), each a row whose card says "In · nothing in the
+  album yet" with Block, until a photograph of hers lands. It holds anyone past the door with nothing the album shows
+  (a typed name who joined too), since no record says whom the host let in herself.
+- **Follow in the host's card?** Built: yes, the quiet pair's Follow where the guest has a page and no block stands
+  either way (the room reads her own follows among the people it lists); a Follow landed from a card is kept for the
+  page's life, one answer per person, and says her first follow's private line (account-moments r2, `follow=once`).
+- **Blocked's when:** built as the block's time tonight ("9:12 PM") or its day ("Sep 28"), where the row said
+  "Blocked Sep 28"; the card says "Declined at 9:12 PM · still asking" or "Blocked on Sep 28 · 4 uploads in Deleted".
+- **A mixed person's column:** built as "N uploads" (Review's word for a mix); photos alone "N photos", videos "N videos".
+- **A photograph opened from the card:** built to drop back into the name that opened the card (the card closes as
+  the viewer opens), and from the panel into its own tile there, the keyboard with it.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md`: the Guests room's read (what each person added, the quiet, her relations), every
+  person one calm row, At the door's one act and its tally with Decline in the card, Invited's rows (4a98c37b2).
+- `docs/systems/profiles-social.md`: a person's card shows nothing the album does not, where it reads its photographs,
+  whose surfaces hand it the host lines, and the kept Follow (4a98c37b2).
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Upcoming · Code hygiene: retire `blockedSince`, `blockedLineParts` and `LET_IN_LINE` (`lib/events/event-blocks.ts`),
+  which the Guests room no longer calls (only their own tests do) (guests-room-wiring).
+- Upcoming · Profiles: the album list's chip Follow (`social/guest-list.tsx`) is a second face of the relation beside a
+  card's own; read the card's kept answer (`guest-peek.tsx`'s `kept`) there too, so a Follow from either reads
+  Following on both (guests-room-wiring).
+- Upcoming · Host: the Guests room reads the album's approved guest rows twice a read (`getEventGuests` for the list,
+  `readHostGuestFacts` for the counts); one read could answer both (guests-room-wiring).
+- Upcoming · Code hygiene: `guest-look.ts`'s `readQuietCards` restates the four public card columns because
+  `social.ts`'s `getProfileCards` is private; export it and read through it (guests-room-wiring).
+- Upcoming · Host: a Decline or a Let in from a card leaves focus on the room's panel once its row leaves; move it to
+  the next row's name (as the row's own act did before) (guests-room-wiring).
+- Upcoming · The Library: the "At the door and Invited" specimen's hint says "Let in · Decline, then Undo on its
+  toast"; Decline is a name's card's now (`library/compositions/gallery-demos.tsx`) (guests-room-wiring).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- **Commits, pushed:** the work 0dff04530 (the room, the card, the reads, the board retired), 4a98c37b2 (the panel's
+  line while it reads; the two system docs), 9859ce2b3 (a card's panel and viewer mount on first use); syncs
+  a942709d5 (launch-prep at 9086b48f5) and 5a3ba5957 (launch-prep at f0623106f, account-moments-wiring-2 merged:
+  resolved in the card, whose own Follow now says her first follow's private line, and the chips' look test reads
+  "Their page"). Head 5a3ba5957 before this manifest's commit.
+- **Gates on 5a3ba5957, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (1,103 files,
+  14,045 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3134` 0 (188
+  checks, 0 failing). No board, so no `lab:demo`. The production build was also walked on port 3134: the card's
+  lazily loaded Server Functions answer there, host side and album side.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is the owned paths (`dashboard/[eventId]/guests/`,
+  `blocked-section*`, `guest-peek*`, `guest-look*`, the board's folder deleted), the two system docs and this file,
+  and these exceptions: `components/app/event-feed/feed-section-header.tsx` (a `needs` prop: the door's count wears
+  the tally, the room's one section header taking the tone rather than a second header); `components/app/
+  event-settings/door-page.tsx` (two links take the house halo: the focus stragglers line this lane closes);
+  `lib/events/event-blocks.ts` (one comment line: `since` is the room's short when now); `components/social/
+  guest-list.test.tsx`, `app/(app)/account/page-connections.test.tsx` and `app/(guest)/u/[slug]/connection-chips.
+  test.tsx` (the card's door reads "Their page"; the list's test stands the look's actions in);
+  `library/components/popup-demos.test.tsx` (the profile actions stood in: the card's Follow runs `useRelation`);
+  `lib/db/queries/social.guest-identity.test.ts` (two pins reshaped: no file hands the guest list an address or Block
+  now, the room drawing its own rows; the card's host lines are pinned by `guests/room-rules.test.ts`).
+- **The room (`rows=list`):** every person one calm row on Settings' card (`guests/room-rows.tsx`): At the door with
+  one act, Let in, its count in the tally; the guests who added most first with their count as a column, eight then a
+  page of 24, focus following the fold (`room-guests.tsx`); the people in with nothing added yet folded at the foot;
+  Invited's not-yet rows beside empty seats and the joined folded with faces; Blocked unlit, dimmed faces, when beside
+  the name and how they left under it.
+- **The card (`card=standing`, `social/guest-peek.tsx`, props kept, new ones optional):** who they are as one block,
+  the face out of the sheet's title; for the host how they stand tonight and its act (Decline and Let in at the door,
+  the way back in Blocked, "In since" for a guest), four of their photographs and See all, Follow and their page as a
+  quiet pair, Block last; at a desk beside the room's panel, its top at the name; a guest's side with no host lines.
+- **The reads (`lib/db/queries/guest-look.ts`, `guests/look-actions.ts`, `guests/look.ts`):** the host's proven
+  inside, a guest's behind the album's gate; antagonistic replays of both Server Functions on port 3134 answered
+  `{ok:false}` for another host's guest, another host's event, a signed-out caller, a page past 24, a cursor that is a
+  filter, a private album, a photograph as the person, an unknown token, the host as her own guest and another
+  album's ticket, and a guest's answer carries no address (`guests/look-actions.test.ts` holds each).
+- **ROADMAP lines closed:** "Design: the Guests room's focus stragglers" (the invite field is the house's well with the
+  halo, a remove by keyboard keeps focus in the list, the door page's two Guests links take the halo); "the look puts
+  the face in the sheet title"; "a look's Follow reads Follow again on reopen" (the card's own Follow, kept per
+  person; the list's chip is a Deferred line); "a let-in guest who adds nothing is on no list" (the room now holds her
+  in "N in, nothing added yet"); "the guest list sorted by upload count" (in the room); "the look's strip".
+- **The board retired:** `src/app/(dev)/design/sandbox/guests-room/` deleted; its ledger `docs/reviews/guests-room.json`
+  is the Orchestrator's.
+- **Test data to delete:** the event "guests-room-wiring (disposable)" (0c69787d-e4ee-474d-a7ab-2d576cee7dfe,
+  willg97's, Private with the invite list as the door): hi@willgibs.com's ticket there (5adf2d42-6c63-44b2-9777-
+  45f5c0b416c2: inserted by SQL as a waiting ask, declined and let in through the room, set waiting again by SQL and
+  let in from her card at a phone) and two invite addresses at example.com.
+- Assets requested from Will: none.
+- Board ideas: See all as the album itself filtered to one person (a dismissible chip over the hub's or the guest
+  page's album, the viewer walking all of theirs), where this lane drew a panel; the card's strip leading with their
+  most-liked photographs rather than the newest.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls for Will: none.
+- Look at first: a name's card in the room at a desk and in a hand (`/dashboard/efdaa41e-6434-45d0-8061-d3be396833ca?room=guests`,
+  "guest-requests attr probe (test)": See all, a photograph, back out), the same card from the album's guest list as a
+  guest (`/e/f93280beb59f47d2ad104c55a7a5be60`), and the door, Blocked and the quiet fold on the disposable event.
