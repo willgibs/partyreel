@@ -42,6 +42,8 @@ Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../pa
 | `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
 | `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
+| `cdn-version` | X5: an open album's "has anything changed?" answer cached at the CDN; AB5's cadence livelier where free | running (cut 5ed23311) | Opus, 3131 | `aa27be79bf2dd9424` |
+| `crumbs-92` | K5 two years idle, X6 the audited uploads credit, the desk's Clear | running (cut 5ed23311) | Sonnet, 3132 | `a321cec9d5fec5e15` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q44 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
@@ -84,7 +86,7 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
    REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
    `node usher/kit/vercel-usage.mjs` before any.
 9. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill; nothing new started when the window
-   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so no lane is cut until Will says (told at 21:15Z); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
+   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so Will (21:55Z): the weekly pace is no concern, only that the 5-hour window never kills a running lane, the machine holds its peak and the Orchestrator keeps its depth, so lanes sized to close before the limit run (two cut at 22:00Z), and token efficiency is the compounding win (the runbook's line); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
    keep this block handoff-ready for the other account's seat, and tell Will before it runs low. Who does the work: the
    runbook's "Working with Will".
 
