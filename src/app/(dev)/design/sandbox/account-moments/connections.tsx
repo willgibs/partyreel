@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import type { ReactNode } from "react";
-
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
-import { RelationToggle } from "@/components/social/relation-toggle";
+import {
+  type Relation,
+  RelationToggle,
+} from "@/components/social/relation-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,80 +16,54 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { AppPage, Toast } from "./chrome";
-import {
-  BLOCKED,
-  FOLLOWERS,
-  FOLLOWING,
-  INERT,
-  type Person,
-  RAY,
-  SAM,
-} from "./fixtures";
+import { AppPage } from "./chrome";
+import { PrivateLine } from "./follow";
+import { BLOCKED, FOLLOWERS, FOLLOWING, INERT, type Person } from "./fixtures";
 import { Reveal } from "./scene";
 
 /**
- * I4 IN ACCOUNT: the Connections card (`app/(app)/account/page.tsx`), its
- * rows retyped from the page's `PersonRow` class for class, each row's action
- * production's `RelationToggle`. Priya tidies: she presses Following on Sam,
- * then Unblock on Ray. The page above the card is production's order (the
- * trail, the heading, the Public profile card for an account with no page),
- * and the frame opens scrolled to the card, where she is.
+ * WHERE HER FOLLOWS LIVE: Account's Connections card the moment after she
+ * followed Maya (`app/(app)/account/page.tsx` and its island,
+ * `page-connections.tsx`, retyped class for class: the island presses the real
+ * Server Functions, and a frame writes nothing). Maya heads Following, newest
+ * first. The page above the card is production's order for an account with no
+ * page (the trail, the heading, Public profile), and the frame opens scrolled
+ * to the card, where she is.
+ *
+ * `said` is `once`'s standing note: the private line on the list it is
+ * about, in the words said at her first follow, so the press can say it once
+ * and the list keeps saying it for whenever she looks.
  */
 
-export type TidyWay = "today" | "stays" | "toast";
-export type TidyStage = "unfollow" | "unblock";
+/** A name that opens its look in production (`GuestPeek`); here the row's face alone. */
+const NAME =
+  "-my-1 -ml-1 flex min-w-0 items-center gap-2 rounded-lg py-1 pr-2 pl-1 text-left transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-halo active:scale-[0.97] motion-reduce:active:scale-100";
 
-function PersonRow({
-  person,
-  action,
-  read,
-}: {
-  person: Person;
-  action: ReactNode;
-  read?: string;
-}) {
-  const identity = (
-    <>
-      <Avatar size="sm" seed={person.seed}>
-        <AvatarFallback className="text-[10px]">
-          {person.name.slice(0, 1).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <span className="truncate text-sm text-foreground">{person.name}</span>
-    </>
-  );
+function Row({ person, relation }: { person: Person; relation: Relation }) {
   return (
-    <li
-      data-am-read={read}
-      className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
-    >
-      {person.handle ? (
-        <Link
-          href="#"
-          className="flex min-w-0 items-center gap-2 underline-offset-4 hover:underline"
-        >
-          {identity}
-        </Link>
-      ) : (
-        <span className="flex min-w-0 items-center gap-2">{identity}</span>
-      )}
-      {action}
+    <li className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+      <button type="button" className={NAME}>
+        <Avatar size="sm" seed={person.seed} aria-hidden>
+          <AvatarFallback className="text-[10px]">
+            {person.name.slice(0, 1).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span className="truncate text-sm text-foreground">{person.name}</span>
+      </button>
+      <RelationToggle
+        relation={relation}
+        profileId={person.id}
+        on
+        person={person.name}
+        srLabel={person.name}
+        size="sm"
+        act={INERT}
+      />
     </li>
   );
 }
 
-export function TidyMoment({ way, stage }: { way: TidyWay; stage: TidyStage }) {
-  // What each list holds the moment after: today and the toast take the row
-  // out in the same round trip; `stays` keeps it, turned back, until she
-  // next opens Account. By the second press Sam's unfollow has landed too.
-  const keep = way === "stays";
-  const following = keep ? FOLLOWING : FOLLOWING.filter((p) => p !== SAM);
-  const blocked =
-    stage === "unblock" && !keep ? BLOCKED.filter((p) => p !== RAY) : BLOCKED;
-  const off = (p: Person) =>
-    keep && (p === SAM || (stage === "unblock" && p === RAY));
-
+export function ConnectionsMoment({ said }: { said: boolean }) {
   return (
     <AppPage>
       <div className="mx-auto max-w-2xl space-y-6">
@@ -124,7 +98,7 @@ export function TidyMoment({ way, stage }: { way: TidyWay; stage: TidyStage }) {
           </CardContent>
         </Card>
         <Reveal>
-          <Card>
+          <Card data-am-read="Connections">
             <CardHeader>
               <CardTitle>Connections</CardTitle>
               <CardDescription>
@@ -136,64 +110,28 @@ export function TidyMoment({ way, stage }: { way: TidyWay; stage: TidyStage }) {
                 <p className="text-xs font-medium text-muted-foreground">
                   Following
                 </p>
-                <ul
-                  data-am-read={
-                    keep ? undefined : `Following (${following.length})`
-                  }
-                  className="divide-y divide-border/60"
-                >
-                  {following.map((p) => (
-                    <PersonRow
-                      key={p.id}
-                      person={p}
-                      read={off(p) ? `${p.name}'s row` : undefined}
-                      action={
-                        <RelationToggle
-                          relation="follow"
-                          profileId={p.id}
-                          on={!off(p)}
-                          person={p.name}
-                          size="sm"
-                          act={INERT}
-                        />
-                      }
-                    />
+                {said ? (
+                  <PrivateLine read="the line" className="pb-2">
+                    Only you see who you follow. Each of them just sees one more
+                    follower.
+                  </PrivateLine>
+                ) : null}
+                <ul className="divide-y divide-border/60">
+                  {FOLLOWING.map((p) => (
+                    <Row key={p.id} person={p} relation="follow" />
                   ))}
                 </ul>
               </div>
-              {blocked.length > 0 && (
-                <div className="space-y-2 border-t border-border/60 pt-5">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Blocked
-                  </p>
-                  <ul
-                    data-am-read={
-                      keep || stage === "unfollow"
-                        ? undefined
-                        : `Blocked (${blocked.length})`
-                    }
-                    className="divide-y divide-border/60"
-                  >
-                    {blocked.map((p) => (
-                      <PersonRow
-                        key={p.id}
-                        person={p}
-                        read={off(p) ? `${p.name}'s row` : undefined}
-                        action={
-                          <RelationToggle
-                            relation="block"
-                            profileId={p.id}
-                            on={!off(p)}
-                            person={p.name}
-                            size="sm"
-                            act={INERT}
-                          />
-                        }
-                      />
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="space-y-2 border-t border-border/60 pt-5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Blocked
+                </p>
+                <ul className="divide-y divide-border/60">
+                  {BLOCKED.map((p) => (
+                    <Row key={p.id} person={p} relation="block" />
+                  ))}
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </Reveal>
@@ -207,17 +145,6 @@ export function TidyMoment({ way, stage }: { way: TidyWay; stage: TidyStage }) {
           </CardHeader>
         </Card>
       </div>
-      {way === "toast" ? (
-        stage === "unfollow" ? (
-          <Toast title={`You unfollowed ${SAM.name}.`} action="Undo" />
-        ) : (
-          <Toast
-            title={`${RAY.name} is unblocked.`}
-            line="You can follow each other again."
-            action="Undo"
-          />
-        )
-      ) : null}
     </AppPage>
   );
 }

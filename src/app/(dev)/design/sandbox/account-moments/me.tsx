@@ -1,49 +1,44 @@
 "use client";
 
-import Link from "next/link";
 import { Lock } from "lucide-react";
-import type { ReactNode } from "react";
 
+import { ProfileHead } from "@/app/(guest)/u/[slug]/profile-head";
 import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
-import { PageHeading } from "@/components/shared/page-heading";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
-import { AppPage, PageHead } from "./chrome";
-import { FOLLOWING, LIKES, PRIYA, type Still, UPLOADS } from "./fixtures";
+import { AppPage } from "./chrome";
+import {
+  EVENT_SETS,
+  FOLLOWING,
+  LIKES,
+  type Party,
+  PRIYA,
+  type Still,
+  UPLOAD_SETS,
+} from "./fixtures";
+import { AddressInvite } from "./invite-address";
+import { PlateInvite } from "./invite-plate";
+import { WindowInvite } from "./invite-window";
+import type { PhotosId } from "./knobs";
 
 /**
- * I5, HER OWN PAGE BEFORE SHE IS PUBLIC: `/me` (`app/(app)/me/page.tsx`) in
- * the app's shell, its owner sections retyped from `owner-sections.tsx` class
- * for class (a server component: the feeds are stand-in rows of the stills in
- * the gallery's tile and gap, the sections' heads and the Connections chips
- * production's markup), its invitation production's `PageInviteCard` where an
- * option keeps it.
+ * HER OWN PAGE BEFORE IT IS PUBLIC, AS WIRED (`app/(app)/me/page.tsx`,
+ * account-moments r1's `me-page=private`): production's `ProfileHead`, her
+ * photo and name marked "Only you can see this page.", then the invitation,
+ * then her own sections, in the app's shell. The sections are a server
+ * component's (`owner-sections.tsx`), retyped here class for class: the feeds
+ * are stand-in rows of the stills in the gallery's tile and gap, the
+ * Connections chips production's markup.
  *
- * Two answers draw every frame: what the page is (`MeShape`) and how it
- * invites her (`InviteWay`), so the invitation's options are drawn on the page
- * he picked.
+ * The invitation is the one thing an option changes: `today` is production's
+ * `PageInviteCard` where `/me` draws it (`mt-6`, `dismissible={false}`); each
+ * take is a file of its own (`invite-*.tsx`), drawn in the same place, and
+ * owns its own space above and below. Her photographs are the Photos knob's
+ * set, the same six under Your uploads and in the plate's light.
  */
 
-export type MeShape = "today" | "private" | "halves";
-export type InviteWay = "today" | "line" | "notnow";
-/** The Not now option's two moments: the card, and the page after she put it away. */
-export type InviteStage = "card" | "folded";
-
-const PRIYA_PERSON = {
-  id: PRIYA.id,
-  name: PRIYA.name,
-  handle: null,
-  seed: PRIYA.seed,
-};
+export type InviteWay = "today" | "plate" | "address" | "window";
 
 /** A run of stills in the gallery's own tile and gap, three to a row. */
 function Rows({ stills }: { stills: readonly Still[] }) {
@@ -54,7 +49,7 @@ function Rows({ stills }: { stills: readonly Still[] }) {
       {rows.map((row, r) => (
         <div
           key={r}
-          className="flex h-24 sm:h-44"
+          className="am-row flex"
           style={{ gap: "var(--gap-gallery)" }}
         >
           {row.map((s) => (
@@ -78,23 +73,18 @@ function Rows({ stills }: { stills: readonly Still[] }) {
 }
 
 /** The owner sections: her uploads, her likes, the people she follows. */
-function Sections({ said = true }: { said?: boolean }) {
+function Sections({ uploads }: { uploads: readonly Still[] }) {
   return (
-    <div className="mt-10 space-y-8">
-      {said ? (
-        <p className="text-xs text-muted-foreground">
-          Only you can see the sections below.
-        </p>
-      ) : null}
+    <div className="space-y-8">
       <FeedSection heading="Your uploads">
-        <Rows stills={UPLOADS} />
+        <Rows stills={uploads} />
       </FeedSection>
       <FeedSection heading="Your likes">
         <Rows stills={LIKES.slice(0, 6)} />
       </FeedSection>
       <FeedSection heading="Connections">
         <ul className="flex flex-wrap gap-2">
-          {FOLLOWING.slice(0, 2).map((p) => (
+          {FOLLOWING.slice(0, 3).map((p) => (
             <li key={p.id}>
               <span className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1">
                 <Avatar size="sm" seed={p.seed}>
@@ -112,130 +102,54 @@ function Sections({ said = true }: { said?: boolean }) {
   );
 }
 
-/** The invitation, folded to one line: always on the page, never in her way. */
-function InviteLine() {
+function Invite({
+  way,
+  uploads,
+  events,
+}: {
+  way: InviteWay;
+  uploads: readonly Still[];
+  events: readonly Party[];
+}) {
+  if (way === "plate") return <PlateInvite stills={uploads} />;
+  if (way === "address") return <AddressInvite />;
+  if (way === "window") return <WindowInvite events={events} />;
   return (
-    <p
-      data-am-read="the invitation"
-      className="text-sm text-pretty text-muted-foreground"
-    >
-      Want a page others can visit? You choose what shows, and nothing is public
-      until you finish.{" "}
-      <Link
-        href="#"
-        className="font-medium whitespace-nowrap text-foreground underline underline-offset-4"
-      >
-        Set up your page
-      </Link>
-    </p>
-  );
-}
-
-/** Production's card with the dashboard's Not now on it (the same card, `dismissible`). */
-function InviteCardNotNow() {
-  return (
-    <Card
-      data-page-invite
-      data-am-read="the invitation"
-      className="ring-brand/40"
-    >
-      <CardHeader>
-        <CardTitle>Set up your page</CardTitle>
-        <CardDescription>Nothing shows until you finish.</CardDescription>
-      </CardHeader>
-      <CardFooter className="flex-wrap gap-2">
-        <Button size="sm">Choose what shows</Button>
-        <Button type="button" size="sm" variant="ghost">
-          Not now
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
-
-function Invite({ way, stage }: { way: InviteWay; stage: InviteStage }) {
-  if (way === "line" || (way === "notnow" && stage === "folded"))
-    return <InviteLine />;
-  if (way === "notnow") return <InviteCardNotNow />;
-  return (
-    <div data-am-read="the invitation">
+    <div className="mt-6">
       <PageInviteCard dismissible={false} />
     </div>
   );
 }
 
-function Shell({ children }: { children: ReactNode }) {
+export function MePage({
+  invite,
+  photos = "wedding",
+}: {
+  invite: InviteWay;
+  photos?: PhotosId;
+}) {
+  const uploads = UPLOAD_SETS[photos];
   return (
     <AppPage>
-      <div className="mx-auto max-w-3xl">{children}</div>
-    </AppPage>
-  );
-}
-
-export function MePage({
-  shape,
-  invite,
-  stage = "card",
-}: {
-  shape: MeShape;
-  invite: InviteWay;
-  stage?: InviteStage;
-}) {
-  if (shape === "private")
-    return (
-      <Shell>
-        <div data-am-read="the head">
-          <PageHead
-            person={PRIYA_PERSON}
-            joined={PRIYA.joined}
-            under={
-              <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <Lock className="size-4 shrink-0" aria-hidden />
-                Only you can see this page.
-              </p>
-            }
-          />
+      <div className="mx-auto max-w-3xl">
+        <ProfileHead
+          seed={PRIYA.seed}
+          avatarUrl={null}
+          name={PRIYA.name}
+          joined={PRIYA.joined}
+        >
+          <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <Lock className="size-4 shrink-0" aria-hidden />
+            Only you can see this page.
+          </p>
+        </ProfileHead>
+        <div data-am-read="the invitation">
+          <Invite way={invite} uploads={uploads} events={EVENT_SETS[photos]} />
         </div>
-        <div className="mt-6">
-          <Invite way={invite} stage={stage} />
+        <div className="mt-10">
+          <Sections uploads={uploads} />
         </div>
-        <Sections said={false} />
-      </Shell>
-    );
-  if (shape === "halves")
-    return (
-      <Shell>
-        <PageHeading>Your profile</PageHeading>
-        <section aria-label="Your public page" className="mt-6 space-y-2.5">
-          <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-            Your public page
-          </h2>
-          <div
-            data-am-read="the public half"
-            className="space-y-4 rounded-xl border border-dashed border-border bg-muted/20 p-4"
-          >
-            <div className="flex items-center gap-3">
-              <Avatar size="lg" seed={PRIYA.seed}>
-                <AvatarFallback>{PRIYA.name.slice(0, 1)}</AvatarFallback>
-              </Avatar>
-              <p className="min-w-0 text-sm text-pretty text-muted-foreground">
-                Nobody can find you here yet. A page would show your name, your
-                photo and the events you choose, at an address of your own.
-              </p>
-            </div>
-            <Invite way={invite} stage={stage} />
-          </div>
-        </section>
-        <Sections />
-      </Shell>
-    );
-  return (
-    <Shell>
-      <div className="space-y-4">
-        <PageHeading>Your profile</PageHeading>
-        <Invite way={invite} stage={stage} />
       </div>
-      <Sections />
-    </Shell>
+    </AppPage>
   );
 }
