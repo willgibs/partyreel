@@ -39,26 +39,18 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts).
 - Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
 - Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
-- Share: an album's link always unfurls as "Add photos to <name>" and "Add yours." (`e/[token]/page.tsx`'s metadata), even with uploads closed, help's own keepsake step (app-gaps-r1).
 
 ### Accounts and profiles
 
 - Account: a magic link that signs Create account into an existing address says nothing, where the code says so (`auth/account-door.tsx`); a one-line banner on `/dashboard` from `(auth)/auth/callback/route.ts`, on `checkExistingAccount`'s test.
-- Profiles: Connections' look offers Follow after an Unblock where they blocked her back (`followUser` is block-silent: ok, nothing written), so a wrong Following row stands until she leaves; the profile page's `isBlockedEitherWay` read per Blocked row (`lib/db/queries/social.ts`) would hide it (account-moments-wiring).
-- Profiles: the album's guest list offers Follow on a chip of someone she blocked or who blocked her (the same silent no-op, then the chip reads Following), and a look's Follow reads Follow again on its next open; `GuestList` needs `blockedIds` beside `followingIds`, or better one answer per person that every face of a relation on a page shares, as Connections' island is for its card (account-moments-wiring).
 
 ### The host app
 
-- Settings: the sheet's overflow-hidden box clips the focus halo on the door switches, the Max size select, the Cinematic card and "3 seconds", at 375 and 1440 (`?room=settings&setting=door`) (red-team 56b, LOW).
 - Host: the host's view-as-guest cover (`as-guest-view.tsx`) never names its kinds, where the guest's first paint now does (crumbs-74).
 - Host: the dashboard's stage wall shows a disposable album's sealed photographs (`getStagePhotos` in `lib/db/queries/dashboard.ts`) while the hub covers them until the develop; hold the wall to what guests see (`hubCovered`, `host-cover.ts`).
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
 - Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
-- Settings: a host's names-only door is undone by an email gate: with "An email first" off, Private > You let each person in, then Public, leaves `require_verified_email` on (`settings-state.tsx`'s `saveDoor` keeps `requireVerifiedEmail: true` and nothing restores her choice), so a name-only guest already in meets "Confirm your email to see everything"; the row had said "On while you let each person in" (app-gaps-r1, MEDIUM).
-- Dashboard: at 1440 "THIS WEEK · Nothing needs you" sits under a stage whose live event reads 105 to review; the week's tally leaves the stage's own event out (app-gaps-r1).
-- Hub: a Disposable's hub read outside the party's zone says the develop in the party's ("9 am in Los Angeles") right above the held card's "tomorrow at 12 pm" in the reader's clock, unlabelled (crumbs-86's line covers only the guest cover) (app-gaps-r1).
-- Guests: on a Public album the room shows the INVITED list and its paste box, which let nobody in and send nothing there, beside an Invite that only opens Share (app-gaps-r1).
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
@@ -67,7 +59,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
 - Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
-- Design: the dashboard's waiting marks (`dashboard/marks.tsx`, `events-row-list.tsx`, `event-card.tsx`) and Review's own section count (`event-feed/review-section.tsx`) still wear the waiting amber; a count that waits on her wears `--needs-you` now (event-header-wiring-2).
 
 ### The lab and the kit
 
