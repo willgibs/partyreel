@@ -768,11 +768,12 @@ export default async function JobsPage() {
                             className="flex flex-wrap items-start justify-between gap-3"
                           >
                             <div className="min-w-0 flex-1 space-y-1 text-sm">
-                              <p className="font-medium break-all">
+                              <p className="font-medium">
+                                {/* An address or an id can outrun a phone: it breaks where it must, the date never. */}
                                 <Link
                                   href={`/admin/accounts/${host.hostId}`}
                                   prefetch={false}
-                                  className="underline-offset-4 hover:underline"
+                                  className="wrap-anywhere underline-offset-4 hover:underline"
                                 >
                                   {name}
                                 </Link>{" "}
