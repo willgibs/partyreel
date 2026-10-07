@@ -8,6 +8,15 @@
   ],
   "entries": [
     {
+      "id": "CK1",
+      "kind": "call",
+      "theme": "Plans and billing",
+      "title": "An operator's uploads credit is bounded.",
+      "body": "A host's live credits together never pass one more of her plan's own uploads allowance (Free 300 MB, a pass 50 GB, Pro 100, 200 or 500 GB a month), at most ten at once, and each ends with its month or pass window; every credit asks a reason and the operator's second factor, and is logged.",
+      "changeIf": "a credit should be larger, last longer, or need two operators.",
+      "home": "docs/systems/billing-caps.md"
+    },
+    {
       "id": "CI2",
       "kind": "call",
       "theme": "An event's life and timing",
@@ -78,6 +87,24 @@
       "body": "A photo she sent with no line is kept in her browser for that album until it lands, then put down; past 14 days it is put down unread at her next open (Safari may clear it sooner), and on a shared phone what was kept for another account is deleted unsent.",
       "changeIf": "it should wait longer, or a shared phone should keep it for its owner's next visit.",
       "home": "docs/systems/guest-flow.md"
+    },
+    {
+      "id": "CK2",
+      "kind": "call",
+      "theme": "Deletion, retention and privacy",
+      "title": "The Terms name no idle window and no warning lead.",
+      "body": "A Free event idle for two years is removed after a warning email 14 days before, as the app and help say; the Terms and the Privacy Policy say only that a long-idle Free event may be removed after a warning, so either number can change without breaking a promise.",
+      "changeIf": "the Terms should state the window or the warning's lead.",
+      "home": "docs/systems/lifecycle-recovery.md"
+    },
+    {
+      "id": "CK3",
+      "kind": "call",
+      "theme": "Deletion, retention and privacy",
+      "title": "An operator's log of an account goes with the account.",
+      "body": "Every operator act on an account (an uploads credit today) is logged in admin_actions; when the account is deleted, its log entries are deleted with it, so nothing of that account outlives a deletion request.",
+      "changeIf": "the log should outlive the account, keeping the act with a plain account id.",
+      "home": "docs/systems/admin-observability.md"
     },
     {
       "id": "J2",

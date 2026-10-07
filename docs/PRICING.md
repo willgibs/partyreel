@@ -328,11 +328,11 @@ the CPU in the per-call lines below is low until they are re-run (`usher/kit/cos
   (`src/instrumentation-client.ts:31-32`), its plan dropping what passes the quota; Web Analytics runs on the marketing
   pages only (`src/app/(marketing)/layout.tsx:31`), $3 a 100,000 events past 50,000 on Pro.
 - **Stripe's fee**, on every charge (the table above), and **a Free account**: 100 MB, ≈$0.003 a month with its copies,
-  its creation bounded by Auth's limits and its event resting after 180 quiet days (`lifecycle/inactivity.ts:7`).
+  its creation bounded by Auth's limits and its event resting after two quiet years (`lifecycle/inactivity.ts:7`).
 
 **(c) Bounds.** Published, each a row of the pricing table with its hover line (Will, 2026-10-03: any limit a host could
 meet): storage, uploads (each plan's own), events, guests (no limit), a file's 10 GB, Deleted's 30 days and that it
-counts in storage, how long each plan keeps an album, Free's photos only and its 180-day rest. The table's fine print
+counts in storage, how long each plan keeps an album, Free's photos only and its two-year rest. The table's fine print
 says the rest in one line, the fair-use line: every plan is for real events, and behind the table we watch only for
 automated abuse, which we may slow or pause, resting on the Terms' "reasonable limits on upload volume, download
 bundling and other activity" and their bar on getting around a plan's limits (`constants/legal-terms.tsx:188,193`).

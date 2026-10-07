@@ -87,7 +87,7 @@ Deleted:
   Event Pass) opens a 45-day grace on what she keeps by choice, with a warning email and a reminder 7 days before it
   ends; then what she already deleted leaves for good first, and her largest files go to Deleted until she is under
   her cap.
-- **Free-plan inactivity**: an event 180 days past its last activity (the host signing in or using the app, an edit to
+- **Free-plan inactivity**: an event two years (730 days) past its last activity (the host signing in or using the app, an edit to
   the event, a new upload) is removed, with a warning email 14 days before.
 
 Every trigger lands in the same recoverable tail: 30 days in Deleted, restorable by the host in the app (restoring her

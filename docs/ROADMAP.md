@@ -20,7 +20,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Platform, data and cost
 
 - Cost: cache an open album's "has anything changed?" answer at the CDN for a few seconds (Will's yes to X5, 2026-10-07): only an open album at full access, never a password album or a blocked viewer, and the answer a version number alone, never photos or links (100 lit phones asking cost one call). With it in, AB5's cadence may tighten where that costs nothing (Will kept AB5's slowing ask and invites a livelier page at the same cost).
-- Lifecycle: a Free event idle for two years, not six months, is removed (Will changed K5, 2026-10-07: "6 months feels like too short a span"): the window in `src/lib/lifecycle/` and any SQL mirror, the warning mail, help's `<InactivityMonths />`, PRD's "Free-plan inactivity" line and lifecycle-recovery.md; the Terms state no number (his: "Legal terms should not bind us to this").
 
 ### Security and abuse
 
@@ -29,13 +28,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Uploads, media and exports
 
 - Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
-
-### Admin and operations
-- Admin: the operator's audited uploads credit (Will's yes to X6, 2026-10-07): a reason, the operator's second factor, a bounded amount, logged in `admin_actions`, on `/admin/accounts`; never a reset of the ledger the spend watch also reads; a migration, through the Advisor.
-
-### The lab and the kit
-
-- The lab: a Clear on the desk (Will, 2026-10-07): "Copy everything" carried desk 8's board answers into his calls paste, since the desk still served a build older than their transcription; one press empties the sitting's held answers, and the Orchestrator refreshes the desk after each transcription so recorded answers never ride again.
 
 ## Upcoming
 
@@ -178,11 +170,11 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Admin: name the admin deployment's manifest for the portal ("Partyreel Ops", start `/admin`) now that it serves one (`src/app/manifest.ts`).
 - Admin: the account view (`/admin/accounts/[id]`) shows its Drive connection with Pause and Disconnect (today on `/admin/exports#drive`, found by address).
-- Admin: the operator's uploads credit (the calls lab's X6, on Will's word): a `credit_bytes` column `uploads_used` subtracts, one definer RPC, the `admin_actions` log, a control behind AAL2 and `destructive-sheet`, bounded credits; a migration (admin-uploads' Question).
 - Admin: an operator release for a squatted custom link, reached from a report on `/e/<slug>`; nothing in `/admin` reads or frees an event's slug, and a free account can now hold one.
 - Admin: `/admin/forensics`' held-media table names no uploader (`listHeldMedia`, `queries/forensics.ts`, reads none), so an operator opens each Record to learn it; an uploader column edits `trust-safety-forensics.md`'s "no page renders either" too.
 - **Admin deployment:** its own Sentry project; the portal shares the app's DSN today.
 - Admin: the portal's states in another tier's token: in progress drawn amber (`storage-sums-view.ts`, `reconcile-view.ts`, `restore-view.ts`), a failure amber (`drive-words.ts`'s stopped sends and its "Lanes dying" pause, `outcome-word.ts`'s refused Too large and Empty, failed copies), near a limit red (`limits-card.tsx`'s Critical and stale readings, `drive-section.tsx`'s Google client line), and a count that waits on the operator amber (`admin-bar.tsx`'s "N jobs need you", `queue.ts`'s open reports) where a count that waits is the tally (brand-marks-wiring).
+- Admin: an Undo for an operator's uploads credit (a `revoke_uploads_credit` definer function that appends to `admin_actions`, and a control beside each live credit); today a mistaken credit is bounded by one allowance and ends with its window (crumbs-92).
 
 ### Design system and accessibility
 
@@ -234,6 +226,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Help: `content/help/share-the-album-after-the-event.mdx`'s keepsake step can say the link then unfurls as "Photos from <name>", not "Add photos to <name>" (crumbs-87).
 - Marketing: live drawn green on the site (`demo-modal/demo-door.tsx`'s LiveDot and its ring, `home/live-demo.tsx`, `live-album-stage.tsx`'s Live now, `feature-door.tsx`'s Filling live, `review-modes.tsx`'s Live icon): live is the recording red that breathes, as the app's `LiveDot` and the Badge's `live` draw it (brand-marks-wiring).
 - About: the press band's words (`ABOUT_PRESS_KIT.body`) name "the mark, the app icon, the share card and a QR code"; the kit now carries the wordmark in ink and in white beside the icon (brand-marks-wiring).
+- Marketing: the idle window reads "about 24 months" on every surface that derives `INACTIVE_MONTHS`; "about 2 years" reads warmer, one phrase export in `lib/lifecycle/inactivity.ts` plus an edit in each consumer (the home FAQ data, llms, the event constants, the comparison table, the album copy, the privacy feature section, the JSON-LD, help's `<InactivityMonths />`) (crumbs-92).
 
 ### The lab and the kit
 
