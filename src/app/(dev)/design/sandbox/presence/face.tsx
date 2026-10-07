@@ -104,6 +104,16 @@ export function Face({
   );
 }
 
+/**
+ * A SEED'S ORB IN A PALETTE: production's own (`orbFor`) for the wheel and
+ * for lit (which lights her wheel hue), the ember's for warm. A party's seed
+ * reads it too (`seed.tsx`), so a new party's light follows the colour answer
+ * as its guests' faces do.
+ */
+export function orbOf(seed: string, palette: Palette): Orb {
+  return palette === "warm" ? emberOrb(seed) : orbFor(seed);
+}
+
 /* ── warm: her own colour from the house ember's arc ──────────────────────── */
 
 /**
@@ -131,12 +141,18 @@ const EMBER = { from: 4, span: 62 } as const;
 function emberOrb(seed: string): Orb {
   const [t = 0, chroma = 0, , , , own = 0.5] = seedsFrom(seed, 6);
   const hue = (EMBER.from + t * EMBER.span) % 360;
+  // ★ THE WHOLE LEGIBLE WINDOW, WINE TO APRICOT (the creative director's pass:
+  // drawn at one lightness, alternating crimson and orange read as candy at
+  // twice the size and a wall of red as a crowd): rose sits at the window's
+  // deep end and amber at its light end, her own draw spreading her across it.
   const depth = Math.min(
-    0.75,
-    Math.max(0.15, 0.25 + 0.4 * t + (own - 0.5) * 0.2),
+    0.95,
+    Math.max(0.05, 0.1 + 0.7 * t + (own - 0.5) * 0.3),
   );
-  // ★ A FLOOR OF 0.15, NEVER PRODUCTION'S 0.13: a warm hue drawn soft is brown.
-  const body = legibleBody(hue, 0.15 + chroma * 0.07, depth);
+  // ★ A QUARTER LESS CHROMA THAN THE FIRST DRAW, so a crowd is a party in warm
+  // light, never candy; a little above production's floor, since a warm hue
+  // drawn soft is brown.
+  const body = legibleBody(hue, (0.15 + chroma * 0.07) * 0.76, depth);
   return {
     // Her light where her wheel face has it, the same draws (production's own orb).
     ...orbFor(seed),

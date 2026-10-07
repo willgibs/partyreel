@@ -151,6 +151,9 @@ export const ALBUM: readonly Still[] = [
 /** The cover's still (production dissolves through several; the board holds one). */
 export const COVER = still("reception-table", "50% 62%");
 
+/** A bright cover, the white tent in daylight: small faces must hold on any photograph. */
+export const COVER_BRIGHT = still("reception-hall", "50% 55%");
+
 /* ── the light the stills give off ─────────────────────────────────────── */
 
 /** ONE LAMP: a hue and its share of the light, an optional depth and chroma. */

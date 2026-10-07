@@ -1,11 +1,11 @@
-import { fitChroma, orbFor } from "@/lib/avatar/gradient";
+import { fitChroma } from "@/lib/avatar/gradient";
 
 import { INTENSITY, type Lamp, SAMPLED, type StillId } from "./fixtures";
 
 /**
  * APERTURE'S LIGHT, AS THIS BOARD NEEDS IT: a photograph's one key light (the
- * ring a face may wear while its photographs land) and a seed's light at
- * three depths (the atmosphere of a party with no photograph yet).
+ * ring the newest wears as their photographs land) and a lamp's tone in the
+ * room's register (a lit face's hue, a party's seed before its first photo).
  *
  * ★ RETYPED FROM BRAND R2'S DECK, NEVER IMPORTED (`brand/afterglow/system.tsx`
  * and `brand/aperture/light.tsx`): a board's folder is deleted the day it
@@ -87,26 +87,3 @@ export function ringPaint(id: StillId): string {
  */
 export const WHITE_RING =
   "conic-gradient(in oklab from 300deg, #fff, rgb(255 255 255 / 0.84) 22%, rgb(255 255 255 / 0.5) 50%, rgb(255 255 255 / 0.84) 78%, #fff)";
-
-/**
- * A SEED'S LIGHT, AT THREE DEPTHS (the hashvatar's way to be rich: one hue
- * read lit, as itself and a little cooler in its shadow), each in the room's
- * register; and where its light sits, read off the same orb `Avatar` paints,
- * so a party's colour and the face that shares its seed agree.
- */
-export function seedLight(seed: string): {
-  lit: string;
-  body: string;
-  deep: string;
-  hue: number;
-  at: { x: number; y: number };
-} {
-  const o = orbFor(seed);
-  return {
-    lit: lampColor({ h: o.hue, w: 1, dl: 0.07 }),
-    body: lampColor({ h: o.hue, w: 1 }),
-    deep: lampColor({ h: (o.hue + 348) % 360, w: 1, dl: -0.07 }),
-    hue: o.hue,
-    at: o.light,
-  };
-}

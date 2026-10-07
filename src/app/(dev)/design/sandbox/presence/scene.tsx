@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 import { PortalContainerProvider } from "@/components/ui/portal-container";
@@ -185,6 +185,86 @@ export function Loupe({
         <div
           className="relative origin-left"
           style={{ transform: `scale(${k})` }}
+        >
+          {children}
+        </div>
+      </div>
+    </Scene>
+  );
+}
+
+/**
+ * A CLOSER LOOK AT A REAL SURFACE: the surface laid out at its own width (so
+ * every breakpoint is the screen's), then drawn `k` times its size and moved
+ * so the element `focus` names stands at the frame's left, centred in its
+ * height. Where `Loupe` magnifies a row on its ground, this magnifies a corner
+ * of a whole page (the hub's line, its doors), and its title says it is
+ * closer. ★ THE CORNER IS FOUND, NEVER TYPED: the element is measured once
+ * the page has laid out (and again as the webfont settles), so a region never
+ * drifts off what it frames when a layout moves.
+ */
+export function Zoom({
+  id,
+  w,
+  h,
+  k = 2,
+  focus,
+  ground = "room",
+  title,
+  measure,
+  children,
+}: {
+  id: string;
+  /** The surface's own width: the frame lays it out there. */
+  w: number;
+  h: number;
+  k?: number;
+  /** A selector for the element the closer look is on. */
+  focus: string;
+  ground?: Ground;
+  title: string;
+  measure: Reader;
+  children: ReactNode;
+}) {
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    const win = box?.ownerDocument.defaultView;
+    if (!box || !win) return;
+    const place = () => {
+      const el = box.querySelector<HTMLElement>(focus);
+      if (!el) return;
+      // The wrapper is scaled: a rect read in the screen's pixels is divided back by `k`.
+      const outer = box.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const x = (r.left - outer.left) / k;
+      const y = (r.top - outer.top) / k;
+      const pad = 16 / k;
+      setAt({
+        x: Math.max(0, x - pad),
+        y: Math.max(0, y + r.height / k / 2 - h / k / 2),
+      });
+    };
+    place();
+    const t1 = win.setTimeout(place, 500);
+    const t2 = win.setTimeout(place, 1500);
+    return () => {
+      win.clearTimeout(t1);
+      win.clearTimeout(t2);
+    };
+  }, [box, focus, k, h]);
+  return (
+    <Scene id={id} w={w} h={h} ground={ground} title={title} measure={measure}>
+      <div data-pr-zoom={k} className="h-screen overflow-hidden">
+        <div
+          ref={setBox}
+          style={{
+            width: w,
+            transformOrigin: "0 0",
+            transform: at
+              ? `scale(${k}) translate(${-at.x}px, ${-at.y}px)`
+              : `scale(${k})`,
+          }}
         >
           {children}
         </div>

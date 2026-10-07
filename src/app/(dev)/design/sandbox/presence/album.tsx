@@ -18,7 +18,6 @@ import {
 } from "@/components/guest/event-experience-head";
 import { Logo } from "@/components/shared/logo";
 import { GuestList, type GuestListItem } from "@/components/social/guest-list";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { GlyphCount } from "@/components/ui/glyph-count";
 import { Shutter } from "@/components/ui/shutter";
@@ -33,11 +32,14 @@ import {
 } from "@/lib/shared/album-rows";
 import { cn, formatEventDate } from "@/lib/utils";
 
+import { Face, type Palette } from "./face";
 import {
   ALBUM,
   COVER,
+  COVER_BRIGHT,
   type Guest,
   PARTY,
+  PRIYA,
   type Still,
   WEDDING,
 } from "./fixtures";
@@ -173,8 +175,8 @@ function useScrollTo(target: "row" | "end" | null, offset: number) {
   return ref;
 }
 
-/** The guest's header on the cover (`guest-header.tsx`, `over`): the wordmark and her name. */
-function GuestBar() {
+/** The guest's header on the cover (`guest-header.tsx`, `over`): the wordmark and her name, her face in the palette asked. */
+function GuestBar({ palette }: { palette: Palette }) {
   return (
     <header
       data-surface="photo"
@@ -182,9 +184,13 @@ function GuestBar() {
     >
       <Logo />
       <span className="flex items-center gap-2 text-sm">
-        <Avatar size="sm" seed="guest-priya">
-          <AvatarFallback className="text-[10px]">P</AvatarFallback>
-        </Avatar>
+        <Face
+          seed={PRIYA.seed}
+          name={PRIYA.name}
+          palette={palette}
+          size="sm"
+          initial="text-[10px]"
+        />
         Priya
       </span>
     </header>
@@ -232,23 +238,43 @@ function CoverActions({ empty = false }: { empty?: boolean }) {
  * THE COVER, AS `AlbumCover` DRAWS IT, with the row's slot under the byline
  * (`row`), and its ground (`ground`): the cover's photograph, or a light
  * where the album has none yet.
+ *
+ * ★ AT THE DOOR THE ROW IS A COUNT ALONE (`door`): the privacy frame drawn
+ * where it bites. Before a guest is past every door (a teaser, a lock), the
+ * album never shows its Guests, so the row's place says "38 guests" in its
+ * words and names nobody.
+ * ★ A BRIGHT COVER (`still`): small faces must hold on any photograph, the
+ * white tent as well as the warm flowers.
  */
 export function Cover({
   screen,
   row,
   ground,
   empty = false,
+  palette = "wheel",
+  still,
+  door = false,
+  peopleGlyph = true,
 }: {
   screen: Screen;
   row?: ReactNode;
   ground?: ReactNode;
   /** A party nobody has added to yet: no counts, the first photo asked for, no reel. */
   empty?: boolean;
+  /** How the byline's face is coloured: one colour a person, the row's palette (production's wheel where absent). */
+  palette?: Palette;
+  /** The cover's photograph, where not the warm table. */
+  still?: Still;
+  /** At the door: the row's place holds the count alone. */
+  door?: boolean;
+  /** The byline's people glyph at a desk; off where the row says the number elsewhere on the screen. */
+  peopleGlyph?: boolean;
 }) {
   const desk = screen === "1440";
   const counts = empty
     ? null
     : { photos: WEDDING.photos, guests: WEDDING.guests };
+  const photo = still ?? COVER;
   return (
     <EventHead
       side="album"
@@ -256,7 +282,7 @@ export function Cover({
       ground={
         ground ?? (
           <div className="absolute inset-0">
-            <HeadStills stills={[{ id: COVER.id, tile: COVER.src }]} />
+            <HeadStills stills={[{ id: photo.id, tile: photo.src }]} />
           </div>
         )
       }
@@ -268,9 +294,12 @@ export function Cover({
           </h1>
           <p className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-white/85">
             <span className="flex items-center gap-2">
-              <Avatar seed={WEDDING.host.seed} size="sm">
-                <AvatarFallback>M</AvatarFallback>
-              </Avatar>
+              <Face
+                seed={WEDDING.host.seed}
+                name={WEDDING.host.name}
+                palette={palette}
+                size="sm"
+              />
               <span className="font-medium text-white">
                 {WEDDING.host.name}
               </span>
@@ -291,7 +320,7 @@ export function Cover({
                   count={counts.photos}
                   label={formatMediaCount(counts.photos)}
                 />
-                {row ? null : (
+                {row || door || !peopleGlyph ? null : (
                   <GlyphCount
                     icon={<Users />}
                     count={counts.guests}
@@ -308,12 +337,19 @@ export function Cover({
             <div data-pr-place="cover" className="mt-3.5 md:mt-4">
               {row}
             </div>
+          ) : door ? (
+            <p
+              data-pr-door=""
+              className="mt-3.5 text-sm text-white/85 tabular-nums md:mt-4"
+            >
+              {`${formatCount(WEDDING.guests)} guests`}
+            </p>
           ) : null}
         </div>
         <div
           className={cn(
             "flex flex-wrap items-center gap-2 md:mt-0 md:shrink-0 md:flex-row-reverse md:flex-nowrap",
-            row ? "mt-6" : "mt-5",
+            row || door ? "mt-6" : "mt-5",
           )}
         >
           <CoverActions empty={empty} />
@@ -475,6 +511,8 @@ export function GuestAlbum({
   row,
   scroll,
   rowOffset = 160,
+  palette = "wheel",
+  cover,
 }: {
   screen: Screen;
   ground?: Ground;
@@ -485,6 +523,10 @@ export function GuestAlbum({
   scroll: Scroll;
   /** How far below the frame's top the row stands, scrolled to it. */
   rowOffset?: number;
+  /** How the page's other faces are coloured (the host's byline, Priya's header): one colour a person. */
+  palette?: Palette;
+  /** The cover's own case: on a bright photograph, or at the door (a count alone). */
+  cover?: "bright" | "door";
 }) {
   const w = screen === "1440" ? 1440 : 375;
   const box = useScrollTo(scroll === "top" ? null : scroll, rowOffset);
@@ -495,8 +537,15 @@ export function GuestAlbum({
       data-pr-scroll={scroll}
       className="relative min-h-screen bg-background pb-28 text-foreground"
     >
-      <GuestBar />
-      <Cover screen={screen} row={place === "cover" ? row : undefined} />
+      <GuestBar palette={palette} />
+      <Cover
+        screen={screen}
+        row={place === "cover" && cover !== "door" ? row : undefined}
+        palette={palette}
+        still={cover === "bright" ? COVER_BRIGHT : undefined}
+        door={cover === "door"}
+        peopleGlyph={place !== "bar"}
+      />
       <div className="mt-5 px-3 sm:px-5" data-pr-album-box="">
         <AlbumBar row={place === "bar" ? row : undefined} screen={screen} />
         <Rows width={albumWidth(w)} />
@@ -545,7 +594,7 @@ export function EmptyAlbum({
       data-pr-album="empty"
       className="relative min-h-screen bg-background pb-16 text-foreground"
     >
-      <GuestBar />
+      <GuestBar palette="wheel" />
       <Cover screen={screen} ground={ground} empty />
       <div className="flex justify-center">
         <div className="relative mt-5 w-full max-w-2xl px-3 sm:px-5">

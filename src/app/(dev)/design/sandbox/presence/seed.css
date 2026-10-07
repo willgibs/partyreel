@@ -19,10 +19,10 @@
    code's white mat, and a lamp beside it would argue with it). Its size is a
    lamp's, a little under the name's own height, whatever the cover's size. */
 [data-pr-side="album"] {
-  --pr-lamp: 30px;
-  --pr-lamp-x: 71%;
-  --pr-lamp-y: 27%;
-  --pr-pool: 500px;
+  --pr-lamp: 34px;
+  --pr-lamp-x: 68%;
+  --pr-lamp-y: 28%;
+  --pr-pool: 760px;
 }
 [data-pr-side="hub"] {
   --pr-lamp: 38px;
@@ -43,13 +43,17 @@
    the last, so it reads as light falling off in a dark room and is spent
    before the words, never a fog over them. A hanging light lights what is
    under it more than the ceiling over it, so the pool hangs a little low. */
+/* ★ ON THE ALBUM IT POOLS BEHIND THE NAME (the creative director's pass: a
+   lamp in a cover nine-tenths black read as a bauble): the pool hangs low and
+   to the left of the lamp, under it and toward the words, as a hanging light
+   lights the floor of the room more than its ceiling. */
 .pr-seed-pool {
   position: absolute;
   left: 50%;
   top: 50%;
   width: var(--pr-pool);
   height: calc(var(--pr-pool) * 1.12);
-  translate: -50% -44%;
+  translate: -62% -30%;
   border-radius: 9999px;
   background: radial-gradient(
     closest-side,
@@ -114,20 +118,23 @@
   position: absolute;
   inset: -6%;
   filter: brightness(0.62) saturate(1.25);
+  /* ★ ITS TOP A THIRD DIMMER (the creative director's pass: at full strength
+     overhead it read as a playlist's gradient): strongest a little above the
+     words, falling toward them, quieter overhead. */
   -webkit-mask-image: linear-gradient(
     to bottom,
-    #000 0%,
-    #000 34%,
-    rgb(0 0 0 / 0.62) 62%,
-    rgb(0 0 0 / 0.3) 84%,
+    rgb(0 0 0 / 0.64) 0%,
+    rgb(0 0 0 / 0.86) 30%,
+    rgb(0 0 0 / 0.7) 56%,
+    rgb(0 0 0 / 0.32) 84%,
     rgb(0 0 0 / 0.1) 100%
   );
   mask-image: linear-gradient(
     to bottom,
-    #000 0%,
-    #000 34%,
-    rgb(0 0 0 / 0.62) 62%,
-    rgb(0 0 0 / 0.3) 84%,
+    rgb(0 0 0 / 0.64) 0%,
+    rgb(0 0 0 / 0.86) 30%,
+    rgb(0 0 0 / 0.7) 56%,
+    rgb(0 0 0 / 0.32) 84%,
     rgb(0 0 0 / 0.1) 100%
   );
 }

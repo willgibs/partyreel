@@ -5,9 +5,10 @@ import "./seed.css";
 import type { CSSProperties } from "react";
 
 import { edgeBand } from "@/components/app/event-feed/event-hub-head-edge";
-import { background, blendMode, orbFor } from "@/lib/avatar/gradient";
+import { background, blendMode, type Orb } from "@/lib/avatar/gradient";
 
-import { alpha, seedLight } from "./light";
+import { orbOf, type Palette } from "./face";
+import { alpha, lampColor } from "./light";
 
 /**
  * A PARTY'S OWN COLOUR WHERE IT HAS NO PHOTOGRAPH YET: the cover's ground
@@ -37,6 +38,13 @@ import { alpha, seedLight } from "./light";
  * ★ THE ROOM ON BOTH THEMES: a cover is the room (`EventHead` is `dark`), so
  * none of this ever touches a paper page. ★ STILL: a seed is never animated
  * (seed-avatar r2), so the lamp hangs still until a photograph arrives.
+ *
+ * ★ ONE LIGHT A SCREEN, ON THE HUB TOO (the creative director's pass): the
+ * hub's one light is its Seam, so there the lamp hangs no orb and the Seam
+ * alone carries the seed (`SeedSeam`); on a guest's album the lamp's light
+ * pools behind the name, a lamp lighting the room the words stand in.
+ * ★ THE SEED'S COLOUR FOLLOWS THE COLOUR ANSWER (`orbOf`): drawn from the
+ * ember's arc where a party's faces are, the whole wheel otherwise.
  */
 
 export type SeedWay = "house" | "lamp" | "field";
@@ -48,25 +56,49 @@ export function SeedGround({
   seed,
   way,
   side,
+  palette = "wheel",
 }: {
   seed: string;
   way: SeedWay;
   /** The guest's album cover (a phone's first screen) or the host's hub head (a band). */
   side: "album" | "hub";
+  /** The faces' palette, which the party's seed follows. */
+  palette?: Palette;
 }) {
   if (way === "house") return null;
-  if (way === "field") return <SeedField seed={seed} />;
-  return <SeedLamp seed={seed} side={side} />;
+  const o = orbOf(seed, palette);
+  if (way === "field") return <SeedField orb={o} />;
+  // The hub's one light is its Seam: the room stands dark over it, no orb.
+  if (side === "hub")
+    return (
+      <div
+        aria-hidden
+        data-pr-seed="lamp"
+        data-pr-side="hub"
+        className="pr-seed absolute inset-0"
+      >
+        <span className="pr-seed-room" />
+      </div>
+    );
+  return <SeedLamp orb={o} side={side} />;
+}
+
+/** A seed's light at three depths in the room's register, from its orb (`light.ts`'s `lampColor`). */
+function lightOf(o: Orb) {
+  return {
+    lit: lampColor({ h: o.hue, w: 1, dl: 0.07 }),
+    body: lampColor({ h: o.hue, w: 1 }),
+    deep: lampColor({ h: (o.hue + 348) % 360, w: 1, dl: -0.07 }),
+  };
 }
 
 /**
  * THE LAMP: the seed's orb, whole, its light round it in the room's dark. Its
- * light is the seed's own three depths in the room's register (`seedLight`):
+ * light is the seed's own three depths in the room's register (`lightOf`):
  * the bloom in its lit tone, the room in its body.
  */
-function SeedLamp({ seed, side }: { seed: string; side: "album" | "hub" }) {
-  const o = orbFor(seed);
-  const l = seedLight(seed);
+function SeedLamp({ orb: o, side }: { orb: Orb; side: "album" | "hub" }) {
+  const l = lightOf(o);
   const vars: Vars = {
     // The glass lit from within: the orb's own mesh lifted toward its light (screened), its core where its light sits.
     "--pr-orb-lift": alpha(l.body, 34),
@@ -80,10 +112,10 @@ function SeedLamp({ seed, side }: { seed: string; side: "album" | "hub" }) {
     "--pr-bloom-2": alpha(l.body, 6),
     "--pr-bloom-3": alpha(l.deep, 2),
     // The room it lights: low, wide, falling off as light does (each stop about half the last).
-    "--pr-pool-0": alpha(l.body, 30),
-    "--pr-pool-1": alpha(l.body, 15),
-    "--pr-pool-2": alpha(l.deep, 6.5),
-    "--pr-pool-3": alpha(l.deep, 2.5),
+    "--pr-pool-0": alpha(l.body, 40),
+    "--pr-pool-1": alpha(l.body, 24),
+    "--pr-pool-2": alpha(l.deep, 11),
+    "--pr-pool-3": alpha(l.deep, 4),
   };
   return (
     <div
@@ -111,8 +143,7 @@ function SeedLamp({ seed, side }: { seed: string; side: "album" | "hub" }) {
 }
 
 /** THE FIELD: the seed's mesh, the whole cover, dimmed into the room. */
-function SeedField({ seed }: { seed: string }) {
-  const o = orbFor(seed);
+function SeedField({ orb: o }: { orb: Orb }) {
   return (
     <div aria-hidden data-pr-seed="field" className="pr-seed absolute inset-0">
       <span
@@ -134,8 +165,14 @@ function SeedField({ seed }: { seed: string }) {
  * edge at a few depths, drawn with production's own band (`edgeBand`) in the
  * Seam's own markup and sheet (`event-hub-head-seam.css`).
  */
-export function SeedSeam({ seed }: { seed: string }) {
-  const h = orbFor(seed).hue;
+export function SeedSeam({
+  seed,
+  palette = "wheel",
+}: {
+  seed: string;
+  palette?: Palette;
+}) {
+  const h = orbOf(seed, palette).hue;
   const hues = [h + 8, h + 4, h, h - 4, h - 8, h - 14].map(
     (x) => (x + 360) % 360,
   );

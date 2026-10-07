@@ -23,13 +23,17 @@
    row's one ring is the newest's) and no highlight inside it (a highlight
    makes a ball). */
 .pr-lit[data-pr-lit] {
+  /* ★ HER COLOUR AT DUSK, NEVER A MARBLE (the creative director's pass): no
+     hot spot where the light enters (it starts a step under her full light),
+     and the far side spent to a little under half her light, never to black,
+     so a face is a deep, even colour with light falling across it rather than
+     a lit ball, and never a pastel. */
   background: radial-gradient(
-    in oklab 130% 130% at var(--pr-lit-x) var(--pr-lit-y),
-    var(--pr-lit) 0%,
-    color-mix(in oklab, var(--pr-lit-body) 90%, black) 22%,
-    color-mix(in oklab, var(--pr-lit-body) 68%, black) 42%,
-    color-mix(in oklab, var(--pr-lit-deep) 46%, black) 62%,
-    color-mix(in oklab, var(--pr-lit-deep) 30%, black) 86%
+    in oklab 140% 140% at var(--pr-lit-x) var(--pr-lit-y),
+    color-mix(in oklab, var(--pr-lit-body) 86%, black) 0%,
+    color-mix(in oklab, var(--pr-lit-body) 72%, black) 30%,
+    color-mix(in oklab, var(--pr-lit-body) 57%, black) 58%,
+    color-mix(in oklab, var(--pr-lit-deep) 46%, black) 88%
   );
 }
 

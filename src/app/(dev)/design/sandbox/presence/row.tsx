@@ -11,7 +11,6 @@ import {
   useState,
 } from "react";
 
-import { floatingTip } from "@/components/ui/floating-layer";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -43,29 +42,28 @@ import { alpha, keyOf, ringPaint, WHITE_RING } from "./light";
  * glyph; a word set in it ("38 GUESTS") read as a dashboard's caption under
  * a wedding's name.
  *
- * ★ THREE WAYS TO RING THE NEWEST (the `newest` decision), each at a beat:
- *  - `white`: a white ring and a soft white glow while their photos land
- *    (the quarter hour the hub's strip lights its newest end by), then none;
- *  - `photo`: the same, in the light of the photograph they just added (its
- *    sampled key, `light.ts`);
- *  - `lands`: a flare in that light as each photo lands, settling over two
- *    seconds into a fine ring that always marks the newest.
- * ★ ON PAPER A LIGHT KEEPS ITS DARK (Aperture): a lit ring stands in a small
- * puck of the room, as the Add's Ring does on paper; a fine ring at rest is
- * printed in the page's ink.
+ * ★ THE NEWEST'S RING IS THE CARRIED CALL'S (`lands`, taken; the old
+ * `newest` question's three ways stay drawable, `white` and `photo` being
+ * its overrule): a flare in the light of the photograph they just added as
+ * each photo lands, settling over two seconds into a fine ring that always
+ * marks the newest. ★ ON PAPER A LIGHT KEEPS ITS DARK (Aperture): a lit ring
+ * stands in a small puck of the room; a fine ring at rest is printed in ink.
  *
  * ★ THREE WAYS TO ANSWER A POINTER (the `hover` decision): none, as today;
  * transitions.dev's avatar-group hover at its own numbers
  * (`.agents/skills/transitions-dev/11-avatar-group-hover.md`); or that lift
- * eased home with no overshoot, the face brought to the front and named in
- * production's tooltip (its capsule, its arrow, its entrance and its clock).
- * The timing function is written BEFORE the variables, so a lift eases in and
- * the return wears its own curve (the recipe's trick). Under reduced motion
- * nothing moves; an INSTANT (a held beat) is a drawing and keeps its pose.
+ * eased home with no overshoot. Both combs bring the face under the pointer
+ * to the front (a face mid-row lifts out from under its neighbour) and say
+ * WHO IN THE COUNT'S OWN PLACE: "38 guests" turns to its name (transitions.dev's
+ * text swap), so nothing is laid over the byline and no pill is needed (the
+ * creative director's pass). The timing function is written BEFORE the
+ * variables, so a lift eases in and the return wears its own curve (the
+ * recipe's trick). Under reduced motion nothing moves; an INSTANT (a held
+ * beat) is a drawing and keeps its pose.
  */
 
 export type RingWay = "white" | "photo" | "lands";
-export type HoverWay = "still" | "comb" | "named";
+export type HoverWay = "still" | "comb" | "settled";
 
 /** The beat a row is drawn at. */
 export type RowBeat =
@@ -113,7 +111,7 @@ const IN_BAR: Look = {
   initial: "text-[12px]",
 };
 
-/** The hover's numbers: transitions.dev's own (`comb`), and the same lift eased home (`named`). */
+/** The hover's numbers: transitions.dev's own (`comb`), and the same lift eased home (`settled`). */
 const HOVER = {
   lift: -4,
   scale: 1.05,
@@ -121,7 +119,7 @@ const HOVER = {
   in: "cubic-bezier(0.22, 1, 0.36, 1)",
   out: {
     comb: "cubic-bezier(0.34, 3.85, 0.64, 1)",
-    named: "cubic-bezier(0.22, 1, 0.36, 1)",
+    settled: "cubic-bezier(0.22, 1, 0.36, 1)",
   },
 } as const;
 
@@ -395,9 +393,12 @@ export function PartyRow({
   const faceActive = instant ? pointer : active;
   const shifts = shiftsFor(n, hover === "still" ? null : faceActive);
   const ease =
-    phase === "out" && hover !== "still"
-      ? HOVER.out[hover === "comb" ? "comb" : "named"]
-      : HOVER.in;
+    phase === "out" && hover !== "still" ? HOVER.out[hover] : HOVER.in;
+  // Who the pointer is on, said in the count's place (both combs); the count otherwise.
+  const naming =
+    hover !== "still" && faceActive !== null && faceActive < n
+      ? people[faceActive]!.name
+      : null;
 
   const look = on === "page" && size === "default" ? IN_BAR : SIZES[size];
   const newest = people[0];
@@ -434,7 +435,7 @@ export function PartyRow({
       >
         {people.slice(0, n).map((p, i) => {
           const wears = i === 0 ? ringState(ring, lit) : undefined;
-          const raised = faceActive === i && hover === "named";
+          const raised = faceActive === i && hover !== "still";
           return (
             <span
               key={p.seed}
@@ -474,7 +475,6 @@ export function PartyRow({
                 className={cn("pr-avatar", look.box)}
                 initial={look.initial}
               />
-              {raised ? <NameTag name={p.name} /> : null}
             </span>
           );
         })}
@@ -482,12 +482,24 @@ export function PartyRow({
       {label ? (
         <span
           data-pr-count=""
+          data-pr-naming={naming ? "" : undefined}
+          aria-live="polite"
           className={cn(
             "pr-count text-sm tabular-nums",
-            on === "photo" ? "text-white/85" : "text-muted-foreground",
+            naming
+              ? on === "photo"
+                ? "font-medium text-white"
+                : "font-medium text-foreground"
+              : on === "photo"
+                ? "text-white/85"
+                : "text-muted-foreground",
           )}
         >
-          {`${formatCount(total)} ${total === 1 ? "guest" : "guests"}`}
+          {/* Keyed on its words, so each swap is a fresh entrance (`pr-swap`). */}
+          <span key={naming ?? "count"} className="pr-count-words">
+            {naming ??
+              `${formatCount(total)} ${total === 1 ? "guest" : "guests"}`}
+          </span>
         </span>
       ) : null}
       {play === "hover" && cursor ? (
@@ -497,29 +509,6 @@ export function PartyRow({
         <HeldPointer at={pointer} slots={slots} />
       ) : null}
     </div>
-  );
-}
-
-/**
- * THE NAME ABOVE A RAISED FACE, IN PRODUCTION'S TOOLTIP: `TooltipContent`'s
- * capsule (`floatingTip`, its padding and its type) and its arrow, a rounded
- * diamond of the display's own ink pointing at the face it names, so a name
- * over overlapping faces is never in doubt. It rides the face's lift and is
- * drawn back to its true size against the face's grow (`row.css`).
- */
-function NameTag({ name }: { name: string }) {
-  return (
-    <span data-pr-name="" className="pr-name">
-      <span
-        className={cn(
-          "relative inline-flex items-center px-3 py-1.5 text-xs whitespace-nowrap",
-          floatingTip,
-        )}
-      >
-        {name}
-        <span aria-hidden className="pr-name-arrow bg-popover" />
-      </span>
-    </span>
   );
 }
 

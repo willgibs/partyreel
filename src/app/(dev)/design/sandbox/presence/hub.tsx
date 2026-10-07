@@ -174,7 +174,10 @@ function HubHead({
               <PageHeading className="text-section text-balance text-white sm:text-chapter">
                 {WEDDING.short}
               </PageHeading>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-white/85">
+              <div
+                data-pr-hub-facts=""
+                className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-white/85"
+              >
                 <span>
                   <RangeText text={formatEventDate(WEDDING.date, null)} />
                 </span>
