@@ -45,6 +45,32 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/mutations/events.ts
   - src/lib/db/mutations/events.test.ts
   - supabase/migrations/20261008030000_crumbs_91.sql
+  # claimed at boot: AY1's other readers of the turn (the hub's Sort, the zone's words, the pins of the old morning)
+  - src/components/app/event-feed/event-gallery.tsx
+  - src/components/app/event-feed/event-gallery.test.tsx
+  - src/components/guest/party-zone.tsx
+  - src/app/(guest)/e/[token]/page.first-paint.test.tsx
+  - src/lib/disposable/reveal.ts
+  - src/lib/disposable/album-style.test.ts
+  # claimed at boot: line 3's new home on the host's side, line 4's Table, line 8's radio cards
+  - src/components/app/file-dropzone.tsx
+  - src/components/app/file-dropzone.test.tsx
+  - src/components/app/dashboard/events-table.tsx
+  - src/components/app/dashboard/events-table.test.tsx
+  - src/components/app/event-settings/door-page.tsx
+  - src/components/app/event-settings/door-page.test.tsx
+  - src/components/app/event-settings/camera-settings.tsx
+  - src/components/app/event-settings/camera-settings.test.tsx
+  - src/components/app/event-settings/radio-cards.tsx
+  - src/components/app/event-settings/radio-cards.test.tsx
+  # claimed at boot: line 2's store (a burst's files counted in one read and one write), line 12's last specimen,
+  # line 13's comment, and the migration's pins of the bodies it replaces
+  - src/lib/security/abuse-rate-limit-store.ts
+  - src/lib/security/abuse-rate-limit-store.test.ts
+  - src/app/(dev)/design/(shell)/library/foundations/elevation-legend.tsx
+  - src/app/(app)/dashboard/[eventId]/actions.ts
+  - src/lib/db/mutations/event-doors-migration.test.ts
+  - src/lib/db/restores-at-once-migration.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/ROADMAP.md
   - docs/systems/guest-flow.md
