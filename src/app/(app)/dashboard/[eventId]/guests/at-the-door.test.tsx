@@ -1,11 +1,13 @@
 /**
  * AT THE DOOR (event-settings r1, `queue=room`): Let in and Decline on each newcomer who waits.
  * Held: a row leaves the moment it is answered and returns, with a sentence, if the answer fails; a
- * decline carries its Undo, which lets her back to the door; and the section is not drawn at all when
- * nobody waits.
+ * decline's toast carries Let in, which lifts it and lets her in (host-moments r1, `let-back=straight`); at
+ * Only me a Let in never says the album opens; and the section is not drawn at all when nobody waits.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { LET_IN, letInToast } from "@/lib/events/event-blocks";
 
 const { toast, letInAtDoorAction, declineAtDoorAction, letBackInAction } =
   vi.hoisted(() => ({
@@ -85,9 +87,18 @@ describe("at the door", () => {
     );
   });
 
-  it("★ Decline blocks her account, and its Undo lets her back to the door", async () => {
+  // ★ RESHAPED ON PURPOSE (host-moments r1, `let-back=straight`; scar kept: a decline is taken back from its own
+  // toast, in one press, and the block it made is the one lifted). The expired reason: "its Undo lets her back to
+  // the door". Undoing a decline means yes (the board's reason, which Will picked), so the toast's key says Let in,
+  // Blocked's own word, and she is in, in the words Blocked's Let in says it in.
+  it("★ Decline blocks her account, and its toast's Let in lifts it and lets her in", async () => {
     declineAtDoorAction.mockResolvedValue({ ok: true, blockId: "block-1" });
-    letBackInAction.mockResolvedValue({ ok: true, restored: 0, noRoom: 0 });
+    letBackInAction.mockResolvedValue({
+      ok: true,
+      restored: 0,
+      noRoom: 0,
+      admitted: 1,
+    });
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Decline" }));
@@ -100,19 +111,91 @@ describe("at the door", () => {
     expect(screen.queryByText("Wren")).toBeNull();
     const [, options] = toast.mock.calls[0] as [
       string,
-      { action: { onClick: () => void } },
+      { action: { label: string; onClick: () => void } },
     ];
+    expect(options.action.label).toBe(LET_IN);
     await act(async () => {
       options.action.onClick();
     });
     expect(letBackInAction).toHaveBeenCalledWith({
       blockId: "block-1",
       restore: false,
+      letIn: true,
     });
-    expect(screen.getByText("Wren")).toBeTruthy();
+    const said = letInToast("Wren", { from: "decline", onlyMe: false });
+    expect(toast.success).toHaveBeenCalledWith(said.title, {
+      description: said.description,
+    });
+    // She is in, not back at the door: her row stays answered.
+    expect(screen.queryByText("Wren")).toBeNull();
   });
 
-  it("★ declined, then let back in from Blocked, she is at the door again in the next read (build 23's NIT-4)", async () => {
+  it("a Let in from the decline's toast that fails says so, and she stays declined", async () => {
+    declineAtDoorAction.mockResolvedValue({ ok: true, blockId: "block-1" });
+    letBackInAction.mockResolvedValue({ ok: false, message: "Nope." });
+    render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    });
+    const [, options] = toast.mock.calls[0] as [
+      string,
+      { action: { onClick: () => void } },
+    ];
+    await act(async () => {
+      options.action.onClick();
+    });
+    expect(toast.error).toHaveBeenCalledWith("Couldn't let them in.", {
+      description: "Nope.",
+    });
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("★ at Only me a Let in never says the album opens, from the row or from the decline's toast (crumbs-30)", async () => {
+    letInAtDoorAction.mockResolvedValue({ ok: true, admitted: 1 });
+    declineAtDoorAction.mockResolvedValue({ ok: true, blockId: "block-1" });
+    letBackInAction.mockResolvedValue({
+      ok: true,
+      restored: 0,
+      noRoom: 0,
+      admitted: 1,
+    });
+    const KIT = {
+      ...WREN,
+      guestId: "44444444-5555-4666-8777-888888888888",
+      name: "Kit",
+    };
+    render(
+      <AtTheDoor
+        eventId={EVENT}
+        people={[WREN, KIT]}
+        total={2}
+        door="private"
+      />,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole("button", { name: "Let in" })[0]!);
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    });
+    const [, options] = toast.mock.calls[0] as [
+      string,
+      { action: { onClick: () => void } },
+    ];
+    await act(async () => {
+      options.action.onClick();
+    });
+    const closed = letInToast("x", { from: "door", onlyMe: true }).description;
+    for (const call of toast.success.mock.calls) {
+      expect((call[1] as { description: string }).description).toBe(closed);
+    }
+    expect(toast.success).toHaveBeenCalledTimes(2);
+  });
+
+  // ★ RESHAPED ON PURPOSE (host-moments r1; scar kept: an answered row stays hidden only until the room is read
+  // again). The expired reason: "let back in from Blocked, she is back at the door", since Blocked's Let in lets a
+  // standing ask in now; the read that brings her back is one where she asks again.
+  it("★ declined, then asking again, she is at the door in the next read (build 23's NIT-4)", async () => {
     declineAtDoorAction.mockResolvedValue({ ok: true, blockId: "block-1" });
     const view = render(
       <AtTheDoor eventId={EVENT} people={[WREN]} total={1} />,
@@ -123,7 +206,7 @@ describe("at the door", () => {
     expect(screen.queryByText("Wren")).toBeNull();
     // The decline's own revalidation: nobody waits.
     view.rerender(<AtTheDoor eventId={EVENT} people={[]} total={0} />);
-    // Let back in, pressed under Blocked, revalidates the room: she waits again, and shows.
+    // A later read finds her asking again (her ask ended, Blocked lifted the block, she asked once more): she shows.
     view.rerender(
       <AtTheDoor eventId={EVENT} people={[{ ...WREN }]} total={1} />,
     );
