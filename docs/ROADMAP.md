@@ -47,8 +47,9 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Accounts and profiles
 
-- Profile: the public page's meta row orphans its `·` at 375 when the handle is long (`u/[slug]/page.tsx`: `@jordanpike ·`, then `Joined …` on the next line); the separator should travel with what follows it (account-moments-r1).
 - Account: a magic link that signs Create account into an existing address says nothing, where the code says so (`auth/account-door.tsx`); a one-line banner on `/dashboard` from `(auth)/auth/callback/route.ts`, on `checkExistingAccount`'s test.
+- Profiles: Connections' look offers Follow after an Unblock where they blocked her back (`followUser` is block-silent: ok, nothing written), so a wrong Following row stands until she leaves; the profile page's `isBlockedEitherWay` read per Blocked row (`lib/db/queries/social.ts`) would hide it (account-moments-wiring).
+- Profiles: the album's guest list offers Follow on a chip of someone she blocked or who blocked her (the same silent no-op, then the chip reads Following), and a look's Follow reads Follow again on its next open; `GuestList` needs `blockedIds` beside `followingIds`, or better one answer per person that every face of a relation on a page shares, as Connections' island is for its card (account-moments-wiring).
 
 ### The host app
 
@@ -162,6 +163,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Profile: a tap on a link into `/u/<handle>` shows nothing until the page arrives (the route has no `loading.tsx`, on purpose); a pending state on those links through `useLinkStatus`, as `chrome-link.tsx` has, would answer the tap.
 - Profile: deleting a photograph opened at `/u/<handle>?photo=` makes the next Show more jump to the top as the held answer lands (the viewer's same-tick address write before a revalidating action, Next 16.2.6, a row `lib/history-entry.ts` lacks). [unsure: crumbs-83 gave a photo opened at its address its own entry, which may have removed the cause; not re-walked]
 - Account: the reset's Set a new password (`SetInitialPassword`, `auth/password-sign-in.tsx`) has no strength meter while `/account`'s change form and the event password wear `PasswordStrengthMeter`.
+- Profiles: the owner mode's Connections chips (`/me`, `/u/<handle>`) link to pages where Account's names now open the look; the same look could serve them (account-moments-wiring).
 
 ### The host app
 

@@ -1127,3 +1127,32 @@ and walk disagree, and an operator's Rebuild on its card is the fix.
 **BY4. A restore that bypasses triggers is a written warning, nothing built:** a partial restore of media rows runs the
 Rebuild for each host it touched.
 - *Push back if* a guard should refuse such a restore.
+
+## BZ. Her account's quiet moments, wired (account-moments-wiring)
+
+Your account-moments r1 picks are in production: a block said where Follow stood, Connections' rows that stay turned
+back, and `/me` as her own page before it is public. These are the calls built into them, yours to overrule.
+
+**BZ1. The block's words and place:** "You blocked {name}. Neither of you can follow the other, and they aren't told.",
+under the bio, with Unblock beside it.
+- *Push back if* it should say less, or stand where Follow stood in the row.
+
+**BZ2. Following someone from their card after an Unblock** puts them in Following at once and leaves their turned-back
+row under Blocked until she leaves Account, so a list she is reading never loses a row but to a block she confirmed.
+- *Push back if* the row should leave Blocked the moment she follows.
+
+**BZ3. The card offers no Follow from a Following row** (that row's own button is the follow), and none while a block
+stands.
+- *Push back if* the card should always carry Follow.
+
+**BZ4. `/me` shows no handle** (she has none yet) and drops "Only you can see the sections below.", since the page as a
+whole now says "Only you can see this page."
+- *Push back if* the sections should keep their own line.
+
+**BZ5. A follow or a block with no connection springs back with one toast,** "Couldn't reach Partyreel just now. Please
+try again.", where it used to fall to the error screen.
+- *Push back if* the words should differ.
+
+**BZ6. A name in Connections opens the person's card,** Open full profile its last button, where the name used to link
+straight to their page.
+- *Push back if* a name should still go straight to the page.
