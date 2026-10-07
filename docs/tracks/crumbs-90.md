@@ -112,11 +112,15 @@ working.
 ## Handoff (replaces the chat report)
 
 - **Commits, pushed:** work `b8415a49f` (items 1, 2, 4, 5, 7, 8, 9) and `a1088de40` (item 3's grace, the system
-  docs); sync `6e8aee8ee` (launch-prep `86fd09017`); launch-prep moved since by records alone (`3ec66b8fe`).
-- **Gates on `6e8aee8ee`, each its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (0 warnings); `pnpm test` 0
-  (1083 files, 13719 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0
-  (206 checks, 0 failing); `pnpm lab:demo --board no-signal --base http://localhost:3132` 0 (its roll's today frame
-  now draws production's corrected sheet; its comments still name the old Retry).
+  docs); syncs `6e8aee8ee` (launch-prep `86fd09017`) and `b6a07adf1` (launch-prep `01e5df422`: milestone 39 shipped,
+  crumbs-88 merged). The one conflict, `guest-flow.md`'s link card, keeps both: crumbs-88's foot by its address (`?add`)
+  and this lane's photo card size and HEIC rule. No other file of this lane's overlaps crumbs-88's or milestone 39's
+  changes (`git diff --name-only 86fd09017 origin/launch-prep -- src` against this lane's: none in common), and the
+  name door's callers on the merged tree are the two modeless ones.
+- **Gates on `b6a07adf1`, each its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (0 warnings); `pnpm test` 0
+  (1087 files, 13819 tests). On `6e8aee8ee` before it: `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base
+  http://localhost:3132` 0 (206 checks, 0 failing); `pnpm lab:demo --board no-signal --base http://localhost:3132` 0
+  (its roll's today frame now draws production's corrected sheet; its comments still name the old Retry).
 - **Lane check:** owned paths and this file, with these exceptions: `docs/systems/{uploads-and-r2,guest-flow,
   design-system}.md` (the facts above); `src/app/(guest)/e/[token]/card/card.test.tsx` (the photo card's own tests);
   the five route tests `src/app/api/{r2,host/r2}/{presign,complete}-upload/route.test.ts` and `src/app/api/r2/
