@@ -21,9 +21,23 @@
  * re-mints what aged, so an album left open all evening keeps drawing live links without a poll ever
  * carrying one (links.ts).
  *
+ * ★ THE TIMER'S ASK MAY GO TO THE CDN FIRST (`poll()`, X5: edge-version.ts). Where the album's last real
+ * answer named its key at the CDN (an album everyone with the link sees whole), the poll asks the CDN's copy
+ * of the validator first and asks the album itself only when it differs from the one held, or when the cheap
+ * ask fails, says `ask` or `clock`, or the last real answer is older than `ALBUM_EDGE_TRUST_MS` (what only the
+ * viewer's own answer can say, a block on her above all, still reaches a lit page within it). A quiet answer
+ * re-mints what aged, as a 304 does. The doorbell, her own upload and Try again keep `sync()`: they know
+ * something moved, and the CDN's few seconds could hide it. `edgeShared()` says whether the CDN answered the
+ * last cheap ask from its cache (a room is asking this album too), which is where a quicker quiet poll costs
+ * the function nothing (use-live-poll.ts).
+ *
  * `useSyncExternalStore`-shaped (`subscribe`, `getSnapshot`), and pure: the transport is handed in,
  * so the integrity model and the tests drive it against a simulated server.
  */
+import {
+  ALBUM_EDGE_TRUST_MS,
+  type AlbumVersionReply,
+} from "@/lib/album/edge-version";
 import { createClipResolver, type ClipResolver } from "@/lib/album/resolver";
 import type { GuestWaiting } from "@/lib/disposable/facts";
 import { createLinkStore, type LinkStore } from "@/lib/album/links";
@@ -43,9 +57,15 @@ import {
 
 export type SyncBody = GuestSyncBody | HostSyncBody;
 
+/** `edgeKey`: the album's key at the CDN, named by a real answer for an album everyone with the link sees whole. */
 export type SyncResult =
-  | { status: 304 }
-  | { status: 200; etag: string | null; body: SyncBody };
+  | { status: 304; edgeKey?: string | null }
+  | {
+      status: 200;
+      etag: string | null;
+      body: SyncBody;
+      edgeKey?: string | null;
+    };
 
 /** How the store reaches its server: the fetch routes in a browser, a simulation in a test. */
 export type AlbumTransport<Who> = {
@@ -89,6 +109,9 @@ export type AlbumSnapshot = {
 
 export type AlbumStoreStats = {
   syncs: number;
+  /** Polls that asked the CDN's version first, and those it answered as nothing changed. */
+  edgeAsks: number;
+  edgeQuiet: number;
   /** A sync that threw (the network, a 5xx): the album on screen stays, the next poll retries. */
   failures: number;
   notModified: number;
@@ -101,8 +124,12 @@ export type AlbumStoreStats = {
 export type AlbumStore<Who> = {
   getSnapshot(): AlbumSnapshot;
   subscribe(listener: () => void): () => void;
-  /** One poll (the doorbell's and the timer's). Resolves when this store has caught up. */
+  /** One sync (the doorbell's, an upload's, Try again's). Resolves when this store has caught up. */
   sync(): Promise<void>;
+  /** The timer's ask: the CDN's version first where it can answer (the head note), else `sync()`. */
+  poll(): Promise<void>;
+  /** Whether the CDN answered the last cheap ask from its cache: a quicker quiet poll costs the function nothing. */
+  edgeShared(): boolean;
   links: LinkStore<Who>;
   /** The live reel's `{ get, ensure }` over the same links. */
   clips: ClipResolver;
@@ -120,6 +147,8 @@ export type AlbumStoreOptions<Who> = {
   }) => void;
   /** Ids per links request (the route's cap; a test shrinks it). */
   linkBatchSize?: number;
+  /** The cheap ask (`guestAlbumVersion`): absent, every poll is a `sync()` (the host's album). */
+  askVersion?: (key: string) => Promise<AlbumVersionReply>;
 };
 
 /** Syncs one `sync()` call may chain (a burst of doorbells, an access that moved mid-read). */
@@ -144,9 +173,17 @@ export function createAlbumStore<Who>(
 ): AlbumStore<Who> {
   let snapshot: AlbumSnapshot = EMPTY;
   let etag: string | null = null;
+  const clock = opts.now ?? Date.now;
+  /** The album's key at the CDN, as the last real answer named it, and when that answer came. */
+  let edgeKey: string | null = null;
+  let vouchedAt = Number.NEGATIVE_INFINITY;
+  /** Whether the CDN answered the last cheap ask from its cache. */
+  let shared = false;
   const listeners = new Set<() => void>();
   const stats: AlbumStoreStats = {
     syncs: 0,
+    edgeAsks: 0,
+    edgeQuiet: 0,
     failures: 0,
     notModified: 0,
     deltas: 0,
@@ -157,6 +194,7 @@ export function createAlbumStore<Who>(
 
   let running: Promise<void> | null = null;
   let again = false;
+  let polling: Promise<void> | null = null;
 
   const links = createLinkStore<Who>({
     fetch: (ids) => opts.transport.links(ids),
@@ -180,6 +218,10 @@ export function createAlbumStore<Who>(
       since: snapshot.status === "ready" ? snapshot.version : null,
       etag: snapshot.status === "loading" ? null : etag,
     });
+    // Every real answer says afresh whether the CDN may answer this album's quiet polls (the seed's says nothing).
+    edgeKey = result.edgeKey ?? null;
+    vouchedAt = clock();
+    if (edgeKey === null) shared = false;
     if (result.status === 304) {
       stats.notModified += 1;
       return "done";
@@ -309,6 +351,45 @@ export function createAlbumStore<Who>(
     }
   }
 
+  /** The timer's ask (the head note): the CDN's word that nothing changed, or the album's own answer. */
+  async function pollOnce(): Promise<void> {
+    const ask = opts.askVersion;
+    const key = edgeKey;
+    if (
+      !ask ||
+      key === null ||
+      running ||
+      snapshot.status !== "ready" ||
+      etag === null ||
+      clock() - vouchedAt >= ALBUM_EDGE_TRUST_MS
+    )
+      return store.sync();
+    stats.edgeAsks += 1;
+    let reply: AlbumVersionReply | null = null;
+    try {
+      reply = await ask(key);
+    } catch {
+      // The cheap ask failed (the network, a 5xx, an answer it cannot read): the album answers, as it always has.
+    }
+    shared = reply?.fromCache === true;
+    const answer = reply?.answer;
+    // Checked against what this store holds NOW: a doorbell's sync may have landed while the ask was out.
+    if (
+      answer?.kind === "version" &&
+      answer.v === etag &&
+      snapshot.status === "ready"
+    ) {
+      stats.edgeQuiet += 1;
+      try {
+        await links.refreshAged();
+      } catch {
+        stats.failures += 1;
+      }
+      return;
+    }
+    return store.sync();
+  }
+
   const store: AlbumStore<Who> = {
     getSnapshot: () => snapshot,
     subscribe(listener) {
@@ -325,6 +406,13 @@ export function createAlbumStore<Who>(
       running = run();
       return running;
     },
+    poll() {
+      polling ??= pollOnce().finally(() => {
+        polling = null;
+      });
+      return polling;
+    },
+    edgeShared: () => edgeKey !== null && shared,
     links,
     clips: createClipResolver(links),
     stats: () => ({ ...stats }),

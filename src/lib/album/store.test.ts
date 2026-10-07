@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+import {
+  ALBUM_EDGE_TRUST_MS,
+  type AlbumVersionAnswer,
+} from "@/lib/album/edge-version";
 import { isOrdered } from "@/lib/album/manifest";
 import {
   createAlbumStore,
@@ -13,6 +17,7 @@ import {
   type SimPoint,
 } from "@/lib/album/testing/album-sim";
 import type { GuestWhoTuple } from "@/lib/events/album-wire";
+import { guestAlbumEtag } from "@/lib/events/album-validator";
 
 const EVENT = "e0000000-0000-4000-8000-000000000001";
 let seq = 0;
@@ -408,5 +413,217 @@ describe("what waits rides the guest's full answer, as numbers", () => {
     sim.commit([{ op: "insert", media: photo("pending") }]);
     await store.sync();
     expect(store.getSnapshot().waiting).toBeUndefined();
+  });
+});
+
+describe("the timer's ask goes to the CDN first, where the album's version is everyone's (X5)", () => {
+  const KEY = "Kk0_-".padEnd(22, "x");
+
+  /** The guest validator the sim's album stands at: what a CDN fill read now would hold. */
+  function versionOf(sim: AlbumSim): string {
+    const v = sim.versions(EVENT);
+    return guestAlbumEtag({
+      eventId: EVENT,
+      access: "full",
+      gate: null,
+      albumMax: v.albumMax,
+      attrVersion: v.attr,
+      reel: null,
+    });
+  }
+
+  /** A sim whose real answers name `key` (the route's `x-album-edge`), and a CDN answering the album as it stands. */
+  function edgeSetup(opts: { now?: () => number } = {}) {
+    const sim = new AlbumSim();
+    const base = simTransport({ sim, event: EVENT, scope: "album" });
+    const named = { key: KEY as string | null };
+    const transport: AlbumTransport<GuestWhoTuple> = {
+      ...base,
+      async sync(req) {
+        const answer = await base.sync(req);
+        return { ...answer, edgeKey: named.key };
+      },
+    };
+    const cdn: {
+      next: AlbumVersionAnswer | "fail" | null;
+      /** Whether the CDN answers from its cache (a room asking too), or the function fills the window. */
+      fromCache: boolean;
+    } = { next: null, fromCache: true };
+    const askVersion = vi.fn(async (key: string) => {
+      expect(key).toBe(KEY);
+      const next = cdn.next;
+      if (next === "fail") throw new Error("offline");
+      return {
+        answer: next ?? { kind: "version" as const, v: versionOf(sim) },
+        fromCache: cdn.fromCache,
+      };
+    });
+    const store = createAlbumStore({ transport, askVersion, now: opts.now });
+    return { sim, store, askVersion, cdn, named };
+  }
+
+  it("a quiet album's poll is the CDN's word alone: no sync, and what aged still re-mints", async () => {
+    const { sim, store, askVersion } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    // Named, but nothing says yet that a room shares its windows.
+    expect(store.edgeShared()).toBe(false);
+    const refreshAged = vi.spyOn(store.links, "refreshAged");
+    const before = store.getSnapshot();
+    await store.poll();
+    await store.poll();
+    expect(askVersion).toHaveBeenCalledTimes(2);
+    expect(store.stats()).toMatchObject({
+      syncs: 1,
+      edgeAsks: 2,
+      edgeQuiet: 2,
+    });
+    expect(refreshAged).toHaveBeenCalledTimes(2);
+    expect(store.getSnapshot()).toBe(before);
+    expect(store.edgeShared()).toBe(true);
+  });
+
+  it("★ shared only while the CDN answers from its cache: a device asking alone fills its own windows", async () => {
+    const { sim, store, cdn } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    cdn.fromCache = false;
+    await store.poll();
+    expect(store.edgeShared()).toBe(false);
+    cdn.fromCache = true;
+    await store.poll();
+    expect(store.edgeShared()).toBe(true);
+    // A failed ask says nothing shared.
+    cdn.next = "fail";
+    await store.poll();
+    expect(store.edgeShared()).toBe(false);
+  });
+
+  it("a change the CDN's version shows asks the album itself, which answers the delta", async () => {
+    const { sim, store } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.poll();
+    expect(store.stats()).toMatchObject({ syncs: 2, deltas: 1, edgeQuiet: 0 });
+    expect(store.getSnapshot().entries).toHaveLength(2);
+  });
+
+  it("★ the CDN's few seconds can hide a change, never invent one: a stale version only asks the album", async () => {
+    const { sim, store, cdn } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    const stale = versionOf(sim);
+    await store.sync();
+    sim.commit([{ op: "insert", media: photo() }]);
+    // The doorbell's sync brings the change; the CDN's window still holds the version from before it.
+    await store.sync();
+    cdn.next = { kind: "version", v: stale };
+    await store.poll();
+    // Not this device's validator, so the album itself answered (a 304: nothing is lost or doubled).
+    expect(store.stats()).toMatchObject({ syncs: 3, notModified: 1 });
+    expect(store.getSnapshot().entries).toHaveLength(2);
+  });
+
+  it("never before a real answer named the key: the seed's first answer says nothing", async () => {
+    const { sim, store, askVersion, named } = edgeSetup();
+    named.key = null;
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    expect(store.edgeShared()).toBe(false);
+    await store.poll();
+    expect(askVersion).not.toHaveBeenCalled();
+    expect(store.stats()).toMatchObject({ syncs: 2, notModified: 1 });
+  });
+
+  it("an album that stops naming its key (a password now, a door) is asked itself from its next answer on", async () => {
+    const { sim, store, askVersion, cdn, named } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    // The CDN's route stopped vouching (it answers `ask` for anything not open to anyone).
+    cdn.next = { kind: "ask" };
+    named.key = null;
+    await store.poll();
+    expect(store.stats()).toMatchObject({ syncs: 2, edgeAsks: 1 });
+    expect(store.edgeShared()).toBe(false);
+    await store.poll();
+    expect(askVersion).toHaveBeenCalledTimes(1);
+    expect(store.stats().syncs).toBe(3);
+  });
+
+  it("ask, clock, a failed ask: the album itself answers, and nothing breaks", async () => {
+    const { sim, store, cdn } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    for (const next of [
+      { kind: "ask" as const },
+      { kind: "clock" as const, now: 1 },
+      "fail" as const,
+    ]) {
+      cdn.next = next;
+      await store.poll();
+    }
+    expect(store.stats()).toMatchObject({
+      syncs: 4,
+      edgeAsks: 3,
+      edgeQuiet: 0,
+      failures: 0,
+    });
+  });
+
+  it("★ past ALBUM_EDGE_TRUST_MS since the album last answered, the poll asks the album itself (what only she can be told)", async () => {
+    let t = 1_790_000_000_000;
+    const { sim, store, askVersion } = edgeSetup({ now: () => t });
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    t += ALBUM_EDGE_TRUST_MS - 1;
+    await store.poll();
+    expect(askVersion).toHaveBeenCalledTimes(1);
+    t += 1;
+    await store.poll();
+    expect(askVersion).toHaveBeenCalledTimes(1);
+    expect(store.stats()).toMatchObject({ syncs: 2, notModified: 1 });
+    // That answer vouched again: the CDN answers the next.
+    await store.poll();
+    expect(askVersion).toHaveBeenCalledTimes(2);
+  });
+
+  it("a sync landing while the ask is out is what the answer is checked against", async () => {
+    const { sim, store, askVersion } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    sim.commit([{ op: "insert", media: photo() }]);
+    let release!: () => void;
+    askVersion.mockImplementationOnce(async () => {
+      await new Promise<void>((r) => {
+        release = r;
+      });
+      return {
+        answer: { kind: "version", v: versionOf(sim) },
+        fromCache: true,
+      };
+    });
+    const polled = store.poll();
+    await Promise.resolve();
+    // The doorbell's sync lands first and brings the change the CDN is about to report.
+    await store.sync();
+    release();
+    await polled;
+    expect(store.stats()).toMatchObject({ syncs: 2, deltas: 1, edgeQuiet: 1 });
+  });
+
+  it("two polls at once ask once", async () => {
+    const { sim, store, askVersion } = edgeSetup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    await Promise.all([store.poll(), store.poll()]);
+    expect(askVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("with no cheap ask (the host's album), every poll is a sync", async () => {
+    const { sim, store } = setup();
+    sim.commit([{ op: "insert", media: photo() }]);
+    await store.sync();
+    await store.poll();
+    expect(store.stats()).toMatchObject({ syncs: 2, edgeAsks: 0 });
   });
 });

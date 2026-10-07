@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
+  albumEdgeKey,
+  albumIsOpenToAnyone,
+  fullAlbumEtag,
+} from "@/app/api/album/guest/sync/edge.server";
+import { ALBUM_EDGE_HEADER } from "@/lib/album/edge-version";
+import {
   countApprovedMedia,
   getApprovedPhotoTeaser,
   getGuestCount,
@@ -64,6 +70,11 @@ export const dynamic = "force-dynamic";
  * its attribution sweep to build its ETag. The 200's ETag is recomputed from the snapshot its
  * content came from, so it can only ever claim an older version than it carries, never a newer
  * one: the worst a race costs is one redundant 200, never a stale 304.
+ *
+ * ★ AND THE CDN ASKS FIRST, FOR AN OPEN ALBUM (X5, `lib/album/edge-version.ts`). Where everyone holding the link sees
+ * the album whole, a full answer names the album's key at the CDN (`x-album-edge`), and the device's poll asks the
+ * CDN's copy of this same validator (`./version`, one recipe: `edge.server.ts`) before it asks here: a lit room's
+ * quiet polls cost this route nothing, and a change, a lock or anything only the viewer's is still answered here.
  *
  * TODAY'S ROUTE RULES, KEPT:
  *  - no validator on the locked early return (it must never 304-validate a real payload);
@@ -185,16 +196,12 @@ export async function POST(request: Request) {
   const develop = developFactsOf(event);
   // The host's switch, as this request's own event read says it: the payload's word and the validator's (the head note).
   const accepting = event.accepting_uploads;
-  const quietEtag = guestAlbumEtag({
-    eventId: event.id,
-    access: "full",
-    gate: null,
-    albumMax: versions.albumMax,
-    attrVersion: versions.attrVersion,
-    reel,
-    developsAt: develop.developsAt,
-    accepting,
-  });
+  // ★ THE CDN'S KEY, ON EVERY FULL ANSWER OF AN ALBUM EVERYONE WITH THE LINK SEES WHOLE (edge-version.ts), a 304's
+  // included: the device's next poll may ask the CDN's copy of this very validator first. Never on a teaser or a lock
+  // (they return above), nor where the full access is this viewer's alone (a password, a door, the host's private album).
+  if (albumIsOpenToAnyone(event))
+    headers.set(ALBUM_EDGE_HEADER, albumEdgeKey(qrToken));
+  const quietEtag = fullAlbumEtag(event, reel, versions);
   if (!heal && since !== null && ifNoneMatch === quietEtag) {
     headers.set("ETag", quietEtag);
     return new Response(null, { status: 304, headers });
@@ -202,21 +209,7 @@ export async function POST(request: Request) {
 
   const plan = await planGuestAlbumSync(event, since);
   if (!plan) return refused(event.id, headers);
-  if (!heal) {
-    headers.set(
-      "ETag",
-      guestAlbumEtag({
-        eventId: event.id,
-        access: "full",
-        gate: null,
-        albumMax: plan.read.albumMax,
-        attrVersion: plan.read.attrVersion,
-        reel,
-        developsAt: develop.developsAt,
-        accepting,
-      }),
-    );
-  }
+  if (!heal) headers.set("ETag", fullAlbumEtag(event, reel, plan.read));
   const carry = plan.part.kind === "delta" ? carriedIds(plan.part.upsert) : [];
   const [guestCount, links] = await Promise.all([
     isDemo ? Promise.resolve(undefined) : getGuestCount(event),
@@ -277,5 +270,6 @@ function locked(gate: GuestLockedSync["gate"], headers?: Headers) {
   };
   const out = headers ?? new Headers({ "Cache-Control": NO_STORE });
   out.delete("ETag");
+  out.delete(ALBUM_EDGE_HEADER);
   return NextResponse.json(payload, { headers: out });
 }
