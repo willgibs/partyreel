@@ -431,7 +431,9 @@ describe("the album's camera", () => {
       screen.getByText(/^24 shots, developing with everyone’s\. They’re back /),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Take a shot back to free its frame: 3 re\u2011shoots left."),
+      screen.getByText(
+        "Take a shot back to free its frame: 3 re\u2011shoots left.",
+      ),
     ).toBeInTheDocument();
     expect(
       (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
@@ -823,6 +825,33 @@ describe("the album's camera, her re-shoots and the reel's newest frame", () => 
     expect(removeOwnShot).not.toHaveBeenCalled();
   });
 
+  it("the phone's Back keeps the shot and closes the sheet, and the next Back closes the camera", async () => {
+    // A Back the test before left on its way lands first (`ui/popup-back.ts`: a push waits for it).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    const onOpenChange = vi.fn();
+    render(<Page onOpenChange={onOpenChange} />);
+    await opened();
+    await shootAndLand();
+    fireEvent.click(newest()!);
+    await screen.findByRole("group", { name: "Your newest shot" });
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(
+      screen.queryByRole("group", { name: "Your newest shot" }),
+    ).toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(removeOwnShot).not.toHaveBeenCalled();
+    await act(async () => {
+      window.history.back();
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
   it("on an album that shows each shot, the reel stays one door: a shot in the album is taken back from the album", async () => {
     render(
       <Page event={{ ...EVENT, develops_at: null } as unknown as GuestEvent} />,
@@ -871,7 +900,9 @@ describe("the album's camera, her re-shoots and the reel's newest frame", () => 
     render(<Page />);
     await screen.findByText("That’s your roll");
     expect(
-      screen.getByText(/^23 shots, developing .+ Your 3 re\u2011shoots are used\.$/),
+      screen.getByText(
+        /^23 shots, developing .+ Your 3 re\u2011shoots are used\.$/,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText("23 of 24")).toBeInTheDocument();
     expect(document.querySelector("[data-cam-count] p")?.textContent).toBe("0");
