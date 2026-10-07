@@ -2,6 +2,7 @@
 
 import { ImageUp } from "lucide-react";
 
+import type { BoardState } from "@/components/lab";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ import {
   LiveActions,
   ReelRound,
 } from "./album";
+import { hostScreen, type OverWay } from "./answers";
 import { MORNING, WEEK } from "./fixtures";
 import { HubHead, HubScreen } from "./hub";
 import { type Screen, SCREENS } from "./knobs";
@@ -35,8 +37,6 @@ import {
  * in Settings), the offer stands on her cover once the photos stop, the wrap
  * stands on her cover the morning after.
  */
-
-export type OverWay = "switch" | "offer" | "wrap";
 
 /** The hub's head: the status her cover wears and anything it offers. */
 const readHub: Reader = (root, win) => {
@@ -222,7 +222,8 @@ function guestsCover(way: OverWay, screen: Screen) {
   );
 }
 
-export function OverStory({ way, screen }: { way: OverWay; screen: Screen }) {
+export function OverStory({ way, s }: { way: OverWay; s: BoardState }) {
+  const screen = hostScreen(s);
   const { w } = SCREENS[screen];
   const desk = screen === "1440";
   return (

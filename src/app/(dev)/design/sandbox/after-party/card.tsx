@@ -7,6 +7,7 @@ import { BRAND_HEX } from "@/lib/constants/site";
 import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
 import { formatMediaCount } from "@/lib/format/count";
 
+import type { CardWay } from "./answers";
 import {
   ALBUM,
   ALBUM_LIGHT,
@@ -40,7 +41,7 @@ import {
  */
 
 /** How a card is drawn: the four answers of the `card` question. */
-export type CardWay = "name" | "cover" | "strip" | "light";
+export type { CardWay };
 
 /** Which link the card answers: the album live or kept, a password album, a Private one. */
 export type CardOf = "live" | "keepsake" | "password" | "private";

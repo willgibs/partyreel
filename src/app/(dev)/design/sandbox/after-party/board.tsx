@@ -1,16 +1,11 @@
 "use client";
 
-import {
-  type BoardState,
-  ExplorationBoard,
-  type PreviewsFor,
-} from "@/components/lab";
+import { ExplorationBoard, type PreviewsFor } from "@/components/lab";
 
 import { BridgeStory } from "./bridge";
 import { CardStory } from "./cards";
 import { KeepsakeStory } from "./keepsake";
-import { groundOf, screenOf } from "./knobs";
-import { type OverWay, OverStory } from "./over";
+import { OverStory } from "./over";
 import { RecapStory } from "./recap";
 import { AFTER_PARTY } from "./spec";
 
@@ -22,57 +17,30 @@ import { AFTER_PARTY } from "./spec";
  * `cards.tsx`, `recap.tsx`, `bridge.tsx`, on `album.tsx`, `hub.tsx` and
  * `card.tsx`).
  *
- * ★ A LATER QUESTION IS DRAWN IN THE EARLIER ANSWER: the returning guest's
- * album wears Add as the `over` answer leaves it (gone where adding closed,
- * a quiet line where she wrapped the party), so a pick on the model shows on
- * every guest frame after it.
+ * ★ EVERY STORY TAKES THE WHOLE STATE (`answers.ts` reads it): its screen,
+ * its ground, and the earlier answers it is drawn in, so a later question
+ * wears the earlier answer (the returning guest's Add as the `over` answer
+ * leaves it) and this map never has to know which reads which.
  */
-
-/** The guest's screen (a phone first) and the host's (a laptop first), and the ground under a page. */
-const at = (s: BoardState) => screenOf(s.screen);
-const desk = (s: BoardState) => screenOf(s.desk, "1440");
-const on = (s: BoardState) => groundOf(s.ground);
-const overOf = (s: BoardState): OverWay =>
-  s.over === "offer" || s.over === "wrap" ? s.over : "switch";
-
 const PREVIEWS: PreviewsFor<typeof AFTER_PARTY> = {
-  "over.switch": (s) => <OverStory way="switch" screen={desk(s)} />,
-  "over.offer": (s) => <OverStory way="offer" screen={desk(s)} />,
-  "over.wrap": (s) => <OverStory way="wrap" screen={desk(s)} />,
-  "keepsake.closed": (s) => (
-    <KeepsakeStory
-      way="closed"
-      over={overOf(s)}
-      screen={at(s)}
-      ground={on(s)}
-    />
-  ),
-  "keepsake.reel": (s) => (
-    <KeepsakeStory way="reel" over={overOf(s)} screen={at(s)} ground={on(s)} />
-  ),
-  "keepsake.hers": (s) => (
-    <KeepsakeStory way="hers" over={overOf(s)} screen={at(s)} ground={on(s)} />
-  ),
-  "keepsake.still": (s) => (
-    <KeepsakeStory way="still" over={overOf(s)} screen={at(s)} ground={on(s)} />
-  ),
-  "card.name": <CardStory way="name" />,
-  "card.cover": <CardStory way="cover" />,
-  "card.strip": <CardStory way="strip" />,
-  "card.light": <CardStory way="light" />,
-  "recap.stage": (s) => (
-    <RecapStory way="stage" screen={desk(s)} ground={on(s)} />
-  ),
-  "recap.hub": (s) => <RecapStory way="hub" screen={desk(s)} ground={on(s)} />,
-  "recap.cover": (s) => (
-    <RecapStory way="cover" screen={desk(s)} ground={on(s)} />
-  ),
-  "recap.home": (s) => (
-    <RecapStory way="home" screen={desk(s)} ground={on(s)} />
-  ),
-  "bridge.home": (s) => <BridgeStory way="home" screen={at(s)} />,
-  "bridge.header": (s) => <BridgeStory way="header" screen={at(s)} />,
-  "bridge.end": (s) => <BridgeStory way="end" screen={at(s)} />,
+  "over.switch": (s) => <OverStory way="switch" s={s} />,
+  "over.offer": (s) => <OverStory way="offer" s={s} />,
+  "over.wrap": (s) => <OverStory way="wrap" s={s} />,
+  "keepsake.closed": (s) => <KeepsakeStory way="closed" s={s} />,
+  "keepsake.reel": (s) => <KeepsakeStory way="reel" s={s} />,
+  "keepsake.hers": (s) => <KeepsakeStory way="hers" s={s} />,
+  "keepsake.still": (s) => <KeepsakeStory way="still" s={s} />,
+  "card.name": (s) => <CardStory way="name" s={s} />,
+  "card.cover": (s) => <CardStory way="cover" s={s} />,
+  "card.strip": (s) => <CardStory way="strip" s={s} />,
+  "card.light": (s) => <CardStory way="light" s={s} />,
+  "recap.stage": (s) => <RecapStory way="stage" s={s} />,
+  "recap.hub": (s) => <RecapStory way="hub" s={s} />,
+  "recap.cover": (s) => <RecapStory way="cover" s={s} />,
+  "recap.home": (s) => <RecapStory way="home" s={s} />,
+  "bridge.home": (s) => <BridgeStory way="home" s={s} />,
+  "bridge.header": (s) => <BridgeStory way="header" s={s} />,
+  "bridge.end": (s) => <BridgeStory way="end" s={s} />,
 };
 
 export function AfterPartyBoard() {

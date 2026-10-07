@@ -2,6 +2,8 @@
 
 import type { ReactNode } from "react";
 
+import type { BoardState } from "@/components/lab";
+
 import { openAlbumWords } from "@/app/(guest)/e/[token]/card/words";
 import { EVENT_CARD_SIZE } from "@/lib/guest/event-card";
 
@@ -207,7 +209,7 @@ function TrueSize({
   );
 }
 
-export function CardStory({ way }: { way: CardWay }) {
+export function CardStory({ way }: { way: CardWay; s: BoardState }) {
   return (
     <Story>
       <Scene

@@ -4,15 +4,17 @@ import { Clapperboard, Download, Share } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { HomeHead } from "@/components/app/dashboard/home-head";
+import type { BoardState } from "@/components/lab";
 import { Stage } from "@/components/app/dashboard/stage";
 import { Button } from "@/components/ui/button";
 import type { HomeContext, HomeEvent } from "@/lib/dashboard/home-event";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
+import { groundIn, hostScreen, type RecapWay } from "./answers";
 import { ALBUM, COVER_SIX, MORNING, WEDDING } from "./fixtures";
 import { AppBar, HubHead, HubScreen } from "./hub";
-import { type Ground, type Screen, SCREENS } from "./knobs";
+import { type Screen, SCREENS } from "./knobs";
 import {
   actsIn,
   find,
@@ -32,8 +34,6 @@ import {
  * the hub reads as it did at the party; an answer adds the recap where it
  * says, and draws nothing else.
  */
-
-export type RecapWay = "stage" | "hub" | "cover" | "home";
 
 /** The party as her home reads it the morning after (`HomeEvent`): its facts, never a guess. */
 const PARTY_EVENT: HomeEvent = {
@@ -257,15 +257,9 @@ function hubFor(way: RecapWay, screen: Screen): ReactNode {
   return <HubScreen screen={screen} moment={MORNING} />;
 }
 
-export function RecapStory({
-  way,
-  screen,
-  ground,
-}: {
-  way: RecapWay;
-  screen: Screen;
-  ground: Ground;
-}) {
+export function RecapStory({ way, s }: { way: RecapWay; s: BoardState }) {
+  const screen = hostScreen(s);
+  const ground = groundIn(s);
   const { w } = SCREENS[screen];
   const desk = screen === "1440";
   return (

@@ -2,6 +2,7 @@
 
 import { Download, ImageUp, Play } from "lucide-react";
 
+import type { BoardState } from "@/components/lab";
 import { Button } from "@/components/ui/button";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 
@@ -14,9 +15,9 @@ import {
   ReelRound,
   StartForFree,
 } from "./album";
+import { groundIn, guestScreen, type KeepsakeWay, overIn } from "./answers";
 import { HERS, PRIYA, WEEK } from "./fixtures";
-import { type Ground, type Screen, SCREENS } from "./knobs";
-import type { OverWay } from "./over";
+import { type Screen, SCREENS } from "./knobs";
 import {
   actsIn,
   find,
@@ -36,8 +37,6 @@ import {
  * a forwarded link who added nothing (no "Yours", Start for free in the
  * corner).
  */
-
-export type KeepsakeWay = "closed" | "reel" | "hers" | "still";
 
 /** What the cover leads with, where Add stands, and what she is offered of her own. */
 const readKeepsake: Reader = (root, win) => {
@@ -178,17 +177,10 @@ function coverFor(way: KeepsakeWay, screen: Screen, newcomer: boolean) {
   );
 }
 
-export function KeepsakeStory({
-  way,
-  over,
-  screen,
-  ground,
-}: {
-  way: KeepsakeWay;
-  over: OverWay;
-  screen: Screen;
-  ground: Ground;
-}) {
+export function KeepsakeStory({ way, s }: { way: KeepsakeWay; s: BoardState }) {
+  const over = overIn(s);
+  const screen = guestScreen(s);
+  const ground = groundIn(s);
   const { w, h } = SCREENS[screen];
   // Today's closed album is today's, whatever the first answer; every other cover wears its Add as that answer leaves it.
   const wrapped = over === "wrap" && way !== "closed";

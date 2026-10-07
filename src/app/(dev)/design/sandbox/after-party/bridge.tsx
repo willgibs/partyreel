@@ -10,7 +10,7 @@ import {
   RoomHead,
   RoomPage,
 } from "@/components/app/create-event-wizard/room";
-import { Fit, Frame } from "@/components/lab";
+import { type BoardState, Fit, Frame } from "@/components/lab";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -20,6 +20,7 @@ import {
   ReelRound,
   StartForFree,
 } from "./album";
+import { type BridgeWay, guestScreen } from "./answers";
 import { WEDDING, WEEK } from "./fixtures";
 import { type Screen, SCREENS } from "./knobs";
 import {
@@ -39,8 +40,6 @@ import {
  * frame), else Create's first screen opening in this album's style
  * (production's room: its head, its question, its foot).
  */
-
-export type BridgeWay = "home" | "header" | "end";
 
 /** What the header's corner says, and what stands at the album's end. */
 const readWay: Reader = (root, win) => {
@@ -148,13 +147,8 @@ function AlbumAt({
   );
 }
 
-export function BridgeStory({
-  way,
-  screen,
-}: {
-  way: BridgeWay;
-  screen: Screen;
-}) {
+export function BridgeStory({ way, s }: { way: BridgeWay; s: BoardState }) {
+  const screen = guestScreen(s);
   const { w, h } = SCREENS[screen];
   return (
     <Story>
