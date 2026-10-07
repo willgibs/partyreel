@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useId,
   useRef,
   useState,
@@ -26,6 +27,11 @@ import {
 import type { GridMedia } from "@/components/app/media-grid";
 import type { ViewerOrigin } from "@/components/shared/media-lightbox";
 import { UnverifiedMark } from "@/components/shared/unverified-mark";
+import {
+  FirstFollowLine,
+  useFirstFollowScope,
+} from "@/components/social/first-follow-line";
+import { followWords } from "@/components/social/private-line";
 import { useRelation } from "@/components/social/relation-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,63 +122,31 @@ function subscribeKept(listener: () => void) {
   };
 }
 
-/**
- * THE CARD'S OWN FOLLOW, a quiet key (`card=standing`: "Follow and their page kept quiet"), on the one relation
- * contract (`useRelation`: the flip at once, a refusal sprung back with the server's words), starting from the answer
- * a Follow landed on any card of theirs this page's life, where there is one.
- */
-function CardFollow({
-  profileId,
-  size,
-}: {
-  profileId: string;
-  size: "sm" | "lg";
-}) {
-  const landed = useSyncExternalStore(
-    subscribeKept,
-    () => kept.get(profileId),
-    () => undefined,
-  );
-  const state = useRelation({
-    relation: "follow",
-    profileId,
-    on: landed ?? false,
-    onSettle: (on) => keep(profileId, on),
-  });
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      size={size}
-      aria-pressed={state.on}
-      aria-busy={state.pending || undefined}
-      data-relation="follow"
-      data-on={state.on}
-      onClick={state.press}
-    >
-      {state.on ? (
-        <UserCheck
-          key="on"
-          data-icon="inline-start"
-          className="duration-200 ease-emphasis motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-50"
-        />
-      ) : (
-        <UserPlus key="off" data-icon="inline-start" />
-      )}
-      {state.on ? "Following" : "Follow"}
-    </Button>
-  );
-}
-
 /** A key a card offers: the desk's small step, a thumb's step in a hand. */
 const keySize = (shape: Shape): "sm" | "lg" =>
   shape === "sheet" ? "lg" : "sm";
 
 type Shape = "card" | "sheet";
 
+/** Their page: the pair's quiet door, its arrow leaning out under the pointer (two pixels on the key's own clock). */
+function PageKey({ slug, shape }: { slug: string; shape: Shape }) {
+  return (
+    <Button asChild variant="secondary" size={keySize(shape)}>
+      <Link href={`/u/${slug}`}>
+        Their page
+        <ArrowUpRight
+          data-icon="inline-end"
+          className="transition-transform duration-150 ease-emphasis motion-safe:group-hover/button:translate-x-0.5 motion-safe:group-hover/button:-translate-y-0.5"
+        />
+      </Link>
+    </Button>
+  );
+}
+
 /**
  * FOLLOW AND THEIR PAGE, A QUIET PAIR (two tone keys of one width; the photographs above are louder than either), only
- * where there is a page to open and follow; their page alone where Follow is not offered, the width the pair's.
+ * where there is a page to open and follow; their page alone where Follow is not offered, the width the pair's; the
+ * surface's own Follow in place of the card's where it keeps the relation itself (Connections).
  */
 function Pair({
   item,
@@ -186,24 +160,94 @@ function Pair({
   shape: Shape;
 }) {
   if ("kind" in item || !item.slug) return null;
-  const followFace = canFollow
-    ? (follow ?? <CardFollow profileId={item.id} size={keySize(shape)} />)
-    : null;
+  const page = <PageKey slug={item.slug} shape={shape} />;
+  if (!canFollow) return <div className="grid grid-cols-1 gap-2">{page}</div>;
+  if (follow)
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {follow}
+        {page}
+      </div>
+    );
   return (
-    <div
-      className={cn("grid gap-2", followFace ? "grid-cols-2" : "grid-cols-1")}
-    >
-      {followFace}
-      <Button asChild variant="secondary" size={keySize(shape)}>
-        <Link href={`/u/${item.slug}`}>
-          Their page
-          {/* ★ An arrow leans the way it goes under the pointer: out, two pixels on the key's own clock. */}
-          <ArrowUpRight
-            data-icon="inline-end"
-            className="transition-transform duration-150 ease-emphasis motion-safe:group-hover/button:translate-x-0.5 motion-safe:group-hover/button:-translate-y-0.5"
-          />
-        </Link>
-      </Button>
+    <OwnFollowPair
+      profileId={item.id}
+      name={item.displayName}
+      page={page}
+      shape={shape}
+    />
+  );
+}
+
+/**
+ * THE CARD'S OWN FOLLOW, a quiet key beside their page, on the one relation contract (`useRelation`: the flip at once,
+ * a refusal sprung back with the server's words), starting from the answer a Follow landed on any card of theirs this
+ * page's life, where there is one (`kept`). ★ HER FIRST FOLLOW SAYS, ONCE, THAT ONLY SHE SEES WHO SHE FOLLOWS
+ * (`account-moments` r2, `follow=once`), as every seat of the relation does (`relation-toggle.tsx`): the words stand in a
+ * status that is always there, the line under the pair, and a page that draws the line under its own head is told
+ * instead (`useFirstFollowScope`).
+ */
+function OwnFollowPair({
+  profileId,
+  name,
+  page,
+  shape,
+}: {
+  profileId: string;
+  name: string | null;
+  page: ReactNode;
+  shape: Shape;
+}) {
+  const landed = useSyncExternalStore(
+    subscribeKept,
+    () => kept.get(profileId),
+    () => undefined,
+  );
+  const state = useRelation({
+    relation: "follow",
+    profileId,
+    on: landed ?? false,
+    onSettle: (on) => keep(profileId, on),
+  });
+  const scope = useFirstFollowScope();
+  const standing = state.first;
+  const words = standing ? followWords(scope?.name ?? name) : "";
+  const say = scope?.say;
+  useEffect(() => {
+    if (!say) return;
+    say(standing);
+    return () => say(false);
+  }, [say, standing]);
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          size={keySize(shape)}
+          aria-pressed={state.on}
+          aria-busy={state.pending || undefined}
+          data-relation="follow"
+          data-on={state.on}
+          onClick={state.press}
+        >
+          {state.on ? (
+            <UserCheck
+              key="on"
+              data-icon="inline-start"
+              className="duration-200 ease-emphasis motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-50"
+            />
+          ) : (
+            <UserPlus key="off" data-icon="inline-start" />
+          )}
+          {state.on ? "Following" : "Follow"}
+        </Button>
+        {page}
+      </div>
+      <span role="status" className="sr-only">
+        {words}
+      </span>
+      {standing && !scope ? <FirstFollowLine words={words} /> : null}
     </div>
   );
 }

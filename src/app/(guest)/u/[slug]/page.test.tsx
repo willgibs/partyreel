@@ -41,6 +41,7 @@ vi.mock("@/app/(app)/account/profile/invite", () => ({
   PAGE_CHOICES_PATH: "/account/profile",
 }));
 vi.mock("@/app/(guest)/u/[slug]/owner-sections", () => ({
+  OwnerNote: stub,
   OwnerSections: stub,
 }));
 vi.mock("@/components/guest/guest-header", () => ({ GuestHeader: stub }));
@@ -49,6 +50,18 @@ vi.mock("@/components/social/follow-button", () => ({
 }));
 vi.mock("@/components/social/profile-actions-menu", () => ({
   ProfileActionsMenu: () => <button type="button">More options</button>,
+}));
+// The line a first follow says is drawn under the head by a scope the page wraps it in (`first-follow-line.tsx`, tested
+// beside it); here both are markers, so the page is pinned to where it puts them and for whom.
+vi.mock("@/components/social/first-follow-line", () => ({
+  FirstFollowScope: ({
+    name,
+    children,
+  }: {
+    name: string;
+    children: React.ReactNode;
+  }) => <div data-follow-scope={name}>{children}</div>,
+  FirstFollowSlot: () => <p data-follow-slot />,
 }));
 vi.mock("@/app/(guest)/u/[slug]/blocked-well", () => ({
   BlockedWell: ({ name }: { name: string }) => <p>the well for {name}</p>,
@@ -153,5 +166,71 @@ describe("a page the viewer blocked", () => {
     await visit();
     expect(screen.queryByText(/the well for/)).toBeNull();
     expect(screen.queryByRole("button")).toBeNull();
+  });
+});
+
+/**
+ * THE LINE A FIRST FOLLOW SAYS STANDS UNDER THE HEAD (`account-moments` r2, `follow=once`): the actions are a narrow box at
+ * a desk, so the page wraps the head in a scope and puts the slot under it, and the control reports into the scope instead
+ * of drawing beside itself. Pinned: a visitor who can follow gets the scope, named for the page's person, with the slot
+ * right after the head; everyone who cannot (a visitor with no account, one the page is blocked to either way) gets
+ * neither, so nothing is shipped to a growth surface's anonymous readers.
+ */
+describe("the scope of a first follow's line", () => {
+  const jordan = {
+    id: "jordan",
+    slug: "jordan",
+    display_name: "Jordan Pike",
+    bio: null,
+    avatar_updated_at: null,
+    created_at: "2026-03-14T10:00:00.000Z",
+    hosted_events: [],
+    attended_events: [],
+    private_event_count: 0,
+  };
+
+  beforeEach(() => {
+    read.profile = jordan;
+    read.viewer = { id: "priya" };
+    read.blocked = false;
+    read.blockedEitherWay = false;
+  });
+
+  async function visit() {
+    return render(<>{await PublicProfilePage({ params })}</>).container;
+  }
+
+  it("★ wraps the head for a visitor who can follow, naming the person, with the slot right under it", async () => {
+    const page = await visit();
+    const scope = page.querySelector("[data-follow-scope]")!;
+    expect(scope).toHaveAttribute("data-follow-scope", "Jordan Pike");
+    const head = scope.querySelector("h1")!.closest("section")!;
+    expect(head.nextElementSibling).toBe(
+      scope.querySelector("[data-follow-slot]"),
+    );
+    // The Follow itself is inside the head's actions, the scope's own.
+    expect(scope).toContainElement(
+      screen.getByRole("button", { name: "Follow" }),
+    );
+  });
+
+  it("is never drawn for a visitor with no account, nor where the page is blocked either way", async () => {
+    read.viewer = null;
+    let page = await visit();
+    expect(page.querySelector("[data-follow-scope]")).toBeNull();
+    expect(page.querySelector("[data-follow-slot]")).toBeNull();
+    cleanup();
+
+    read.viewer = { id: "priya" };
+    read.blockedEitherWay = true;
+    page = await visit();
+    expect(page.querySelector("[data-follow-scope]")).toBeNull();
+    expect(page.querySelector("[data-follow-slot]")).toBeNull();
+  });
+
+  it("is never drawn on her own page, which has no Follow to say anything for", async () => {
+    read.viewer = { id: "jordan" };
+    const page = await visit();
+    expect(page.querySelector("[data-follow-scope]")).toBeNull();
   });
 });

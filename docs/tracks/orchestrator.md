@@ -44,7 +44,6 @@ Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../pa
 | `create-wizard-wiring-2` | Create's close with the link card, ready from the start, the styles calm, the room dark, the like-entry and Make one like this | running (cut d4da2464) | Opus, 3132 | `acf206769e01c36d9` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
 | `guests-room-wiring` | one calm row a person, the standing card from every name | running (cut d4da2464) | Opus, 3134 | `a1b4c2e7343d06bfc` |
-| `account-moments-wiring-2` | a first follow said once, the invitation as one lit plate | running (cut d4da2464) | Sonnet, 3135 | `a7602fac08c2d60e6` |
 | `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
@@ -86,7 +85,7 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
    REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
    `node usher/kit/vercel-usage.mjs` before any.
 9. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill; nothing new started when the window
-   would run out before its reset. ★ The week reads 59% at 19:40Z on day one of seven, this wave takes it toward 80%:
+   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so no lane is cut until Will says (told at 21:15Z); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
    keep this block handoff-ready for the other account's seat, and tell Will before it runs low. Who does the work: the
    runbook's "Working with Will".
 

@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { followWords } from "@/components/social/private-line";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 import { setViewportWidth } from "../../../vitest.setup";
@@ -303,6 +304,24 @@ describe("Follow and their page", () => {
     expect(
       screen.getByRole("button", { name: "Following" }),
     ).toBeInTheDocument();
+  });
+
+  it("★ her first follow from the card says, once, that only she sees who she follows (`account-moments` r2, `follow=once`)", async () => {
+    follow.mockResolvedValueOnce({ ok: true, first: true });
+    render(card({ item: { ...ray, id: "ray-first" } }));
+    open();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Follow" }));
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      followWords("Ray Moss"),
+    );
+    expect(document.querySelector("[data-follow-line]")).not.toBeNull();
+    // Every follow after is the key alone.
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Following" }));
+    });
+    expect(document.querySelector("[data-follow-line]")).toBeNull();
   });
 
   it("no pair at all for a name with no page", () => {
