@@ -151,11 +151,11 @@ describe("the camera's refusals, by their own words", () => {
       code: "roll_spent",
       message: "You've taken all 12 shots on your roll.",
     });
-    refused("You've used every retake this roll allows.");
+    refused("You've used all 3 re-shoots on your roll.");
     expect(await shot()).toEqual({
       ok: false,
       code: "roll_spent",
-      message: "You've used every retake this roll allows.",
+      message: "You've used all 3 re-shoots on your roll.",
     });
   });
 

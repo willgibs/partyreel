@@ -74,7 +74,9 @@ describe("2. the writers", () => {
     "%s takes p_captured_at last, defaulted, and writes it in its one insert",
     (name) => {
       const fn = liveFunction(name);
-      expect(fn.file).toBe(FILE);
+      // ★ Reshaped by camera-wiring (20261007021000 replaces create_media in place for its ceiling; scar kept: the
+      // capture time rides every later body): this file or a later one wins.
+      expect(fn.file >= FILE, fn.file).toBe(true);
       expect(fn.params).toMatch(/, p_captured_at timestamptz default null$/);
       expect(fn.code).toContain(
         "phone_key, phone_bytes, captured_at ) values (",

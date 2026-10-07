@@ -88,8 +88,14 @@ const EVENT = {
   accepts_video: false,
 } as unknown as GuestEvent;
 
-/** The server's answer to her roll's read, per call. */
-let rolls: { used: number; cap: number; taken: number; ceiling: number }[] = [];
+/** The server's answer to her roll's read, per call (its ceiling the roll plus her 3 re-shoots). */
+let rolls: {
+  used: number;
+  cap: number;
+  taken: number;
+  ceiling: number;
+  period?: number;
+}[] = [];
 let ownItems: unknown[] = [];
 
 function mine() {
@@ -109,7 +115,10 @@ function Page({
   word,
   onAskWord,
   heldAtDoor,
+  event: firstEvent = EVENT,
 }: {
+  /** The album as the page first reads it (a later "Set a develop time" moves it, as the album's sync does). */
+  event?: GuestEvent;
   onAdd?: (files: File[], extra?: FileExtra) => void;
   initialQueue?: QueueItem[];
   onOpenChange?: (open: boolean) => void;
@@ -128,6 +137,7 @@ function Page({
   heldAtDoor?: boolean;
 }) {
   const [open, setOpen] = useState(true);
+  const [event, setEvent] = useState<GuestEvent>(firstEvent);
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue);
   // Each word the album's sync carries is a word heard, the same one again included (`useLiveUploadsWord`).
   const [uploadsWord, setUploadsWord] = useState(
@@ -145,6 +155,12 @@ function Page({
       <button type="button" onClick={() => hear(true)}>
         The album says open
       </button>
+      <button
+        type="button"
+        onClick={() => setEvent((e) => ({ ...e, develops_at: AHEAD }))}
+      >
+        Set a develop time
+      </button>
       <AlbumCamera
         uploadsWord={uploadsWord}
         onAskUploadsWord={onAskWord}
@@ -154,7 +170,7 @@ function Page({
           setOpen(next);
           onOpenChange?.(next);
         }}
-        event={EVENT}
+        event={event}
         qrToken="qr-token-1"
         queue={queue}
         onAddFiles={(files, extra) => {
@@ -332,7 +348,7 @@ function press() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  rolls = [{ used: 6, cap: 24, taken: 6, ceiling: 72 }];
+  rolls = [{ used: 6, cap: 24, taken: 6, ceiling: 27 }];
   ownItems = [];
   localStorage.clear();
   localStorage.setItem("pr_session_qr-token-1", "s".repeat(32));
@@ -404,15 +420,18 @@ describe("the album's camera", () => {
     expect(document.querySelector("[data-sending]")).toBeNull();
   });
 
+  // ★ RESHAPED ON PURPOSE (camera-wiring, guest-moments r1's `limit=three`; scar kept: the roll's end in its own words,
+  // her shots one tap away, the shutter gone; reason dropped: the way on said "Remove a shot to free its frame." with no
+  // count, under a ceiling of three rolls' worth). It says how many re-shoots are left.
   it("★ ends the roll in its own words, with her shots one tap away and the shutter gone", async () => {
-    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 27 }];
     render(<Page />);
     await screen.findByText("That’s your roll");
     expect(
       screen.getByText(/^24 shots, developing with everyone’s\. They’re back /),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Remove a shot to free its frame."),
+      screen.getByText("Take a shot back to free its frame: 3 re\u2011shoots left."),
     ).toBeInTheDocument();
     expect(
       (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
@@ -426,8 +445,8 @@ describe("the album's camera", () => {
 
   it("★ takes one of hers back from her shots, and the frame comes back by the server's count", async () => {
     rolls = [
-      { used: 24, cap: 24, taken: 24, ceiling: 72 },
-      { used: 23, cap: 24, taken: 24, ceiling: 72 },
+      { used: 24, cap: 24, taken: 24, ceiling: 27 },
+      { used: 23, cap: 24, taken: 24, ceiling: 27 },
     ];
     ownItems = [
       {
@@ -468,7 +487,7 @@ describe("the album's camera", () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 60));
     });
-    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 27 }];
     const onOpenChange = vi.fn();
     render(<Page onOpenChange={onOpenChange} />);
     await screen.findByText("That’s your roll");
@@ -498,7 +517,7 @@ describe("the album's camera", () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 60));
     });
-    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 27 }];
     const onOpenChange = vi.fn();
     render(<Page onOpenChange={onOpenChange} />);
     await screen.findByText("That’s your roll");
@@ -647,7 +666,7 @@ describe("the album's camera", () => {
   });
 
   it("keeps no roll for the host: her shots counted as taken, never an end, her roll never asked", async () => {
-    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 72 }];
+    rolls = [{ used: 24, cap: 24, taken: 24, ceiling: 27 }];
     render(<Page isOwner />);
     await opened();
     expect(screen.getByText("No roll for the host")).toBeInTheDocument();
@@ -682,6 +701,273 @@ describe("the album's camera", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
     await waitFor(() => expect(media.stop).toHaveBeenCalled());
     expect(document.querySelector("[data-cam-screen]")).toBeNull();
+  });
+});
+
+/**
+ * ★ HER 3 RE-SHOOTS, AND THE REEL'S NEWEST FRAME AS A DOOR OF ITS OWN (guest-moments r1's `limit=three` and
+ * `where=reel`): a press on the newest frame opens that shot with Take it back and Keep it, Your shots keeps its X, both
+ * free a frame and spend a re-shoot, counted where she takes one back, and the roll's end says when they are spent.
+ */
+describe("the album's camera, her re-shoots and the reel's newest frame", () => {
+  const newest = () =>
+    screen.queryByRole("button", { name: /^Your newest shot/ });
+  const shutter = () =>
+    document.querySelector("[data-cam-shutter]") as HTMLButtonElement;
+  /** A shot taken and landed sealed, as the queue tells it (`m-q-0`). */
+  async function shootAndLand() {
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Land them", hidden: true }),
+      );
+    });
+  }
+
+  it("★ a press on the newest frame opens her shot with Take it back and Keep it; Keep it takes nothing back", async () => {
+    render(<Page />);
+    await opened();
+    await shootAndLand();
+    fireEvent.click(newest()!);
+    const sheet = await screen.findByRole("group", {
+      name: "Your newest shot",
+    });
+    expect(sheet).toHaveAttribute("data-cam-take-back", "ready");
+    expect(
+      screen.getByText(
+        "Taking it back frees its frame: 1 of your 3 re\u2011shoots.",
+      ),
+    ).toBeInTheDocument();
+    // The keys wait on her, and the shutter waits with them; the safe key holds the focus.
+    expect(screen.getByRole("button", { name: "Keep it" })).toHaveFocus();
+    expect(shutter().disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Keep it" }));
+    expect(
+      screen.queryByRole("group", { name: "Your newest shot" }),
+    ).toBeNull();
+    expect(removeOwnShot).not.toHaveBeenCalled();
+    expect(shutter().disabled).toBe(false);
+  });
+
+  it("★ Take it back frees its frame and spends one of her 3, said under the shutter, through the one removal", async () => {
+    rolls = [
+      { used: 6, cap: 24, taken: 6, ceiling: 27 },
+      { used: 6, cap: 24, taken: 7, ceiling: 27 },
+    ];
+    render(<Page />);
+    await opened();
+    await shootAndLand();
+    expect(screen.getByText("17")).toBeInTheDocument();
+    fireEvent.click(newest()!);
+    await act(async () => {
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Take it back" }),
+      );
+    });
+    expect(removeOwnShot).toHaveBeenCalledWith({
+      qrToken: "qr-token-1",
+      sessionToken: "s".repeat(32),
+      mediaId: "m-q-0",
+    });
+    expect(
+      await screen.findByText("Taken back. 2 re\u2011shoots left."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: "Your newest shot" }),
+    ).toBeNull();
+    // The frame is hers again, by the server's count read after the removal.
+    await waitFor(() => expect(mine()).toHaveLength(2));
+    expect(screen.getByText("18")).toBeInTheDocument();
+    // Her list's head counts what is left.
+    fireEvent.click(screen.getByRole("button", { name: /^Your shots, / }));
+    expect(
+      await screen.findByText("6 of 24 · 2 re\u2011shoots left"),
+    ).toBeInTheDocument();
+  });
+
+  it("a shot still on its way opens its sheet at once, and can be taken back once it lands", async () => {
+    render(<Page />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    fireEvent.click(newest()!);
+    expect(
+      await screen.findByText("Sending… You can take it back once it lands."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Take it back" })).toBeDisabled();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Land them", hidden: true }),
+      );
+    });
+    expect(
+      screen.getByRole("button", { name: "Take it back" }),
+    ).not.toBeDisabled();
+  });
+
+  it("Escape keeps the shot and closes the sheet, before it would close her shots or the camera", async () => {
+    const onOpenChange = vi.fn();
+    render(<Page onOpenChange={onOpenChange} />);
+    await opened();
+    await shootAndLand();
+    fireEvent.click(newest()!);
+    await screen.findByRole("group", { name: "Your newest shot" });
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+    expect(
+      screen.queryByRole("group", { name: "Your newest shot" }),
+    ).toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(removeOwnShot).not.toHaveBeenCalled();
+  });
+
+  it("on an album that shows each shot, the reel stays one door: a shot in the album is taken back from the album", async () => {
+    render(
+      <Page event={{ ...EVENT, develops_at: null } as unknown as GuestEvent} />,
+    );
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    expect(newest()).toBeNull();
+  });
+
+  it("★ the roll's end at 27 of 24 says her re-shoots are used, and promises no frame", async () => {
+    rolls = [{ used: 24, cap: 24, taken: 27, ceiling: 27 }];
+    ownItems = [
+      {
+        id: "m-sealed",
+        status: "approved",
+        sealed: true,
+        picture: { type: "photo", at: 1, tile: "https://r2/x/preview.webp" },
+      },
+    ];
+    render(<Page />);
+    await screen.findByText("That’s your roll");
+    expect(
+      screen.getByText(
+        /^24 shots, developing with everyone’s\. They’re back .+\. Your 3 re\u2011shoots are used\.$/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/free its frame/)).toBeNull();
+    // Her list keeps its X, and says it frees no frame now.
+    fireEvent.click(screen.getByRole("button", { name: "See your shots" }));
+    expect(
+      await screen.findByText("24 of 24 · No re\u2011shoots left"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remove this shot" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Your 3 re\u2011shoots are used, so removing a shot won’t free its frame.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("the ceiling ends a roll with a frame free in the same words, and counts none left", async () => {
+    rolls = [{ used: 23, cap: 24, taken: 27, ceiling: 27 }];
+    render(<Page />);
+    await screen.findByText("That’s your roll");
+    expect(
+      screen.getByText(/^23 shots, developing .+ Your 3 re\u2011shoots are used\.$/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("23 of 24")).toBeInTheDocument();
+    expect(document.querySelector("[data-cam-count] p")?.textContent).toBe("0");
+  });
+});
+
+/**
+ * ★ A FRESH ROLL, SAID ONCE (host-moments r1's `fresh-roll=panel`): her period against the one this device last saw her
+ * hold shots on. A roll that started again is said over the finder, the shutter waiting for Start shooting, and never
+ * twice; her first roll here is never called fresh.
+ */
+describe("the album's camera, on a fresh roll", () => {
+  const A = 1_791_335_428_131;
+  const B = A + 3_600_000;
+  const panel = () => screen.queryByRole("group", { name: "A fresh roll" });
+  const shutter = () =>
+    document.querySelector("[data-cam-shutter]") as HTMLButtonElement;
+
+  it("★ says it once over the finder, why and when, and the shutter waits for Start shooting", async () => {
+    localStorage.setItem("pr_roll:qr-token-1", String(A));
+    rolls = [{ used: 0, cap: 24, taken: 0, ceiling: 27, period: B }];
+    render(<Page />);
+    // The panel stands before the shutter's own line: it waits for her.
+    await waitFor(() => expect(panel()).not.toBeNull());
+    expect(screen.queryByText("Tap for a photo.")).toBeNull();
+    expect(
+      screen.getByText(
+        /^The host set a develop time, so everyone starts again with 24 shots\. Everything develops together /,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Start shooting" }),
+    ).toHaveFocus();
+    expect(shutter().disabled).toBe(true);
+    // Spent as it is said: the device keeps the new period.
+    expect(localStorage.getItem("pr_roll:qr-token-1")).toBe(String(B));
+    fireEvent.click(screen.getByRole("button", { name: "Start shooting" }));
+    expect(panel()).toBeNull();
+    await opened();
+    expect(shutter().disabled).toBe(false);
+    // Closed and opened again: never twice.
+    fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Open the camera" }));
+    });
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(2));
+    expect(panel()).toBeNull();
+  });
+
+  it("never calls her first roll here fresh, and keeps the period once she holds shots on it", async () => {
+    rolls = [{ used: 0, cap: 24, taken: 0, ceiling: 27, period: A }];
+    render(<Page />);
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(panel()).toBeNull();
+    expect(localStorage.getItem("pr_roll:qr-token-1")).toBeNull();
+    await screen.findByText("Frame 1 of 24");
+    await act(async () => press());
+    await waitFor(() =>
+      expect(localStorage.getItem("pr_roll:qr-token-1")).toBe(String(A)),
+    );
+  });
+
+  it("★ a develop time added while she shoots reads her roll again, and its fresh roll is said then", async () => {
+    localStorage.setItem("pr_roll:qr-token-1", String(A));
+    rolls = [
+      { used: 5, cap: 24, taken: 5, ceiling: 27, period: A },
+      { used: 0, cap: 24, taken: 0, ceiling: 27, period: B },
+    ];
+    render(
+      <Page event={{ ...EVENT, develops_at: null } as unknown as GuestEvent} />,
+    );
+    await opened();
+    await screen.findByText("Frame 6 of 24");
+    expect(panel()).toBeNull();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Set a develop time",
+          hidden: true,
+        }),
+      );
+    });
+    await waitFor(() => expect(mine()).toHaveLength(2));
+    await waitFor(() => expect(panel()).not.toBeNull());
+    expect(screen.getByText("Frame 1 of 24")).toBeInTheDocument();
+  });
+
+  it("the host's own camera keeps no roll and meets no fresh roll", async () => {
+    localStorage.setItem("pr_roll:qr-token-1", String(A));
+    rolls = [{ used: 0, cap: 24, taken: 0, ceiling: 27, period: B }];
+    render(<Page isOwner />);
+    await opened();
+    expect(panel()).toBeNull();
+    expect(mine()).toHaveLength(0);
   });
 });
 

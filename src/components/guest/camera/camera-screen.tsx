@@ -22,6 +22,8 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
+  type ReactNode,
   type Ref,
 } from "react";
 
@@ -139,7 +141,12 @@ export function CameraScreen({
   done,
   doneLine,
   freeAFrame,
+  freeLine,
   reelLabel,
+  newest,
+  over,
+  paused = false,
+  notice = null,
   hidden,
   shutterRef,
   onShot,
@@ -185,7 +192,17 @@ export function CameraScreen({
   done: boolean;
   doneLine: string;
   freeAFrame: boolean;
+  /** What the roll's end's way on says while a take-back frees a frame (`freeAFrameLine`). */
+  freeLine?: string;
   reelLabel: string;
+  /** The reel's newest frame as a door of its own (her take-back), where the camera offers one. */
+  newest?: ComponentProps<typeof CameraReel>["newest"];
+  /** A panel she meets over the picture, above the roll's end: a fresh roll, her newest shot pressed. */
+  over?: ReactNode;
+  /** A panel over the picture asks for her first: the shutter waits, and the line under it says nothing. */
+  paused?: boolean;
+  /** A line said once under the shutter, as it arrives (a shot taken back): its key says when it is new. */
+  notice?: { key: string; text: string } | null;
   /** Her shots are open over the camera: the screen is inert behind them. */
   hidden: boolean;
   shutterRef?: Ref<HTMLButtonElement>;
@@ -301,12 +318,20 @@ export function CameraScreen({
       setSaid({ text: latestRefusal.sentence, key: latestRefusal.key });
     }
   }
+  // The camera's own news (a shot taken back) is said the same way, once, the render it arrives.
+  const [heardNotice, setHeardNotice] = useState<string | null>(
+    () => notice?.key ?? null,
+  );
+  if ((notice?.key ?? null) !== heardNotice) {
+    setHeardNotice(notice?.key ?? null);
+    if (notice?.text) setSaid({ text: notice.text, key: notice.key });
+  }
 
   // The flash over the picture, once a shot (motion only: `camera.css`).
   const [flashes, setFlashes] = useState(0);
 
   /* ── a photograph ────────────────────────────────────────────────────────────────────────── */
-  const canShoot = live && !done && !blocked && !hidden;
+  const canShoot = live && !done && !blocked && !hidden && !paused;
   const latest = useRef({
     canShoot,
     flashOn,
@@ -628,7 +653,7 @@ export function CameraScreen({
         ? CAMERA_HINT.letGo
         : CAMERA_HINT.letGoSilent
     : (said?.text ??
-      (blocked || done || !live
+      (blocked || done || paused || !live
         ? ""
         : unsent.count > 0
           ? unsent.dropped
@@ -722,19 +747,21 @@ export function CameraScreen({
             onPhoneCamera={() => phoneCamera.current?.click()}
           />
         )}
-        {live && done && (
+        {live && done && !over && (
           <RollDonePanel
             line={doneLine}
             freeAFrame={freeAFrame}
+            freeLine={freeLine}
             onShots={onOpenShots}
             onBack={onClose}
           />
         )}
-        {blocked && !done && (
+        {blocked && !done && !over && (
           <p className="cam-banner" role="status">
             {blocked}
           </p>
         )}
+        {over}
       </div>
 
       {/* ── the reel and its caption ────────────────────────────────────────────────────────── */}
@@ -748,6 +775,11 @@ export function CameraScreen({
           progress={filming ? progress : null}
           label={reelLabel}
           onOpen={onOpenShots}
+          newest={
+            newest
+              ? { ...newest, disabled: newest.disabled || filming !== null }
+              : null
+          }
         />
         <p className="cam-caption" data-cam-caption="">
           {caption}

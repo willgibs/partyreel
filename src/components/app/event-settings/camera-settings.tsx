@@ -19,6 +19,11 @@ import {
   toLocalInput,
 } from "@/components/app/event-settings/camera-settings-develop-time";
 import { useFinishedFields } from "@/components/app/event-settings/camera-settings-finish";
+import {
+  freshRollsLine,
+  START_FRESH_ROLLS,
+  startsFreshRolls,
+} from "@/components/app/event-settings/camera-settings-fresh-rolls";
 import { StylePicture } from "@/components/app/event-settings/camera-settings-style-picture";
 import {
   RollControl,
@@ -46,12 +51,12 @@ import {
 import { developTimeWords } from "@/lib/disposable/develop-words";
 import type { Capture } from "@/lib/disposable/facts";
 import { developState, revealOf, type Reveal } from "@/lib/disposable/reveal";
-import { ROLL_RETAKES, ROLL_SHOTS, rollShots } from "@/lib/disposable/roll";
+import { ROLL_RESHOOTS, ROLL_SHOTS, rollShots } from "@/lib/disposable/roll";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { farZone, hostPartyZone } from "@/lib/event/zone";
 import { developToKeep } from "@/lib/event/zone-morning";
 import { toZoneInput, zoneTimeWords, zoneWhen } from "@/lib/event/zone-words";
-import { developsWhen } from "@/lib/guest/camera/words";
+import { developsWhen, reshootWord } from "@/lib/guest/camera/words";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +78,8 @@ import { cn } from "@/lib/utils";
  * develop still ahead, or Develop now, puts every photo taken so far in front of every guest; leaving Review with
  * photos held approves them, shown now, or (★ settled with Will the night of build 45) into a develop time they join
  * the roll, approved and sealed, developing with everyone's (the database releases them in the same save,
- * `events_hold_released`).
+ * `events_hold_released`); and a develop time added to a running camera starts every guest's roll again
+ * (host-moments r1's `tell=line`, `camera-settings-fresh-rolls.ts`), asked wherever a host adds one.
  *
  * ★ MOUNTABLE: `AlbumStyles` and `CaptureAndReveal` take the values and a save, so the Library and the lab mount the
  * same controls; `AlbumStyleSettings` binds them to Settings' one state. Create's add step (`create-event-wizard/
@@ -240,11 +246,13 @@ type ControlProps = {
   onSave: (patch: Partial<CaptureAndRevealValue>) => void;
 };
 
-/** What a style switch waiting on its consequence line would write. */
+/** What a style switch waiting on its consequence line would write, and what it would do to people. */
 type PendingStyle = {
   style: AlbumStyle;
   patch: CaptureAndRevealValue;
-  consequence: StyleConsequence;
+  consequence: StyleConsequence | null;
+  /** It starts every guest's roll again (a develop time onto a running camera). */
+  fresh: boolean;
 };
 
 /** The consequence line's sentence and its button, in one place; the develop's time in her clock once it is known. */
@@ -310,6 +318,7 @@ export function AlbumStyles({
   // the time removes the row, and what she had typed over it must go with the time, never write itself back at the close.
   const time = useDevelopTime({
     developsAt: value.developsAt,
+    camera: value.capture === "camera",
     hydrated,
     zone: far,
     onSave: (developsAt) => onSave({ developsAt }),
@@ -342,20 +351,38 @@ export function AlbumStyles({
       to: patch,
       heldCount,
     });
-    if (consequence) {
-      setPending({ style: to, patch, consequence });
+    // A mix that shoots with the camera (each shot shown, or approved) turning Disposable starts every roll again.
+    const fresh = startsFreshRolls(value, patch);
+    if (consequence || fresh) {
+      setPending({ style: to, patch, consequence, fresh });
       return;
     }
     save(patch);
   };
 
   const words = pending
-    ? styleConsequenceWords(
-        pending.consequence,
-        pending.patch.developsAt,
-        nowMs,
-        far,
-      )
+    ? pending.fresh
+      ? {
+          line: freshRollsLine({
+            roll: rollSize ?? ROLL_SHOTS,
+            developsAt: pending.patch.developsAt,
+            nowMs,
+            far,
+            held:
+              pending.consequence?.kind === "join-roll"
+                ? pending.consequence.count
+                : 0,
+          }),
+          confirm: START_FRESH_ROLLS,
+        }
+      : pending.consequence
+        ? styleConsequenceWords(
+            pending.consequence,
+            pending.patch.developsAt,
+            nowMs,
+            far,
+          )
+        : null
     : null;
 
   return (
@@ -401,6 +428,7 @@ export function AlbumStyles({
               time={time}
               developsAt={value.developsAt}
               review={value.review}
+              roll={rollSize ?? ROLL_SHOTS}
               hydrated={hydrated}
               saving={savingReveal}
               far={far}
@@ -553,6 +581,8 @@ function Customize({
 type Pending =
   | { kind: "show-waiting"; to: Exclude<Reveal, "develop"> }
   | { kind: "approve-held"; to: Exclude<Reveal, "approve"> }
+  /** A develop time onto the running camera: every roll starts again (and what review holds joins it). */
+  | { kind: "fresh-rolls"; held: number }
   | null;
 
 /**
@@ -577,11 +607,13 @@ export function CaptureAndReveal({
   timeElsewhere?: boolean;
 }) {
   const hydrated = useHydrated();
+  const nowMs = useWaitClock();
   const [pending, setPending] = useState<Pending>(null);
   const far = hydrated ? farZone(partyZone) : null;
   // The develop time standing in this control's own card (`timeElsewhere` leaves it to the page's row, where it is idle).
   const time = useDevelopTime({
     developsAt: value.developsAt,
+    camera: value.capture === "camera",
     hydrated,
     zone: far,
     onSave: (developsAt) => onSave({ developsAt }),
@@ -611,6 +643,11 @@ export function CaptureAndReveal({
     if (to === reveal) return;
     if (waiting && to !== "develop") {
       setPending({ kind: "show-waiting", to });
+      return;
+    }
+    // A develop time onto the running camera (none was set: `to === reveal` returned) starts every roll again.
+    if (to === "develop" && value.capture === "camera") {
+      setPending({ kind: "fresh-rolls", held: value.review ? heldCount : 0 });
       return;
     }
     if (value.review && heldCount > 0 && to !== "approve") {
@@ -696,6 +733,7 @@ export function CaptureAndReveal({
                 time={time}
                 developsAt={value.developsAt}
                 review={value.review}
+                roll={roll}
                 hydrated={hydrated}
                 saving={savingReveal}
                 far={far}
@@ -712,6 +750,22 @@ export function CaptureAndReveal({
             busy={savingReveal}
           >
             Every photo added so far shows now, to every guest.
+          </ConsequenceLine>
+        ) : null}
+        {pending?.kind === "fresh-rolls" ? (
+          <ConsequenceLine
+            confirmLabel={START_FRESH_ROLLS}
+            onConfirm={() => confirm(patchFor("develop"))}
+            onCancel={() => setPending(null)}
+            busy={savingReveal}
+          >
+            {freshRollsLine({
+              roll,
+              developsAt: patchFor("develop").developsAt ?? null,
+              nowMs,
+              far,
+              held: pending.held,
+            })}
           </ConsequenceLine>
         ) : null}
         {pending?.kind === "approve-held" ? (
@@ -829,14 +883,21 @@ const TIME_FIELD = ["time"] as const;
  * ★ ITS STATE STANDS IN THE COMPONENT THAT STAYS MOUNTED while the time comes and goes (`AlbumStyles`, `CaptureAndReveal`):
  * another control clears the time (a style switch), the field goes with it, and a typed time still pending would write
  * itself back over her choice at the close. So every write that changes when everyone sees `drop`s the draft first.
+ *
+ * ★ A NEW TIME FOR A CAMERA THAT HAS DEVELOPED STARTS EVERY ROLL AGAIN (host-moments r1's `tell=line`): a time ahead
+ * there begins a new period, so it asks the fresh rolls' question before it saves (`fresh`, the time it would write
+ * held beside it), and a close, which cannot ask, writes nothing of it.
  */
 function useDevelopTime({
   developsAt,
+  camera,
   hydrated,
   zone,
   onSave,
 }: {
   developsAt: string | null;
+  /** Guests add with the album's camera: a develop time coming ahead starts their rolls again. */
+  camera: boolean;
   hydrated: boolean;
   /** The party's zone where the field takes its clock (a party far from home), or null for hers. */
   zone: string | null;
@@ -852,16 +913,22 @@ function useDevelopTime({
   const [draft, setDraft] = useState<string | null>(null);
   // Why what she finished is not saved, said under the field.
   const [refusal, setRefusal] = useState<string | null>(null);
-  // Develop now's question: the button's own, or the one a time that would develop the album at once brings.
-  const [asking, setAsking] = useState<"button" | "time" | null>(null);
+  // Develop now's question (the button's own, or the one a time that would develop the album at once brings), or the
+  // fresh rolls' (a time ahead for a camera that has developed).
+  const [asking, setAsking] = useState<"button" | "time" | "fresh" | null>(
+    null,
+  );
+  // The time the fresh rolls' question would write, once she answers it.
+  const [freshAt, setFreshAt] = useState<string | null>(null);
 
   /** She has finished the field: what it holds is judged, once. */
   const finished = (typed: string) => {
+    const nowMs = Date.now();
     const verdict = judgeDevelopTime({
       typed,
       shown,
       developsAt,
-      nowMs: Date.now(),
+      nowMs,
       zone,
     });
     if (verdict.kind === "refuse") {
@@ -872,6 +939,16 @@ function useDevelopTime({
     setRefusal(null);
     if (verdict.kind === "ask") {
       setAsking("time");
+      return;
+    }
+    if (
+      verdict.kind === "save" &&
+      camera &&
+      developState(developsAt, nowMs).kind === "developed"
+    ) {
+      // The draft stays in the field while the question stands.
+      setFreshAt(verdict.iso);
+      setAsking("fresh");
       return;
     }
     setDraft(null);
@@ -890,16 +967,20 @@ function useDevelopTime({
     setDraft(null);
     setRefusal(null);
     setAsking(null);
+    setFreshAt(null);
   };
 
   return {
     value: draft ?? shown,
     refusal,
     asking,
+    /** The time the fresh rolls' question asks about. */
+    freshAt,
     onChange: (e: ChangeEvent<HTMLInputElement>) => {
       // A new time is a new question: the old words and the old question go.
       setRefusal(null);
-      setAsking((a) => (a === "time" ? null : a));
+      setAsking((a) => (a === "time" || a === "fresh" ? null : a));
+      setFreshAt(null);
       setDraft(e.target.value);
       fields.draft("time", e.target);
     },
@@ -913,10 +994,17 @@ function useDevelopTime({
       // The database stores a develop time this close to its own clock as its own now: it writes now, never the time she typed.
       onSave(new Date().toISOString());
     },
+    /** Start fresh rolls: the time the question held is written, the period beginning with it. */
+    startFresh: () => {
+      const at = freshAt;
+      drop();
+      if (at) onSave(at);
+    },
     /** Keep it as it is: the question goes, and a time it asked about goes with it, back to what is saved. */
     keepAsItIs: () => {
-      if (asking === "time") setDraft(null);
+      if (asking === "time" || asking === "fresh") setDraft(null);
       setAsking(null);
+      setFreshAt(null);
     },
     drop,
   };
@@ -929,6 +1017,7 @@ function DevelopTimeControl({
   time,
   developsAt,
   review,
+  roll,
   hydrated,
   saving,
   far,
@@ -936,11 +1025,14 @@ function DevelopTimeControl({
   time: DevelopTimeField;
   developsAt: string | null;
   review: boolean;
+  /** The camera's roll, every guest's fresh count where a new time starts the rolls again. */
+  roll: number;
   hydrated: boolean;
   saving: boolean;
   /** The party's zone where it is not hers: the time is its clock, its place named. */
   far: string | null;
 }) {
+  const nowMs = useWaitClock();
   const state = hydrated ? developState(developsAt).kind : "none";
   const fieldId = useId();
   const lineId = `${fieldId}-line`;
@@ -988,8 +1080,18 @@ function DevelopTimeControl({
           {time.refusal ?? ""}
         </p>
       </div>
+      {time.asking === "fresh" ? (
+        <ConsequenceLine
+          confirmLabel={START_FRESH_ROLLS}
+          onConfirm={time.startFresh}
+          onCancel={time.keepAsItIs}
+          busy={saving}
+        >
+          {freshRollsLine({ roll, developsAt: time.freshAt, nowMs, far })}
+        </ConsequenceLine>
+      ) : null}
       {state === "waiting" ? (
-        time.asking ? (
+        time.asking === "button" || time.asking === "time" ? (
           <ConsequenceLine
             confirmLabel="Develop now"
             onConfirm={time.developNow}
@@ -1016,13 +1118,13 @@ function DevelopTimeControl({
 
 /**
  * THE CAMERA'S LINE, TRUE AT EVERY ROLL (red-team 56: at a roll of 1 it said "A roll of 1 shots each.
- * Removing one frees its frame."): one shot is said as one, and what removing a shot does is said whole.
- * A shot she takes back or the host removes gives its frame back, but only up to the ceiling's
- * `ROLL_RETAKES` rolls' worth a period (`disposable-mode.md`), so the line says where that ends.
+ * Removing one frees its frame."): one shot is said as one, and what taking a shot back does is said whole.
+ * ★ HER 3 RE-SHOOTS, IN HER CAMERA'S OWN WORD (guest-moments r1's `limit=three`): a shot she takes back
+ * frees its frame for another, `ROLL_RESHOOTS` times a period at any roll size (`disposable-mode.md`).
  */
 export function cameraLine(roll: number): string {
-  const all = rollShots(roll * ROLL_RETAKES);
+  const reshoots = `${ROLL_RESHOOTS} ${reshootWord(ROLL_RESHOOTS)}`;
   return roll === 1
-    ? `One shot each. Removing it frees the frame for another, up to ${all} in all.`
-    : `A roll of ${rollShots(roll)} each. Removing one frees its frame for another, up to ${all} in all.`;
+    ? `One shot each, plus ${reshoots}: taking it back frees the frame for another.`
+    : `A roll of ${rollShots(roll)} each, plus ${reshoots}: taking one back frees its frame for another.`;
 }

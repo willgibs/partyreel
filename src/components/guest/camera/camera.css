@@ -157,6 +157,27 @@
   -webkit-backdrop-filter: blur(16px) saturate(0.8);
   backdrop-filter: blur(16px) saturate(0.8);
 }
+/* A panel she opened over everything the picture says (her newest shot, a fresh roll): above the roll's end. */
+.cam-over {
+  z-index: 3;
+}
+/* Her newest shot, as large as the box allows under its keys and its line (a phone's short screen keeps them all). */
+.cam-take-back-pic {
+  position: relative;
+  flex-shrink: 0;
+  aspect-ratio: 3 / 4;
+  height: min(213px, calc(100% - 176px));
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background: #131316;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 0.5);
+}
+.cam-take-back-pic > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 /* ── the reel as a timeline ──────────────────────────────────────────────────────────────────── */
 
@@ -166,17 +187,22 @@
   min-width: 0;
 }
 /* The reel's box keeps the house's halo whole (identity r4, `focus-halo`): its corner is the halo's shape, and it stands
-   6px in from the screen's edges so the halo is never drawn off the glass. The frames' fade is the film's, inside it,
-   since a mask on the button would fade its halo with the frames (the button's own shadow is never clipped by its own
-   overflow). */
-.cam-reel {
+   6px in from the screen's edges so the halo is never drawn off the glass. Its door (her shots) fills it under the film,
+   and the newest frame's own door stands over the film; the frames' fade and their clip are the film's, since a mask
+   or a clip on the box would take the doors' halos with the frames. */
+.cam-reel-box {
   position: relative;
   display: block;
   width: calc(100% - 12px);
   height: 58px;
   margin-inline: auto;
-  overflow: hidden;
   border-radius: 12px;
+}
+.cam-reel {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
   padding: 0;
   border: 0;
   background: none;
@@ -184,9 +210,43 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* Her newest frame's own door, standing where that frame always stands against the reel's centre (`--d`: one pitch
+   left, or 0 once the roll is spent), its halo round the frame itself; the thumb's reach is wider than the frame. */
+.cam-reel-newest {
+  position: absolute;
+  z-index: 1;
+  top: calc((58px - var(--cam-cell-h)) / 2);
+  left: calc(50% + var(--d, -1) * var(--cam-pitch) - var(--cam-cell-w) / 2);
+  width: var(--cam-cell-w);
+  height: var(--cam-cell-h);
+  border-radius: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cam-reel-newest::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--cam-cell-h) - 58px) / 2)
+    min(0px, calc((var(--cam-cell-w) - 44px) / 2));
+}
+.cam-reel-newest:disabled {
+  cursor: default;
+}
+/* A pointer over it says it is a door of its own: a fine line round the frame (an outline, so the halo's ring stays). */
+@media (hover: hover) {
+  .cam-reel-newest:not(:disabled):hover {
+    outline: 1.5px solid rgb(255 255 255 / 0.55);
+  }
+}
 .cam-reel-film {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent,
@@ -560,6 +620,11 @@
   .cam-turn {
     justify-self: center;
     text-align: center;
+  }
+  /* Her shot keeps the shape it was taken in: the picture's own, on its side here. */
+  .cam-take-back-pic {
+    aspect-ratio: 4 / 3;
+    height: min(180px, calc(100% - 176px));
   }
 }
 
