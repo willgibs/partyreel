@@ -78,7 +78,7 @@ export type EventListRow = {
   sortDate: string;
   /** Approved items in the album (hosted rows; a guest row carries 0 and never shows it). */
   items: number;
-  /** The amber count: media waiting on the host's review. */
+  /** The count that waits on her (the needs-you status): media waiting on the host's review. */
   pending: number;
   /** People waiting at the door for the host to let them in. */
   waiting: number;

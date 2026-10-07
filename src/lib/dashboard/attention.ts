@@ -59,7 +59,7 @@ export type Item = {
   /** Its act, a verb: "Let them in". */
   act: string;
   to: ItemTarget;
-  /** Someone waits (amber), or something to set up (quiet). */
+  /** Someone waits (the needs-you status), or something to set up (quiet). */
   tone: "waiting" | "setup";
 };
 

@@ -28,7 +28,7 @@ import {
  *
  * ★ THE STEP IS THE ITEM'S, THE STATE IS THE STAGE'S. What the stage asks of the host (Let them in,
  * Review, Invite, Print) is its event's one item (`attention.ts`); its numbers and its ticks are state
- * and always show, so two people waiting read in amber beside the act that lets them in.
+ * and always show, so two people waiting read with the needs-you dot beside the act that lets them in.
  */
 
 /**
