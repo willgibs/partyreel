@@ -39,9 +39,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
 - Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
-- Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
 - Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
-- Create: the name field draws a box at rest though NameStep means one field on a rule, never in a box: Input's `field-well` keeps its rim in `--tw-inset-ring-shadow`, which `shadow-none` leaves; give `.cr-name-field` `background-color: transparent; box-shadow: none` (`create-room.css`, unlayered) (after-party r1; app-gaps-r1's shots 02 and 24).
 - Settings: her own "An email first" turned on in one page while another of her pages holds an address gate is undone when the gate goes (`events_email_held` fires only on a change of `gate`, so a write of the step under a standing hold leaves `email_held` true); clear the memory when she writes the step herself (red-team 57c, LOW).
 - Settings: the save's nudge (`settings-state-unpark.ts`) runs 1 to 9 s after the answer, but a slow response stream commits only when it ends: an invite remove answered at 1.75 s stood "Saving… 1 on the list" for 90 s on a slow desk build, and a door save for 2 minutes; nudge until the commit lands, or from the stream's end (red-team 57c, LOW).
 
@@ -62,8 +60,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ### Code hygiene
 
-- Code hygiene: the hub (`dashboard/[eventId]/page.tsx`) and the dashboard (`dashboard/page.tsx`) compute the storage percent inline; read `storageUsedPct` (`lib/events/readiness.ts`), its one home.
-- Code hygiene: Settings' rail maps its steps to the checklist's items itself (`settings-rows.tsx`'s `GROUPS` and `STEP_ITEM`); read `SETTINGS_STEP_ITEMS` (`lib/events/readiness.ts`), the map Create's beat reads.
 - Code hygiene: `device-tickets.test.tsx` still pins the welcome by the legacy `pr_welcome_<qr>` localStorage key; read `document.cookie` as `foreign-ticket.test.tsx` does, then drop `use-welcome-seen.ts`'s legacy put-down (`LEGACY_PREFIX`, its `localStorage` removals) and its pins in `use-welcome-seen.test.tsx`.
 - Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
 - Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
@@ -199,6 +195,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
   - The print stock draws the event's own code look, server-side as `FooterQr` draws the classic (`print-stock.tsx` prints the classic shape whatever the look).
   - The code's four looks (Bold's coral corners, "Playful dots") predate the room's design; redraw the set so Create's look step offers looks worth choosing.
 - Host: co-hosts (Will's yes to X9, 2026-10-07: "a couple sharing a wedding event rather than both having to log in under one account"): invited by email, acting for the event as the owner does (Review, the door, Settings, Share), while billing, storage, the plan and deleting the event stay the owner's. `events.host_id` is assumed by 121 checks in 39 migrations, so a board for its surfaces and an Advisor-read plan for its RLS come first; a hand-over waits for the Partners board.
+- Host: the guest header's corner says Make one like this on a shut door too, where the album lends nothing and Create opens plain; the shut branch of `e/[token]/page.tsx` could hand the header a word (create-wizard-wiring-2).
 
 ### Admin and operations
 
@@ -223,7 +220,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: the live reel's Style menu draws "Set for everyone" as a hand-drawn pill row, not the key atom (`live-reel-view.tsx`).
 - Design: the Display menu's group names (LAYOUT, ORDER, SHOW, GROUP, COVERS) and the door's "ALMOST IN" are spaced capitals outside the camera voice's counts, live and times.
 - Design: `[data-lit]`'s falloff takes its light as a colour the host sets, so one falloff serves media and layers.
-- Design: Settings' step list and cards (`settings-rows.tsx`, `settings-furniture.tsx`, `delete-event-row.tsx`), the hub's checklist (`checklist.tsx`) and `attended-events-visibility.tsx` hand-roll a ringed card; each becomes the flat `Card`.
 - Design: add the atoms production lacks (`checkbox`, `radio-group-item`, `slider`, `radio-card`, a check mark) and move Settings' hand-rolled radio groups (`door-page.tsx`, `camera-settings.tsx`) and the grid's check (`selectable-media-grid.tsx`) onto them.
 - Design system: the house bounce (`--mkt-ease-pop`) is declared only on `[data-mkt]` (`marketing.css`), so the door's success check repeats its curve inline (`guest/door/lit.css`); one theme token would serve both.
 - The voice: the QR's ask says two things, "Scan to add your photos" on paper (`lib/qr/stock.ts`'s `STOCK_LINE`, the event pages' cards) and "Scan to add yours" on screen (the live reel, Create's look step); one line for both.
@@ -237,6 +233,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Settings' door page: at 375 the restore toast covers step 1 while it stands; her own step under a gate reads "On while you let each person in"; after Ask or Keep by keyboard focus falls to the sheet (red-team 57c, NITs).
 - Design: `halo-inset`'s forced-colours outline stands 2px outside its control, where a clipping box hides it; draw it inside, as the album tile's halo now does (crumbs-90).
 - Design, Library: RelationToggle's catalog entry could show her first follow (a specimen whose write answers `first: true`), the one state production shows only to an account that follows nobody (`library/components/gallery-demos.tsx` and `interactive-demos.tsx`, then `collect-specimens.mjs`'s `specimens.generated.json`) (account-moments-wiring-2).
+- Design: `settings-furniture.tsx`, `delete-event-row.tsx` and `attended-events-visibility.tsx` hand-roll a ringed card; each becomes the flat `Card` (the checklist and Settings' rail wear it since create-wizard-wiring-2).
 
 ### Marketing and content
 
@@ -300,6 +297,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: rename what is named for a surface it no longer is: `DestructiveSheet`, `GuardedSwitch`'s `sheet`, `PricingSheet`, `QrDesignerDialog`, `UploadIntentSheet`, `EventShareSheet`, `EventSettingsSheet`, and a test name in `create-flow.test.tsx`.
 - Code hygiene: `MarketingNotFound`'s `strip` prop has one caller left, which passes `false`, so its strip branch can go (the help palette and the 500 screen import `MissingFrameStrip` themselves) (marketing-crumbs).
 - Code hygiene: React 19.3's canary bundled with Next 16.2.6 drops a ping that answers synchronously while a suspended-with-delay render unwinds (`pingSuspendedRoot`'s render-context branch, React #25851), parking a revalidating Server Action's commit until another update; Settings and the invite list nudge it (`settings-state-unpark.ts`), while the hub's other revalidating acts (the password control, At the door, Blocked) can still meet it: give the nudge one hub-wide home, report upstream, and after any Next upgrade re-read that branch in the bundled `react-dom-client.production.js`, retiring the nudge once it records the lanes (crumbs-89's Q2; the Advisor's Q44).
+- Code hygiene: `event-settings/settings-pages.ts`'s head still lists Create's Get it ready among the links into a Settings page; Create's foot is Go to your event now (create-wizard-wiring-2).
 
 ## Before launch
 

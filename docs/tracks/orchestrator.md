@@ -41,7 +41,6 @@ Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../pa
 | `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
 | `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
 | `brand-marks-wiring` | the wordmark finished, the ember Ring icon, the room-black plate, the status tiers; retires the brand board | running (cut d4da2464) | Opus, 3131 | `a5b5ef7ec4210f810` |
-| `create-wizard-wiring-2` | Create's close with the link card, ready from the start, the styles calm, the room dark, the like-entry and Make one like this | running (cut d4da2464) | Opus, 3132 | `acf206769e01c36d9` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
 | `guests-room-wiring` | one calm row a person, the standing card from every name | running (cut d4da2464) | Opus, 3134 | `a1b4c2e7343d06bfc` |
 | `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
@@ -59,8 +58,9 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
 
 1. **Integrate wave 1 as each hands off** (one at a time, `integrate.sh`; the day's first runs `negative.sh` first). At each
    record: the lane's board folder is gone in its branch, so delete its ledger (`docs/reviews/<board>.json`) and its
-   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`
-   and `after-party.json` (its folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
+   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`,
+   `after-party.json` and `create-wizard.json` (its manifest reads that one, so it outlives create-wizard-wiring-2's
+   merge; event-page's folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
    retire G3`) and adds its successor only if the new checklist rule passes the calls test; ROADMAP lines each lane
    names close through `record.py`. Migrations named in the manifests (`20261008010000_roll_taken`,
    `20261008020000_guest_look`, `20261008030000_crumbs_91`, `20261008040000_first_follow`,
