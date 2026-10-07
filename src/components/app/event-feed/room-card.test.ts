@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BADGE_CAP,
+  badgeCount,
   countWord,
   guestsCardFace,
   reelCardFace,
@@ -62,37 +64,54 @@ describe("the Reel card's face, one pure function of the reel's state", () => {
   });
 });
 
+/**
+ * THE BADGE'S CAP (Will, event-header r5: "Can max at 99+ so it never overflows into card title"): the badge's own, never
+ * the count's format, so the door's name keeps the whole number (`room-card-door.test.tsx` holds that).
+ */
+describe("a count on its badge", () => {
+  it.each([
+    [1, "1"],
+    [8, "8"],
+    [BADGE_CAP, "99"],
+    [BADGE_CAP + 1, "99+"],
+    [140, "99+"],
+    [1234, "99+"],
+  ])("says %i as %s", (n, said) => {
+    expect(badgeCount(n)).toBe(said);
+  });
+});
+
 describe("the Review card's face", () => {
-  it("lights only while uploads wait in a moderated event", () => {
+  it("needs her only while uploads wait in a moderated event", () => {
     expect(reviewCardFace(true, 8)).toEqual({
       value: "8 waiting",
-      amber: true,
+      needs: true,
       count: 8,
     });
     expect(reviewCardFace(true, 0)).toEqual({
       value: "All caught up",
-      amber: false,
+      needs: false,
       count: undefined,
     });
     expect(reviewCardFace(false, 8)).toEqual({
       value: "Off",
-      amber: false,
+      needs: false,
       count: undefined,
     });
   });
 });
 
 describe("the Guests card's face", () => {
-  it("says who waits at her door first, in the needs-action light", () => {
+  it("says who waits at her door first, as a count that needs her", () => {
     expect(guestsCardFace({ waiting: 2, guests: 31, shots: 0 })).toEqual({
       value: "2 waiting",
-      amber: true,
+      needs: true,
       count: 2,
     });
     // Who waits outranks a roll that develops: letting her in is hers to do now.
     expect(guestsCardFace({ waiting: 1, guests: 0, shots: 6 })).toEqual({
       value: "1 waiting",
-      amber: true,
+      needs: true,
       count: 1,
     });
   });
@@ -123,9 +142,9 @@ describe("the Guests card's face", () => {
     );
   });
 
-  it("is never amber for a roll: nothing waits on her, it waits on the clock", () => {
+  it("never needs her for a roll: nothing waits on her, it waits on the clock", () => {
     const face = guestsCardFace({ waiting: 0, guests: 0, shots: 6 });
-    expect(face.amber).toBeUndefined();
+    expect(face.needs).toBeUndefined();
     expect(face.count).toBeUndefined();
   });
 
@@ -144,14 +163,14 @@ describe("the Guests card's face", () => {
 });
 
 /**
- * THE CARRIED CALL G4 (event-header r4): Settings' count is plain, never amber (nothing waits on her), and paused uploads
- * read Paused, the uploads' own word and never Closed, which is a door's.
+ * THE CARRIED CALL G4 (event-header r4, taken again at r6): Settings' count is plain, never the needs-you status (nothing
+ * waits on her), and paused uploads read Paused, the uploads' own word and never Closed, which is a door's.
  */
 describe("the Settings card's face", () => {
-  it("★ counts what is left in the plain ink, never the needs-action light", () => {
+  it("★ counts what is left in the plain ink, never as a count that needs her", () => {
     const face = settingsCardFace({ left: 2, accepting: true, door: "open" });
     expect(face).toEqual({ value: "2 left", strong: true, left: 2 });
-    expect(face).not.toHaveProperty("amber");
+    expect(face).not.toHaveProperty("needs");
   });
 
   it("★ says Paused, the uploads' own word, once its steps are done and uploads are off", () => {

@@ -94,18 +94,26 @@ export async function blockFromEventAction(
 const letBackInInput = z.object({
   blockId: z.uuid(),
   restore: z.boolean(),
+  // Left out, a lift is today's: the ask the block held stands at the door.
+  letIn: z.boolean().default(false),
 });
 
-/** Lift a block; `restore` brings back what the block itself removed (off unless the host says). */
+/**
+ * Lift a block; `restore` brings back what the block itself removed (off unless the host says); `letIn` answers the
+ * ask it held yes in the same press (host-moments r1, `let-back=straight`). `admitted` counts who came in, so the
+ * words after it say what happened rather than what was asked.
+ */
 export async function letBackInAction(
   input: unknown,
 ): Promise<
-  { ok: true; restored: number; noRoom: number } | BlockActionFailure
+  | { ok: true; restored: number; noRoom: number; admitted: number }
+  | BlockActionFailure
 > {
   const parsed = letBackInInput.safeParse(input);
   if (!parsed.success) return BAD_REQUEST;
   const result = await letBackIn(parsed.data.blockId, {
     restore: parsed.data.restore,
+    letIn: parsed.data.letIn,
   });
   if (!result.ok) return failed(result, "let_back_in");
   revalidateEvent(result.data.eventId);
@@ -113,6 +121,7 @@ export async function letBackInAction(
     ok: true,
     restored: result.data.restored,
     noRoom: result.data.noRoom,
+    admitted: result.data.admitted,
   };
 }
 

@@ -27,16 +27,17 @@ import { developDefaultIn } from "@/lib/event/zone-morning";
 
 import { setReducedMotion } from "../../../../vitest.setup";
 import { type AddChoice, AddStep, useAddChoice } from "./add-step";
+import { DevelopStep } from "./develop-step";
 
 /**
  * THE ADD STEP: HOW THE ALBUM IS STYLED (create-wizard r3's `add=styles`, Will 2026-10-04). Three cards, Live, Review and
- * Disposable, each a small album moving through the night; the Disposable's develop time directly under its card; the
- * night under them all.
+ * Disposable, each a small album moving through the night, nothing opening under them; the night under them all. And
+ * the Disposable's own screen after it (r4's `styles=focused`, 2026-10-07): its develop time and its roll.
  *
  * What fails silently, and is pinned here:
  *  - the cards stop speaking Settings' words (a second name for a style is two products);
- *  - the develop time drifts from under its card to under the night (his own placement: "not tucked underneath the
- *    timeline where it may not be noticed"), or stays reachable by a key while its card is not picked;
+ *  - the develop time creeps back onto the cards' screen (his own worry: "not tucked underneath the timeline where it
+ *    may not be noticed", answered by a screen of its own), or its screen stops offering and keeping her time and roll;
  *  - a keyboard cannot move between the cards or the night's moments (a radio group moves with the arrows);
  *  - the night plays every time the step opens, or plays over a hand already on the slider;
  *  - the pictures stop telling the three styles apart at the party (Live all lit, Review with the held ones, Disposable
@@ -154,41 +155,68 @@ describe("the three cards: Settings' own words", () => {
   });
 });
 
-describe("the develop time stands directly under the Disposable card", () => {
-  const slot = () =>
-    document.querySelector<HTMLElement>("[data-develop-slot]")!;
+/**
+ * The wizard's two screens over one choice, as Back and Continue walk between them: the cards, and the Disposable's own
+ * screen beside them (the wizard draws it after the cards while Disposable is picked).
+ */
+function Both({ onChoice }: { onChoice?: (choice: AddChoice) => void }) {
+  const choice = useAddChoice();
+  onChoice?.(choice);
+  return (
+    <>
+      <AddStep choice={choice} played onPlayed={() => {}} />
+      {choice.style === "disposable" ? <DevelopStep choice={choice} /> : null}
+    </>
+  );
+}
 
-  it("★ is the very next thing after its card, and the night comes after it, never between", () => {
+/**
+ * ★ RESHAPED ON PURPOSE (create-wizard r4's `styles=focused`; scar kept: the develop time is never where it may not be
+ * noticed, and nothing of it is reachable while another style is picked). Its reason "directly under its card" expired:
+ * the time is a screen of its own now, so the cards' screen holds none of it whatever is picked.
+ */
+describe("nothing opens under the cards (styles=focused)", () => {
+  it("★ holds no develop time and no roll on the cards' screen, whatever is picked: they are the Disposable's own screen", async () => {
     render(<Harness />);
-    const card = style(/^disposable\./i);
-    expect(card.nextElementSibling).toBe(slot());
-    const night = document.querySelector("[data-night]")!;
-    expect(
-      slot().compareDocumentPosition(night) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    // And no other card has a row of its own: Live and Review have no time.
-    expect(document.querySelectorAll("[data-develop-slot]")).toHaveLength(1);
+    for (const name of [/^disposable\./i, /^review\./i, /^disposable\./i]) {
+      await userEvent.click(style(name));
+      expect(screen.queryByLabelText("Develop time")).toBeNull();
+      expect(
+        screen.queryByRole("radiogroup", { name: "Shots each" }),
+      ).toBeNull();
+    }
+    // The night still stands right under the three, nothing between.
+    const group = screen.getByRole("radiogroup", { name: /album style/i });
+    expect(group.nextElementSibling).toBe(
+      document.querySelector("[data-night]"),
+    );
   });
+});
 
-  it("★ is out of reach while its card is not picked (inert, hidden), and opens with it", async () => {
-    render(<Harness />);
-    expect(slot()).toHaveAttribute("inert");
-    expect(slot()).toHaveAttribute("aria-hidden", "true");
-    expect(slot()).not.toHaveAttribute("data-open");
+/**
+ * THE DISPOSABLE'S OWN SCREEN (`develop-step.tsx`, r4's `styles=focused`): the album the morning it opens, the develop
+ * row and the roll, over the same choice the cards hold.
+ */
+describe("the develop time on the Disposable's own screen", () => {
+  it("★ shows the Disposable's album the morning it opens, then the time, then the roll", async () => {
+    render(<Both />);
     await userEvent.click(style(/^disposable\./i));
-    expect(slot()).not.toHaveAttribute("inert");
-    expect(slot()).not.toHaveAttribute("aria-hidden");
-    expect(slot()).toHaveAttribute("data-open");
-    const field = within(slot()).getByLabelText("Develop time");
+    const step = document.querySelector<HTMLElement>("[data-develop-step]")!;
+    const pic = step.querySelector<HTMLElement>("[data-style-picture]")!;
+    expect(pic.dataset.stylePicture).toBe("disposable");
+    expect(pic.dataset.moment).toBe("morning");
+    const field = within(step).getByLabelText("Develop time");
     expect(field).toHaveAttribute("type", "datetime-local");
-    await userEvent.click(style(/^review\./i));
-    expect(slot()).toHaveAttribute("inert");
+    const roll = within(step).getByRole("radiogroup", { name: "Shots each" });
+    expect(
+      field.compareDocumentPosition(roll) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
-  it("offers 9 am tomorrow, said in the camera's words, and keeps a time she moved while she is on the card", async () => {
+  it("offers 9 am tomorrow, said in the camera's words, and keeps a time she moved across a switch of style", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 10, 20, 0, 0));
-    render(<Harness />);
+    render(<Both />);
     await userEvent.click(style(/^disposable\./i));
     expect(screen.getByLabelText("Develop time")).toHaveValue(
       "2026-10-11T09:00",
@@ -206,8 +234,9 @@ describe("the develop time stands directly under the Disposable card", () => {
       "Oct 17 at 11:30 am",
     );
 
-    // Leaving the card and coming back keeps a time still ahead (Settings' own rule), never offers 9 am over it.
+    // Leaving the style and coming back keeps a time still ahead (Settings' own rule), never offers 9 am over it.
     await userEvent.click(style(/^live\./i));
+    expect(screen.queryByLabelText("Develop time")).toBeNull();
     await userEvent.click(style(/^disposable\./i));
     expect(screen.getByLabelText("Develop time")).toHaveValue(
       "2026-10-17T11:30",
@@ -216,23 +245,18 @@ describe("the develop time stands directly under the Disposable card", () => {
 });
 
 /**
- * ★ THE ROLL UNDER THE DISPOSABLE PICK (customize r1's `roll=both`): film's three and Other's stepper, Settings' own
- * control, opening and shutting with the develop time; the card's line and its picture say her count; her pick is kept
- * across a style switch and rides the create with the Disposable alone.
+ * ★ THE ROLL UNDER THE DEVELOP TIME (customize r1's `roll=both`): film's three and Other's stepper, Settings' own
+ * control; the card's line and its picture say her count; her pick is kept across a style switch and rides the create
+ * with the Disposable alone. ★ RESHAPED ON PURPOSE (r4's `styles=focused`; scar kept: Settings' own control, her count
+ * said on the card, kept across a switch): it stands under the time on the Disposable's own screen, where it stood in
+ * the slot under the card.
  */
-describe("the roll stands under the develop time, in the Disposable's slot", () => {
-  const slot = () =>
-    document.querySelector<HTMLElement>("[data-develop-slot]")!;
+describe("the roll stands under the develop time, on the Disposable's screen", () => {
   const rollGroup = () =>
-    within(slot()).getByRole("radiogroup", { name: "Shots each" });
+    screen.getByRole("radiogroup", { name: "Shots each" });
 
-  it("★ is in the slot, out of reach until the Disposable is picked, and offers film's three and Other", async () => {
-    render(<Harness />);
-    expect(slot().querySelector("[data-roll-control]")).not.toBeNull();
-    // Hidden with its slot: no reader meets it, and the album style group still holds its three.
-    expect(
-      within(slot()).queryByRole("radiogroup", { name: "Shots each" }),
-    ).toBeNull();
+  it("★ offers film's three and Other, 24 picked until she picks", async () => {
+    render(<Both />);
     await userEvent.click(style(/^disposable\./i));
     expect(
       within(rollGroup())
@@ -251,7 +275,7 @@ describe("the roll stands under the develop time, in the Disposable's slot", () 
 
   it("★ a box is her roll: the Disposable card's line and its arriving camera say it, and the create carries it", async () => {
     let latest!: AddChoice;
-    render(<Harness onChoice={(c) => (latest = c)} />);
+    render(<Both onChoice={(c) => (latest = c)} />);
     await userEvent.click(style(/^disposable\./i));
     await userEvent.click(
       within(rollGroup()).getByRole("radio", { name: "36 shots" }),
@@ -273,13 +297,15 @@ describe("the roll stands under the develop time, in the Disposable's slot", () 
 
   it("★ Other opens the stepper under the boxes, minus at one end and plus at the other, any count to 99", async () => {
     let latest!: AddChoice;
-    render(<Harness onChoice={(c) => (latest = c)} />);
+    render(<Both onChoice={(c) => (latest = c)} />);
     await userEvent.click(style(/^disposable\./i));
-    expect(slot().querySelector("[data-roll-stepper]")).toBeNull();
+    const step = () =>
+      document.querySelector<HTMLElement>("[data-develop-step]")!;
+    expect(step().querySelector("[data-roll-stepper]")).toBeNull();
     await userEvent.click(
       within(rollGroup()).getByRole("radio", { name: /another number/i }),
     );
-    const stepper = slot().querySelector<HTMLElement>("[data-roll-stepper]")!;
+    const stepper = step().querySelector<HTMLElement>("[data-roll-stepper]")!;
     const [fewer, count, more] = [...stepper.children] as HTMLElement[];
     expect(fewer).toHaveAccessibleName("Fewer shots");
     expect(count).toHaveAttribute("role", "spinbutton");
@@ -299,6 +325,12 @@ describe("the roll stands under the develop time, in the Disposable's slot", () 
     expect(fewer).toBeDisabled();
     expect(count).toHaveAttribute("aria-valuetext", "1 shot each");
     expect(latest.fields().roll_size).toBe(1);
+    // ★ And the card says one shot as one (red-team 56b's NIT: "1 shots each"), in Settings' own line.
+    const card = style(/^disposable\./i);
+    expect(card).toHaveAccessibleName(
+      `${STYLE_NAMES.disposable}. ${styleLine("disposable", { rollSize: 1 })}`,
+    );
+    expect(card).toHaveTextContent(/\b1 shot each\b/);
   });
 });
 

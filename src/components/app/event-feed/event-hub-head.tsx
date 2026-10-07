@@ -156,10 +156,12 @@ export function HubHeadStills({
  * it in the page (Checkout's receipt). The event's name is the page's h1, on the cover's step; the code
  * beside it is a sibling BUTTON, never a child of the heading.
  *
- * ★ ITS FOOT IS A SEAM (`event-header` r4, Will's cards over the seam): the photograph dissolves into the page and the
- * doors' cards stand across it (`event-cards-row.tsx`). The cover and the row read one set of numbers
- * (`event-hub-head-seam.css`: `--hub-rise`, how far the cards stand up into the photograph, which the foot's own padding
- * clears, and `--hub-fade`), so the strip stands above the cards at every width.
+ * ★ ITS FOOT IS WHERE THE HUB'S ONE LIGHT IS BORN (`event-header` r6, the Seam made Afterglow's): the doors' cards stand
+ * on the cover's foot (`event-cards-row.tsx`), the photograph runs on under them to its own edge, and the Seam falls from
+ * that edge into the page in the edge's own colours (`event-hub-head-light.tsx`). The cover, the row and the light read
+ * one set of numbers (`event-hub-head-seam.css`: `--hub-rise`, how far the cards stand up into the photograph, which the
+ * foot's own padding clears), so the strip stands above the cards at every width; and the cover's scrim lifts at its
+ * foot there, so the edge the light is born at is seen.
  */
 export function HubCover({
   name,
@@ -203,11 +205,10 @@ export function HubCover({
   toBar?: boolean;
 }) {
   return (
-    // ★ THE COVER'S SEAM (`event-header` r4, Will's cards over the seam): its photograph dissolves into the page at its foot
-    // and the doors' cards stand across that seam (`event-cards-row.tsx`, which rises into the cover by the same `--hub-rise`
-    // this wrapper wears, `event-hub-head-seam.css`). The wrapper is the page's own ground, OUTSIDE the cover, which is always
-    // the room: the fade is the page's colour, so it must be read here and not inside the head. It bleeds and reaches the bar
-    // as the head did.
+    // ★ THE COVER'S SEAM (`event-header` r6): the doors' cards stand on its foot (`event-cards-row.tsx`, which rises into
+    // the cover by the same `--hub-rise` this wrapper wears, `event-hub-head-seam.css`) and the light is born at its edge.
+    // The photograph ends on that edge, never dissolving into the page: the edge is the light's source. It bleeds and
+    // reaches the bar as the head did.
     <div className={cn("hub-seam relative -mx-3 sm:-mx-5", toBar && "-mt-8")}>
       {/* ★ THE COVER GROWS RATHER THAN CLIP a long name: the foot's clearance for the cards (`--hub-rise`) takes room the name
           used to have, so the head's fixed height is now its floor. */}
@@ -266,7 +267,6 @@ export function HubCover({
           <HubFactsStrip served={counts.album} arrivals={arrivals} />
         </div>
       </EventHead>
-      <div aria-hidden data-hub-fade="" className="hub-cover-fade" />
     </div>
   );
 }

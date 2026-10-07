@@ -127,10 +127,12 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
   account's here) against `roll_size`, under the host's profiles lock and then the roll's advisory lock, so two
   completes never both take the last frame, and refuses the shot past it in the words `roll.ts` mirrors. A shot she
   withdraws, or the host removes, gives its frame back; a host's hide keeps it taken. `get_upload_context` and
-  `get_upload_gate` answer `roll: {used, cap, taken, ceiling}`, so the presign refuses first (`cameraShotRefusal`).
-- ★ **The ceiling outlives the purge.** At most `roll_size * 3` shots a period, removed or not, counted in the ledger
-  `camera_rolls` (written by `create_media` alone), because the purge deletes the very rows a count of media would
-  read.
+  `get_upload_gate` answer `roll: {used, cap, taken, ceiling}`, so the presign refuses first (`cameraShotRefusal`), and
+  the gate's also names the period it counts in (`period`, `sealed_from` in epoch ms: the fresh roll's key, below).
+- ★ **The ceiling outlives the purge.** At most `roll_size + 3` shots a period (her 3 re-shoots at any roll size,
+  `ROLL_RESHOOTS`: a roll of 24 takes 27 in all), removed or not, counted in the ledger `camera_rolls` (written by
+  `create_media` alone), because the purge deletes the very rows a count of media would read. Past it a shot meets
+  "You've used all 3 re-shoots on your roll.", formatted from `c_roll_reshoots`.
 - A shot she withdraws purges that night, as every guest's own withdrawal does in any album
   ([lifecycle-recovery.md](lifecycle-recovery.md)). So the churn a freed frame opens is bounded: the storage cap reads
   what the host stores and a withdrawn shot leaves it at once (a withdrawal sits in no Deleted), the uploads
@@ -157,8 +159,22 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
 - **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (never `tell`, which would
   spend her approval news), read only while nothing of hers is in the air, so no shot is counted twice. Her live shots
   count uncapped (`RollView.held`, past the roll only by the server's own count), so the counts say "2 on a roll of 1"
-  and never promise a freed frame where removing one frees none (`removalFrees`). The host's own
-  camera keeps no roll (`isOwner`) and asks nothing.
+  and never promise a freed frame where removing one frees none (`removalFrees`). Her count is what she can still take
+  (the frames left, or the room under the ceiling where that ends first: a frame the host freed past it stays empty),
+  and her re-shoots are the room under the ceiling past the frames her roll has left (`reshoots`): each take-back
+  spends one, a shot taken since the read and taken back since included (`taken`, the ledger keeps it). They are said
+  where she takes one back (the sheet's line, her list's head, the camera's line after) and at the roll's end once
+  spent. The host's own camera keeps no roll (`isOwner`) and asks nothing.
+- **Two doors take a shot back** (guest-moments r1's `where=reel`): a press on the reel's newest frame (this visit's
+  newest shot, on an album that keeps it out of sight) lays it over the picture with Take it back and Keep it
+  (`TakeBackPanel`; two keys, since a mis-press on the reel must not delete), waiting for a shot still on its way;
+  Your shots keeps its X with no question. Both are `removeOwnShot`, the page's own removal. On an album that shows
+  each shot the reel is one door: a shot in the album is taken back from the album.
+- **A fresh roll is said once** (host-moments r1's `fresh-roll=panel`): the device keeps the period she last held shots
+  on (`pr_roll:<qrToken>`, `fresh-roll.ts`), and a roll read on another period lays `FreshRollPanel` over the finder,
+  the shutter waiting for Start shooting; the kept period moves as it shows, so it is never said twice, and her first
+  roll here is never called fresh. The camera reads her roll again when its album turns to a develop, so a develop
+  time added under an open camera is said then.
 - **The camera over a refusal of the album** (`album-camera.tsx`): a refusal the host can lift (uploads closed, the
   album full) stops the shutter in the server's words. Closed, it hears the album's own word (`uploadsWord`: the
   sync's `accepting`, each word the page hears counted) and asks again once, on the first word heard after the refusal
@@ -197,7 +213,9 @@ guests add with the camera (`roll-control.tsx`: film's 12, 24 and 36, or Other's
 a run of steps once she rests, `RollSetting`; Create's Disposable pick draws the same control), and Customize, where
 `CaptureAndReveal` asks the two answers apart. A change that would show waiting photos or release held ones asks
 before it saves (`ConsequenceLine`, `styleSwitchConsequence`), as a develop time that would develop the album does
-(below).
+(below), and so does a develop time onto a running camera (from none, or from one reached: a new period), Start fresh
+rolls or Keep it as it is (`camera-settings-fresh-rolls.ts`), wherever she adds one: Customize, the Disposable style
+from a mix, a new time for a camera that has developed (a close, which cannot ask, writes nothing of it).
 
 ★ **The default develop is the party's 9 am, the morning its album turns** (`developToKeep`, `lib/event/zone-morning.ts`):
 9 am the morning after the party's last day (or after today, once that has passed) in the event's own zone

@@ -17,6 +17,21 @@ import { defineConfig } from "vitest/config";
 //
 // Projects do NOT inherit vite-level root options, so `resolve`/`plugins` are
 // declared per project.
+
+// src/lib/env.ts validates the public vars EAGERLY on import, so any test whose
+// imports reach it (the supabase client, the upload pipeline, a job, an MDX
+// compile) needs these to exist, in BOTH projects. Dummies only: no test hits a
+// network. A real value in the shell wins (a cloud seat's environment holds
+// them), which is how six node tests that reach env.ts passed there and failed
+// on the Mac once test-slim moved them out of jsdom (2026-10-06), when only the
+// component setup gave the dummies.
+const PUBLIC_ENV = {
+  NEXT_PUBLIC_SUPABASE_URL:
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://test.supabase.co",
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "test-publishable-key",
+};
+
 export default defineConfig({
   test: {
     // `pnpm test:coverage` (test-slim): lines, branches and functions per file across both projects, so a lane that
@@ -33,6 +48,7 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
+          env: PUBLIC_ENV,
           // Worker threads, not forks (test-slim, measured about 9% off a full run with every test green). Set per
           // project: vitest 4's projects inherit no root option without `extends: true`.
           pool: "threads",
@@ -45,6 +61,7 @@ export default defineConfig({
         test: {
           name: "component",
           environment: "jsdom",
+          env: PUBLIC_ENV,
           pool: "threads",
           include: ["src/**/*.test.tsx"],
           setupFiles: ["./vitest.setup.ts"],

@@ -57,7 +57,10 @@ import { Textarea } from "@/components/ui/textarea";
  * while the profile itself stays public-by-existence, and THIS MENU STAYS
  * VISIBLE under a block in either direction: a menu that vanished would tell
  * the other side they had been blocked, which is the one thing a block promises
- * it will not do.
+ * it will not do. Where Follow stood the page draws a quiet well for the one who
+ * blocked, on every visit (`u/[slug]/blocked-well.tsx`, `block=line`), with
+ * Unblock beside it; this menu's row is the second way, and the two are two
+ * faces of the one relation, so the page's re-render settles both.
  */
 export function ProfileActionsMenu({
   profileId,
@@ -206,7 +209,12 @@ export function ProfileActionsMenu({
             >
               Cancel
             </Button>
-            <Button type="button" onClick={runReport} working={reporting} workingLabel="Sending">
+            <Button
+              type="button"
+              onClick={runReport}
+              working={reporting}
+              workingLabel="Sending"
+            >
               Send report
             </Button>
           </PopupFooter>

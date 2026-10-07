@@ -105,22 +105,22 @@ describe("the hub's head", () => {
   });
 
   /**
-   * THE COVER'S SEAM (`event-header` r4, Will's cards over the seam): its photograph dissolves into the page at its foot, and
-   * its words clear what the doors' cards cover. What a jsdom can hold is the structure that makes it so: the fade is the page's
-   * own colour, so it stands OUTSIDE the cover (always the room), and the cover and the row read one set of numbers.
+   * THE COVER'S SEAM (`event-header` r6, the Seam made Afterglow's): the cards stand on the cover's foot and the light is born
+   * at its edge. What a jsdom can hold is the structure that makes it so: the cover and the row read one set of numbers (the
+   * wrapper wears them), and the photograph ends on its own edge, the light's source.
    */
-  it("★ stands the cover in its seam: the photograph's fade is a sibling outside the cover, which is always the room", () => {
+  // ★ RESHAPED ON PURPOSE (event-header r6's correction: "the cards stand on the cover's foot, the light falling past them";
+  // the photograph "ends on its edge"): this pinned the photograph's fade into the page as a sibling outside the cover. The
+  // fade is gone; the scar that stands is the wrapper outside the cover that carries the seam's numbers.
+  it("★ stands the cover in its seam, the photograph ending on its own edge: nothing fades it into the page", () => {
     const { container } = render(cover());
     const seam = container.firstElementChild as HTMLElement;
     expect(seam).toHaveClass("hub-seam");
     const head = seam.querySelector("[data-event-head]") as HTMLElement;
     expect(head).not.toBeNull();
-    const fade = seam.querySelector("[data-hub-fade]") as HTMLElement;
-    expect(fade).toHaveClass("hub-cover-fade");
-    // The fade is the page's colour (`--background`), which inside the cover (`dark`) would be the room's: never within it.
-    expect(head.contains(fade)).toBe(false);
-    expect(fade.parentElement).toBe(seam);
-    expect(fade).toHaveAttribute("aria-hidden", "true");
+    expect(head.parentElement).toBe(seam);
+    expect(seam.querySelector("[data-hub-fade]")).toBeNull();
+    expect(seam.children).toHaveLength(1);
   });
 
   it("clears the cards in its foot, and grows rather than clips a long name", () => {

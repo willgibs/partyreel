@@ -53,9 +53,9 @@
   pick reads lit rather than boxed. The tones are tokens on the group, so the brand round re-tints them in one place;
   the pictures' own tones are `camera-settings-style-picture.css`'s.
 
-  ★ AT A PHONE A ROW EACH (the picture, its words, its tick) with the develop row directly under the Disposable card;
-  from a laptop three columns, each card a tall picture over its words, and the develop row in the Disposable card's
-  own column. Both are ONE GRID, so the cards share a height and the row never moves a card above it.
+  ★ AT A PHONE A ROW EACH (the picture, its words, its tick); from a laptop three columns, each card a tall picture over
+  its words. Both are ONE GRID, so the cards share a height, and nothing opens under them (r4's `styles=focused`: the
+  Disposable's develop time and roll are a screen of their own, `.cr-develop-step` below).
 
   ★ THE LIGHT STAYS INSIDE ITS BOX AND SPILLS ONLY AS INK: a pool laid over the card's lower part and blurred reads as
   light thrown onto the floor under it while adding nothing to what the room's body can scroll (a blur is ink, never
@@ -147,28 +147,25 @@
   min-width: 0;
 }
 
-/* The develop time's row, in place under its card: its height eases in and out, so nothing above it moves. */
-.cr-develop-slot {
-  display: grid;
-  grid-template-rows: 0fr;
-  visibility: hidden;
-  opacity: 0;
-  transition:
-    grid-template-rows 280ms var(--ease-emphasis),
-    opacity 200ms var(--ease-emphasis),
-    visibility 0s linear 280ms;
+/*
+  THE DISPOSABLE'S OWN SCREEN (`develop-step.tsx`): its album the morning it opens, as large as the room's height leaves
+  over the row, the roll and the foot (a short phone draws it smaller rather than pushing the roll under the foot), then
+  the develop row and the roll, one column as wide as the cards' at a phone.
+*/
+.cr-develop-step {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 400px;
 }
-.cr-develop-slot[data-open] {
-  grid-template-rows: 1fr;
-  visibility: visible;
-  opacity: 1;
-  transition-delay: 0s;
+.cr-develop-step-pic {
+  width: 100%;
+  height: clamp(7.5rem, calc(100dvh - 34rem), 13rem);
+  margin-bottom: 1.5rem;
 }
-.cr-develop-inner {
-  min-height: 0;
-  overflow: hidden;
-  padding-top: 0.625rem;
-}
+
+/* The develop time's row: a setting's row in the room's material, the native field its hand. */
 .cr-develop {
   cursor: pointer;
   background: color-mix(in oklch, var(--foreground) 6%, transparent);
@@ -284,7 +281,7 @@
   transition: none;
 }
 
-/* From a laptop: three columns, each card a tall picture over its words, the develop row in the third's column. */
+/* From a laptop: three columns, each card a tall picture over its words. */
 @media (min-width: 64rem) {
   .cr-styles {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -308,9 +305,6 @@
   .cr-style-words {
     margin-top: 0.875rem;
     align-items: flex-start;
-  }
-  .cr-develop-slot {
-    grid-column: 3;
   }
   .cr-under {
     max-width: 560px;
@@ -402,6 +396,10 @@
   sample, its word, the question and what stands under the code, kept in place unseen) changes when the
   beat says it has arrived, a render's attribute and never a timer's. Under reduced motion no transition
   is declared: the beat simply stands, whole.
+
+  A FAILED CREATE IS HELD HERE (`failed`, r4's `failed=held`): the sample stops breathing and stands as the
+  sample it is, its word on it; the question says so and the words under the code say what is kept, both
+  at once rather than after the arrival's pause.
 */
 .cr-question[data-held] {
   opacity: 0;
@@ -411,12 +409,24 @@
 .cr-sample-word[data-state="gone"] {
   opacity: 0;
 }
-/* What stands under the code keeps its place while the code develops, unseen, so nothing moves when it
-   arrives. */
-[data-beat="developing"] .cr-beat-below {
+/* Under the code, one cell: the doors and the close, and a held failure's words, stand in the same place,
+   so the code never moves between the wait, a failure and the arrival. */
+.cr-beat-under {
+  display: grid;
+}
+.cr-beat-under > * {
+  grid-area: 1 / 1;
+}
+/* What stands under the code keeps its place while the code develops or a failure is held, unseen, so
+   nothing moves when it arrives. */
+[data-beat="developing"] .cr-beat-below,
+[data-beat="failed"] .cr-beat-below {
   visibility: hidden;
   opacity: 0;
   translate: 0 10px;
+}
+.cr-beat-held {
+  align-self: start;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -452,6 +462,19 @@
     transition:
       opacity 480ms var(--ease-emphasis) 720ms,
       translate 480ms var(--ease-emphasis) 720ms;
+  }
+  /* A failure is said at once: its question and its words come up together, never after a pause. */
+  [data-room="beat"]:has([data-beat="failed"]) .cr-question:not([data-held]) {
+    transition-delay: 60ms;
+  }
+  .cr-beat-held {
+    transition:
+      opacity 320ms var(--ease-emphasis) 60ms,
+      translate 320ms var(--ease-emphasis) 60ms;
+    @starting-style {
+      opacity: 0;
+      translate: 0 6px;
+    }
   }
   .cr-beat-go {
     transition:

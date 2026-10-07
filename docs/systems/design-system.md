@@ -45,6 +45,12 @@ view) is plain to anyone already.
   captions and hints, never a sentence, a control's only label or under a further alpha (`faint-copy-policy.test.tsx`).
 - **Status is light**: a state is a light and its word, and "nothing here yet" is one atom, `ui/empty.tsx` (the shared
   `EmptyState` and the feed's section empty are it).
+- ★ **A count that needs her is one token, `--needs-you`** (event-header r6, Will's `attention=tally`), with
+  `--needs-you-foreground` for its figures: the camera's tally, the red the palette already holds (paper's is
+  `--signal` itself; the room's a step deeper than its bright signal, so white figures hold 4.6:1). It is worn solid
+  and hard-edged by every count that waits on her (the hub's badges and their pills, the code's corner), never a glow,
+  so a screen's one light stays its light; no utility maps it, so a part reads it by name (`bg-(--needs-you)`). A
+  count hers that waits on nobody (steps left, a pause) is never it.
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` is the one home of its path (its comment says how
   to replace it), drawn by `Logo` and the social card alike; the mark (`markOnly`) is a stand-in mounted nowhere until
   the icon lands. `--brand` is an alias of `--primary` (ink).
@@ -116,6 +122,10 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, or in the admin.
 - **Gallery arrivals wear their own glow** (`shared/arrival.css`) rather than a lamp: a second light at the album's head
   on every beat reads as a pulse, not light, and a batch of them would bury the album's top.
+- **Afterglow's first light in production is the hub's Seam** (event-header r6; its facts are
+  [host-app.md](host-app.md)'s): born at the cover photograph's edge in that edge's own colours, read at runtime off the
+  crop the eye sees, at the brand's reach in the room and inside a strip of the room on paper, never on the page itself.
+  It is neither this engine nor the lamp set, and a status beside it is a solid point (`--needs-you`), never a glow.
 - **A new lamp answers four questions first**: what emits (or what place is lit), from where, sampled from what, and
   what above admits it.
 - **The lamp set is light, never UI**: five hues in three registers, each at its home: ambient `--lamp-1..5`

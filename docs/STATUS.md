@@ -23,8 +23,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   with it: its Worker deploys just before 39's production deploy (`tracks/orchestrator.md`).
 - **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
   hi@willgibs.com's wound down at its consolidation point; eight lanes run, each a local worktree.
-- **Vercel's Hobby Active CPU** reads about 3.89 of 4 hours over 30 days (2026-10-06; the peak rolls off in early
-  November): nothing of ours runs on Vercel but what Will asks for by name; desks and red-teams run locally (`CLAUDE.md`).
+- **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and
+  red-teams moved to the Mac (about 2,000 calls a day, from 20,000 to 57,000); under the REFUSE line around 2026-10-16.
+  Nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
 
 ## The desk
 
@@ -73,5 +74,5 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 - Milestone 39's yes after the storage sums' signal lane, the batch's wirings and red-team 57; the calls lab's open
   questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the
   CDN-cached album, X6 the operator's uploads credit, X8 the policy tests' style picks) and the calls built for him to
-  overrule; the two backup copies with old EXIF to delete and the six retired Stripe price names to drop; Vercel Pro or
-  the window; the walks only he can drive (`tracks/orchestrator.md`).
+  overrule; the two backup copies with old EXIF to delete and the six retired Stripe price names to drop; the
+  walks only he can drive (`tracks/orchestrator.md`).

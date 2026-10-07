@@ -5,8 +5,9 @@
  * a guest is the fifth door at the row's end, and a room's code and what it will show are asked for on intent, so
  * the panel opens on the room rather than on a wait.
  *
- * And, since event-header r4's cards over the seam, how the row says what each door holds, and how it folds into its
- * pills under the bar and back (the fold's plumbing: the browser's own animation and layout are stood in for).
+ * And, since event-header r4's cards (as r6 drew them), how the row says what each door holds, how it folds into its pills
+ * under the bar and back (the fold's plumbing: the browser's own animation and layout are stood in for), and that the
+ * cover's light follows it under the cover.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -62,7 +63,7 @@ function row() {
       eventId={EVENT}
       cards={[
         { id: "guests", value: "6 guests" },
-        { id: "review", value: "2 waiting", amber: true, count: 2 },
+        { id: "review", value: "2 waiting", needs: true, count: 2 },
         { id: "settings", value: "Public" },
       ]}
       reel={{
@@ -202,7 +203,7 @@ const piece = (el: HTMLElement, name: string) =>
 describe("what each door says", () => {
   it("★ names every door with its room and its line, so each is one thing to a reader in either form of the row", () => {
     faces([
-      { id: "guests", value: "2 waiting", amber: true, count: 2 },
+      { id: "guests", value: "2 waiting", needs: true, count: 2 },
       { id: "review", value: "All caught up" },
       { id: "settings", value: "Private · You let in" },
     ]);
@@ -216,24 +217,25 @@ describe("what each door says", () => {
       expect(screen.getByRole("link", { name })).toBeInTheDocument();
   });
 
-  it("stands a waiting count as a numeral beside the waiting light, and keeps the word on the line", () => {
+  it("rides each count that needs her on its glyph, in the status, and keeps the word on the line", () => {
     faces([
-      { id: "guests", value: "2 waiting", amber: true, count: 2 },
-      { id: "review", value: "8 waiting", amber: true, count: 8 },
+      { id: "guests", value: "2 waiting", needs: true, count: 2 },
+      { id: "review", value: "8 waiting", needs: true, count: 8 },
       { id: "settings", value: "Public" },
     ]);
     const review = door(/^Review/);
-    expect(piece(review, "num")).toHaveTextContent("8");
-    expect(piece(review, "light")).toHaveClass("hub-door-light");
+    expect(piece(review, "badge")).toHaveTextContent("8");
+    expect(piece(review, "badge")).toHaveAttribute("data-badge", "needs");
     expect(piece(review, "text")).toHaveTextContent("waiting");
-    expect(piece(door(/^Guests/), "num")).toHaveTextContent("2");
-    // The doors with nothing waiting carry no light.
-    expect(piece(door(/^Settings/), "light")).toBeNull();
-    expect(piece(door(/^Highlight reel/), "light")).toBeNull();
+    expect(piece(door(/^Guests/), "badge")).toHaveTextContent("2");
+    // The doors with nothing that needs her keep their glyphs bare.
+    expect(piece(door(/^Settings/), "badge")).toBeNull();
+    expect(piece(door(/^Highlight reel/), "badge")).toBeNull();
   });
 
-  // ★ THE CARRIED CALL G4 (event-header r4): Settings' count is plain and never amber, and paused uploads read Paused.
-  it("★ says Settings' steps left in the ink, never the waiting light, and paused uploads as Paused", () => {
+  // ★ THE CARRIED CALL G4 (event-header r4, taken again at r6): Settings' count is plain and never the status, and paused
+  // uploads read Paused.
+  it("★ says Settings' steps left in the ink and a quiet badge, never the status, and paused uploads as Paused", () => {
     const { unmount } = faces([
       { id: "guests", value: "0 guests" },
       { id: "review", value: "Off" },
@@ -241,8 +243,8 @@ describe("what each door says", () => {
     ]);
     const settings = door(/^Settings/);
     expect(settings).toHaveAccessibleName("Settings: 2 left");
-    expect(piece(settings, "light")).toHaveClass("hub-door-unlit");
-    expect(settings.outerHTML).not.toMatch(/warning/);
+    expect(piece(settings, "badge")).toHaveAttribute("data-badge", "quiet");
+    expect(settings.querySelector('[data-badge="needs"]')).toBeNull();
     unmount();
 
     faces([
@@ -251,7 +253,9 @@ describe("what each door says", () => {
       { id: "settings", value: "Paused", paused: true },
     ]);
     expect(door(/^Settings/)).toHaveAccessibleName("Settings: Paused");
-    expect(door(/^Settings/).querySelector(".hub-door-pause")).not.toBeNull();
+    expect(
+      piece(door(/^Settings/), "badge")?.querySelector("svg"),
+    ).not.toBeNull();
   });
 
   // ★ crumbs-81: the hub's Guests card read "0 guests" while a sealed roll waited.
@@ -280,6 +284,47 @@ describe("what each door says", () => {
     ].map((el) => el.dataset.hubDoor);
     // The reel, Guests, Review, Settings, then the guest's view: the row's own order, however the cards were handed in.
     expect(names).toEqual(["reel", "guests", "review", "settings", "as-guest"]);
+  });
+});
+
+/**
+ * THE COVER'S LIGHT FOLLOWS THE ROW (event-header r6, the Seam made Afterglow's): born at the photograph's edge below the
+ * cards and falling into the page, so it stands after the footprint in the page's flow, never inside the sticky footprint
+ * (where the fold could flash it) and never under a row with no cover above it.
+ */
+describe("the cover's light", () => {
+  it("★ stands after the footprint, outside it, wherever the row is drawn under a cover", () => {
+    const { container } = render(
+      <EventCardsRow
+        eventId={EVENT}
+        cards={[
+          { id: "guests", value: "6 guests" },
+          { id: "review", value: "Off" },
+          { id: "settings", value: "Public" },
+        ]}
+        reel={{
+          state: "off",
+          have: 0,
+          of: 2,
+          viewHref: "/e/probe?reel",
+          moderated: false,
+          pending: 0,
+        }}
+        head={{ name: "Maya & Jay", stills: [] }}
+      />,
+    );
+    const footprint = container.querySelector("[data-hub-row]")!;
+    const light = container.querySelector("[data-hub-light]")!;
+    expect(light).not.toBeNull();
+    expect(footprint.contains(light)).toBe(false);
+    expect(footprint.nextElementSibling).toBe(light);
+    // Decoration: a reader never meets it.
+    expect(light).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("draws no light under a row with no cover above it", () => {
+    const { container } = row();
+    expect(container.querySelector("[data-hub-light]")).toBeNull();
   });
 });
 
@@ -368,8 +413,8 @@ describe("the band under the bar, and the fold into it", () => {
       <EventCardsRow
         eventId={EVENT}
         cards={[
-          { id: "guests", value: "2 waiting", amber: true, count: 2 },
-          { id: "review", value: "8 waiting", amber: true, count: 8 },
+          { id: "guests", value: "2 waiting", needs: true, count: 2 },
+          { id: "review", value: "8 waiting", needs: true, count: 8 },
           { id: "settings", value: "Public" },
         ]}
         reel={{
@@ -387,7 +432,9 @@ describe("the band under the bar, and the fold into it", () => {
       />,
     );
   const band = () =>
-    screen.getByRole("group", { name: "This event" }).parentElement!;
+    screen
+      .getByRole("group", { name: "This event" })
+      .closest<HTMLElement>(".hub-band")!;
   /** The row's own observer reports the footprint's crossing of the bar (ratio under 1: stuck). */
   const report = async (ratio: number) => {
     const sight = sights.find((s) => s.target?.contains(band()))!;
@@ -445,16 +492,53 @@ describe("the band under the bar, and the fold into it", () => {
     expect(band()).not.toHaveAttribute("data-stuck");
   });
 
-  it("★ flips at once for a reader who asked for less motion, and moves nothing", async () => {
+  // ★ RESHAPED ON PURPOSE (event-header r6's carried `reduced-fold`, Will's to overrule: "It dissolves: the new form develops
+  // in place over 150ms and nothing travels"): this pinned the flip at once, with no animation at all. The scar stands:
+  // nothing travels for a reader who asked for less motion; only an opacity runs, on what stands on the band.
+  it("★ dissolves for a reader who asked for less motion: what stands on the band develops in place, and nothing travels", async () => {
     reduced = true;
     mount();
     await report(1);
     await report(0.4);
     expect(band()).toHaveAttribute("data-stuck");
-    expect(animate).not.toHaveBeenCalled();
+    expect(animate).toHaveBeenCalled();
+    for (const [frames, options] of animate.mock.calls) {
+      // An opacity alone, never a transform or a box: the new form develops where it stands.
+      for (const frame of frames as Keyframe[])
+        expect(Object.keys(frame).sort()).toEqual(["opacity"]);
+      expect(options.duration).toBeLessThanOrEqual(150);
+    }
+    // The band's ground is there at once, as in the moving fold.
+    expect(
+      animate.mock.contexts.some(
+        (el: Element) => (el as HTMLElement).dataset?.fold === "veil",
+      ),
+    ).toBe(false);
+    animate.mockClear();
     await report(1);
     expect(band()).not.toHaveAttribute("data-stuck");
-    expect(animate).not.toHaveBeenCalled();
+    for (const [frames] of animate.mock.calls)
+      for (const frame of frames as Keyframe[])
+        expect(Object.keys(frame).sort()).toEqual(["opacity"]);
+  });
+
+  it("★ folds Review first, then its neighbours, the row's ends last", async () => {
+    mount();
+    await report(1);
+    await report(0.4);
+    const delayOf = (room: string) => {
+      const at = animate.mock.contexts.findIndex(
+        (el: Element) =>
+          (el as HTMLElement).dataset?.fold === "skin" &&
+          el.closest("[data-hub-door]")?.getAttribute("data-hub-door") === room,
+      );
+      return animate.mock.calls[at][1].delay ?? 0;
+    };
+    expect(delayOf("review")).toBe(0);
+    expect(delayOf("guests")).toBeGreaterThan(0);
+    expect(delayOf("guests")).toBe(delayOf("settings"));
+    expect(delayOf("reel")).toBeGreaterThan(delayOf("guests"));
+    expect(delayOf("reel")).toBe(delayOf("as-guest"));
   });
 
   // A reload restored below the bar, or a deep link into the album, is a page that was never at rest to fold from.
@@ -466,6 +550,20 @@ describe("the band under the bar, and the fold into it", () => {
     // The next crossing is a real one, and folds.
     await report(1);
     expect(animate).toHaveBeenCalled();
+  });
+
+  it("stands the face, the doors and the code each in its own place on the band once stuck, the face first and the code last", async () => {
+    share.headerCodeHidden = true;
+    mount();
+    await report(1);
+    await report(0.4);
+    const order = [...band().children].map(
+      (el) =>
+        (el as HTMLElement).dataset.fold ??
+        (el.getAttribute("role") === "group" ? "doors" : el.className),
+    );
+    // r6's `band-ends`: the cover's face at the left end, the doors between, the code at the right end.
+    expect(order).toEqual(["veil", "lead", "doors", "code"]);
   });
 
   it("leads with the head it came from only once stuck: the cover's first photograph and its name", async () => {

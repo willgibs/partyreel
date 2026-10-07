@@ -596,22 +596,25 @@ describe("her own plan's goal", () => {
   // She stores 60.83 GB on a 50 GB plan: 10.83 GB past it.
   const fit: StorageGoal = { kind: "fit", capBytes: 50 * GIGABYTE };
 
+  // ★ RESHAPED ON PURPOSE (host-moments r1, `goal=line`; scar kept: it counts down to her own cap, says where she
+  // stands, and switches nothing). The expired reason: "left to free to fit your plan", the gap alone; her plan's
+  // line is drawn now, and the strip says how far past it she still is, then that she fits once these go.
   it("★ counts down to her own cap and says where she stands, with nothing to switch", async () => {
     const source = fakeSource();
     const dialog = open(source, fit);
     await firstStrip(dialog);
     const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
     expect(strip.getAttribute("data-state")).toBe("counting");
-    expect(strip.textContent).toContain("10.9 GB");
-    expect(strip.textContent).toContain("to fit your plan");
+    expect(strip.textContent).toContain("10.9 GB over your plan");
     expect(within(strip).queryByRole("button")).toBeNull();
 
     // 9.4 GB selected leaves 1.43 GB; 4.1 GB more closes it, only selected.
     await userEvent.click(checkboxFor(dialog, BIG));
     expect(strip.getAttribute("data-state")).toBe("counting");
-    expect(strip.textContent).toContain("1.5 GB");
+    expect(strip.textContent).toContain("1.5 GB over your plan");
     await userEvent.click(checkboxFor(dialog, MID));
     expect(strip.getAttribute("data-state")).toBe("delete");
+    expect(strip.textContent).toContain("Fits your plan once these go");
     expect(within(strip).queryByRole("button")).toBeNull();
 
     // The bar's Delete for good is the act: deleted, the gap is freed.
@@ -622,6 +625,38 @@ describe("her own plan's goal", () => {
     await waitFor(() => expect(strip.getAttribute("data-state")).toBe("fits"));
     expect(source.deleteForGood).toHaveBeenCalledTimes(1);
     expect(source.switchPlan).not.toHaveBeenCalled();
+  });
+
+  it("★ draws her plan's line: what stands past it shrinks as she picks, and none is left once she fits", async () => {
+    const dialog = open(fakeSource(), {
+      ...fit,
+      plan: "Pro 50 GB",
+    } satisfies StorageGoal);
+    await firstStrip(dialog);
+    const strip = dialog.querySelector(
+      "[data-storage-goal-line]",
+    ) as HTMLElement;
+    const past = () =>
+      parseFloat(
+        (strip.querySelector("[data-storage-goal-past]") as HTMLElement).style
+          .width,
+      );
+    const going = () =>
+      parseFloat(
+        (strip.querySelector("[data-storage-goal-going]") as HTMLElement).style
+          .width,
+      );
+    // 60.83 GB stored on 50 GB: the part past the line is 10.83 of 60.83, nothing yet hatched.
+    expect(past()).toBeCloseTo((10.83 / 60.83) * 100, 0);
+    expect(going()).toBe(0);
+    expect(strip.textContent).toContain("Your plan: Pro 50 GB");
+    await userEvent.click(checkboxFor(dialog, BIG));
+    const before = past();
+    expect(before).toBeLessThan((10.83 / 60.83) * 100);
+    expect(going()).toBeGreaterThan(0);
+    await userEvent.click(checkboxFor(dialog, MID));
+    expect(past()).toBe(0);
+    expect(strip.textContent).toContain("Fits Pro 50 GB once these go");
   });
 
   it("keeps Deleted's own note: her plan holds her events and Deleted together", async () => {

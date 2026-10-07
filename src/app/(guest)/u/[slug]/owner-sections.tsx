@@ -18,6 +18,21 @@ import { withAvatarUrls } from "@/lib/social/cards";
 import { readMyLikesPageAction, readMyUploadsPageAction } from "./feed-actions";
 
 /**
+ * THE LINE THAT MARKS THE PRIVATE HALF, once, at the top of it, rather than three times: a person looking
+ * at their own public page should never have to wonder which of these strangers can see. It is the
+ * PAGE's (`u/[slug]/page.tsx`, above `OwnerSections`) and not the sections', because `/me` draws the same
+ * sections under a head that already says the whole page is hers alone (`me-page=private`), and a
+ * second line there would say it twice. It reads nothing, so it takes no part in the gate below.
+ */
+export function OwnerNote() {
+  return (
+    <p className="text-xs text-muted-foreground">
+      Only you can see the sections below.
+    </p>
+  );
+}
+
+/**
  * THE OWNER MODE: what only the person themselves sees on their own page.
  *
  * Your own photos, likes and connections belong on your profile page, while
@@ -69,14 +84,7 @@ export async function OwnerSections() {
   const followingItems = await withAvatarUrls(following);
 
   return (
-    <div className="mt-10 space-y-8">
-      {/* The private half is marked as such once, at the top, rather than
-          three times. A person looking at their own page should never have to
-          wonder which of these strangers can see. */}
-      <p className="text-xs text-muted-foreground">
-        Only you can see the sections below.
-      </p>
-
+    <div className="space-y-8">
       {uploads.items.length === 0 ? (
         <EmptySectionTeaser
           heading="Your uploads"
@@ -136,7 +144,7 @@ export async function OwnerSections() {
                   {item.slug ? (
                     <Link
                       href={`/u/${item.slug}`}
-                      className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 transition-[background-color,transform] duration-150 ease-emphasis outline-none hover:bg-muted/40 focus-halo active:scale-[0.97] motion-reduce:active:scale-100"
+                      className="flex max-w-56 focus-halo items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 transition-[background-color,transform] duration-150 ease-emphasis outline-none hover:bg-muted/40 active:scale-[0.97] motion-reduce:active:scale-100"
                     >
                       {identity}
                     </Link>

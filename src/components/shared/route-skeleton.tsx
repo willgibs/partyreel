@@ -1,3 +1,7 @@
+// The hub's row and its light take their geometry from their own sheets, so the shape below can never drift from theirs.
+import "@/components/app/event-feed/event-cards-row.css";
+import "@/components/app/event-feed/event-hub-head-seam.css";
+
 import { DashboardSkeleton } from "@/components/app/dashboard/dashboard-skeleton";
 import { RoomWait } from "@/components/app/create-event-wizard/room";
 import { CrumbsHold } from "@/components/shared/crumbs";
@@ -72,21 +76,25 @@ function HubSkeleton() {
       {/* The head (`event-header` r1): the cover's dark room to the window's edges and up to the
           app's bar, at the head's own height, so the photographs land in the box that held them. */}
       <div className="dark -mx-3 -mt-8 h-[20.5rem] bg-background sm:-mx-5 sm:h-[25rem]" />
-      {/* The cards row at rest, standing up into the cover as it does over the seam (`event-header` r4,
-          event-feed/event-cards-row.tsx): a phone's two by two with the guest's view the width under it, five tiles from
-          `sm`, five cards from 68.75rem (1100px), each at the row's own height and rising by the row's own `--hub-rise`
-          (event-hub-head-seam.css), so the album starts where the page puts it and nothing jumps as it streams in. */}
-      <div className="-mt-[76px] grid grid-cols-2 gap-2 pb-1.5 sm:-mt-[68px] sm:grid-cols-5 sm:pb-2 min-[68.75rem]:-mt-16 min-[68.75rem]:gap-3">
-        {Array.from({ length: 5 }, (_, i) => (
-          <Skeleton
-            key={i}
-            className={
-              i === 4
-                ? "col-span-2 h-[46px] rounded-xl sm:col-span-1 sm:h-24 min-[68.75rem]:h-[72px]"
-                : "h-[58px] rounded-xl sm:h-24 min-[68.75rem]:h-[72px]"
-            }
-          />
-        ))}
+      {/* The cards row at rest, standing on the cover's foot as it does (`event-header` r6, event-feed/event-cards-row.tsx):
+          a hand's one row of five 76px tiles, a tablet's 108px tiles from `sm`, a desk's 72px cards from 68rem (1088px),
+          rising by the row's own `--hub-rise` in the row's own classes (`hub-row`, `hub-band`, `hub-doors`), then the
+          Seam's box under the cover's edge (`hub-light`: the room's reach, or Aperture's strip of the room on paper, unlit
+          here), so the album starts where the page puts it and nothing jumps as it streams in. */}
+      <div className="hub-seam hub-row -mx-3 sm:-mx-5">
+        <div className="hub-band">
+          <div className="hub-doors">
+            {Array.from({ length: 5 }, (_, i) => (
+              <Skeleton
+                key={i}
+                className="h-[76px] rounded-xl sm:h-[108px] min-[68rem]:h-[72px]"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div aria-hidden className="hub-seam hub-light">
+        <div className="dark hub-light-field" />
       </div>
       {/* The album: as many columns as the album's default tile size holds
           at this width, so a wide window is not four giant squares. */}

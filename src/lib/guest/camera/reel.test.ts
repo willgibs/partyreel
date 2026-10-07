@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { reelCells, reelCentre, reelMinute } from "./reel";
+import { newestCell, reelCells, reelCentre, reelMinute } from "./reel";
 
 const at = (h: number, m: number) => new Date(2026, 5, 13, h, m).getTime();
 
@@ -85,5 +85,45 @@ describe("reelCells", () => {
     expect(reelMinute(at(9, 5))).toBe("9:05");
     expect(reelMinute(at(0, 30))).toBe("12:30");
     expect(reelMinute(at(22, 41))).toBe("10:41");
+  });
+});
+
+describe("newestCell", () => {
+  const recent = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      key: `s${i}`,
+      takenAt: Date.UTC(2026, 9, 6, 22, i),
+      kind: "photo" as const,
+      sending: false,
+    }));
+
+  it("is the last frame she spent, one left of the frame she is on, holding this visit's newest shot", () => {
+    const cells = reelCells({
+      cap: 24,
+      used: 6,
+      recording: false,
+      recent: recent(2),
+    });
+    expect(newestCell(cells)).toMatchObject({ n: 6, shotKey: "s1" });
+    expect(reelCentre(cells) - newestCell(cells)!.n).toBe(1);
+  });
+
+  it("is the reel's centre once the roll is spent, and none before a frame is spent", () => {
+    const spent = reelCells({
+      cap: 3,
+      used: 3,
+      recording: false,
+      recent: recent(3),
+    });
+    expect(newestCell(spent)).toMatchObject({ n: 3, shotKey: "s2" });
+    expect(reelCentre(spent)).toBe(3);
+    expect(
+      newestCell(reelCells({ cap: 24, used: 0, recording: false, recent: [] })),
+    ).toBeUndefined();
+    // An earlier visit's frame holds no shot of this one: no door is drawn on it.
+    expect(
+      newestCell(reelCells({ cap: 24, used: 4, recording: false, recent: [] }))
+        ?.shotKey,
+    ).toBeUndefined();
   });
 });
