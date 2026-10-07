@@ -1,11 +1,12 @@
 # Partyreel — What's next
 
 > ROLE: what might be next, in five buckets: Immediate (the next lanes), Upcoming (concrete, queued behind it), Before
-> launch (bigger work, each its own round), Launch (the launch round's switches) and After launch (post-launch work,
-> ideas and maybes). · NOT HERE: how a system works (→ [`systems/`](systems)), what shipped (→ `git log`; a merge commit
-> carries its lane's summary), where things stand (→ [`STATUS.md`](STATUS.md)). · GROWS BY: one line per task, placed
-> by `usher/kit/record.py` in its bucket and area (never appended to a pile), present tense, at most a one-line why; a
-> line moves when its urgency changes and is deleted the day it ships or is dropped (git keeps it).
+> launch (bigger work, each its own round, weighted by PROGRAM's "The order to launch"), Launch (the launch round's
+> switches) and After launch (post-launch work, ideas and maybes). · NOT HERE: how a system works (→
+> [`systems/`](systems)), what shipped (→ `git log`; a merge commit carries its lane's summary), where things stand (→
+> [`STATUS.md`](STATUS.md)). · GROWS BY: one line per task, placed by `usher/kit/record.py` in its bucket and area
+> (never appended to a pile), present tense, at most a one-line why; a line moves when its urgency changes and is
+> deleted the day it ships or is dropped (git keeps it).
 
 **Provisional.** A line is a candidate, never a spec or an invariant, and it never bends today's implementation; it
 becomes real when a plan picks it up. The don't-revert layer is [`systems/`](systems).

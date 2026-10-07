@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "f4becf84"          # the launch-prep SHA this state was written at
+cut: "4b1abf0b"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -27,8 +27,10 @@ Round 15 goes on from a local seat on Will's Mac (session `ce3ea37b-9032-4189-8a
 from 2026-10-07 01:10Z), after the cloud seat's clean handoff. His desk batch on build `bbfcc54` is kept verbatim
 (`docs/reviews/batches/2026-10-06-bbfcc54.txt`) and transcribed (24 answers; account-moments' `follow` unclear), his
 three program-wide notes folded into PRD.md. Wave 1 of its round, cut at `2e094108` (manifests `156e30906`), eight
-lanes, then two more boards on Will's +2 seats (2026-10-07: ten at most, his care for the Orchestrator's own focus),
-each a local worktree from `spawn-prompt.txt`:
+lanes, then two more on Will's +2 seats (2026-10-07: ten at most, his care for the Orchestrator's own focus). His order
+to launch (PROGRAM.md, 2026-10-07) stopped `page-themes-r1` minutes in (the marketing foundation round's question; its
+drawing kept at `../partyreel-wt/_scratch/page-themes-r1/`, its branch and manifest gone) and gave its seat to an audit
+of the app's gaps:
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
@@ -40,8 +42,8 @@ each a local worktree from `spawn-prompt.txt`:
 | `create-wizard-wiring` | the focused styles (Disposable's own screen), the one-line close, a failure held with everything kept | RUNNING | Opus, 3136 | `ac3e135ee3680e27f` |
 | `storage-sums-signal` | the Advisor's condition for 39: the nightly drift sweep, its /admin/jobs card and Rebuild, `remove_my_upload`'s arm (migration `20261007022000_storage_sums_signal.sql`) | RUNNING | Opus, 3137 | `a91b00d18e7060ca2` |
 | `brand-marks-r1` | board, desk 6's first: the wordmark and icon final, the palette's tokens, the status set (tally given), in Aperture | RUNNING | Opus, 3138 | `a8c41c014cb4714e8` |
-| `signature-r1` | board (desk place 8): where the Ring, Seam and Bloom live across app and marketing, at rest and answering | RUNNING (cut at `e6fa3cc8`) | Opus, 3139 | `a1b22d3b2ec761625` |
-| `page-themes-r1` | board (desk place 7): each marketing page dark or light, a section rhythm, one vocabulary for cinema, ink and display; N4, N7, N9 | RUNNING (cut at `e6fa3cc8`) | Opus, 3140 | `a68e1ff5244d74256` |
+| `signature-r1` | board (desk place 8): where the Ring, Seam and Bloom live across the APP, at rest and answering (narrowed by message 2026-10-07: marketing's light waits for the marketing foundation round; the lane records it under its brief) | RUNNING (cut at `e6fa3cc8`) | Opus, 3139 | `a1b22d3b2ec761625` |
+| `app-gaps-r1` | an experience audit, no manifest (a walk, as a red-team is): the whole app as hosts and guests across a party's arc, the gaps ranked by what they would reshape decided late, the top six to eight as board briefs, bugs in passing; ledger `../partyreel-wt/_scratch/app-gaps-r1/ledger.md`; its report becomes boards and ROADMAP lines | RUNNING (from `f4becf84`, a detached worktree) | Opus, 3140 | `a53af3259c7e25b2e` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): spawned from `usher/kit/advisor-prompt.txt` at
 the first of this wave's three migrations; read `let_in` and `storage_sums_signal` together (`let_back_in` and
@@ -59,9 +61,8 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    wiring; host-moments and guest-moments once both of each one's wirings merge, by `crumbs-87`), the calls his to
    overrule into `docs/calls.md`, Deferred lines by `record.py`.
 2. **Wave 2, as seats free, by leverage** (specs drafted in the session scratchpad's `specs/wave2/`; a successor writes
-   them again from this line): desk 6's last two boards in Aperture (demo-framing r6: the three heroes pushed a round
-   with their r5 fallbacks on a knob, one or two new directions, the typed link quieter, from his r5 note; presence r1:
-   the guest row with the newest ringed in light, the hashvatar, the avatar-group hover, inside the guest rules); then
+   them again from this line): first the boards `app-gaps-r1`'s report ranks highest (the app is phase 1); presence r1
+   (the guest row with the newest ringed in light, the hashvatar, the avatar-group hover, inside the guest rules); then
    each follow-up board once its wiring merges: **account-moments r2** (follow: a first follow saying once that only
    she sees whom she follows, beside a Following state that carries the privacy itself, polished; the invitation redrawn
    beautiful and inviting, never loud, on the wired `/me`), **create-wizard r5** (Create finishing the event as PRD's
@@ -82,16 +83,20 @@ on its worktree, the same port. Gate numbers continue at 56 (`$S/gate55.log` see
    logged in as P3), `workers/drive`'s `npm ci`, its two queues (README), `DRIVE_APP_URL` partyreel.com, its secret from
    `.env.local` by stdin, `wrangler deploy`, then `DRIVE_WORKER_URL` on production; his Drive walk follows (P3's
    consent; drive-crumbs' Handoff lists what to press).
-4. **His list of 100+ items, when he sends it** (Will, 2026-10-06: after the desk batch, with a fresh context): each
+4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
+   app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6 (his r5 note
+   on `stage`, kept in its ledger, is that round's brief for the home's hero), marketing's light, N4, N7, N9, and the
+   ROADMAP's marketing lines unless one breaks production. Crumbs lanes take app lines first.
+5. **His list of 100+ items, when he sends it** (Will, 2026-10-06: after the desk batch, with a fresh context): each
    batch kept verbatim first, slotted into the ROADMAP's buckets and areas, a proposed order of rounds on top.
-5. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
+6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks. His local desk on :3000
    still serves `2634388a8`: refresh it to the tip for his next sitting (never while a red-team walks it).
-6. **★ Vercel stays on Hobby** (Will, 2026-10-07; he offered his personal account for Partyreel, not needed: since the
+7. **★ Vercel stays on Hobby** (Will, 2026-10-07; he offered his personal account for Partyreel, not needed: since the
    desks and red-teams moved to the Mac the team's calls fell from 20,000 to 57,000 a day to about 2,000, so at ~250 a
    day the window falls under the REFUSE line around 2026-10-16 and under WARN in early November, when 2026-09-29 to
    10-04 roll off; qrcdn is 1 to 14% of a day). Until then nothing runs against the alias or partyreel.com but what Will
    asks for by name; `node usher/kit/vercel-usage.mjs` before any.
-7. **Pacing:** a fresh weekly limit on willg97 (resets Sunday 2026-10-11 13:00Z); ten lanes at most (Will's +2,
+8. **Pacing:** a fresh weekly limit on willg97 (resets Sunday 2026-10-11 13:00Z); ten lanes at most (Will's +2,
    2026-10-07), the Mac's memory the other limit (86% free with ten cut).
 
 ## Waiting on Will
