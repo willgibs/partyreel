@@ -361,8 +361,9 @@ describe("4. the roll, its ceiling, the fast purge, the camera video, the seal a
     const roll = body.indexOf(
       "if v_live >= v_event.roll_size then raise exception 'You''ve taken all % shots on your roll.', v_event.roll_size",
     );
+    // The ceiling is the roll plus its 3 re-shoots (camera-wiring, 20261007021000; it was three rolls' worth).
     const ceiling = body.indexOf(
-      "if v_taken >= v_event.roll_size * c_roll_retakes then raise exception 'You''ve used every retake this roll allows.'",
+      "if v_taken >= v_event.roll_size + c_roll_reshoots then raise exception 'You''ve used all % re-shoots on your roll.', c_roll_reshoots",
     );
     expect(lock).toBeGreaterThan(-1);
     expect(advisory).toBeGreaterThan(lock);
@@ -464,11 +465,20 @@ describe("5. the reads, and who may call what", () => {
     );
   });
 
-  it.each(["get_upload_context", "get_upload_gate"])(
+  // ★ RESHAPED ON PURPOSE (camera-wiring, 20261007021000; scar kept: both reads answer the roll, null for free uploads;
+  // reason dropped: the ceiling was three rolls' worth). The ceiling is the roll plus 3, and the gate alone names the
+  // period the roll counts in, which the camera keeps to say a fresh roll once.
+  it.each([
+    ["get_upload_context", ") end"],
+    [
+      "get_upload_gate",
+      ", 'period', (extract(epoch from v_event.sealed_from) * 1000)::bigint) end",
+    ],
+  ])(
     "%s answers the roll, {used, cap, taken, ceiling}, null for free uploads",
-    (name) => {
+    (name, rest) => {
       expect(code(name)).toContain(
-        "'roll', case when v_event.capture = 'camera' then jsonb_build_object( 'used', v_live, 'cap', v_event.roll_size, 'taken', v_taken, 'ceiling', v_event.roll_size * c_roll_retakes) end",
+        `'roll', case when v_event.capture = 'camera' then jsonb_build_object( 'used', v_live, 'cap', v_event.roll_size, 'taken', v_taken, 'ceiling', v_event.roll_size + c_roll_reshoots${rest}`,
       );
     },
   );

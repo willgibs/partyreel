@@ -93,7 +93,7 @@ beforeEach(() => {
     Response.json({
       ok: true,
       items: [],
-      roll: { used: 6, cap: 24, taken: 6, ceiling: 72 },
+      roll: { used: 6, cap: 24, taken: 6, ceiling: 27 },
     }),
   ) as typeof fetch;
   HTMLMediaElement.prototype.play = vi.fn(async () => {});

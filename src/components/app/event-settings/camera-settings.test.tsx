@@ -64,7 +64,7 @@ describe("how guests add", () => {
     expect(radio("Free uploads")).toHaveAttribute("aria-checked", "true");
     expect(
       screen.getByText(
-        "A roll of 24 shots each. Removing one frees its frame for another, up to 72 shots in all.",
+        "A roll of 24 shots each, plus 3 re\u2011shoots: taking one back frees its frame for another.",
       ),
     ).toBeInTheDocument();
     fireEvent.click(radio("The album's camera"));
@@ -77,16 +77,21 @@ describe("how guests add", () => {
 
 // Reshaped for red-team 56's roll-of-one words: the line said "Removing one frees its frame." and at a roll
 // of 1 "A roll of 1 shots each."; it now says one shot as one and where freeing a frame ends (the ceiling).
+// ★ RESHAPED ON PURPOSE (camera-wiring, guest-moments r1's `limit=three`; scar kept: one shot as one, and where
+// freeing a frame ends; reason dropped: the ceiling was three rolls' worth, "up to 72 shots in all"). It is a flat 3
+// re-shoots at any roll, said in the guest camera's own word.
 describe("the camera's line, at every roll", () => {
-  it("says one shot as one, and what removing a shot truly does", async () => {
-    const { cameraLine } = await import(
-      "@/components/app/event-settings/camera-settings"
-    );
+  it("says one shot as one, and her 3 re-shoots at any roll", async () => {
+    const { cameraLine } =
+      await import("@/components/app/event-settings/camera-settings");
     expect(cameraLine(1)).toBe(
-      "One shot each. Removing it frees the frame for another, up to 3 shots in all.",
+      "One shot each, plus 3 re\u2011shoots: taking it back frees the frame for another.",
     );
     expect(cameraLine(12)).toBe(
-      "A roll of 12 shots each. Removing one frees its frame for another, up to 36 shots in all.",
+      "A roll of 12 shots each, plus 3 re\u2011shoots: taking one back frees its frame for another.",
+    );
+    expect(cameraLine(99)).toMatch(
+      /^A roll of 99 shots each, plus 3 re\u2011shoots/,
     );
   });
 });
@@ -570,14 +575,126 @@ describe("★ an album that has already developed is asked nothing: a past time 
     expect(screen.queryByText(DEVELOP_NOW_LINE)).toBeNull();
   });
 
-  it("a time ahead still saves: a developed album can wait again", () => {
+  // ★ RESHAPED ON PURPOSE (camera-wiring, host-moments r1's `tell=line`; scar kept: a developed album can wait again,
+  // and a time ahead is what it writes; reason dropped: it wrote at once, and every guest's roll started again unsaid).
+  it("a time ahead still saves: a developed album can wait again, a camera's once the fresh rolls are answered", () => {
     const onSave = mountStyles({ capture: "camera", developsAt: PAST });
+    const field = developField();
+    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    leave(field);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        /^Every guest's roll starts again: 24 fresh shots each, developing together /,
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Start fresh rolls" }));
+    expect(onSave).toHaveBeenCalledWith({
+      developsAt: new Date("2026-10-05T10:30").toISOString(),
+    });
+  });
+
+  it("free uploads that developed take a new time at once: no roll to start again", () => {
+    const onSave = mount({ capture: "upload", developsAt: PAST });
     const field = developField();
     fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
     leave(field);
     expect(onSave).toHaveBeenCalledWith({
       developsAt: new Date("2026-10-05T10:30").toISOString(),
     });
+    expect(screen.queryByText(/roll starts again/)).toBeNull();
+  });
+
+  it("Keep it as it is puts the saved time back and writes nothing; a close, which cannot ask, writes nothing either", () => {
+    const onSave = mountStyles({ capture: "camera", developsAt: PAST });
+    const field = developField();
+    const saved = field.value;
+    fireEvent.change(field, { target: { value: "2026-10-05T10:30" } });
+    leave(field);
+    fireEvent.click(screen.getByRole("button", { name: "Keep it as it is" }));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(developField().value).toBe(saved);
+    expect(screen.queryByText(/roll starts again/)).toBeNull();
+    // Typed again and closed with the question unanswered: nothing is written.
+    fireEvent.change(developField(), { target: { value: "2026-10-06T10:30" } });
+    cleanup();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+/* ★ A DEVELOP TIME ADDED TO A RUNNING CAMERA STARTS EVERY ROLL AGAIN (host-moments r1's `tell=line`): Settings says it
+   in the consequence line before it saves, wherever she adds one, and nowhere a camera does not run. */
+describe("★ a develop time onto a running camera: the fresh rolls, said first", () => {
+  it("★ Customize's At a develop time asks, says the roll and the time, and Start fresh rolls writes both columns", () => {
+    const onSave = vi.fn();
+    render(
+      <CaptureAndReveal
+        value={{ capture: "camera", review: false, developsAt: null }}
+        rollSize={36}
+        eventDate={null}
+        heldCount={0}
+        savingCapture={false}
+        savingReveal={false}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(radio("At a develop time"));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        /^Every guest's roll starts again: 36 fresh shots each, developing together .+\. What's in the album now stays in view\.$/,
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Keep it as it is" }));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(radio("Right away")).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(radio("At a develop time"));
+    fireEvent.click(screen.getByRole("button", { name: "Start fresh rolls" }));
+    expect(onSave).toHaveBeenCalledWith({
+      review: false,
+      developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
+    });
+  });
+
+  it("from approval with photos held, one line says both: the rolls start again and the held join them", () => {
+    const onSave = mount({ capture: "camera", review: true }, 2);
+    fireEvent.click(radio("At a develop time"));
+    expect(
+      screen.getByText(
+        /^Every guest's roll starts again: 24 fresh shots each, developing together .+\. 2 photos under review join the roll, approved\. What's in the album now stays in view\.$/,
+      ),
+    ).toBeInTheDocument();
+    // One question, never two lines for one save.
+    expect(
+      screen.queryByRole("button", { name: "Add them to the roll" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Start fresh rolls" }));
+    expect(onSave).toHaveBeenCalledWith({
+      review: false,
+      developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
+    });
+  });
+
+  it("★ the Disposable style chosen from a camera that shows each shot asks too, and writes all three columns", () => {
+    const onSave = mountStyles({ capture: "camera", developsAt: null }, 0, 12);
+    fireEvent.click(style(/^Disposable\./));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/^Every guest's roll starts again: 12 fresh shots each/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Start fresh rolls" }));
+    expect(onSave).toHaveBeenCalledWith({
+      capture: "camera",
+      review: false,
+      developsAt: defaultDevelopAt({ eventDate: null }).toISOString(),
+    });
+  });
+
+  it("nothing asks where no roll runs: free uploads turning Disposable start the camera, with no roll to refill", () => {
+    const onSave = mountStyles();
+    fireEvent.click(style(/^Disposable\./));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/roll starts again/)).toBeNull();
   });
 });
 

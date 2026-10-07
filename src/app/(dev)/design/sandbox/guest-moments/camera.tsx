@@ -9,7 +9,6 @@ import { CameraShutter } from "@/components/guest/camera/camera-shutter";
 import { RollDonePanel } from "@/components/guest/camera/camera-panels";
 import { type ShotTile, YourShots } from "@/components/guest/camera/your-shots";
 import { Button } from "@/components/ui/button";
-import { ROLL_RETAKES } from "@/lib/disposable/roll";
 import { reelCells } from "@/lib/guest/camera/reel";
 import {
   CAMERA_CONTROLS,
@@ -71,7 +70,8 @@ export type Limit = "rolls" | "three" | "roll";
 
 /** The re-shoots each limit gives a roll of `ROLL`: shots past the roll that removing can free. */
 export const RESHOOTS: Record<Limit, number> = {
-  rolls: ROLL * (ROLL_RETAKES - 1),
+  // Today's as the board was drawn: three rolls' worth, two rolls past her own (camera-wiring built `three`).
+  rolls: ROLL * 2,
   three: 3,
   roll: ROLL,
 };

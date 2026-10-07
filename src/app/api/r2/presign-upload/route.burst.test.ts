@@ -338,7 +338,7 @@ describe("★ the roll counts the burst's earlier shots", () => {
     );
     const { files } = await presignBurst([photo(), photo()]);
     expect(files.map((f) => f.ok)).toEqual([true, false]);
-    expect(files[1].message).toBe("You've used every retake this roll allows.");
+    expect(files[1].message).toBe("You've used all 3 re-shoots on your roll.");
   });
 });
 

@@ -12,10 +12,20 @@
  * shooting, the join, the retry and the failure sheet exactly as for any upload (`use-upload-queue.ts`), and tells a
  * landing the album keeps sealed as `sealed`, drawn nowhere (`landedAs`). Nothing here talks to R2.
  *
- * ★ THE ROLL IS THE SERVER'S (`roll-view.ts`): read as the camera opens, after she takes a shot back and after a
- * refusal about the roll, and only while nothing of hers is in the air, so the count between two reads is the read plus
- * the shots taken since. A refusal is the server's own sentence: the roll's end (`roll_spent`, the ceiling), the album
- * itself refusing (closed, full, private: the shutter stops), or one shot that did not send (Retry).
+ * ★ THE ROLL IS THE SERVER'S (`roll-view.ts`): read as the camera opens, after she takes a shot back, after a refusal
+ * about the roll and when the album turns to a develop, and only while nothing of hers is in the air, so the count
+ * between two reads is the read plus the shots taken since. A refusal is the server's own sentence: the roll's end
+ * (`roll_spent`, the ceiling), the album itself refusing (closed, full, private: the shutter stops), or one shot that
+ * did not send (Retry).
+ *
+ * ★ HER 3 RE-SHOOTS, AND TWO DOORS TO TAKE ONE BACK (guest-moments r1's `limit=three` and `where=reel`): the reel's
+ * newest frame opens that shot with Take it back and Keep it, and Your shots keeps its X with no question; both take a
+ * shot back through one removal, free its frame and spend one of her 3, said where she takes it back (the sheet's line,
+ * her list's head, the camera's line after) and at the roll's end once they are spent.
+ *
+ * ★ A FRESH ROLL, SAID ONCE (host-moments r1's `fresh-roll=panel`): the first time this camera reads a roll on another
+ * period than the one she last held shots on (`fresh-roll.ts`), a panel over the finder says why and when it develops,
+ * and the shutter waits for Start shooting.
  *
  * ★ THIS OUTLIVES ITS SCREEN. Closed, the camera lets the phone's camera go (`camera-screen.tsx` unmounts), but her
  * shots this visit, her roll and her list stay here, so the reel opens again where she left it.
@@ -29,6 +39,11 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  FreshRollPanel,
+  TakeBackPanel,
+  type TakeBackState,
+} from "@/components/guest/camera/camera-panels";
+import {
   CameraScreen,
   type NewShot,
 } from "@/components/guest/camera/camera-screen";
@@ -40,17 +55,21 @@ import { usePartyZone } from "@/components/guest/party-zone";
 import { useBackCloses } from "@/components/ui/popup-back";
 import { usePortalContainer } from "@/components/ui/portal-container";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import {
-  ROLL_RETAKES_SPENT_MESSAGE,
-  type RollCount,
-} from "@/lib/disposable/roll";
+import type { RollCount } from "@/lib/disposable/roll";
 import { canvasJpeg } from "@/lib/guest/camera/capture";
+import {
+  isFreshRoll,
+  keepPeriod,
+  keepsPeriod,
+  readKeptPeriod,
+} from "@/lib/guest/camera/fresh-roll";
 import {
   pictureIsVideoFile,
   readOwnRoll,
   waitsOutOfSight,
   type OwnShot,
 } from "@/lib/guest/camera/own-shots";
+import { reelMinute } from "@/lib/guest/camera/reel";
 import { HOST_FRESH_FRAMES, rollView } from "@/lib/guest/camera/roll-view";
 import {
   inFlight,
@@ -61,12 +80,19 @@ import {
   type ShotState,
 } from "@/lib/guest/camera/shots";
 import {
+  freeAFrameLine,
+  freshRollLine,
+  newestShotLabel,
   reelCaption,
   reelLabel,
+  removingSpentLine,
+  reshootsSpentLine,
   revealFor,
   type CameraReveal,
-  rollCount,
   rollDoneLine,
+  shotsCountLine,
+  takeBackLine,
+  takenBackLine,
   yourShotsLine,
 } from "@/lib/guest/camera/words";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
@@ -105,14 +131,16 @@ const isActive = (it: QueueItem) =>
 
 /**
  * WHAT THE CAMERA READS OF ITS ALBUM, and no more: its name, the roll's size, the develop time (the page's live
- * reading of it, not the event's stored one), how the album is moderated and whether it takes a video. Narrow so the
- * door, which holds the camera for the album's first photograph before the album's own slot has mounted, can hand it
- * what it knows without a whole event.
+ * reading of it, not the event's stored one), how the album is moderated and whether it takes a video, and the host's
+ * name where the page holds it (a fresh roll says who set the develop time; the album's slot hands its whole event).
+ * Narrow so the door, which holds the camera for the album's first photograph before the album's own slot has mounted,
+ * can hand it what it knows without a whole event.
  */
 export type CameraEvent = Pick<
   GuestEvent,
   "name" | "roll_size" | "develops_at" | "moderation_mode" | "accepts_video"
->;
+> &
+  Partial<Pick<GuestEvent, "host_display_name">>;
 
 export function AlbumCamera({
   open,
@@ -181,6 +209,14 @@ export function AlbumCamera({
     ReadonlyMap<string, "working" | "failed">
   >(() => new Map());
   const [view, setView] = useState<"camera" | "shots">("camera");
+  /** Her newest shot, pressed on the reel: the shot's key while its sheet stands over the picture. */
+  const [sheet, setSheet] = useState<string | null>(null);
+  /** A fresh roll's panel stands over the finder (said once a period: `fresh-roll.ts`). */
+  const [fresh, setFresh] = useState(false);
+  /** A line the camera says once under the shutter (a shot taken back). */
+  const [notice, setNotice] = useState<{ key: string; text: string } | null>(
+    null,
+  );
 
   /* ── the clock its words read (the develop time, said from now) ─────────────────────────────── */
   const [tick, setTick] = useState(0);
@@ -266,6 +302,15 @@ export function AlbumCamera({
     server: roll.server,
     rollSize: event.roll_size,
     pending: pendingSince(states, roll.readFrom),
+    // ★ THE LEDGER KEEPS WHAT SHE TOOK BACK: a shot taken since the read and taken back since frees its frame and
+    // spends its re-shoot at once, so only the dismissed (which never landed) leave this count.
+    taken: pendingSince(
+      raw.filter(
+        ({ shot, state }) =>
+          !(state.status === "sending" && !state.queueId && held.has(shot.key)),
+      ),
+      roll.readFrom,
+    ),
   });
   const host = isOwner;
   const used = host ? counted.length : guest.used;
@@ -299,10 +344,50 @@ export function AlbumCamera({
     const from = Date.now();
     void readOwnRoll({ qrToken, sessionToken }).then((answer) => {
       if (id !== readId.current || !answer) return;
+      // ★ A FRESH ROLL, SAID ONCE: a roll answered on another period than the one she last held shots on started again
+      // since; the panel is spent as it is decided (the device keeps the new period), so it is never said twice.
+      const period = answer.roll?.period;
+      const kept = readKeptPeriod(qrToken);
+      const isFresh = isFreshRoll(kept, period);
+      if (isFresh) setFresh(true);
+      if (
+        typeof period === "number" &&
+        keepsPeriod({
+          kept,
+          period,
+          held: answer.roll?.used ?? 0,
+          said: isFresh,
+        })
+      ) {
+        keepPeriod(qrToken, period);
+      }
       setRoll({ server: answer.roll, readFrom: from });
       setOwn(answer.shots);
     });
   }, [open, busy, readTick, qrToken, sessionToken, isDemo, isOwner]);
+
+  // ★ A DEVELOP TIME ADDED WHILE SHE SHOOTS BEGINS A NEW PERIOD (`events_reveal_stamp`), so the album turning to a
+  // develop under an open camera reads her roll again: its count starts over, and its fresh roll is said then.
+  const revealWas = useRef(reveal);
+  useEffect(() => {
+    const was = revealWas.current;
+    revealWas.current = reveal;
+    if (reveal === "develop" && was !== "develop") {
+      wanted.current = true;
+      setReadTick((n) => n + 1);
+    }
+  }, [reveal]);
+
+  // The period she holds shots on is kept as her shots land, so a roll that starts again after them is told her once.
+  const period = roll.server?.period;
+  const holdsShots = !isOwner && !isDemo && guest.held > 0;
+  useEffect(() => {
+    if (typeof period !== "number" || !holdsShots) return;
+    const kept = readKeptPeriod(qrToken);
+    if (keepsPeriod({ kept, period, held: 1, said: false })) {
+      keepPeriod(qrToken, period);
+    }
+  }, [period, holdsShots, qrToken]);
 
   /* ── a shot, as the screen takes it ────────────────────────────────────────────────────────── */
   const justTimers = useRef(new Set<number>());
@@ -572,7 +657,7 @@ export function AlbumCamera({
     latestTiles.current = tiles;
   });
   const remove = useCallback(
-    async (mediaId: string) => {
+    async (mediaId: string): Promise<boolean> => {
       setRemoving((prev) => new Map(prev).set(mediaId, "working"));
       const ok = await removeOwnShot({ qrToken, sessionToken, mediaId });
       setRemoving((prev) => {
@@ -581,7 +666,7 @@ export function AlbumCamera({
         else next.set(mediaId, "failed");
         return next;
       });
-      if (!ok) return;
+      if (!ok) return false;
       setRemoved((prev) => new Set(prev).add(mediaId));
       onOwnRemoved?.(
         mediaId,
@@ -592,6 +677,7 @@ export function AlbumCamera({
       // roll is read again to say so in its own numbers.
       wanted.current = true;
       setReadTick((n) => n + 1);
+      return true;
     },
     [qrToken, sessionToken, onOwnRemoved],
   );
@@ -599,13 +685,27 @@ export function AlbumCamera({
   /* ── the place ─────────────────────────────────────────────────────────────────────────────── */
   const close = useCallback(() => {
     setView("camera");
+    setSheet(null);
     onOpenChange(false);
   }, [onOpenChange]);
   useBackCloses(open, close);
   const contentRef = useRef<HTMLDivElement>(null);
   const shutterRef = useRef<HTMLButtonElement>(null);
   const shotsBackRef = useRef<HTMLButtonElement>(null);
-  const openShots = useCallback(() => setView("shots"), []);
+  const keepRef = useRef<HTMLButtonElement>(null);
+  const startRef = useRef<HTMLButtonElement>(null);
+  /** Back to the shutter, or the camera itself while the shutter cannot take a shot (the roll's end). */
+  const focusCamera = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      const shutter = shutterRef.current;
+      if (shutter && !shutter.disabled) shutter.focus();
+      else contentRef.current?.focus();
+    });
+  }, []);
+  const openShots = useCallback(() => {
+    setSheet(null);
+    setView("shots");
+  }, []);
   const backToCamera = useCallback(() => {
     setView("camera");
     window.requestAnimationFrame(() => shutterRef.current?.focus());
@@ -617,15 +717,121 @@ export function AlbumCamera({
   }, [view]);
 
   const frame = host ? counted.length + 1 : guest.frame;
-  const doneLine = guest.ceilingReached
-    ? ROLL_RETAKES_SPENT_MESSAGE
-    : rollDoneLine({
-        held: Math.max(guest.held, cap),
+  // ★ THE ROLL'S END SAYS WHEN HER RE-SHOOTS ARE SPENT: no take-back frees a frame then (a roll the host made smaller
+  // under her shots frees none for another reason, and says only what she holds).
+  const reshootsSpent = !host && !guest.removalFrees && guest.held <= cap;
+  const doneLine = `${rollDoneLine({
+    held: guest.held,
+    reveal,
+    developsAt,
+    nowMs: now,
+    zone: partyZone,
+  })}${reshootsSpent ? ` ${reshootsSpentLine(guest.allowance)}` : ""}`;
+
+  /* ── her newest shot, a door of its own on the reel ───────────────────────────────────────── */
+  // The reel's newest frame holds this visit's newest counted shot (`reel.ts`): a door where the album keeps it out of
+  // sight, landed (hers to take back) or still on its way (the sheet waits for its landing). A shot in the album is
+  // taken back from the album (the viewer's Delete), so on an album that shows each one, the reel is one door.
+  const newestShot = !host && guest.used > 0 ? (counted.at(-1) ?? null) : null;
+  const newestTile = newestShot
+    ? tiles.find((t) => t.key === newestShot.shot.key)
+    : undefined;
+  const outOfSight = reveal === "develop" || reveal === "approve";
+  const newestDoor =
+    newestShot &&
+    newestTile &&
+    (newestTile.removable || (inFlight(newestShot.state) && outOfSight))
+      ? newestShot
+      : null;
+  const sheetTile = sheet ? tiles.find((t) => t.key === sheet) : undefined;
+  const sheetShot = sheet
+    ? states.find(({ shot }) => shot.key === sheet)
+    : undefined;
+  // The sheet stands while its shot is hers to take back or on its way: taken back, refused or in the album, it goes
+  // (the sanctioned adjust-state-during-render pattern).
+  const sheetHolds = Boolean(
+    sheetTile &&
+    sheetShot &&
+    (sheetTile.removable || inFlight(sheetShot.state)),
+  );
+  if (sheet !== null && !sheetHolds) setSheet(null);
+  const sheetRemoving = sheetTile?.mediaId
+    ? removing.get(sheetTile.mediaId)
+    : undefined;
+  const sheetState: TakeBackState = !sheetTile?.removable
+    ? "sending"
+    : sheetRemoving === "working"
+      ? "working"
+      : sheetRemoving === "failed"
+        ? "failed"
+        : "ready";
+  const keep = useCallback(() => {
+    setSheet(null);
+    focusCamera();
+  }, [focusCamera]);
+  useBackCloses(open && sheetHolds, keep);
+  const takeBack = () => {
+    const mediaId = sheetTile?.removable ? sheetTile.mediaId : undefined;
+    if (!mediaId || sheetState === "working") return;
+    // What is left is said from the count she pressed on: this take-back spends one where it frees a frame.
+    const freed = guest.removalFrees;
+    const after = Math.max(0, guest.reshoots - (freed ? 1 : 0));
+    void remove(mediaId).then((ok) => {
+      if (!ok) return;
+      setSheet(null);
+      setNotice({
+        key: crypto.randomUUID(),
+        text: takenBackLine({ reshoots: after, freed }),
+      });
+      focusCamera();
+    });
+  };
+  useEffect(() => {
+    if (sheet !== null) keepRef.current?.focus();
+  }, [sheet]);
+
+  /* ── a fresh roll, over the finder ──────────────────────────────────────────────────────────── */
+  const freshShown = fresh && !host && !isDemo;
+  const startShooting = useCallback(() => {
+    setFresh(false);
+    focusCamera();
+  }, [focusCamera]);
+  useEffect(() => {
+    if (freshShown) startRef.current?.focus();
+  }, [freshShown]);
+
+  const over = sheetHolds ? (
+    <TakeBackPanel
+      src={sheet ? thumbUrls.get(sheet) : undefined}
+      video={
+        sheetShot?.shot.kind === "video"
+          ? Math.max(1, Math.round(sheetShot.shot.seconds ?? 0))
+          : undefined
+      }
+      state={sheetState}
+      line={takeBackLine({
+        reshoots: guest.reshoots,
+        allowance: guest.allowance,
+        frees: guest.removalFrees,
+      })}
+      onTake={takeBack}
+      onKeep={keep}
+      keepRef={keepRef}
+    />
+  ) : freshShown ? (
+    <FreshRollPanel
+      line={freshRollLine({
+        host: event.host_display_name ?? null,
+        roll: guest.cap,
         reveal,
         developsAt,
         nowMs: now,
         zone: partyZone,
-      });
+      })}
+      onStart={startShooting}
+      startRef={startRef}
+    />
+  ) : null;
 
   return (
     <DialogPrimitive.Root
@@ -654,8 +860,11 @@ export function AlbumCamera({
               else contentRef.current?.focus();
             }}
             onEscapeKeyDown={(e) => {
-              // Her shots, open over the camera, close first.
-              if (view === "shots") {
+              // Her newest shot's sheet keeps it and closes first, then her shots, open over the camera.
+              if (sheetHolds) {
+                e.preventDefault();
+                keep();
+              } else if (view === "shots") {
                 e.preventDefault();
                 backToCamera();
               }
@@ -714,7 +923,22 @@ export function AlbumCamera({
               done={done}
               doneLine={doneLine}
               freeAFrame={guest.removalFrees}
+              freeLine={freeAFrameLine(guest.reshoots)}
               reelLabel={reelLabel(used, host)}
+              newest={
+                newestDoor
+                  ? {
+                      shotKey: newestDoor.shot.key,
+                      label: newestShotLabel(
+                        reelMinute(newestDoor.shot.takenAt),
+                      ),
+                      onOpen: () => setSheet(newestDoor.shot.key),
+                    }
+                  : null
+              }
+              over={over}
+              paused={over !== null}
+              notice={notice}
               hidden={view === "shots"}
               shutterRef={shutterRef}
               onShot={onShot}
@@ -735,10 +959,15 @@ export function AlbumCamera({
                   zone: partyZone,
                 })}
                 count={
-                  host ? `${counted.length} taken` : rollCount(guest.held, cap)
+                  host
+                    ? `${counted.length} taken`
+                    : shotsCountLine(guest.held, cap, guest.reshoots)
                 }
                 removing={removing}
                 canFreeFrames={!host && guest.removalFrees}
+                spentLine={
+                  reshootsSpent ? removingSpentLine(guest.allowance) : null
+                }
                 onRemove={(id) => void remove(id)}
                 onRetry={(queueId) => {
                   const at = Date.now();

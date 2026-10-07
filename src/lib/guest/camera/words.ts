@@ -16,6 +16,7 @@
  * Pure, so every line is a unit test.
  */
 
+import { rollShots } from "@/lib/disposable/roll";
 import { daysBetween } from "@/lib/events/dates";
 import { deviceZone, farZone } from "@/lib/event/zone";
 import { bothClocksWhen } from "@/lib/event/zone-words";
@@ -203,6 +204,133 @@ export function rollDoneLine(input: {
 /** Said under the roll's end while removing a shot can still free a frame (Will's overrule: a removal frees its frame). */
 export const FREE_A_FRAME = "Remove a shot to free its frame.";
 
+/* ── her re-shoots (guest-moments r1's `limit=three`: a flat 3, counted where she takes one back) ──────────────── */
+
+/**
+ * "re‑shoot", "re‑shoots": the word, its hyphen a non-breaking one (U+2011), so no line ever ends on "re-" ("1 of your 6
+ * re-" over "shoots left." on a phone's sheet). Every line that says it, says it through here.
+ */
+export function reshootWord(n: number): string {
+  return n === 1 ? "re\u2011shoot" : "re\u2011shoots";
+}
+
+/** "2 re-shoots left", "1 re-shoot left", "No re-shoots left": a count she can hold. */
+export function reshootsLeft(n: number): string {
+  if (n <= 0) return `No ${reshootWord(0)} left`;
+  return `${n} ${reshootWord(n)} left`;
+}
+
+/** Her list's head on a guest's roll: "6 of 24 · 2 re-shoots left" (what she holds where the roll is smaller). */
+export function shotsCountLine(
+  held: number,
+  cap: number,
+  reshoots: number,
+): string {
+  return `${rollCount(held, cap)} · ${reshootsLeft(reshoots)}`;
+}
+
+/** "Your 3 re-shoots are used", the clause each spent line starts from. */
+const reshootsUsed = (allowance: number) =>
+  `Your ${allowance} ${reshootWord(allowance)} ${allowance === 1 ? "is" : "are"} used`;
+
+/** "Your 3 re-shoots are used.": the roll's end once a take-back can free no frame for another shot. */
+export function reshootsSpentLine(allowance: number): string {
+  return `${reshootsUsed(allowance)}.`;
+}
+
+/** The roll's end's caption while a take-back still frees a frame: the way on, and how many times. */
+export function freeAFrameLine(reshoots: number): string {
+  return `Take a shot back to free its frame: ${reshootsLeft(reshoots).toLowerCase()}.`;
+}
+
+/** Her list's foot once her re-shoots are spent: the X still takes a shot back, and frees no frame. */
+export function removingSpentLine(allowance: number): string {
+  return `${reshootsUsed(allowance)}, so removing a shot won’t free its frame.`;
+}
+
+/**
+ * THE REEL'S NEWEST FRAME, PRESSED (guest-moments r1's `where=reel`, Will: "Both are probably the best option. That way,
+ * if they naturally go to remove an image from their uploads, it inherently frees up a slot for them as well"): her
+ * newest shot over the picture with two keys, since a mis-press on the reel must not delete (the board's carried BM1).
+ */
+export const TAKE_BACK = {
+  /** The newest frame's own name, as a button. */
+  newest: "Your newest shot",
+  take: "Take it back",
+  keep: "Keep it",
+  /** The key's working words (working = words: no ellipsis, the arc says it goes on). */
+  taking: "Taking it back",
+  failed: "Couldn’t take it back. Try again.",
+  /** Still on its way: taken back once it lands. */
+  sending: "Sending… You can take it back once it lands.",
+} as const;
+
+/** The newest frame's button: her newest shot, and the minute it was taken where the reel says one. */
+export function newestShotLabel(minute?: string): string {
+  return minute ? `${TAKE_BACK.newest}, ${minute}` : TAKE_BACK.newest;
+}
+
+/** The sheet's line under its keys: what taking this one back does, at what is left of her re-shoots. */
+export function takeBackLine(input: {
+  /** Her re-shoots left before this one (`RollView.reshoots`). */
+  reshoots: number;
+  /** Her re-shoots in all (`RollView.allowance`). */
+  allowance: number;
+  /** Taking one back frees a frame (`RollView.removalFrees`). */
+  frees: boolean;
+}): string {
+  if (!input.frees) {
+    return input.reshoots > 0
+      ? "Your roll is smaller now: taking it back won’t free a frame."
+      : `${reshootsUsed(input.allowance)}: taking it back won’t free its frame.`;
+  }
+  if (input.reshoots === 1)
+    return `Taking it back frees its frame: your last ${reshootWord(1)}.`;
+  return input.reshoots >= input.allowance
+    ? `Taking it back frees its frame: 1 of your ${input.allowance} ${reshootWord(input.allowance)}.`
+    : `Taking it back frees its frame: 1 of your ${input.reshoots} ${reshootWord(input.reshoots)} left.`;
+}
+
+/** Said under the shutter once a shot is taken back: what is left of her re-shoots, where it freed a frame. */
+export function takenBackLine(input: {
+  /** Her re-shoots left after it. */
+  reshoots: number;
+  /** It freed a frame. */
+  freed: boolean;
+}): string {
+  return input.freed
+    ? `Taken back. ${reshootsLeft(input.reshoots)}.`
+    : "Taken back.";
+}
+
+/* ── a fresh roll (host-moments r1's `fresh-roll=panel`) ──────────────────────────────────────────────────────── */
+
+/** The panel's title, the roll-done panel's own shape. */
+export const FRESH_ROLL_TITLE = "A fresh roll";
+export const START_SHOOTING = "Start shooting";
+
+/**
+ * WHY HER ROLL STARTED AGAIN, AND WHEN IT DEVELOPS: a develop time added mid-party begins a new period (her count
+ * jumps back to the roll's size), said once, as good news; a camera started again says only the fresh roll.
+ */
+export function freshRollLine(input: {
+  /** The host's name, or null where the page has none to say. */
+  host: string | null;
+  roll: number;
+  reveal: CameraReveal;
+  developsAt: string | null | undefined;
+  nowMs?: number;
+  /** The party's zone, for a far party's two clocks (`developsWhen`). */
+  zone?: string | null;
+}): string {
+  const host = input.host?.trim() || "The host";
+  const shots = rollShots(input.roll);
+  if (input.reveal === "develop" && input.developsAt) {
+    return `${host} set a develop time, so everyone starts again with ${shots}. Everything develops together ${developsWhen(input.developsAt, input.nowMs, input.zone)}.`;
+  }
+  return `${host} started the camera again, so everyone starts again with ${shots}.`;
+}
+
 export const SEE_YOUR_SHOTS = "See your shots";
 export const BACK_TO_ALBUM = "Back to the album";
 export const BACK_TO_CAMERA = "Back to the camera";
@@ -276,7 +404,10 @@ export function rollCount(held: number, cap: number): string {
 export function reelCaption(input: {
   frame: number;
   cap: number;
-  /** Her shots, uncapped (`RollView.held`): read once the roll is spent; absent reads as the roll's size. */
+  /**
+   * Her shots, uncapped (`RollView.held`): read once the roll is done, spent ("24 of 24", "2 on a roll of 1") or ended
+   * by the ceiling with a frame free ("23 of 24"); absent reads as the roll's size.
+   */
   held?: number;
   done: boolean;
   host: boolean;
@@ -285,7 +416,7 @@ export function reelCaption(input: {
   const base = input.host
     ? HOST_NO_ROLL
     : input.done
-      ? rollCount(Math.max(input.held ?? input.cap, input.cap), input.cap)
+      ? rollCount(input.held ?? input.cap, input.cap)
       : `Frame ${input.frame} of ${input.cap}`;
   return input.sending > 0 ? `${base} · sending ${input.sending}` : base;
 }
