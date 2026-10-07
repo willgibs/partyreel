@@ -96,7 +96,16 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   following the viewport's orientation. ★ **HELD INSIDE THE OVERLAY, THE PAGE'S SCROLL LOCK**: Radix locks the page
   in the Overlay (its `RemoveScroll`, which also takes the desk's scrollbar away), never in Content, so a view with
   no Overlay would leave the album scrolling under it; the view sits inside it, which keeps its portaled Style and
-  Hold menus inside the lock too, each still scrolling on its own. ★ **In a landscape composition every mood fills the frame edge to edge**
+  Hold menus inside the lock too, each still scrolling on its own. ★ **It opens on its first photograph** (guest-moments
+  r1, Will's `opening=still`; it was a black with no mark until the player's first window drew, about a second on a
+  slow phone): the controller hands it `opening`, the cover's slot 0 (`openingStillOf`), or, under the page's curtain,
+  the very photograph the curtain stood (`OpeningPin`: the seed's pick, which the live cover can change once it knows
+  her own uploads); the view holds it as it opened, stands it edge to edge with Close up and the dock waiting, leads
+  its take with it (`createClipSource`'s `opensOn`, carried as a loop boundary carries its clip), and crossfades it into
+  the first frame on screen (`.lr-opening`, at once under reduced motion), the controls' first-sight beat running from
+  that frame. With no still (the hub's own reel before its develop) the opening is a quiet dark with Close. The page's
+  curtain stands the same picture before the view arrives ([guest-flow.md](guest-flow.md)'s live reel), and the two
+  share Close's spot and look (`reel-close.ts`), so the view landing over it moves nothing. ★ **In a landscape composition every mood fills the frame edge to edge**
   (`fillLandscape`, `lib/reel/live/window.ts`): a laptop or a wall is where the reel must fill the room, so Cinematic's
   bars and Editorial's inset card are set aside and a mismatched photograph stays whole on its own darkened blur.
   ★ **`?reel` is its address** ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its
@@ -182,7 +191,7 @@ A host has no reel to create, only a state to read and a few defaults to set.
   view. Before two a press opens guidance (what is left, Add photos, and on a moderated event that a guest's photo
   counts once approved); from two it opens `/e/<token>?reel`, where the owner passes every gate (a soft navigation, kept
   one: a plain press asks for the view's lazy chunk at once, so it lands inside the album's server render and the
-  curtain's black is a beat, [guest-flow.md](guest-flow.md)), or, while the develop is ahead, plays her own reel over
+  curtain, the reel's first photograph with Close, is a beat, [guest-flow.md](guest-flow.md)), or, while the develop is ahead, plays her own reel over
   the hub (next); off, it opens Settings. The dashboard's item for an event on its day says "1 more photo starts the
   reel" while one short and is gone once it plays; `/dashboard/<id>/reel` is a redirect for old links (once the reel
   plays: into the view, or into her own reel over the hub while the develop is ahead, as the card does; else the hub).

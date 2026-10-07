@@ -431,9 +431,10 @@ production build with `scripts/album-perf.mjs` at `/design/album-scale` (the gri
   pill (`album-window-news.tsx`).
 - **The rows mount only around the view** (`lib/shared/album-window.ts`), the keyboard's row pinned; a scroll reads the
   view by arithmetic on a cached offset, never a rect, since a rect read mid-frame forces a layout every frame.
-- **An arrival pushes**: the rows write `data-entering` on what their reflow brought in, in the same render (a
-  surface's mark lands a commit later and would flash the tile whole), and `arrival.css` wipes it in while the
-  neighbours glide.
+- **An arrival settles** (guest-moments r1's `batch=settle`): the rows write `data-entering` on what their reflow
+  brought in, in the same render (a surface's mark lands a commit later), and `arrival.css` lifts it, whole and lit,
+  over the neighbours gliding out of its place (never a wipe or a fade: its batch was let in drawn,
+  `use-arrival-gate.ts`).
 - **Density is the View menu's slider and a pinch** (`density-control.tsx`): the slider's stops are menu radio items,
   since a thumb inside a menu is unreachable by keyboard; a pinch, a trackpad pinch or ctrl and the wheel over the grid
   steps, anchored on the photo under the gesture.
