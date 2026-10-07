@@ -136,8 +136,10 @@ export function clearWords(t: HeldTally): string {
       ? total === 1
         ? "It is already copied or recorded."
         : "All of it is already copied or recorded."
-      : total === 1
-        ? "It is not copied yet and would be lost."
+      : t.unsent === total
+        ? total === 1
+          ? "It is not copied yet and would be lost."
+          : "None of it is copied yet, so all of it would be lost."
         : `${t.unsent === 1 ? "1 of them is" : `${t.unsent} of them are`} not copied yet and would be lost.`;
   return `Clear ${held} held in this browser? ${fate}`;
 }

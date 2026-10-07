@@ -24,7 +24,7 @@ export function creditTouches(bytes: number, until: string): string[] {
   return [
     `Adds ${formatBytes(bytes)} to her uploads allowance until ${until}; her plan's own number does not change`,
     "Lifts the refusal of new uploads, hers and her guests', while the credit lasts",
-    "Edits no count and no file: her uploads count and the spend watch's meter stay exactly as they are",
+    "Edits no count and no file: the ledger the spend watch reads and her stored files stay exactly as they are",
     "Is logged in the operator log with your reason and your name, ends with its window and has no undo",
   ];
 }

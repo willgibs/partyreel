@@ -109,6 +109,10 @@ describe("what the Clear says it empties", () => {
     expect(clearWords(tally({ answers: 2, notes: 3, unsent: 1 }))).toBe(
       "Clear 2 answers and 3 notes held in this browser? 1 of them is not copied yet and would be lost.",
     );
+    // Nothing copied at all says so once, rather than counting the whole sitting again.
+    expect(clearWords(tally({ answers: 2, unsent: 2 }))).toBe(
+      "Clear 2 answers held in this browser? None of it is copied yet, so all of it would be lost.",
+    );
     expect(clearWords(tally({ verdicts: 1, unsent: 1 }))).toBe(
       "Clear 1 verdict held in this browser? It is not copied yet and would be lost.",
     );

@@ -362,10 +362,12 @@ comment on function public.grant_uploads_credit(uuid, uuid, bigint, text, uuid) 
 -- bodies the file replaces or leans on: it applies verbatim; the before/after read of those six (body hash, ACL,
 -- definer, volatility, arguments) differs by exactly the two replaced bodies and the three new functions, with
 -- uploads_used's and uploads_refused's ACLs unchanged and uploads_gross hashing to the OLD uploads_used body; the
--- contract check (ten steps: shape and grants, the line, the bound to the byte and past the largest bigint, ten live
--- credits, every refusal, a pass holder, a replayed key, a file larger than the plan's number, the roles, and an
--- account's deletion cascading through the log the service role may not delete from) is RED 0/10 without the file and
--- GREEN 10/10 with it.
+-- contract check (eleven steps: shape and grants, the line, the bound to the byte and past the largest bigint, ten live
+-- credits, every refusal, a pass holder, a replayed key, a file larger than the plan's number, the roles, an account's
+-- deletion cascading through the log the service role may not delete from, and a credit lifting only its own host) is
+-- RED 0/11 without the file and GREEN 11/11 with it. Its two-session lock run: a first credit of 200 MB of a 300 MB
+-- allowance held open two seconds, a second of 200 MB sent 0.8 s in waits on her row for 1.2 s and is then refused
+-- over_bound against the 200 MB the first made (one credit row, one log row): two presses cannot pass the bound.
 -- ---------------------------------------------------------------------------------------------
 --
 -- create temp table proof (n serial, step text, ok boolean, detail text);
