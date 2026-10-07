@@ -17,13 +17,19 @@ import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
  *   verify    the host turned Require verified emails on mid-run; the email step is the way in.
  *   retry     transport, R2, a bad key, a failed completion: the same file may well go next time.
  *   choose    the file itself is the problem, so only a different file can help.
+ *   roll      the album's camera has no frame left for her (`roll_spent`, crumbs-90 from no-signal r1): the
+ *             server counts her shots at insert, so this very shot is refused again, and so is any other she
+ *             takes. Never the file's (another file meets the same roll, so "Take another" would be false),
+ *             and never a Retry: the one thing that frees a frame is taking one of hers back in the camera,
+ *             which says the roll's end in its own words (`rollDoneLine`, `freeAFrameLine`).
  */
 export type RefusalClass =
   | "refresh"
   | "session"
   | "verify"
   | "retry"
-  | "choose";
+  | "choose"
+  | "roll";
 
 export function classifyRefusal(code: string | undefined | null): RefusalClass {
   switch (code) {
@@ -49,6 +55,8 @@ export function classifyRefusal(code: string | undefined | null): RefusalClass {
     case "too_large":
     case "too_long":
       return "choose";
+    case "roll_spent":
+      return "roll";
     default:
       // `bad_key`, `complete_failed`, a code-less transport or R2 failure: worth another go.
       return "retry";
@@ -56,9 +64,10 @@ export function classifyRefusal(code: string | undefined | null): RefusalClass {
 }
 
 /**
- * Whether sending the same file again could land it: every refusal but the file's own. A refresh-class one
- * can pass once the host changes something (reopens uploads, frees space), so it keeps its Retry.
+ * Whether sending the same file again could land it: every refusal but the file's own and the spent roll's. A
+ * refresh-class one can pass once the host changes something (reopens uploads, frees space), so it keeps its Retry.
  */
 export function retryCanPass(code: string | undefined | null): boolean {
-  return classifyRefusal(code) !== "choose";
+  const kind = classifyRefusal(code);
+  return kind !== "choose" && kind !== "roll";
 }

@@ -91,7 +91,7 @@ type Measured = { width?: number; height?: number; duration?: number };
  */
 type PreviewPut = { key: string; url: string; headers: Record<string, string> };
 
-/** One file's presign, as a burst's answer carries it (field for field the one-file answer). */
+/** One file's presign, as a burst's answer carries it. */
 type PresignedFile =
   | {
       ok: true;

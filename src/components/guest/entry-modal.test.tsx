@@ -329,7 +329,7 @@ describe("no exit: the affordance table is one row", () => {
   it("frees the album menu's Change name, the one door with something behind it", () => {
     seeWelcome();
     const { ref } = renderModal({ storedName: "Priya", returning: true });
-    act(() => ref.current!.openToName("edit"));
+    act(() => ref.current!.openToName());
     expect(screen.getAllByText("Change your name").length).toBeGreaterThan(0);
     expect(closeButton()).toBeInTheDocument();
   });
@@ -628,7 +628,7 @@ describe("the demo", () => {
 
   it("never opens the name door, even on the handle", () => {
     const { ref } = renderModal({ isDemo: true });
-    act(() => ref.current!.openToName("edit"));
+    act(() => ref.current!.openToName());
     expect(screen.queryAllByText("Change your name")).toHaveLength(0);
   });
 
@@ -1048,7 +1048,7 @@ describe("the name step (Continue as guest)", () => {
       sessionToken: "sess-1",
       returning: true,
     });
-    act(() => ref.current!.openToName("edit"));
+    act(() => ref.current!.openToName());
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya S" },
     });
@@ -1962,36 +1962,9 @@ describe("the confirmation's one beat", () => {
   });
 });
 
-/** The account's Change (`name=told`'s): the free name door, writing the profile's own name. */
-describe("the told name's Change: the account's edit door", () => {
-  it("opens free, prefilled with the account's name, and writes the profile", async () => {
-    const onNamed = vi.fn();
-    seeWelcome();
-    const { ref } = renderModal({
-      isVerified: true,
-      hasProfileName: true,
-      storedName: "Priya",
-      returning: true,
-      onNamed,
-    });
-    act(() => ref.current?.openToName("account", "Priya Shah"));
-    expect(screen.getAllByText("Change your name").length).toBeGreaterThan(0);
-    const field = screen.getByLabelText("Your name") as HTMLInputElement;
-    expect(field.value).toBe("Priya Shah");
-    expect(closeButton()).toBeInTheDocument();
-    fireEvent.change(field, { target: { value: "Priya S." } });
-    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
-    await waitFor(() =>
-      expect(updateDisplayNameAction).toHaveBeenCalledWith("Priya S."),
-    );
-    expect(global.fetch).not.toHaveBeenCalled();
-    await waitFor(() =>
-      expect(onNamed).toHaveBeenCalledWith(
-        expect.objectContaining({ displayName: "Priya S.", source: "edit" }),
-      ),
-    );
-  });
-});
+/* The account's Change of the name it was told (`name=told`'s) is its own small form since `popups` r1, and its
+   test went with the door's `account` mode (crumbs-90: no caller raised it). Its scar, a confirmed account's Change
+   writes the profile's name and never a guest row, is `confirm-beat-name.test.tsx`'s. */
 
 /**
  * THE DOOR IS LIT (`identity-door` r2, `look=lit`): the lamp on every step of the sheet, blooming on
@@ -2314,7 +2287,7 @@ describe("the line under her name", () => {
     cleanup();
     seeWelcome();
     const { ref } = renderModal({ storedName: "Priya", returning: true });
-    act(() => ref.current!.openToName("edit"));
+    act(() => ref.current!.openToName());
     expect(
       screen.getByLabelText("Your name"),
     ).not.toHaveAccessibleDescription();

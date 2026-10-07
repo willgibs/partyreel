@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  failureSheetStands,
   UploadFailureSheet,
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
@@ -180,6 +181,28 @@ describe("★ a dropped connection is drawn apart from a refusal (the queue's ca
     }
     // The mark is a drawing beside the words, never the words: the sentence still reads whole.
     expect(screen.getByText("The line went quiet.")).toBeInTheDocument();
+  });
+});
+
+/* ★ THE SEND'S TOAST ASKS WHETHER A SHEET STANDS (crumbs-90): a send that ends under one is said by the sheet alone
+   (`send-toast.ts`). Standing is the page's `open`, never the words the sheet latches while it leaves. */
+describe("whether it stands", () => {
+  it("stands while open, and not once it is closed or gone", () => {
+    const props = {
+      onOpenChange: vi.fn(),
+      failures: [failure("a.jpg", "Your connection dropped.")],
+      sent: 2,
+      hostName: "Maya",
+      onRetry: vi.fn(),
+    };
+    expect(failureSheetStands()).toBe(false);
+    const view = render(<UploadFailureSheet open {...props} />);
+    expect(failureSheetStands()).toBe(true);
+    view.rerender(<UploadFailureSheet open={false} {...props} />);
+    expect(failureSheetStands()).toBe(false);
+    view.rerender(<UploadFailureSheet open {...props} />);
+    view.unmount();
+    expect(failureSheetStands()).toBe(false);
   });
 });
 
@@ -475,5 +498,58 @@ describe("a failure no retry could pass", () => {
     ]);
     expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
     expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+  });
+
+  /* ★ THE SPENT ROLL (crumbs-90, no-signal r1): a Disposable shot past the roll the server counts at insert is refused
+     `roll_spent` in the roll's own words. It wore Retry (the ladder read it as worth another go), and "Retry both"
+     stood over two shots the roll refused again, under a Not now that promised a later go. It is no refusal of the
+     file either: "Take another to add one." under "You've taken all 24 shots on your roll." sends her to a shutter
+     that refuses the next one alike, and the roll's end is the camera's to say. */
+  const ROLL_SPENT = "You've taken all 24 shots on your roll.";
+  const rollRefused = (name: string) => failure(name, ROLL_SPENT, "roll_spent");
+
+  it("★ a shot the spent roll refused: no Retry, the roll's own sentence, Done, and no other file offered", () => {
+    sheet([rollRefused("shot-5.jpg"), rollRefused("shot-6.jpg")], 6, true);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getAllByText(ROLL_SPENT)).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    expect(screen.queryByText("Take another to add one.")).toBeNull();
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("★ beside a refusal of the file, still offers no other file: the roll refuses the next shot too", () => {
+    sheet(
+      [
+        rollRefused("shot-6.jpg"),
+        failure(
+          "clip.mp4",
+          "This video is longer than the 30 seconds a camera shot can be.",
+          "too_long",
+        ),
+      ],
+      2,
+      true,
+    );
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.queryByText("Take another to add one.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  it("beside a dropped connection, Retry takes the dropped one alone and the roll's line keeps none", () => {
+    sheet(
+      [
+        rollRefused("shot-6.jpg"),
+        failure("shot-7.jpg", "Your connection dropped.", undefined, "dropped"),
+      ],
+      2,
+      true,
+    );
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    expect(
+      screen.getByText("shot-6.jpg").closest("li")!.querySelector("button"),
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Not now" })).toBeInTheDocument();
   });
 });

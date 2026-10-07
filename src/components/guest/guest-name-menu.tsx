@@ -182,7 +182,7 @@ export function GuestNameMenu({
               </DropdownMenuItem>
             )}
           </div>
-          <DropdownMenuItem onSelect={() => requestNameDoor("edit")}>
+          <DropdownMenuItem onSelect={() => requestNameDoor()}>
             <Pencil /> Change name
           </DropdownMenuItem>
           <DropdownMenuSeparator />

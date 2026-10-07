@@ -358,6 +358,90 @@ describe("the page's metadata: which card each viewer's page names", () => {
     expect(JSON.stringify(closed)).not.toContain("Add yours");
   });
 
+  /* ★ THE SIZE OF WHAT IT SERVES (crumbs-90, red-team 57b's NIT): the card declared the original's measures over the
+     640-edge preview it serves, a shape and a size the unfurler never got. And an original no unfurler draws (a HEIC
+     with no preview: the uploading browser could not decode it) is no picture, so the event's card stands. */
+  describe("★ a photograph's card declares the size it serves", () => {
+    const photoId = "7d9c5d6e-2f4a-4b3c-8e1f-0a1b2c3d4e5f";
+    const ogImage = (meta: Awaited<ReturnType<typeof generateMetadata>>) => {
+      const images = meta.openGraph?.images;
+      return (Array.isArray(images) ? images[0] : images) as {
+        url: string;
+        width?: number;
+        height?: number;
+      };
+    };
+    const cardOf = async (item: {
+      type: "photo" | "video";
+      originalKey: string;
+      previewKey: string | null;
+      width: number | null;
+      height: number | null;
+    }) => {
+      vi.mocked(getOpenAlbumItemForCard).mockResolvedValueOnce(item);
+      pageDoor.mockResolvedValue(
+        openDoor(guestEvent({ require_verified_email: false })),
+      );
+      return metadataFor(QR, { photo: photoId });
+    };
+
+    it.each([
+      ["a phone's portrait photograph", "photo", 3024, 4032, 480, 640],
+      ["a landscape one", "photo", 4032, 3024, 640, 480],
+      ["a video's poster", "video", 1920, 1080, 640, 360],
+    ] as const)(
+      "%s: its preview's size, never the original's",
+      async (_label, type, w, h, pw, ph) => {
+        const meta = await cardOf({
+          type,
+          originalKey: "events/e/o.jpg",
+          previewKey: "events/e/p.webp",
+          width: w,
+          height: h,
+        });
+        expect(ogImage(meta)).toMatchObject({ width: pw, height: ph });
+      },
+    );
+
+    it("a photograph served as its original (no preview: already small) declares the original's own", async () => {
+      const meta = await cardOf({
+        type: "photo",
+        originalKey: "events/e/o.png",
+        previewKey: null,
+        width: 600,
+        height: 400,
+      });
+      expect(ogImage(meta)).toMatchObject({ width: 600, height: 400 });
+    });
+
+    it("declares no size where the upload measured none", async () => {
+      const meta = await cardOf({
+        type: "photo",
+        originalKey: "events/e/o.jpg",
+        previewKey: "events/e/p.webp",
+        width: null,
+        height: null,
+      });
+      expect(ogImage(meta)).not.toHaveProperty("width");
+      expect(ogImage(meta)).not.toHaveProperty("height");
+    });
+
+    it.each(["events/e/o.heic", "events/e/o.HEIF", "events/e/o.avif"])(
+      "★ an original no unfurler draws (%s, no preview) keeps the event's own card",
+      async (originalKey) => {
+        const meta = await cardOf({
+          type: "photo",
+          originalKey,
+          previewKey: null,
+          width: null,
+          height: null,
+        });
+        expect(meta.title).not.toBe(`A photo from ${NAME}`);
+        expect(imageUrls(meta)[0]).not.toContain("r2.test");
+      },
+    );
+  });
+
   it("a password album's door names the event's own card too (its name is link-shared), never the inviting one", async () => {
     pageDoor.mockResolvedValue(
       openDoor(guestEvent({ visibility: "password", has_password: true })),

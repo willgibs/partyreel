@@ -452,6 +452,59 @@ describe("the shimmer runs only where someone can see it", () => {
   });
 });
 
+/* ★ THE KEYBOARD SEES WHICH TILE IT STANDS ON (crumbs-90, red-team 56b). The open button's own inset halo was painted
+   under its photograph, so Tab walked the album with nothing drawn; the halo stands on a layer over the photograph,
+   pinned while the button holds the keyboard's focus. jsdom has no `:focus-visible`, so the keyboard is dialled. */
+describe("the open button's focus, drawn over its photograph", () => {
+  const keyboardFocus = (visible: boolean) => {
+    const real = Element.prototype.matches;
+    return vi.spyOn(Element.prototype, "matches").mockImplementation(function (
+      this: Element,
+      selector: string,
+    ) {
+      return selector === ":focus-visible"
+        ? visible
+        : real.call(this, selector);
+    });
+  };
+  const halo = (container: HTMLElement, id: string) =>
+    container.querySelector(`[data-media-id="${id}"] [data-tile-halo]`)!;
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("★ pins the halo over the photograph while the keyboard holds the button, and lets it go with the focus", () => {
+    const { container } = render(<MasonryColumns items={album} />);
+    const open = screen.getAllByLabelText("View photo")[2]!;
+    // A layer over the photograph, holding no focus, on a photograph's ground.
+    expect(halo(container, "p2").parentElement).toBe(open);
+    expect(open.lastElementChild).toBe(halo(container, "p2"));
+    expect(halo(container, "p2")).toHaveClass("focus-halo", "halo-inset");
+    expect(halo(container, "p2")).toHaveAttribute("data-surface", "photo");
+    expect(halo(container, "p2")).not.toHaveAttribute("data-halo");
+    // The button's own inset halo was the one painted under its photograph: gone from it.
+    expect(open).not.toHaveClass("focus-halo");
+
+    keyboardFocus(true);
+    fireEvent.focus(open);
+    expect(halo(container, "p2")).toHaveAttribute("data-halo", "");
+    expect(halo(container, "p1")).not.toHaveAttribute("data-halo");
+    fireEvent.blur(open);
+    expect(halo(container, "p2")).not.toHaveAttribute("data-halo");
+  });
+
+  it("draws nothing for a press's focus, until the keyboard's first key makes it the keyboard's", () => {
+    const { container } = render(<MasonryColumns items={album} />);
+    const open = screen.getAllByLabelText("View photo")[0]!;
+    const spy = keyboardFocus(false);
+    fireEvent.focus(open);
+    expect(halo(container, "p0")).not.toHaveAttribute("data-halo");
+    spy.mockRestore();
+    keyboardFocus(true);
+    fireEvent.keyUp(open, { key: "Tab" });
+    expect(halo(container, "p0")).toHaveAttribute("data-halo", "");
+  });
+});
+
 describe("the sheets say what jsdom cannot see", () => {
   const sheet = (name: string) =>
     readFileSync(join(__dirname, name), "utf8").replace(
@@ -476,6 +529,15 @@ describe("the sheets say what jsdom cannot see", () => {
     // Still slides open, and holds for its exit.
     expect(css).toMatch(/@starting-style/);
     expect(css).toMatch(/display 220ms allow-discrete/);
+  });
+
+  it("draws the open button's halo inside the tile's edge where colours are forced (its outline, not its shadow)", () => {
+    const css = sheet("album-tile.css");
+    const forced = css.match(
+      /@media \(forced-colors: active\)\s*\{\s*\[data-tile-halo\]\[data-halo\]\s*\{([^}]*)\}/,
+    );
+    expect(forced).not.toBeNull();
+    expect(forced![1]).toMatch(/outline-offset:\s*-\d+px/);
   });
 
   it("runs the tiles' shimmer only in view, after a beat, and never with reduced motion", () => {

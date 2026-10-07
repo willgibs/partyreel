@@ -78,7 +78,6 @@ import {
 } from "@/lib/guest/entry-steps";
 import { joinEvent } from "@/lib/guest/join";
 import { putDownKeepAsk } from "@/lib/guest/keep-ask";
-import type { NameDoorMode } from "@/lib/guest/name-door";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
 import { setLastName, setStoredName } from "@/lib/guest/use-stored-name";
 import { useSuccessHold } from "@/lib/guest/use-success-hold";
@@ -126,11 +125,10 @@ export type EntryModalHandle = {
   /**
    * THE EDIT DOOR, and only that. The join/profile modes are steps of the itinerary; "Change
    * name" in the album's menu is the one name door raised imperatively, and the one surface in this
-   * whole sheet that a guest may close. `account` is the same door for a CONFIRMED account (the told
-   * name's Change, `confirm-beat.ts`): it writes the profile's name, since a confirmed row carries
-   * none of its own.
+   * whole sheet that a guest may close. (A confirmed account changes the name it was told by its own
+   * small form, `confirm-beat-name.tsx`.)
    */
-  openToName: (mode: NameDoorMode, name?: string | null) => void;
+  openToName: () => void;
 };
 
 /**
@@ -403,10 +401,8 @@ export const EntryModal = forwardRef<
   // itself is told which visitor this is; and the page's word stands for the server and the hydration.
   const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo, welcomeSeen);
   // THE EDIT DOOR's own open state: a SECOND door through the same shell rather than a step, and
-  // the only free surface here (see the handle's comment). Its value is the door's mode: a guest's
-  // row (`edit`) or a confirmed account's profile (`account`).
-  const [editOpen, setEditOpen] = useState<NameDoorMode | null>(null);
-  const [editPrefill, setEditPrefill] = useState<string | null>(null);
+  // the only free surface here (see the handle's comment).
+  const [editOpen, setEditOpen] = useState(false);
   // THE KEEP'S SECOND VIEW: Confirm your email opens the account door in this same sheet. Modal
   // state for this pass alone; the chevron goes back to the offer.
   const [keepConfirming, setKeepConfirming] = useState(false);
@@ -618,7 +614,7 @@ export const EntryModal = forwardRef<
       !settling) ||
     holding ||
     // The edit door, ORed in: it opens over an album with no step pending at all.
-    (hydrated && editOpen !== null);
+    (hydrated && editOpen);
 
   /* THE BACK AFFORDANCE (`doorBack`, entry-steps.ts): the welcome and the name are transient
      client VIEWS over the derived machine (markSeen and the steps untouched); the chooser is a
@@ -662,12 +658,9 @@ export const EntryModal = forwardRef<
       // ★ NEVER IN THE DEMO, as a belt under the caller's own guard: nothing a
       // demo visitor adds is persisted, so there is no row to name and a form
       // between the tap and the picture would be the one lie the demo tells.
-      openToName: (mode, name) => {
+      openToName: () => {
         if (holding || isDemo) return;
-        // The name being changed, when the caller knows it better than this device's stored one
-        // (the told name is the ACCOUNT's, which may not be what was typed here).
-        setEditPrefill(name?.trim() || null);
-        setEditOpen(mode);
+        setEditOpen(true);
       },
     }),
     [holding, isDemo],
@@ -823,7 +816,7 @@ export const EntryModal = forwardRef<
     ? heldStep === "password"
       ? "password"
       : "success"
-    : editOpen !== null
+    : editOpen
       ? "name-edit"
       : reviewing
         ? backView === "name"
@@ -839,9 +832,6 @@ export const EntryModal = forwardRef<
   const [lastKey, setLastKey] = useState(stepKey);
   if (open && stepKey !== lastKey) setLastKey(stepKey);
   const displayKey = open ? stepKey : lastKey;
-  // The edit door's mode, latched the same way, so a door that is leaving keeps the mode it opened in.
-  const [editMode, setEditMode] = useState<NameDoorMode>("edit");
-  if (editOpen !== null && editOpen !== editMode) setEditMode(editOpen);
 
   /* ────────────────────────────────────────────────────────────────────────
      THE STAGE: WHICH OF THE DOOR'S STEPS STAND AS ITS PAGE (`locked-door` r2, `shape=shared`).
@@ -861,20 +851,19 @@ export const EntryModal = forwardRef<
      so it is drawn in the page's own HTML and the hydration, open from the first frame with no beat and no
      fade (`first`); only the sheet's steps, the browser's own, wait for hydration and the arrival beat.
      ──────────────────────────────────────────────────────────────────────── */
-  const face: StageFace | null =
-    editOpen !== null
-      ? null
-      : holding && heldStep === "waiting"
-        ? "beat"
-        : displayKey === "welcome" || displayKey === "welcome-review"
-          ? isDemo
-            ? "role"
-            : "welcome"
-          : displayKey === "waiting" || displayKey === "ask"
-            ? displayKey
-            : access === "none" && (current !== null || holding)
-              ? "rest"
-              : null;
+  const face: StageFace | null = editOpen
+    ? null
+    : holding && heldStep === "waiting"
+      ? "beat"
+      : displayKey === "welcome" || displayKey === "welcome-review"
+        ? isDemo
+          ? "role"
+          : "welcome"
+        : displayKey === "waiting" || displayKey === "ask"
+          ? displayKey
+          : access === "none" && (current !== null || holding)
+            ? "rest"
+            : null;
   // ★ WHAT THE DOOR SHOWS IS HER ACCESS'S ANSWER: the album's light and the album through the opening
   // only where she may see it (a Public album's welcome, the moment she is let in); the house five at a
   // gate, where the page has nothing of the album to show.
@@ -944,8 +933,7 @@ export const EntryModal = forwardRef<
   const [firstScrim, setFirstScrim] = useState<"up" | "lifting" | null>(
     arrival.scrim ? "up" : null,
   );
-  const scrimOwed =
-    current !== null || holding || (hydrated && editOpen !== null);
+  const scrimOwed = current !== null || holding || (hydrated && editOpen);
   // In the render that opens the sheet, so the two scrims trade places inside one commit, before paint:
   // the sheet's own scrim then arrives standing (`arriving`), never fading in over this one's going.
   const [handedOver, setHandedOver] = useState(false);
@@ -978,12 +966,12 @@ export const EntryModal = forwardRef<
      menu's "Change name", which sits over an album the guest already reached and posts nothing when
      it closes. A closed/exiting shell is held too, so affordances cannot pop in mid-exit. */
   const dismissMode: DismissMode =
-    open && editOpen !== null && !holding ? "free" : "held";
+    open && editOpen && !holding ? "free" : "held";
 
   // Fired by the shell ONLY for a user dismissal of a "free" surface, which is the edit door alone.
   function handleDismiss() {
     if (holding) return; // defense in depth; the hold is never dismissable
-    setEditOpen(null);
+    setEditOpen(false);
   }
 
   function continueFromWelcome() {
@@ -1039,15 +1027,13 @@ export const EntryModal = forwardRef<
   const nameStepNode = (
     <GuestNameStep
       qrToken={qrToken}
-      mode={displayKey === "name-edit" ? editMode : nameMode}
+      mode={displayKey === "name-edit" ? "edit" : nameMode}
       hostName={hostName}
-      storedName={
-        displayKey === "name-edit" && editPrefill ? editPrefill : storedName
-      }
+      storedName={storedName}
       sessionToken={sessionToken}
       onNamed={(result) => {
         if (displayKey === "name-edit") {
-          setEditOpen(null);
+          setEditOpen(false);
           onNamed?.({ ...result, source: "edit" });
           return;
         }
@@ -1061,7 +1047,7 @@ export const EntryModal = forwardRef<
         // The host turned Require verified emails ON while this guest stood at the door. The name
         // is worth nothing now, so the page's own refresh re-gates to `identify`, which is the
         // honest surface for what just changed.
-        setEditOpen(null);
+        setEditOpen(false);
         router.refresh();
       }}
     />
@@ -1127,7 +1113,6 @@ export const EntryModal = forwardRef<
     eventName,
     hostName,
     nameMode,
-    editMode,
     verification: gate === "account",
     doorGate,
     mediaTotal,
@@ -1145,7 +1130,7 @@ export const EntryModal = forwardRef<
   // The keep's confirm view has a way back to its offer; every other step's is the machine's.
   const showBack =
     sheetKey === "keep-confirm" ||
-    (Boolean(back) && !reviewing && !holding && editOpen === null);
+    (Boolean(back) && !reviewing && !holding && !editOpen);
 
   // What she chose while she waited: the page's queue, held (and going in once she is let in).
   const heldPicks: WaitPick[] = queue.filter((it) => it.status !== "error");
@@ -1544,8 +1529,6 @@ export function entrySheetCopy(input: {
   eventName: string;
   hostName?: string | null;
   nameMode: GuestNameMode;
-  /** The edit door's mode (a guest's row, or a confirmed account's profile). */
-  editMode?: NameDoorMode;
   /** A verification event (its `identify` sells the album with the host's reason). */
   verification: boolean;
   /** The gate a newcomer stands at (the email step's and the ask's words). */
@@ -1564,7 +1547,6 @@ export function entrySheetCopy(input: {
     eventName,
     hostName,
     nameMode,
-    editMode = "edit",
     verification,
     doorGate = null,
     mediaTotal,
@@ -1575,8 +1557,7 @@ export function entrySheetCopy(input: {
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
   if (displayKey.startsWith("name-")) {
-    const mode: GuestNameMode =
-      displayKey === "name-edit" ? editMode : nameMode;
+    const mode: GuestNameMode = displayKey === "name-edit" ? "edit" : nameMode;
     const copy = guestNameCopy(mode, hostName);
     return { title: copy.title, description: copy.reason };
   }

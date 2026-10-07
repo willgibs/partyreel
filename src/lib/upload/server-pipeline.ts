@@ -15,14 +15,14 @@
  * error-status mapping, a refusal taking back out only what no row names.
  *
  * ★ A BURST IS ITS FILES, ONE AFTER ANOTHER, IN ONE REQUEST (compute-uploads; the wire is `burst.ts`'s). Both spines
- * take a burst's body beside the one-file body, for every strategy, and run each file through the very spine a request
- * of its own ran, in order: every check, refusal and word a file met alone it meets in a burst, and a file refused never
- * stops its siblings. A burst shares only what cannot differ between its files (`Burst.memo`: who is sending, to which
+ * take a burst's body, the only body (one file is a burst of one), for every strategy, and run each file through the
+ * very spine a request of its own ran, in order: every check, refusal and word a file met alone it meets in a burst,
+ * and a file refused never stops its siblings. A burst shares only what cannot differ between its files (`Burst.memo`: who is sending, to which
  * album, asked once) and tells each file what its earlier siblings took (`Burst.admitted`), so the roll and the meter
  * judge it as a presign one at a time did, after the files before it had landed. A presign refusal the strategy marks
- * the burst's own (`scope: "burst"`: who is sending, which every file meets alike) refuses the whole request as a
- * one-file request's is. A burst's completes run one after another too, so a budget (the guest's clips a day) is met
- * by each file after the one before it was spent.
+ * the burst's own (`scope: "burst"`: who is sending, which every file meets alike) refuses the whole request, in the
+ * words each file would have met. A burst's completes run one after another too, so a budget (the guest's clips a day)
+ * is met by each file after the one before it was spent.
  *
  * INVARIANTS THIS FILE OWNS (must survive any edit — docs/systems/
  * uploads-and-r2.md):
@@ -155,8 +155,8 @@ const BAD_BODY: PipelineRefusal = {
  * every file of the request with one read of what cannot differ between them (the ticket's context, its owner, the
  * album's lock and switch), keyed by everything the read depends on; a read that failed is asked again by the next
  * file, as each file's own request asked it. `admitted` is what this request admitted before the file in hand (its
- * files, and their declared bytes): the roll counts those shots, and the meter adds those bytes. A one-file request
- * has a burst of its own, so its reads are its own and nothing came before it.
+ * files, and their declared bytes): the roll counts those shots, and the meter adds those bytes. A burst of one's
+ * reads are its own, and nothing came before it.
  */
 export type Burst = {
   memo<T>(key: string, read: () => Promise<T>): Promise<T>;
@@ -266,7 +266,7 @@ const UNSUPPORTED_TYPE: PipelineRefusal = {
 
 /**
  * A burst's file whose URLs could not be minted (a multipart R2 would not open): its own failure, said and reported,
- * never its siblings'. A one-file request still fails as it always did.
+ * never its siblings'.
  */
 const PRESIGN_FAILED: PipelineRefusal = {
   status: 502,
@@ -274,7 +274,7 @@ const PRESIGN_FAILED: PipelineRefusal = {
   message: "Couldn't start the upload. Please try again.",
 };
 
-/** One file's presign: its answer's body (the one-file request's body, field for field), or its refusal. */
+/** One file's presign: its entry in the burst's answer (the fields `uploadBurst` reads, in their order), or its refusal. */
 type PresignAnswer =
   | { ok: true; body: Record<string, unknown> }
   | { ok: false; refusal: PipelineRefusal; retryAfterSec?: number };
@@ -290,15 +290,6 @@ export async function runPresignPipeline<
   }
 
   const burst = splitBurst(body);
-  if (burst === null) {
-    // ONE FILE: the body every client sent before bursts, and a tab loaded before them still sends.
-    const parsed = strategy.schema.safeParse(body);
-    if (!parsed.success) return refuse(BAD_PRESIGN);
-    const one = await presignFile(parsed.data, strategy, openBurst());
-    return one.ok
-      ? NextResponse.json(one.body)
-      : refuse(one.refusal, one.retryAfterSec);
-  }
   if (burst === "malformed") return refuse(BAD_PRESIGN);
 
   const shared = openBurst();
@@ -317,8 +308,8 @@ export async function runPresignPipeline<
       }
     }
     // ★ THE BURST'S OWN GATE (`scope: "burst"`): every file would meet it alike, so before any file is admitted it is
-    // the whole request's answer, exactly a one-file request's; met after some were (a read that moved mid-request),
-    // it is this file's and every later one's, and the earlier answers stand.
+    // the whole request's answer, in the words each file would have met; met after some were (a read that moved
+    // mid-request), it is this file's and every later one's, and the earlier answers stand.
     if (!one.ok && one.refusal.scope === "burst") {
       if (shared.admitted.files === 0) {
         return refuse(one.refusal, one.retryAfterSec);
@@ -371,12 +362,20 @@ async function presignFile<Schema extends z.ZodType<PresignCommon>>(
     bytes: Math.min(size_bytes + burst.admitted.bytes, MAX_UPLOAD_BYTES),
   });
   if (!metered.ok && metered.reason !== "unavailable") {
-    return {
-      ok: false,
-      refusal: strategy.meterRefusal(metered),
-      retryAfterSec:
-        metered.reason === "hourly" ? metered.retryAfterSec : undefined,
-    };
+    const refusal = strategy.meterRefusal(metered);
+    // ★ THE HOUR'S BREAKER IS WHO IS SENDING (crumbs-90): it counts the host's uploads across her albums, so every file
+    // of a burst meets the hour its first one met, as it meets the album's switch. It refuses the whole request (429,
+    // the hour's end in `Retry-After`, as the one-file answer said it), the client asks nothing more for the burst,
+    // and no later file is metered for a refusal it cannot escape. The month and the room judge each file's bytes,
+    // so a smaller sibling may still fit: those stay its own.
+    if (metered.reason === "hourly") {
+      return {
+        ok: false,
+        refusal: { ...refusal, scope: "burst" },
+        retryAfterSec: metered.retryAfterSec,
+      };
+    }
+    return { ok: false, refusal };
   }
 
   // Server-built key: the resolved event + a server-generated id + classified
@@ -640,7 +639,7 @@ const BAD_COMPLETE: PipelineRefusal = {
   message: "Invalid completion request.",
 };
 
-/** One file's completion: its answer's body (the one-file request's, field for field) and cookies, or its refusal. */
+/** One file's completion: its entry in the burst's answer and its cookies, or its refusal. */
 type CompleteAnswer =
   | {
       ok: true;
@@ -666,20 +665,6 @@ export async function runCompletePipeline<
   }
 
   const burst = splitBurst(body);
-  if (burst === null) {
-    // ONE FILE: the body every client sent before bursts, and a tab loaded before them still sends.
-    const parsed = strategy.schema.safeParse(body);
-    if (!parsed.success) return refuse(BAD_COMPLETE);
-    const step = await landFile(parsed.data, strategy, request);
-    const one =
-      "done" in step
-        ? step.done
-        : await recordFile(step.landed, strategy, request, openBurst());
-    if (!one.ok) return refuse(one.refusal, one.retryAfterSec);
-    const response = NextResponse.json(one.body);
-    if (one.setCookies?.length) applyGuestCookies(response, one.setCookies);
-    return response;
-  }
   if (burst === "malformed") return refuse(BAD_COMPLETE);
 
   // An upload is completed once a request: a second entry for it is malformed, never a race with itself.
@@ -720,7 +705,7 @@ export async function runCompletePipeline<
             ? landed.step.done
             : await recordFile(landed.step.landed, strategy, request, shared);
       } catch (e) {
-        // A throw the one-file request would have answered 500 is this file's alone: reported, and its siblings go on.
+        // A throw is this file's alone: reported, answered as a completion that did not finish, and its siblings go on.
         captureError("upload", e, {
           phase: "complete_burst",
           media_id: parsed.media_id,

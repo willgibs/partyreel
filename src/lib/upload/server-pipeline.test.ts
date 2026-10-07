@@ -65,6 +65,9 @@ const { STAGING_PREFIX, stagingKeyFor } = await import("@/lib/r2/keys");
 const { previewRefusal, PREVIEW_HEAVIER_THAN_ORIGINAL, PREVIEW_PAST_ITS_CAP } =
   await import("@/lib/upload/server-pipeline");
 const { MAX_PREVIEW_BYTES } = await import("@/lib/media/preview-size");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 
 const EVENT = "33333333-3333-4333-8333-333333333333";
 const HOST = "11111111-1111-4111-8111-111111111111";
@@ -75,7 +78,7 @@ async function hostPresign(over: Record<string, unknown> = {}) {
     new Request("https://partyreel.com/api/host/r2/presign-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         event_id: EVENT,
         content_type: "image/jpeg",
         size_bytes: 4_000_000,
@@ -83,16 +86,13 @@ async function hostPresign(over: Record<string, unknown> = {}) {
       }),
     }),
   );
-  return {
-    status: res.status,
-    retryAfter: res.headers.get("Retry-After"),
-    body: (await res.json()) as {
-      ok: boolean;
-      code?: string;
-      message?: string;
-      preview_refused?: string;
-    },
-  };
+  const { status, body } = await answerOfOne<{
+    ok: boolean;
+    code?: string;
+    message?: string;
+    preview_refused?: string;
+  }>(res);
+  return { status, retryAfter: res.headers.get("Retry-After"), body };
 }
 
 beforeEach(() => {
@@ -245,7 +245,7 @@ describe("the host's staging", () => {
       new Request("https://partyreel.com/api/host/r2/complete-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           event_id: EVENT,
           media_id: MEDIA,
           key: ORIGINAL,
@@ -257,7 +257,7 @@ describe("the host's staging", () => {
         }),
       }),
     );
-    return { status: res.status, body: (await res.json()) as { ok: boolean } };
+    return answerOfOne<{ ok: boolean }>(res);
   }
 
   it("★ her single PUT is minted at its staging twin; the answer names its events/ key", async () => {
@@ -484,5 +484,109 @@ describe("the host's routes take a burst", () => {
     expect(status).toBe(401);
     expect(body.code).toBe("unauthorized");
     expect(getHostUploadContext).not.toHaveBeenCalled();
+  });
+
+  /* ★ THE HOUR'S BREAKER IS WHO IS SENDING (crumbs-90): it counts her uploads across her albums, so every file of a
+     burst meets the hour its first one met. It refuses the burst whole, the hour's end in Retry-After (what the
+     one-file answer carried, now gone), and no file after it is metered for a refusal it cannot escape. */
+  it("★ the hour's breaker refuses the whole burst, its end in Retry-After, and meters nothing more", async () => {
+    meterUpload.mockResolvedValue({
+      ok: false,
+      reason: "hourly",
+      retryAfterSec: 60,
+    });
+    const res = await POST(
+      new Request("https://partyreel.com/api/host/r2/burst", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_id: EVENT,
+          files: [
+            { content_type: "image/jpeg", size_bytes: 1000 },
+            { content_type: "image/jpeg", size_bytes: 2000 },
+          ],
+        }),
+      }),
+    );
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("60");
+    expect(await res.json()).toMatchObject({ ok: false, code: "rate_limited" });
+    expect(meterUpload).toHaveBeenCalledTimes(1);
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("met after a file was admitted, it is that file's and every later one's, unmetered, the first standing", async () => {
+    meterUpload
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValue({ ok: false, reason: "hourly", retryAfterSec: 60 });
+    const { status, body } = await hostBurst(POST, [
+      { content_type: "image/jpeg", size_bytes: 1000 },
+      { content_type: "image/jpeg", size_bytes: 2000 },
+      { content_type: "image/jpeg", size_bytes: 3000 },
+    ]);
+    expect(status).toBe(200);
+    expect(body.files?.map((f) => f.ok)).toEqual([true, false, false]);
+    expect(body.files?.[2]).toMatchObject({
+      status: 429,
+      code: "rate_limited",
+    });
+    expect(meterUpload).toHaveBeenCalledTimes(2);
+  });
+
+  it("the month and the room still judge each file's own bytes: a smaller sibling may fit", async () => {
+    meterUpload.mockImplementation(async ({ bytes }: { bytes: number }) =>
+      bytes > 1500 ? { ok: false, reason: "storage" } : { ok: true },
+    );
+    const { status, body } = await hostBurst(POST, [
+      { content_type: "image/jpeg", size_bytes: 2000 },
+      { content_type: "image/jpeg", size_bytes: 1000 },
+    ]);
+    expect(status).toBe(200);
+    expect(body.files?.map((f) => f.ok)).toEqual([false, true]);
+  });
+});
+
+/* ★ ONE FILE IS A BURST OF ONE (crumbs-90): the body with no `files`, which a tab loaded before bursts sent (no build
+   since milestone 37 does), is malformed now, at both seams, and nothing is presigned, landed or recorded for it. */
+describe("the one-file body", () => {
+  const send = (
+    route: (req: Request) => Promise<Response>,
+    body: Record<string, unknown>,
+  ) =>
+    route(
+      new Request("https://partyreel.com/api/host/r2/one", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+
+  it("★ is refused at the presign as malformed, before any gate", async () => {
+    const res = await send(POST, {
+      event_id: EVENT,
+      content_type: "image/jpeg",
+      size_bytes: 1000,
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ ok: false, code: "bad_request" });
+    expect(getHostUploadContext).not.toHaveBeenCalled();
+    expect(meterUpload).not.toHaveBeenCalled();
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("★ and at the complete, nothing landed or recorded", async () => {
+    const res = await send(complete.POST, {
+      event_id: EVENT,
+      media_id: MEDIA,
+      key: `events/${EVENT}/photo/${MEDIA}/original.jpg`,
+      content_type: "image/jpeg",
+      size_bytes: 1000,
+      upload_id: null,
+      parts: [],
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ ok: false, code: "bad_request" });
+    expect(headObject).not.toHaveBeenCalled();
+    expect(createMediaAsHost).not.toHaveBeenCalled();
   });
 });
