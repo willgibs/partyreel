@@ -182,8 +182,15 @@ function Chips({ card, count }: { card: CardWay; count: number }) {
   );
 }
 
-/** Past twelve: the row of faces that opens the names in a panel (`GuestListPanel`). */
-function Guests({ card }: { card: CardWay }) {
+/**
+ * Past twelve: the row of faces that opens the names in a panel (`GuestListPanel`).
+ * ★ THE ROOM'S OWN LIST, RETYPED, NEVER `GuestList` WITH AN ADDRESS: only the
+ * room's own file may hand `GuestList` the host's addresses or Block
+ * (`social.guest-identity.test.ts`, the privacy guard that keeps them off a
+ * guest's album), so the board draws the list class for class, each name
+ * opening production's own look where today's card is drawn.
+ */
+export function TodayGuests({ card }: { card: CardWay }) {
   const [shown, setShown] = useState(PAGE);
   const count = `${GUESTS.length} guests added photos`;
   const rest = GUESTS.length - Math.min(shown, GUESTS.length);
@@ -313,7 +320,7 @@ export function TodayRoomCards({ card }: { card: CardWay }) {
         />
       </div>
       <Door card={card} />
-      <Guests card={card} />
+      <TodayGuests card={card} />
       <InvitedSection
         eventId={EVENT.id}
         invited={INVITED}

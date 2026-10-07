@@ -4,23 +4,18 @@ import { AtTheDoor } from "@/app/(app)/dashboard/[eventId]/guests/at-the-door";
 import { GuestsInvite } from "@/app/(app)/dashboard/[eventId]/guests/guests-invite";
 import { InvitedSection } from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
 import { BlockedSection } from "@/components/app/event-blocks/blocked-section";
-import { GuestList } from "@/components/social/guest-list";
 
 import { INERT_DOOR, INERT_INVITES } from "./acts";
-import {
-  AT_THE_DOOR,
-  BLOCKED,
-  EMAILS,
-  EVENT,
-  GUEST_ITEMS,
-  INVITED,
-} from "./fixtures";
+import { AT_THE_DOOR, BLOCKED, EVENT, INVITED } from "./fixtures";
+import { TodayGuests } from "./today-cards";
 
 /**
  * THE ROOM AS PRODUCTION DRAWS IT (`guests-room.tsx`'s order and classes, its
  * parts production's own): Invite aside, At the door (`at-the-door.tsx`),
- * everyone who added photos (`GuestList`: past twelve, its row of faces that
- * opens the names in a second panel), Invited (`invited-section.tsx`, the list
+ * everyone who added photos (past twelve, the row of faces that opens the
+ * names in a second panel, retyped class for class from `guest-list.tsx`
+ * because only the room's own file may hand `GuestList` an address:
+ * `today-cards.tsx`'s `TodayGuests`), Invited (`invited-section.tsx`, the list
  * being the door) and Blocked at the foot (`blocked-section.tsx`). The door's
  * and the list's acts answer and change nothing; Blocked's own Let in and the
  * Block in a name's look are production's, and reach a server that refuses
@@ -46,11 +41,7 @@ export function TodayRoom() {
         door="invite"
         acts={INERT_DOOR}
       />
-      <GuestList
-        items={GUEST_ITEMS}
-        emails={EMAILS}
-        blockFrom={{ eventId: EVENT.id }}
-      />
+      <TodayGuests card="today" />
       <InvitedSection
         eventId={EVENT.id}
         invited={INVITED}

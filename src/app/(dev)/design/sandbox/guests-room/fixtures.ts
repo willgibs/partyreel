@@ -168,13 +168,6 @@ export function listItem(guest: Guest): GuestListItem {
   };
 }
 
-export const GUEST_ITEMS: GuestListItem[] = GUESTS.map(listItem);
-
-/** The confirmed addresses, by card id, as the room hands them to the list. */
-export const EMAILS: ReadonlyMap<string, string> = new Map(
-  GUESTS.flatMap((x) => (x.email ? [[x.id, x.email] as const] : [])),
-);
-
 /** Her invite list, the door: 40 addresses as she pasted them, 28 joined. */
 const INVITED_JOINED = GUESTS.filter((x) => x.email)
   .slice(0, 28)
