@@ -23,7 +23,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   Its FULL gate and compute budget run before his yes. Drive goes live with it: its Worker deploys just before 39's
   production deploy (`tracks/orchestrator.md`).
 - **The Orchestrator sits on Will's Mac** (a local seat since 2026-10-07, willg97's account), after the cloud seat on
-  hi@willgibs.com's wound down; two boards run, each a local worktree, paced by the 5-hour window.
+  hi@willgibs.com's wound down; one board runs, in a local worktree, paced by the 5-hour window.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.89 of 4 CPU-hours over 30 days, falling since the desks and
   red-teams moved to the Mac (about 2,000 calls a day, from 20,000 to 57,000); under the REFUSE line around 2026-10-16.
   Nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
@@ -32,8 +32,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 Will's desk (`localhost:3000/design/lab?key=fiesta`; refreshed by `S=<scratch> zsh usher/kit/desk-refresh.sh <sha>`)
 answered brand r2 (Aperture), event-header r6 and desk 7's four moments boards on 2026-10-06 (`docs/reviews/`), all but
-account-moments' follow. The next desk: brand-marks r1, signature r1, account-moments r2 and create-wizard r5 merged;
-guests-room r1 and presence r1 drawing; his desk refreshes to the tip once they land.
+account-moments' follow. The next desk: brand-marks r1, signature r1, account-moments r2, create-wizard r5 and
+guests-room r1 merged; presence r1 drawing; his desk refreshes to the tip once they land.
 
 ## Live state
 

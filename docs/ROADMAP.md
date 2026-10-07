@@ -39,6 +39,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: drop the one-file presign and complete bodies (`server-pipeline.ts`'s `splitBurst(...) === null` arms, kept for a tab loaded before bursts).
 - Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
 - Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
+- Album: an album tile shows no keyboard focus: its open button's `focus-halo halo-inset` is an inset shadow painted under the button's own photograph (`shared/album-tile.tsx`); carry the halo on an overlay that wears `data-halo` while the button holds the keyboard's focus, as the guests-room board's strip `Tile` does (guests-room r1).
 
 ### Accounts and profiles
 
@@ -158,6 +159,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Profile: deleting a photograph opened at `/u/<handle>?photo=` makes the next Show more jump to the top as the held answer lands (the viewer's same-tick address write before a revalidating action, Next 16.2.6, a row `lib/history-entry.ts` lacks). [unsure: crumbs-83 gave a photo opened at its address its own entry, which may have removed the cause; not re-walked]
 - Account: the reset's Set a new password (`SetInitialPassword`, `auth/password-sign-in.tsx`) has no strength meter while `/account`'s change form and the event password wear `PasswordStrengthMeter`.
 - Profiles: the owner mode's Connections chips (`/me`, `/u/<handle>`) link to pages where Account's names now open the look; the same look could serve them (account-moments-wiring).
+- Profiles: the look (`social/guest-peek.tsx`) sets the face inside the sheet's title, so a screen reader hears "P Priya Shah", and in a hand hangs its line and address under the face; one head grid with the face `aria-hidden` (the guests-room board's `card-parts.tsx`) is the fix any card pick's wiring carries (guests-room r1).
 
 ### The host app
 
@@ -182,6 +184,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: the door's quick choice (`settings-rows.tsx`'s `doorConsequence`) moves to a password already set while people wait and says nothing of their asks ending there (`events_door_to_password`), where the steps page asks first; say it, and ask, as the page does (host-moments-wiring).
 - Hub: the Reel card shows nothing while its soft navigation is pending (13 s to the curtain on a 120 KB/s line); `useLinkStatus` could dim it (album-moments-wiring; the curtain's ceiling closed the other half).
 - Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
+- Guests room: a guest let in who adds nothing is on no list (guest-flow.md's one definition of a guest), so after Let in she leaves the room until a photo lands; the room's wiring holds her as in with nothing added yet (guests-room r1).
 
 ### Admin and operations
 
@@ -216,6 +219,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design system: about 30 `bg-muted/N` set-apart grounds in marketing (`git grep 'bg-muted/' src/components/marketing 'src/app/(marketing)'`) become sections wearing `.surface-mat`, which `globals.css` declares and nothing wears yet.
 - Design: the help center's pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; draw them on `floatingDisplayPanel`, the display the real menus wear.
 - Design: the hub's folded band brings its code pill in without the fold when the cover's code leaves the screen after the band has stuck (its sentinel reports a beat later), so it pops in; fold it in on its own arrival (event-header-wiring-2).
+- Design: one face size and caption rule for the guest faces presence r1 and guests-room r1 both draw, set when either wires (guests-room r1).
 
 ### Marketing and content
 
