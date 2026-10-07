@@ -1,7 +1,8 @@
 /**
- * THE BLOCKED LIST AND THE WAY BACK (Will, `blocked=foot`, `restore=ask`): nothing renders while
- * nobody is blocked; each row names who and since when; Let back in confirms, and its "Also restore
- * their uploads" switch appears only while something can come back, off unless the host turns it on.
+ * THE BLOCKED LIST AND THE WAY BACK (Will, `blocked=foot`, `restore=ask`; host-moments r1, `let-back=straight`):
+ * nothing renders while nobody is blocked; each row names who and since when; a declined newcomer whose ask stands
+ * is let in with one press; every other Let back in confirms, and its "Also restore their uploads" switch appears
+ * only while something can come back, off unless the host turns it on.
  */
 import {
   fireEvent,
@@ -13,7 +14,11 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
-import type { BlockedPerson } from "@/lib/events/event-blocks";
+import {
+  LET_IN_LINE,
+  letBackInLede,
+  type BlockedPerson,
+} from "@/lib/events/event-blocks";
 
 // Hoisted: the mark's module reaches sonner through the sign-in card, before this file's body runs.
 const { refresh, toast, letBackInAction } = vi.hoisted(() => ({
@@ -45,7 +50,12 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  letBackInAction.mockResolvedValue({ ok: true, restored: 0, noRoom: 0 });
+  letBackInAction.mockResolvedValue({
+    ok: true,
+    restored: 0,
+    noRoom: 0,
+    admitted: 0,
+  });
 });
 
 describe("BlockedSection", () => {
@@ -117,6 +127,7 @@ describe("BlockedSection", () => {
       expect(letBackInAction).toHaveBeenCalledWith({
         blockId: "b-sam",
         restore: false,
+        letIn: false,
       }),
     );
     expect(toast.success).toHaveBeenCalledWith("Sam can join again.", {
@@ -125,7 +136,10 @@ describe("BlockedSection", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it("★ a newcomer declined at the door hears she goes back there, before and after (build 23's NIT-3)", async () => {
+  // ★ RESHAPED ON PURPOSE (host-moments r1, `let-back=straight`; scar kept: a newcomer is never promised the album
+  // she still has to be let into). The expired reason: "declined at the door, her ask stands, and she goes back to
+  // it". A standing ask is Let in now (below); `door` is a newcomer whose ask ended, who can ask again there.
+  it("★ a newcomer with no ask left hears she goes back to the door, before and after (build 23's NIT-3)", async () => {
     render(
       <BlockedSection
         eventName="Party"
@@ -135,9 +149,7 @@ describe("BlockedSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
     const dialog = await screen.findByRole("alertdialog");
     expect(
-      within(dialog).getByText(
-        "They'll be back at the door, and you can let them in from there.",
-      ),
+      within(dialog).getByText(letBackInLede("Party", "door")),
     ).toBeInTheDocument();
     expect(within(dialog).queryByText(/add photos again/)).toBeNull();
     fireEvent.click(
@@ -148,7 +160,113 @@ describe("BlockedSection", () => {
         description: undefined,
       }),
     );
+    expect(letBackInAction).toHaveBeenCalledWith({
+      blockId: "b-wren",
+      restore: false,
+      letIn: false,
+    });
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it("★ a declined newcomer whose ask stands is let in with one press, the row saying so first", async () => {
+    letBackInAction.mockResolvedValue({
+      ok: true,
+      restored: 0,
+      noRoom: 0,
+      admitted: 1,
+    });
+    const { container } = render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ id: "b-dev", name: "Dev", lands: "let_in" })]}
+      />,
+    );
+    // Where the press takes him, before it: no confirm says it for this row.
+    expect(
+      container.querySelector("[data-blocked-let-in-line]")?.textContent,
+    ).toBe(LET_IN_LINE);
+    expect(screen.queryByRole("button", { name: "Let back in" })).toBeNull();
+    // ★ Its name says whom: no confirm stands between a press on the wrong row and the act.
+    fireEvent.click(screen.getByRole("button", { name: "Let in Dev" }));
+    await waitFor(() =>
+      expect(letBackInAction).toHaveBeenCalledWith({
+        blockId: "b-dev",
+        restore: false,
+        letIn: true,
+      }),
+    );
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Dev is in.", {
+        description: "Their link opens the album for them now.",
+      }),
+    );
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("the one press that fails says so and changes nothing", async () => {
+    letBackInAction.mockResolvedValue({
+      ok: false,
+      message: "That person or event is no longer available.",
+    });
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ id: "b-dev", name: "Dev", lands: "let_in" })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let in Dev" }));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Couldn't let them in.", {
+        description: "That person or event is no longer available.",
+      }),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("★ a Let in that let nobody in (the door moved under it) promises nothing past the lifted block", async () => {
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ id: "b-dev", name: "Dev", lands: "let_in" })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let in Dev" }));
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Dev is no longer blocked.", {
+        description: undefined,
+      }),
+    );
+  });
+
+  it("★ a Let in keeps its confirm where it carries Will's restore switch, or an Only me album she meets closed", async () => {
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[
+          person({ id: "b-ann", name: "Ann", lands: "let_in", restorable: 1 }),
+          person({ id: "b-oli", name: "Oli", lands: "let_in_only_me" }),
+        ]}
+      />,
+    );
+    expect(document.querySelector("[data-blocked-let-in-line]")).toBeNull();
+    const [ann, oli] = screen.getAllByRole("button", { name: "Let in" });
+    fireEvent.click(oli!);
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText("Let Oli in?")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(letBackInLede("Party", "let_in_only_me")),
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Let in" }));
+    await waitFor(() =>
+      expect(letBackInAction).toHaveBeenCalledWith({
+        blockId: "b-oli",
+        restore: false,
+        letIn: true,
+      }),
+    );
+    expect(ann).toBeInTheDocument();
   });
 
   it("★ a newcomer whose ask the password ended hears she meets it like anyone new, before and after (crumbs-24)", async () => {
@@ -180,7 +298,12 @@ describe("BlockedSection", () => {
   });
 
   it("★ someone who was in, while the album is Only me, is told it stays closed until the host opens it, before and after (crumbs-27)", async () => {
-    letBackInAction.mockResolvedValue({ ok: true, restored: 1, noRoom: 0 });
+    letBackInAction.mockResolvedValue({
+      ok: true,
+      restored: 1,
+      noRoom: 0,
+      admitted: 0,
+    });
     render(
       <BlockedSection
         eventName="Party"
@@ -231,12 +354,18 @@ describe("BlockedSection", () => {
       expect(letBackInAction).toHaveBeenCalledWith({
         blockId: "b-sam",
         restore: false,
+        letIn: false,
       }),
     );
   });
 
   it("turning the restore on brings them back, and the toast says what could not", async () => {
-    letBackInAction.mockResolvedValue({ ok: true, restored: 1, noRoom: 1 });
+    letBackInAction.mockResolvedValue({
+      ok: true,
+      restored: 1,
+      noRoom: 1,
+      admitted: 0,
+    });
     render(
       <BlockedSection eventName="Party" people={[person({ restorable: 2 })]} />,
     );
@@ -250,6 +379,7 @@ describe("BlockedSection", () => {
       expect(letBackInAction).toHaveBeenCalledWith({
         blockId: "b-sam",
         restore: true,
+        letIn: false,
       }),
     );
     expect(toast.success).toHaveBeenCalledWith("Sam can join again.", {
