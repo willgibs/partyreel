@@ -8,6 +8,15 @@
   ],
   "entries": [
     {
+      "id": "CI2",
+      "kind": "call",
+      "theme": "An event's life and timing",
+      "title": "A Disposable's develop turns its album, even while it takes uploads.",
+      "body": "Every album reads newest first while open and in the night's order once its host closes adding (AY1); a Disposable's develop, the moment she chose, turns it too, and a reopen after the develop keeps it in order.",
+      "changeIf": "a Disposable should stay newest first until she closes, like any album.",
+      "home": "docs/systems/guest-flow.md"
+    },
+    {
       "id": "I7",
       "kind": "call",
       "theme": "Deletion, retention and privacy",
@@ -87,6 +96,15 @@
       "body": "checks our usage daily (hourly at launch) and alerts you past ten times the week's busiest day; on its own it pauses only reminders, Download all, Drive and the nightly cleanup until a person lifts it. Uploads only alert (M2: a false alarm must never stop a party), beside your one-press switch that stops guests' uploads.",
       "changeIf": "ten times is too loose, a pause should lift itself, or a runaway album should stop itself.",
       "home": "docs/systems/admin-observability.md"
+    },
+    {
+      "id": "CI1",
+      "kind": "call",
+      "theme": "Safety, and the product acting on its own",
+      "title": "A guest's own uploads are capped at 1,000 files an hour.",
+      "body": "Counted on her ticket before each presign, a twentieth of her host's hourly breaker, so one script cannot spend the breaker for every other guest; past it she waits, told in her own words, and a failure of the count lets her through.",
+      "changeIf": "the cap should be higher, lower, or shared across one person's devices.",
+      "home": "docs/systems/database-security.md"
     }
   ],
   "retired": [

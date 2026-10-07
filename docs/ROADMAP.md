@@ -22,48 +22,19 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Cost: cache an open album's "has anything changed?" answer at the CDN for a few seconds (Will's yes to X5, 2026-10-07): only an open album at full access, never a password album or a blocked viewer, and the answer a version number alone, never photos or links (100 lit phones asking cost one call). With it in, AB5's cadence may tighten where that costs nothing (Will kept AB5's slowing ask and invites a livelier page at the same cost).
 - Lifecycle: a Free event idle for two years, not six months, is removed (Will changed K5, 2026-10-07: "6 months feels like too short a span"): the window in `src/lib/lifecycle/` and any SQL mirror, the warning mail, help's `<InactivityMonths />`, PRD's "Free-plan inactivity" line and lifecycle-recovery.md; the Terms state no number (his: "Legal terms should not bind us to this").
 
-### Security and abuse
-
-- Auth: around 19:19Z on 2026-10-06 a red-team's host sign-in cookies and two guests' welcome cookies vanished in three browser contexts at once (the guests' httpOnly cookie survived), with no request or action of theirs; once, not seen again in 40 minutes; another session signing willg97 out may explain it (red-team 56b, unexplained). [unsure: once, not seen again in 40 minutes; another session's sign-out may explain it]
-- QA hardening: a per-guest `presign` abuse kind (`src/lib/security/abuse-rate-limit.ts`), so one script cannot spend a host's hourly breaker (20,000 uploads across her albums, `meter_upload`) for every other guest; the pipeline already answers 429 with `Retry-After` (`src/lib/upload/server-pipeline.ts`).
-
 ### Uploads, media and exports
 
 - Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
 
-### The guest's album
-
-- Guests: an album's order turns when its host closes adding, never on a date (Will, 2026-10-07, call AY1 changed): today it turns at 9 am the morning after its last day (`lib/shared/album-order.ts`, `lib/event/zone-morning.ts`; guest-flow.md's "The album's order turns"); an undated album turns the same way, reopening turns it back, and a Disposable's develop, her own chosen moment, still turns its album (the Orchestrator's call, his to overrule) (crumbs-91).
-
-### The host app
-
-- Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for the device in hand.
-- Host: pin See it as a guest's two new facts in its own tests (`as-guest.server.test.ts`: `waitingOnArrival` asked only under the guest page's guard, `partyZone` null when shut; `as-guest-view.test.tsx`: `waitingOnArrival` holds the Add off "the first photo", and the sheet says the party's clock) (crumbs-86).
-- Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
-- Settings: her own "An email first" turned on in one page while another of her pages holds an address gate is undone when the gate goes (`events_email_held` fires only on a change of `gate`, so a write of the step under a standing hold leaves `email_held` true); clear the memory when she writes the step herself (red-team 57c, LOW).
-- Settings: the save's nudge (`settings-state-unpark.ts`) runs 1 to 9 s after the answer, but a slow response stream commits only when it ends: an invite remove answered at 1.75 s stood "Saving… 1 on the list" for 90 s on a slow desk build, and a door save for 2 minutes; nudge until the commit lands, or from the stream's end (red-team 57c, LOW).
-
 ### Admin and operations
-- Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
 - Admin: the operator's audited uploads credit (Will's yes to X6, 2026-10-07): a reason, the operator's second factor, a bounded amount, logged in `admin_actions`, on `/admin/accounts`; never a reset of the ledger the spend watch also reads; a migration, through the Advisor.
-
-### Design system and accessibility
-
-- Design: Settings' radio cards are each a Tab stop and ignore the arrow keys; one stop a group, arrows between its cards (red-team 57b, NIT).
 
 ### The lab and the kit
 
-- The lab and the kit: `pnpm compute:model`'s lab-demo scenario reads 24.5 calls a step against its budget of 9 (milestone 39's run, 2026-10-07; 182.8 on 2026-10-05): find the frames that call the API (production components fetching live data inside a board) and stub them, or re-baseline the line; the lab is dev-only, so production's cost is untouched, but a slow desk costs Will's sittings.
-- The lab: the motion playground (`lab/tools/motion/motion-playground.tsx`) still sends the reader to "the rounding board" and names `/design/lab/rounding`, both gone; point them at `/design/library/foundations#radius`.
 - The lab: a Clear on the desk (Will, 2026-10-07): "Copy everything" carried desk 8's board answers into his calls paste, since the desk still served a build older than their transcription; one press empties the sitting's held answers, and the Orchestrator refreshes the desk after each transcription so recorded answers never ride again.
 
 ### Code hygiene
-
-- Code hygiene: `device-tickets.test.tsx` still pins the welcome by the legacy `pr_welcome_<qr>` localStorage key; read `document.cookie` as `foreign-ticket.test.tsx` does, then drop `use-welcome-seen.ts`'s legacy put-down (`LEGACY_PREFIX`, its `localStorage` removals) and its pins in `use-welcome-seen.test.tsx`.
-- Code hygiene: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller; remove them with their Library specimens (`library/compositions/gallery-demos.tsx`).
-- Code hygiene: drop `resolveRowStep`'s legacy pixel-width mapping (`LEGACY_WIDTH_STEP`, `lib/shared/tile-size-cookie.ts`); nothing writes a width any more and only test devices hold one.
-- Code hygiene: five stale comments: `zone-morning.ts`'s head about the seeding (both callers retired it), `server-pipeline.ts:544`'s "The host's route takes none" of `captured_wall`, and `zone.server.ts`'s head "for a guest's render" (the host's complete reads it too, by the body's id) (crumbs-86); the Library's `pricing-demos.tsx` above `stripeAnswers` ("Starting…", "Opening…") and `pricing/leave.ts`'s "the button's "Starting…"", the key saying "Opening billing" now (halo-last).
-- Code hygiene: retire crumbs-88's typed seam in `lib/db/mutations/events.ts` now `types.ts` carries `events.create_key` (applied 20261007111050): `CREATE_KEY`'s cast and the filter spelled as a known column become the plain column, the `Object.assign` putting the key on the insert becomes a field, and `eventUnderKey`'s 42703 branch goes with the tests that pin it (crumbs-88).
+- Code hygiene: `server-pipeline.ts:544`'s comment says "The host's route takes none" of `captured_wall`, stale (no-signal-wiring takes it; the other four stale comments went with crumbs-91).
 
 ## Upcoming
 
@@ -90,6 +61,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Security and abuse
 
 - Security: the impersonation words (`support`, `billing`, `verify`, ...) are refused only as whole slugs (`reserved-slugs.ts`, `set_event_slug`), so `/e/billing-update` stays claimable; refusing them as a part would also take slugs like `staff-party`.
+- QA hardening: the presign budget checks and counts in two round trips, so one ticket's simultaneous bursts can all pass inside one; an atomic count-and-insert RPC (an advisory lock on the requester) would close it (crumbs-91).
 
 ### Billing and pricing
 
@@ -149,6 +121,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: the album's controls (Will's own answer to X10, 2026-10-07): one gallery for every kind of event, with deeper optional filters, sort and views (smart views, perhaps), never a divided default: no day dividers or chapters drawn for her, since "our albums are built to be used dynamically across nearly any sort of event type or duration".
 - Lab exploration: the guestbook (Will's yes to X12, 2026-10-07): a short note, a voice memo or a video message to the hosts, moderated in Review like any upload, at the reel's end and in a place of its own; no captions or comments on photographs; "very natural, and likely a more underlying feature", never forced (the event-page board leaves its door).
 - Share: the event card route loads no font, so Satori paints its 700-weight name in Geist Regular with a wide gap before "event"; the card's wiring loads its face (after-party r1; its placeholder tile is the wordmark since brand-marks-wiring).
+- Guests: an album open across her close turns its order at the sync's word (AY1) but keeps its Add and its open words until a reload (`event-experience.tsx`'s `canUpload` reads the render's `accepting_uploads`, the camera alone the live word); say the close from the live word too (crumbs-91).
 
 ### Accounts and profiles
 
@@ -197,6 +170,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Host: a Decline or a Let in from a card leaves focus on the room's panel once its row leaves; move it to the next row's name, as the row's own act did before (guests-room-wiring).
 - Drive: the album tile's Standby dot (`drive-tile-mark.tsx`, `bg-info`) is now the page's muted ink on glass, the same grey as its stopped dot: draw it half-lit in the glass's white, as the Badge draws Standby (brand-marks-wiring).
 - Mail: every mail's head wears the wordmark as drawn at 22px (`public/email/wordmark-v1.png`): `scripts/build-email-wordmark.mjs` on the small cut into `wordmark-v2.png`, and `templates.ts`'s `WORDMARK` pointed at it, so his three near-touching pairs stop blotting (brand-marks-wiring).
+- Settings: after a password's first set, a page that never saw her own write of "An email first" elsewhere says names only are back while the step stays on (the trigger kept her word, 20261008030000) until a reload; read the step from `set_event_password`'s answer (crumbs-91).
 
 ### Admin and operations
 
@@ -294,6 +268,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The lab: the desk is long at a phone (the Calls place alone about 10,500 px at 375, the queue above it more): fold an answered section to a line, or walk the calls as steps of the review like the boards' asks (calls-desk).
 - The Library: the "At the door and Invited" specimen's hint says "Let in · Decline, then Undo on its toast"; Decline is a name's card's now (`library/compositions/gallery-demos.tsx`) (guests-room-wiring).
 - Library: the Logo specimens (`library/patterns/gallery-demos.tsx`) still call the mark "a stand-in" until the v1 icon arrives, and draw the display size in the small cut: the Ring by name, and `cut="display"` on the 48px specimen (the specimens' JSON regenerated) (brand-marks-wiring).
+- The lab and the kit: the kit kills servers by port the broad way (`lsof -ti tcp:$PORT | xargs kill` in `capture.sh`, `capture-all.sh`, `gate-lane.sh`, `demo-rerun.sh`, pinned by `gate-dev-cache-policy.test.ts`), which also kills a walk's headless Chrome's network service and wipes its cookies; kill the listener alone (`-sTCP:LISTEN`, `kit_port_pids`) (crumbs-91, red-team 56b's vanished cookies).
 
 ### Code hygiene
 
@@ -307,6 +282,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: `event-settings/settings-pages.ts`'s head still lists Create's Get it ready among the links into a Settings page; Create's foot is Go to your event now (create-wizard-wiring-2).
 - Code hygiene: retire `blockedSince`, `blockedLineParts` and `LET_IN_LINE` (`lib/events/event-blocks.ts`), which the Guests room no longer calls (only their own tests do) (guests-room-wiring).
 - Code hygiene: `guest-look.ts`'s `readQuietCards` restates the four public card columns because `social.ts`'s `getProfileCards` is private; export it and read through it (guests-room-wiring).
+- Code hygiene: `EventCard`'s `variant` has no caller passing it (the profile hands its own marker as `action`; the marketing teaser draws its own card), and its `data-static` comment still says a host management card; fold the guest marker into the profile's action (crumbs-91).
 
 ## Before launch
 
@@ -389,6 +365,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The marketing site on a real iPhone `[eng+human]`: the privacy lens on /features/privacy was never driven in WebKit, so its two mitigations (`isolation` on the pane's rounded clip, `will-change` on the filtered veil) wait on a first iPhone look.
 - Marketing: the guest row on the marketing site, from fixtures only (ASSETS row 41's portraits where a face needs a photograph), drawn in the marketing round (presence r1's carried `marketing`).
 - Marketing: the site's pictures of the app still draw Review's count in the amber pill (`marketing/sections/how-it-works/host-pictures.tsx`, `features/curation/review-queue-demo.tsx`); the app's is `--needs-you` now (the marketing visuals' phase) (crumbs-87).
+- Legal: the privacy page (`legal-privacy.tsx`) says the welcome's flag lives in local storage and counts three cookies; `pr_welcome_<qr>` is a year's cookie now, beside `pr_tile_size`, `pr_album_sort` and `pr_album_w` (crumbs-91).
 
 ### The lab and the kit
 
