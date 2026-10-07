@@ -1,14 +1,34 @@
 "use client";
 
-import { useId, useState, useTransition, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+  type KeyboardEvent,
+} from "react";
 import Link from "next/link";
-import { Check, X } from "lucide-react";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   addInvitesAction,
   removeInviteAction,
 } from "@/app/(app)/dashboard/[eventId]/guests/actions";
+import {
+  Address,
+  Face,
+  Hint,
+} from "@/app/(app)/dashboard/[eventId]/guests/people";
+import {
+  ARRIVES,
+  FOLD_FACES,
+  Fold,
+  ROW_LINE,
+  RoomGroup,
+  Words,
+} from "@/app/(app)/dashboard/[eventId]/guests/room-rows";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { useUnparkAfterSave } from "@/components/app/event-settings/settings-state-unpark";
@@ -34,6 +54,13 @@ const SERVER_INVITE_ACTS: InviteActs = {
 /** One address on the list, as the page hands it to the room. */
 export type InvitedPerson = { email: string; joined: boolean };
 
+/** A joined address's person, where the room already holds them: their face and name beside the address. */
+export type InvitedFace = {
+  name: string;
+  seed: string | null;
+  photo: string | null;
+};
+
 /** What the last save did, said under the field. */
 type Tally = {
   added: number;
@@ -54,10 +81,17 @@ const NONE: ReadonlySet<string> = new Set();
  * ★ ONE FIELD TAKES EITHER: type one and press Enter, or paste two hundred and they land (the board's
  * `both`). A paste is read into addresses and the entries that held none (`readAddresses`), the
  * readable ones saved at once and counted by the database, the unreadable ones kept in the field as
- * flagged chips to fix or drop, so the host sees exactly what did not make it.
+ * flagged chips to fix or drop, so the host sees exactly what did not make it. ★ THE FIELD IS THE HOUSE'S
+ * WELL, AND HOLDS THE HOUSE'S HALO WHILE IT HOLDS THE CARET (the ROADMAP's focus stragglers: its focus was a 1px
+ * border): the chips and the input stand in one well, which wears the halo for the input inside it (`data-halo`, the
+ * house's way for an element that stands for a focus it does not hold).
  *
- * ★ EACH ADDRESS SAYS WHETHER IT JOINED: an address matches only once its guest confirms it, so the
- * list reads Joined or Not yet, and removing one never puts out someone it already let in.
+ * ★ ONE CALM ROW AN ADDRESS (guests-room r1, `rows=list`): who has not joined yet leads, each address beside an empty
+ * seat in the faces' column (the initial they will arrive under) with its remove at the row's end; the joined fold
+ * into one row wearing their faces, and open under it with the face and name the room holds for each. An address
+ * matches only once its guest confirms it, so removing one never puts out someone it already let in. ★ A REMOVE BY
+ * KEYBOARD KEEPS THE KEYBOARD IN THE LIST (the ROADMAP's focus stragglers: it dropped to the sheet): focus moves to
+ * the next address's remove, else the one before it, else the field.
  *
  * ★ LISTING SOMEONE WHO WAITS LETS HER IN (build 23's BUG-2, 20260929220000): while the list is the door,
  * an address that asked at it comes in the moment it is listed, so she leaves At the door above (the
@@ -76,22 +110,37 @@ export function InvitedSection({
   eventId,
   invited,
   listIsTheDoor,
+  faces,
   acts = SERVER_INVITE_ACTS,
 }: {
   eventId: string;
   invited: InvitedPerson[];
   /** The invite list is the way in right now (Private, your invite list). */
   listIsTheDoor: boolean;
+  /** A joined address's person by address, where the room holds them (its guests); left out, the address alone. */
+  faces?: ReadonlyMap<string, InvitedFace>;
   acts?: InviteActs;
 }) {
   const fieldId = useId();
   const statusId = useId();
+  const joinedId = useId();
   const [typed, setTyped] = useState("");
   // ★ AN ADDRESS TYPED BEFORE THE PAGE HYDRATED IS NOT LOST (`adopt-typed-value.ts`): this is a bare
   // <input> over its own state, so it adopts through the hook the shared `Input` uses.
   const adoptRef = useAdoptTypedValue<HTMLInputElement>(typed);
+  const fieldRef = useRef<HTMLInputElement | null>(null);
+  const setField = useCallback(
+    (el: HTMLInputElement | null) => {
+      adoptRef(el);
+      fieldRef.current = el;
+    },
+    [adoptRef],
+  );
+  const [focused, setFocused] = useState(false);
   const [flagged, setFlagged] = useState<string[]>([]);
   const [tally, setTally] = useState<Tally>(null);
+  const [joinedOpen, setJoinedOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
   // ★ A REMOVAL HIDES ITS ADDRESS ONLY UNTIL THE PAGE READS THE LIST AGAIN (build 23's NIT-4 shape, swept
   // here): the save revalidates the room, and from that read on the read is the truth, so an address
   // removed and added again comes back with the read that has it, rather than staying hidden all visit.
@@ -110,7 +159,8 @@ export function InvitedSection({
   const unpark = useUnparkAfterSave(saving);
 
   const list = invited.filter((p) => !hidden.has(p.email));
-  const joined = list.filter((p) => p.joined).length;
+  const waiting = list.filter((p) => !p.joined);
+  const joined = list.filter((p) => p.joined);
   const full = list.length >= INVITE_LIST_CAP;
 
   function take(input: string) {
@@ -150,7 +200,26 @@ export function InvitedSection({
     }
   }
 
-  function remove(email: string) {
+  /**
+   * Where the keyboard goes once an address leaves: the remove that takes its place (the next address's), else the one
+   * before it, else the field. Read off the list as drawn before the address leaves it.
+   */
+  function keepFocus(email: string) {
+    const removes = [
+      ...(listRef.current?.querySelectorAll<HTMLButtonElement>(
+        "[data-invited-remove]",
+      ) ?? []),
+    ];
+    const at = removes.findIndex((b) => b.dataset.invitedRemove === email);
+    const next = removes[at + 1] ?? removes[at - 1] ?? null;
+    window.requestAnimationFrame(() => {
+      if (next?.isConnected) next.focus();
+      else fieldRef.current?.focus();
+    });
+  }
+
+  function remove(email: string, byKeyboard: boolean) {
+    if (byKeyboard) keepFocus(email);
     setRemoved((r) => ({
       from: invited,
       emails: new Set([...(r.from === invited ? r.emails : NONE), email]),
@@ -186,6 +255,15 @@ export function InvitedSection({
         .join(" ")
     : "";
 
+  const doorLink = (
+    <Link
+      href={settingsPageHref(eventId, "door")}
+      className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
+    >
+      Change who can get in
+    </Link>
+  );
+
   // Nobody on it and not the door: nothing for a field to do yet. Read off `invited`, never `list`, so an address she
   // removes from a list she was holding does not fold the section under her hand before the room reads the list again.
   if (!listIsTheDoor && invited.length === 0) {
@@ -205,12 +283,7 @@ export function InvitedSection({
               {
                 "Your invite list isn't the way in right now, so it does nothing yet. When it is, the addresses you add come straight in once they confirm their email. It sends nothing to them. "
               }
-              <Link
-                href={settingsPageHref(eventId, "door")}
-                className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
-              >
-                Change who can get in
-              </Link>
+              {doorLink}
             </>
           }
         >
@@ -220,6 +293,22 @@ export function InvitedSection({
     );
   }
 
+  const removeKey = (email: string) => (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      className="shrink-0 text-muted-foreground hover:text-foreground"
+      title="Remove"
+      aria-label={`Remove ${email}`}
+      data-invited-remove={email}
+      // A press by keyboard (Enter or Space reach `click` with no pointer: `detail` 0) keeps the keyboard in the list.
+      onClick={(e) => remove(email, e.detail === 0)}
+    >
+      <X />
+    </Button>
+  );
+
   return (
     <section
       id="invited"
@@ -228,27 +317,11 @@ export function InvitedSection({
       className="space-y-2"
     >
       <FeedSectionHeader label="Invited" count={list.length} />
-      <p className="text-xs text-pretty text-muted-foreground">
-        {listIsTheDoor ? (
-          "These addresses come straight in once they confirm their email. Anyone else can ask you."
-        ) : (
-          <>
-            {
-              "Your list lets these addresses in while the invite list is the way in. "
-            }
-            <Link
-              href={settingsPageHref(eventId, "door")}
-              className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
-            >
-              Change who can get in
-            </Link>
-          </>
-        )}
-      </p>
 
       <div
+        data-halo={focused ? "" : undefined}
         className={cn(
-          "flex flex-wrap gap-1.5 rounded-lg border border-input bg-background p-2 transition-colors focus-within:border-ring motion-reduce:transition-none",
+          "flex focus-halo flex-wrap gap-1.5 rounded-lg field-well p-2",
           full && "opacity-60",
         )}
       >
@@ -273,7 +346,7 @@ export function InvitedSection({
           Add or paste addresses
         </label>
         <input
-          ref={adoptRef}
+          ref={setField}
           id={fieldId}
           type="email"
           inputMode="email"
@@ -285,6 +358,7 @@ export function InvitedSection({
           aria-describedby={statusId}
           onChange={(e) => setTyped(e.target.value)}
           onKeyDown={onKeyDown}
+          onFocus={() => setFocused(true)}
           onPaste={(e) => {
             const text = e.clipboardData.getData("text");
             if (!text) return;
@@ -292,6 +366,7 @@ export function InvitedSection({
             take(`${typed} ${text}`);
           }}
           onBlur={() => {
+            setFocused(false);
             if (typed.trim()) take(typed);
           }}
           className="h-7 min-w-40 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-muted-foreground md:text-sm"
@@ -307,44 +382,118 @@ export function InvitedSection({
         {flagged.length > 0
           ? ` ${formatCount(flagged.length)} ${flagged.length === 1 ? "needs" : "need"} a look.`
           : ""}
-        {` ${formatCount(list.length)} on the list, ${formatCount(joined)} joined.`}
+        {` ${formatCount(list.length)} on the list, ${formatCount(joined.length)} joined.`}
       </p>
 
       {list.length > 0 ? (
-        <ul className="divide-y divide-border rounded-lg border bg-card">
-          {list.map((person) => (
-            <li
-              key={person.email}
-              data-invited={person.email}
-              className="flex items-center gap-3 px-3 py-2 sm:px-4"
-            >
-              <span className="min-w-0 flex-1 truncate text-sm">
-                {person.email}
-              </span>
-              <span
-                className={cn(
-                  "flex shrink-0 items-center gap-1 text-xs",
-                  person.joined ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
-                {person.joined ? (
-                  <Check className="size-3.5" aria-hidden />
+        <div ref={listRef}>
+          <RoomGroup>
+            {waiting.length > 0 ? (
+              <>
+                {/* The column's head, over the addresses it names, in the words' column rather than the seats'. */}
+                <p className="pt-3 pr-3 pb-1 pl-16 text-caption text-muted-foreground">
+                  {"Not yet "}
+                  <span className="tabular-nums">{`· ${formatCount(waiting.length)}`}</span>
+                </p>
+                <ul aria-label="Not joined yet">
+                  {waiting.map((person) => (
+                    <li
+                      key={person.email}
+                      data-invited={person.email}
+                      className={cn(
+                        ROW_LINE,
+                        "flex min-h-11 items-center gap-3 pr-1.5 pl-3",
+                      )}
+                    >
+                      {/* An empty seat in the faces' column: the initial they will arrive under. */}
+                      <span className="flex w-10 shrink-0 justify-center">
+                        <span
+                          aria-hidden
+                          className="flex size-8 items-center justify-center rounded-full border border-dashed border-foreground/30 text-caption text-muted-foreground"
+                        >
+                          {person.email.slice(0, 1).toUpperCase()}
+                        </span>
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+                        <Address email={person.email} chars={30} />
+                      </span>
+                      {removeKey(person.email)}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            {joined.length > 0 ? (
+              <>
+                <Fold
+                  faces={joined.slice(0, FOLD_FACES).map((p) => {
+                    const face = faces?.get(p.email);
+                    return {
+                      key: p.email,
+                      name: face?.name ?? p.email,
+                      seed: face?.seed ?? p.email,
+                    };
+                  })}
+                  expanded={joinedOpen}
+                  controls={joinedId}
+                  onPress={() => setJoinedOpen((o) => !o)}
+                  data-invited-joined=""
+                >
+                  {`${formatCount(joined.length)} joined`}
+                </Fold>
+                {joinedOpen ? (
+                  <ul id={joinedId} aria-label="Joined" className="border-t">
+                    {joined.map((person) => {
+                      const face = faces?.get(person.email);
+                      return (
+                        <li
+                          key={person.email}
+                          data-invited={person.email}
+                          className={cn(
+                            ROW_LINE,
+                            ARRIVES,
+                            "flex min-h-14 items-center gap-3 py-2 pr-1.5 pl-3",
+                          )}
+                        >
+                          <Face
+                            name={face?.name ?? person.email}
+                            seed={face?.seed ?? person.email}
+                            photo={face?.photo ?? null}
+                            className="size-10"
+                          />
+                          <Words
+                            name={face?.name ?? person.email}
+                            line={
+                              face ? (
+                                <Address email={person.email} chars={28} />
+                              ) : (
+                                "Joined"
+                              )
+                            }
+                          />
+                          {removeKey(person.email)}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 ) : null}
-                {person.joined ? "Joined" : "Not yet"}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Remove ${person.email}`}
-                onClick={() => remove(person.email)}
-              >
-                <X />
-              </Button>
-            </li>
-          ))}
-        </ul>
+              </>
+            ) : null}
+          </RoomGroup>
+        </div>
       ) : null}
+      <Hint>
+        {listIsTheDoor ? (
+          "Your list is the door: these come straight in once they confirm. Anyone else can ask you."
+        ) : (
+          <>
+            {
+              "Your list lets these addresses in while the invite list is the way in. "
+            }
+            {doorLink}
+          </>
+        )}
+      </Hint>
     </section>
   );
 }

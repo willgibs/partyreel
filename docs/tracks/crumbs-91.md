@@ -87,6 +87,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   # line 12's retired chip leaves the share test's second assertion
   - src/app/(app)/dashboard/[eventId]/page.tsx
   - src/app/(app)/dashboard/new/create-flow.test.tsx
+  # claimed at the second sync (brand-marks-wiring integrated): line 12's card chip leaves the needs-you test
+  - src/components/app/dashboard/needs-you.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/ROADMAP.md
   - docs/systems/guest-flow.md

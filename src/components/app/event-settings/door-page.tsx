@@ -507,7 +507,7 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               {`Only people you invite · ${formatCount(counts.invited)} invited · `}
                               <Link
                                 href={`${guestsHref}#invited`}
-                                className="font-medium text-foreground underline underline-offset-4"
+                                className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
                               >
                                 Manage in Guests
                               </Link>
@@ -518,7 +518,7 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               {`${people(counts.waiting, "person is", "people are")} waiting at the door · `}
                               <Link
                                 href={`${guestsHref}#at-the-door`}
-                                className="font-medium text-foreground underline underline-offset-4"
+                                className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
                               >
                                 Let them in from Guests
                               </Link>

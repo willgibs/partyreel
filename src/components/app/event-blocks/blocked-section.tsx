@@ -5,9 +5,20 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { letBackInAction } from "@/app/(app)/dashboard/[eventId]/guests/actions";
+import {
+  Face,
+  Hint,
+  MarkGlyph,
+} from "@/app/(app)/dashboard/[eventId]/guests/people";
+import {
+  ROW_LINE,
+  RoomGroup,
+  Words,
+} from "@/app/(app)/dashboard/[eventId]/guests/room-rows";
+import { atWords } from "@/app/(app)/dashboard/[eventId]/guests/words";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
-import { UnverifiedMark } from "@/components/shared/unverified-mark";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { GuestListItem } from "@/components/social/guest-list";
+import { GuestPeek, type CardStanding } from "@/components/social/guest-peek";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,10 +31,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import {
   BLOCKED_NOTE,
-  blockedLineParts,
   blockName,
   isLetIn,
-  LET_IN_LINE,
   letBackInAct,
   letBackInLede,
   letBackInTitle,
@@ -32,20 +41,26 @@ import {
   restoreOffer,
   type BlockedPerson,
 } from "@/lib/events/event-blocks";
+import { formatCount } from "@/lib/format/count";
 
 /**
- * THE BLOCKED LIST, AT THE FOOT OF THE GUESTS ROOM (Will, event-safety `blocked=foot`): under the
- * guests, a quiet section naming who is blocked, since when, and Let back in. A blocked person drops
- * off the guest list and every count, so this is the one place that keeps naming them, and it sits in
- * the room where Block is pressed and people are managed, under the list they left.
+ * THE BLOCKED LIST, AT THE FOOT OF THE GUESTS ROOM (Will, event-safety `blocked=foot`), in guests-room r1's calm rows
+ * (`rows=list`): a quiet section naming who is blocked, when, and the way back. A blocked person drops off the guest
+ * list and every count, so this is the one place that keeps naming them, under the list they left.
  *
- * ★ QUIET BY CONSTRUCTION: the room's own section header (`FeedSectionHeader`), one muted line that
- * says only the host sees it, and rows on the room's muted card, never an alarm. The host's words say
- * what a blocked person meets (a private album); the blocked person is never told anything.
+ * ★ QUIET BY CONSTRUCTION: the room's own section header, one muted line that says only the host sees it, and an
+ * UNLIT card (its ring alone, no tone: a light that is off), each face dimmed and each name in the muted ink, when the
+ * block landed beside the name (tonight's time, or the day), and how they left under it: "Declined · still asking" (why
+ * Let in is one press there) or "Blocked · 4 uploads in Deleted" (what Let back in's confirm offers to bring back).
+ * The host's words say what a blocked person meets (a private album); the blocked person is never told anything.
  *
- * ★ A DECLINED NEWCOMER'S ROW SAYS LET IN, AND ONE PRESS DOES IT (host-moments r1, `let-back=straight`): her ask
- * still stands, so the act answers it and the album opens for her where she waits, the row saying so under her name
- * before the press. Everyone else's Let back in keeps its confirm, which says where they land first (`lands`).
+ * ★ EVERY NAME OPENS THE CARD EVERY NAME OPENS (`card=standing`): who they were, when and how they left, and the way
+ * back with where it takes them beside it, the row's own act in the card's words. The row keeps its act too, so Let
+ * in is still one press where her ask stands.
+ *
+ * ★ A DECLINED NEWCOMER'S ACT IS LET IN, AND ONE PRESS DOES IT (host-moments r1, `let-back=straight`): her ask
+ * still stands, so the act answers it and the album opens for her where she waits. Everyone else's Let back in keeps
+ * its confirm, which says where they land first (`lands`).
  */
 export function BlockedSection({
   eventName,
@@ -56,16 +71,62 @@ export function BlockedSection({
 }) {
   if (people.length === 0) return null;
   return (
-    <section aria-label="Blocked" data-blocked-section="" className="space-y-2">
+    <section
+      id="blocked"
+      aria-label="Blocked"
+      data-blocked-section=""
+      className="space-y-2"
+    >
       <FeedSectionHeader label="Blocked" count={people.length} />
-      <p className="text-xs text-muted-foreground">{BLOCKED_NOTE}</p>
-      <ul className="divide-y divide-border rounded-lg border bg-muted/30">
-        {people.map((person) => (
-          <BlockedRow key={person.id} person={person} eventName={eventName} />
-        ))}
-      </ul>
+      <RoomGroup unlit>
+        <ul>
+          {people.map((person) => (
+            <BlockedRow key={person.id} person={person} eventName={eventName} />
+          ))}
+        </ul>
+      </RoomGroup>
+      <Hint>{BLOCKED_NOTE}</Hint>
     </section>
   );
+}
+
+/** What waits in Deleted of theirs, as the line under a name says it. */
+function inDeleted(n: number): string {
+  return `${n === 1 ? "1 upload" : `${formatCount(n)} uploads`} in Deleted`;
+}
+
+/** How they left, under a blocked name: a decline whose ask stands, or a block, with what of theirs waits in Deleted. */
+export function leftLine(person: BlockedPerson): string {
+  if (isLetIn(person.lands)) return "Declined · still asking";
+  return person.restorable > 0
+    ? `Blocked · ${inDeleted(person.restorable)}`
+    : "Blocked";
+}
+
+/** A blocked person as the card every name opens takes one: a confirmed face, or a typed name's own colour. */
+function blockedItem(person: BlockedPerson): GuestListItem {
+  const name = blockName(person.name);
+  if (!person.verified)
+    return {
+      kind: "unverified",
+      id: person.id,
+      displayName: name,
+      seed: person.seed ?? undefined,
+    };
+  return {
+    id: person.id,
+    displayName: name,
+    slug: null,
+    avatarMarker: null,
+    avatarUrl: person.avatarUrl,
+    seed: person.seed ?? undefined,
+  };
+}
+
+/** Where the way back takes them, in the room's own word for the album (the confirm, standing alone, names it). */
+function whereItTakesThem(person: BlockedPerson): string {
+  const said = letBackInLede("the album", person.lands);
+  return said.charAt(0).toUpperCase() + said.slice(1);
 }
 
 function BlockedRow({
@@ -75,92 +136,22 @@ function BlockedRow({
   person: BlockedPerson;
   eventName: string;
 }) {
-  const [asking, setAsking] = useState(false);
-  const who = blockName(person.name);
-  const parts = blockedLineParts(person);
-  const atOnce = letInAtOnce(person);
-  return (
-    <li
-      data-blocked-row={person.id}
-      data-blocked-lands={person.lands}
-      className="flex items-center gap-3 px-3 py-2.5 sm:px-4"
-    >
-      <Avatar size="default" seed={person.seed ?? undefined}>
-        {person.verified && person.avatarUrl ? (
-          <AvatarImage src={person.avatarUrl} alt="" />
-        ) : null}
-        <AvatarFallback className="text-xs">
-          {who.slice(0, 1).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <div className="@container min-w-0 flex-1">
-        <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          <span className="truncate">{who}</span>
-          {!person.verified && <UnverifiedMark name={person.name} />}
-        </p>
-        {/* One line where the row is wide, two where it is narrow: the address may shorten, "since when" never does.
-            ★ THE ROW'S OWN WIDTH, NEVER THE SCREEN'S (crumbs-86): in the Guests room's panel at a desk the screen is
-            wide and the row is not, and a screen's breakpoint left the address "r." beside a whole since-line. */}
-        <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground @sm:flex-nowrap">
-          <span className="max-w-full min-w-0 truncate">{parts.who}</span>
-          <span aria-hidden className="hidden px-1 @sm:inline">
-            ·
-          </span>
-          <span className="sr-only">, </span>
-          <span className="w-full shrink-0 @sm:w-auto">{parts.when}</span>
-        </p>
-        {/* Where the one press takes her, said before it (the board's drawn line): no confirm says it for this row. */}
-        {atOnce ? (
-          <p
-            data-blocked-let-in-line=""
-            className="mt-0.5 text-xs text-pretty text-foreground"
-          >
-            {LET_IN_LINE}
-          </p>
-        ) : null}
-      </div>
-      {atOnce ? (
-        <LetInNow person={person} />
-      ) : (
-        <>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={() => setAsking(true)}
-          >
-            {letBackInAct(person.lands).label}
-          </Button>
-          <Popup open={asking} onOpenChange={setAsking}>
-            <PopupContent kind="confirm" size="md" data-let-back-in="">
-              <LetBackInBody
-                person={person}
-                eventName={eventName}
-                onDone={() => setAsking(false)}
-              />
-            </PopupContent>
-          </Popup>
-        </>
-      )}
-    </li>
-  );
-}
-
-/**
- * LET IN, ONE PRESS (host-moments r1, `let-back=straight`): the block lifted and her standing ask answered yes in the
- * same call, so she is in on every device she asked from. ★ ITS NAME SAYS WHOM (a screen reader's), since no confirm
- * stands between the press and the act: a press on the wrong row of the list must be heard as that row's. ★ IT
- * HOLDS WHILE IT WRITES, the key working in words, so a second press cannot send a second lift.
- */
-function LetInNow({ person }: { person: BlockedPerson }) {
   const router = useRouter();
+  const [asking, setAsking] = useState(false);
   const [pending, startTransition] = useTransition();
+  const who = blockName(person.name);
   const act = letBackInAct(person.lands);
+  const atOnce = letInAtOnce(person);
+  const letIn = isLetIn(person.lands);
   // Inside a sentence, so a nameless row reads "this guest" (blockName's stand-in starts one).
   const whom = person.name?.trim() || "this guest";
 
-  function letIn() {
+  /**
+   * LET IN, ONE PRESS (host-moments r1, `let-back=straight`): the block lifted and her standing ask answered yes in the
+   * same call, so she is in on every device she asked from. ★ IT HOLDS WHILE IT WRITES, so a second press cannot send a
+   * second lift.
+   */
+  function letInNow() {
     if (pending) return;
     startTransition(async () => {
       const result = await letBackInAction({
@@ -184,19 +175,101 @@ function LetInNow({ person }: { person: BlockedPerson }) {
     });
   }
 
+  /** The way back: one press where it is the whole answer, else the confirm that says where they land. */
+  const wayBack = () => (atOnce ? letInNow() : setAsking(true));
+
+  const standing: CardStanding = {
+    tone: "blocked",
+    line: `${letIn ? "Declined" : "Blocked"} ${atWords(person.since)}`,
+    aside: letIn
+      ? "still asking"
+      : person.restorable > 0
+        ? inDeleted(person.restorable)
+        : undefined,
+    act: (close, size) => (
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant={letIn ? "default" : "outline"}
+          size={size}
+          className="shrink-0"
+          aria-label={`${act.label} ${whom}`}
+          data-blocked-card-act=""
+          onClick={() => {
+            close();
+            wayBack();
+          }}
+        >
+          {act.label}
+        </Button>
+        <p className="text-caption text-balance text-muted-foreground">
+          {whereItTakesThem(person)}
+        </p>
+      </div>
+    ),
+  };
+
   return (
-    <Button
-      type="button"
-      size="sm"
-      className="shrink-0"
-      aria-label={`${act.label} ${whom}`}
-      working={pending}
-      workingLabel={act.working}
-      onClick={letIn}
-      data-let-in-now=""
+    <li
+      data-blocked-row={person.id}
+      data-blocked-lands={person.lands}
+      className={`${ROW_LINE} flex min-h-14 items-center gap-2 px-3 py-2`}
     >
-      {act.label}
-    </Button>
+      <GuestPeek
+        item={blockedItem(person)}
+        email={person.verified ? person.email : null}
+        canFollow={false}
+        standing={standing}
+        dim
+      >
+        <button
+          type="button"
+          data-blocked-name={person.id}
+          className="flex min-w-0 flex-1 focus-halo items-center gap-3 rounded-lg text-left outline-none"
+        >
+          <Face
+            name={who}
+            seed={person.seed}
+            photo={person.verified ? person.avatarUrl : null}
+            className="size-10"
+            dim
+          />
+          <Words
+            name={who}
+            quiet
+            mark={person.verified ? undefined : <MarkGlyph />}
+            aside={person.since}
+            line={leftLine(person)}
+          />
+        </button>
+      </GuestPeek>
+      {/* ★ ITS NAME SAYS WHOM (a screen reader's), since no confirm stands between a one-press Let in and the act: a
+          press on the wrong row of the list must be heard as that row's. */}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="shrink-0"
+        aria-label={`${act.label} ${whom}`}
+        working={atOnce ? pending : undefined}
+        workingLabel={atOnce ? act.working : undefined}
+        data-let-in-now={atOnce ? "" : undefined}
+        onClick={wayBack}
+      >
+        {act.label}
+      </Button>
+      {atOnce ? null : (
+        <Popup open={asking} onOpenChange={setAsking}>
+          <PopupContent kind="confirm" size="md" data-let-back-in="">
+            <LetBackInBody
+              person={person}
+              eventName={eventName}
+              onDone={() => setAsking(false)}
+            />
+          </PopupContent>
+        </Popup>
+      )}
+    </li>
   );
 }
 

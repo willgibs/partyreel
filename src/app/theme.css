@@ -37,8 +37,15 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
 
-  /* State colors — feedback always gets color; brand never does. */
+  /* State colors — feedback always gets color; brand never does. Four tiers
+     (brand-marks r1; design-system.md maps every state to its tier): Standby
+     `info`, Ready `success`, a warning `warning`, a fault `destructive`. */
   --color-success: var(--success);
+  /* Ready's WORDS read their own token, as the warning's do (globals.css,
+     THE STATES' WORDS): the green is a light on paper, 3.68:1 as text, so
+     `text-success` alone reads a deeper green at AA; a fill, a border and a
+     glyph's stroke elsewhere keep the light. */
+  --text-color-success: var(--success-ink);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   /* The warning's WORDS read their own token (globals.css, THE WARNING'S WORDS): the amber is a light
@@ -122,14 +129,19 @@
 
   /* status=lights (identity r2): a skeleton BREATHES rather than sweeps
      (skeleton.tsx), its opacity rising and falling as a light does, and the
-     live mark's light rings out from it in the recording red (badge.tsx).
-     Both are ambient loops on an even curve, and the reduced-motion guard
-     (globals.css) stands both still: the skeleton at its rest, the live dot
-     lit. The keyframes are the theme's, emitted only where a utility wears
-     them, and named for their atom so no sheet's keyframe can shadow them. */
+     live point breathes in the recording red (badge.tsx, the dashboard's
+     LiveDot). ★ LIVE BREATHES AS A POINT, NEVER AS A RING OF LIGHT
+     (brand-marks r1, the carried `live-breathes` call): the point dims to a
+     third and comes back, the one point that moves, since it alone is
+     happening now; a ring rung out from it was a glow, and the glow is the
+     light's. Both are ambient loops on an even curve, and the reduced-motion
+     guard (globals.css) stands both still: the skeleton at its rest, the live
+     point lit. The keyframes are the theme's, emitted only where a utility
+     wears them, and named for their atom so no sheet's keyframe can shadow
+     them. */
   --animate-skeleton-breathe: skeleton-breathe 1.4s ease-in-out infinite
     alternate;
-  --animate-live-signal: live-signal 1.6s ease-out infinite;
+  --animate-live-signal: live-signal 2s ease-in-out infinite;
 
   @keyframes skeleton-breathe {
     from {
@@ -140,11 +152,12 @@
     }
   }
   @keyframes live-signal {
-    from {
-      box-shadow: 0 0 0 0 color-mix(in oklab, var(--signal) 55%, transparent);
+    0%,
+    100% {
+      opacity: 1;
     }
-    to {
-      box-shadow: 0 0 0 5px color-mix(in oklab, var(--signal) 0%, transparent);
+    50% {
+      opacity: 0.35;
     }
   }
 }

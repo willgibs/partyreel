@@ -26,11 +26,17 @@ import { cn } from "@/lib/utils";
 export function FeedSectionHeader({
   label,
   count,
+  needs = false,
   action,
   actionFills = false,
 }: {
   label: string;
   count?: number;
+  /**
+   * A count that waits on her wears the tally (`--needs-you`, solid and hard-edged, as the hub's badges do), so the
+   * Guests room's At the door says its number in the hub's Guests card's own light (guests-room r1, `rows=list`).
+   */
+  needs?: boolean;
   /** Right-side slot: the album's controls (must stay ≤ h-7, see above). */
   action?: React.ReactNode;
   /**
@@ -61,7 +67,15 @@ export function FeedSectionHeader({
           {label}
         </span>
         {count ? (
-          <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
+          <span
+            data-needs={needs ? "" : undefined}
+            className={cn(
+              "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums",
+              needs
+                ? "bg-(--needs-you) text-(color:--needs-you-foreground)"
+                : "bg-muted text-muted-foreground",
+            )}
+          >
             {formatCount(count)}
           </span>
         ) : null}
