@@ -523,8 +523,8 @@ const groundWords = (held: string) =>
  * hairline (one that draws), anything to press on it, and the dock below it.
  */
 function titleOf(root: HTMLElement, win: Window, held: string): string {
-  const rule = find(root, "[data-ap-rule]");
-  const ruled = !!rule && rule.getBoundingClientRect().width > 0;
+  const hairline = find(root, "[data-ap-rule]");
+  const drawsLine = !!hairline && hairline.getBoundingClientRect().width > 0;
   const onIt = actsIn(root, win, "[data-event-head]");
   const dock = actsIn(root, win, "[data-ap-dock]");
   // The day's own words (its eyebrow sets them in capitals), and the name it stands over as the page breaks it.
@@ -537,7 +537,7 @@ function titleOf(root: HTMLElement, win: Window, held: string): string {
       )
     : 0;
   return [
-    `leads: a title page on ${groundWords(held)}: "${day}" as its eyebrow over the name (${lines === 1 ? "one line" : `${lines} lines`}), ${textOf(find(root, "[data-ap-by]"))}'s byline${ruled ? ", a hairline" : ""}, "${textOf(find(root, "[data-ap-party]"))}"`,
+    `leads: a title page on ${groundWords(held)}: "${day}" as its eyebrow over the name (${lines === 1 ? "one line" : `${lines} lines`}), ${textOf(find(root, "[data-ap-by]"))}'s byline${drawsLine ? ", a hairline" : ""}, "${textOf(find(root, "[data-ap-party]"))}"`,
     onIt.length ? `on it: ${onIt.join(" and ")}` : "no buttons on it",
     dock.length ? `the dock: ${dock.join(", ")}` : "no dock",
   ].join("; ");

@@ -24,6 +24,7 @@ import {
   PopupContent,
   PopupHeader,
 } from "@/components/ui/popup";
+import { MODAL_ROLES } from "@/components/ui/layer-is-up";
 import { SETTINGS_GROUP_TITLES } from "@/lib/events/guest-experience-summary";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
@@ -141,7 +142,11 @@ const readHub: Reader = (root, win) => {
 /** Settings' page: its title, the uploads switch and where it stands, and whether her hub behind offers anything. */
 const readSettings: Reader = (root, win) => {
   const page = find(root, "[data-settings-page]");
-  const title = find(root, "[role='dialog'] h2");
+  // The popup's own title, under whichever modal role it wears (`MODAL_ROLES`, the roles' one home).
+  const title = find(
+    root,
+    MODAL_ROLES.map((role) => `[role="${role}"] h2`).join(", "),
+  );
   const label = findAll(root, "label").find((l) =>
     textOf(l).startsWith("Accepting uploads"),
   );
