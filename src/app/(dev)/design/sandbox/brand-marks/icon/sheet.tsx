@@ -3,14 +3,15 @@
 import { type ReactNode, useEffect, useRef } from "react";
 
 import type { ScreenId } from "../knobs";
+import { MiniTabs } from "./browser";
 import { type IconId, OnPaper, RingIcon } from "./ring";
 
 /**
- * THE ICON ITSELF, BEFORE THE PLACES IT LIVES: in the room at its home-screen
- * sizes (a 1024 master drawn at 280, then 180, 60 and 29) and in its tinted
- * appearance; the favicon's two sizes true and enlarged pixel for pixel; and
- * its paper form, the dark tile on a print's lift, since on paper the tile is
- * the dark its light needs.
+ * THE ICON AT ITS SIZES: the 1024 master at its true size (a press kit's
+ * file, an app store's tile), then 180 (a phone's home screen file), 32 (the
+ * favicon file) and 16 (a tab), each true and the two small ones enlarged
+ * pixel for pixel, in the room and on paper, with a tab of each tone at its
+ * true size. At a phone the master is drawn at the column's width.
  */
 
 function Cap({ children }: { children: string }) {
@@ -85,110 +86,91 @@ function Pixels({
 
 function Sized({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-start gap-3">
+    <div className="flex flex-col items-start gap-2.5">
       {children}
       <Cap>{label}</Cap>
     </div>
   );
 }
 
-export function IconSheet({ id, screen }: { id: IconId; screen: ScreenId }) {
-  const desk = screen === "1440";
-  const hero = desk ? 280 : 200;
+/** The sizes beside the master: the room above, paper below. */
+function Sizes({ id, phone }: { id: IconId; phone: boolean }) {
+  const gap = phone ? 18 : 26;
+  const pad = phone ? "24px 20px" : "40px 44px";
   return (
-    <div
-      className="flex min-h-screen"
-      style={{ flexDirection: desk ? "row" : "column" }}
-    >
+    <div className="flex min-w-0 flex-1 flex-col">
       <div
-        className="dark flex flex-col bg-background text-foreground"
-        style={{
-          flex: desk ? 1.25 : undefined,
-          padding: desk ? "48px 56px" : "28px 20px",
-          gap: desk ? 36 : 24,
-        }}
+        className="dark flex flex-1 flex-col bg-background text-foreground"
+        style={{ padding: pad, gap }}
       >
         <Cap>In the room</Cap>
-        <div
-          className="flex flex-wrap items-end"
-          style={{ gap: desk ? 34 : 18 }}
-        >
-          <Sized label="1024, drawn at 280">
-            <RingIcon id={id} size={hero} read="the icon large in the room" />
-          </Sized>
+        <div className="flex flex-wrap items-end" style={{ gap }}>
           <Sized label="180">
-            <RingIcon id={id} size={desk ? 180 : 120} optics={180} />
+            <RingIcon id={id} size={180} read="the icon at 180 in the room" />
           </Sized>
-          <Sized label="60, a home screen">
-            <RingIcon
-              id={id}
-              size={60}
-              read="the icon at a home screen's size"
-            />
+          <Sized label="32">
+            <RingIcon id={id} size={32} />
           </Sized>
-          <Sized label="29">
-            <RingIcon id={id} size={29} />
+          <Sized label="16">
+            <RingIcon id={id} size={16} />
           </Sized>
         </div>
-        <div
-          className="flex flex-wrap items-end"
-          style={{ gap: desk ? 34 : 18 }}
-        >
-          <Sized label="Tinted, 180">
-            <RingIcon
-              id={id}
-              size={desk ? 180 : 120}
-              optics={180}
-              appearance="tinted"
-            />
+        <div className="flex flex-wrap items-end" style={{ gap }}>
+          <Sized label="32, enlarged 4×">
+            <Pixels id={id} size={32} zoom={4} ground="#09090b" />
           </Sized>
-          <Sized label="32, the favicon">
-            <Pixels id={id} size={32} zoom={desk ? 4 : 3} ground="#09090b" />
-          </Sized>
-          <Sized label="16, a tab">
+          <Sized label="16, enlarged 8×">
             <Pixels
               id={id}
               size={16}
-              zoom={desk ? 8 : 6}
+              zoom={8}
               ground="#09090b"
               read="the favicon at a tab's size, enlarged"
             />
           </Sized>
         </div>
+        <MiniTabs icon={id} tone="dark" />
       </div>
       <div
         className="surface-paper flex flex-col bg-background text-foreground"
-        style={{
-          flex: 1,
-          padding: desk ? "48px 56px" : "28px 20px",
-          gap: desk ? 36 : 24,
-        }}
+        style={{ padding: pad, gap }}
       >
         <Cap>On paper</Cap>
-        <Sized label="Its dark tile, on a print's lift">
-          <OnPaper size={hero}>
-            <RingIcon
-              id={id}
-              size={desk ? 220 : 160}
-              optics={220}
-              read="the icon on paper"
-            />
-          </OnPaper>
-        </Sized>
-        <div
-          className="flex flex-wrap items-end"
-          style={{ gap: desk ? 34 : 18 }}
-        >
-          <Sized label="60 on paper">
-            <OnPaper size={60}>
-              <RingIcon id={id} size={60} />
+        <div className="flex flex-wrap items-end" style={{ gap }}>
+          <Sized label="180, on a print's lift">
+            <OnPaper size={180}>
+              <RingIcon id={id} size={180} read="the icon on paper" />
             </OnPaper>
           </Sized>
-          <Sized label="16 on a light tab">
-            <Pixels id={id} size={16} zoom={desk ? 8 : 6} ground="#ffffff" />
+          <Sized label="16 on a light tab, 8×">
+            <Pixels id={id} size={16} zoom={8} ground="#ffffff" />
           </Sized>
         </div>
+        <MiniTabs icon={id} tone="light" />
       </div>
+    </div>
+  );
+}
+
+/** The master and its sizes: 1600 by 1024 at a desk, one column at a phone. */
+export function IconSheet({ id, screen }: { id: IconId; screen: ScreenId }) {
+  const phone = screen === "375";
+  return (
+    <div
+      className="flex min-h-screen"
+      style={{ flexDirection: phone ? "column" : "row" }}
+    >
+      <div
+        className="dark flex shrink-0 items-center justify-center bg-background"
+        style={{ width: phone ? "100%" : 1024, padding: phone ? 16 : 0 }}
+      >
+        <RingIcon
+          id={id}
+          size={phone ? 343 : 1024}
+          read={phone ? "the master, drawn at a phone's width" : "the master at 1024"}
+        />
+      </div>
+      <Sizes id={id} phone={phone} />
     </div>
   );
 }
