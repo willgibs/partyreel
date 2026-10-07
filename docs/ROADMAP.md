@@ -40,6 +40,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guest door: the name door's `account` mode has no caller (only `requestNameDoor("edit")` is ever asked: `lib/guest/name-door.ts`, `guest-name-step.tsx`, `entry-modal.tsx`'s `openToName`); remove it.
 - Guest door: a confirm by the emailed link (a full reload) adopts her typed name on the server (`adopt-door-name.ts`) with no beat, so she is never told the name her photos carry or offered its Change, as the in-page confirm does (`confirm-beat.ts`).
 - Album: an album tile shows no keyboard focus: its open button's `focus-halo halo-inset` is an inset shadow painted under the button's own photograph (`shared/album-tile.tsx`); carry the halo on an overlay that wears `data-halo` while the button holds the keyboard's focus, as the guests-room board's strip `Tile` does (guests-room r1).
+- Share: a photo link's `og:image:width` and `og:image:height` declare the original's dimensions, not the 480x640 preview it serves (red-team 57b, NIT).
 
 ### Accounts and profiles
 
@@ -54,6 +55,9 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Create: a Create whose answer is lost after the server made the event is held as failed, and Try again makes a second event (a Free host's one event spent on a duplicate); a client key for the attempt on `createEventInWizard`, unique per host, makes the retry return the first (a migration) (create-wizard-wiring).
 - Host: on the hub, once the band folds, the Review pill's 99+ badge sits over its icon (event-header-wiring-2's shoulder badge): at 375, where the pill shows no word, it reads only "99+", and at 1440 the word stays but the badge still covers the icon; anchor the badge at the glyph's shoulder so it grows outward (red-team 57, LOW).
 - Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
+- Settings: the gate's hold remembers her choice in the database (a column set when `set_event_door` turns "An email first" on from off, given back by one `before update of gate` trigger on `events`, answered as `email_restored`), so every device, every load and the password's first set get her names-only door back, and `settings-state-email.ts`'s device note goes (crumbs-87's Q1; red-team 57b's MEDIUM: the device note's restore waits on the hub's row and misses after a load).
+- Settings' door page: a move onto "You let each person in" or the invite list turns An email first on for everyone, so a name-only guest already in meets "Confirm your email to see everything", while the door's inside note says "A gate stops newcomers; everyone in keeps adding" and the line before the move says nothing of it (`door-page.tsx`'s `consequenceOf` and `data-door-inside`) (crumbs-87).
+- Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
@@ -63,6 +67,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: Settings' date range at a phone: its two rows share no gutter (the end indented by "to", the × outside).
 - Design: the account menu's "Plan and storage · Event Pass" wraps to two lines at both widths.
 - Design: the hub cover's address link wears the browser's own focus outline, the one stop there without the house ring (red-team 57, NIT).
+- Design: the Guests room's focus stragglers: "Manage in Guests" wears the browser's outline, the invite field's focus is a 1 px border, and removing an invite by keyboard drops focus to the sheet; each the house halo, focus kept in the list (red-team 57b, NIT).
+- Design: Settings' radio cards are each a Tab stop and ignore the arrow keys; one stop a group, arrows between its cards (red-team 57b, NIT).
 
 ### The lab and the kit
 
@@ -161,6 +167,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Account: the reset's Set a new password (`SetInitialPassword`, `auth/password-sign-in.tsx`) has no strength meter while `/account`'s change form and the event password wear `PasswordStrengthMeter`.
 - Profiles: the owner mode's Connections chips (`/me`, `/u/<handle>`) link to pages where Account's names now open the look; the same look could serve them (account-moments-wiring).
 - Profiles: the look (`social/guest-peek.tsx`) sets the face inside the sheet's title, so a screen reader hears "P Priya Shah", and in a hand hangs its line and address under the face; one head grid with the face `aria-hidden` (the guests-room board's `card-parts.tsx`) is the fix any card pick's wiring carries (guests-room r1).
+- Profiles: a look's Follow in the album's guest list reads Follow again on its next open (the look remounts its own button); one answer per person for every face of a relation on a page, as Connections' island keeps for its card (crumbs-87).
 
 ### The host app
 
@@ -239,6 +246,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Nav: tabbing into the hidden header scrolls the page about 482 px (Chrome scrolls focus into view against the sticky bar, `chrome/header-shell.tsx`); revealing the bar on a Tab keydown, before focus moves, would pre-empt it.
 - Nav: `ui/navigation-menu.tsx`'s content spells its cross-slide inline (`data-[motion=…]`); move it onto `floatingCrossSlide` (`ui/floating-layer.ts`), the same slide, which also holds it to `motion-safe`.
 - Help: `content/help/the-disposable-camera.mdx` says "A roll allows only so many retakes"; name the 3 re-shoots and the reel's newest frame (Take it back, Keep it), in `lib/guest/camera/words.ts`'s words (camera-wiring).
+- Help: `content/help/share-the-album-after-the-event.mdx`'s keepsake step can say the link then unfurls as "Photos from <name>", not "Add photos to <name>" (crumbs-87).
 
 ### The lab and the kit
 
@@ -365,6 +373,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The marketing site tuned at phone widths, judged on Will's phone `[eng+human]`.
 - The marketing site on a real iPhone `[eng+human]`: the privacy lens on /features/privacy was never driven in WebKit, so its two mitigations (`isolation` on the pane's rounded clip, `will-change` on the filtered veil) wait on a first iPhone look.
 - Marketing: the guest row on the marketing site, from fixtures only (ASSETS row 41's portraits where a face needs a photograph), drawn in the marketing round (presence r1's carried `marketing`).
+- Marketing: the site's pictures of the app still draw Review's count in the amber pill (`marketing/sections/how-it-works/host-pictures.tsx`, `features/curation/review-queue-demo.tsx`); the app's is `--needs-you` now (the marketing visuals' phase) (crumbs-87).
 
 ### The lab and the kit
 

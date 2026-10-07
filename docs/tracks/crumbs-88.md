@@ -20,7 +20,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/event-settings/event-page
   - src/components/app/user-menu
   - src/components/guest/reel/live-reel-view
-  - supabase/migrations/
+  - supabase/migrations/20261007120000_event_create_key.sql
   - docs/systems/design-system.md
   - docs/systems/dashboard.md
   - docs/systems/guest-flow.md
