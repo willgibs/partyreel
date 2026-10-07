@@ -128,6 +128,24 @@ describe("the code at each door", () => {
     expect(mark()?.textContent).toContain("2");
   });
 
+  // ★ RESHAPED ON PURPOSE (event-header r6, Will's `attention=tally`): the corner's count wore the waiting amber while the
+  // cards had lost theirs, so the two disagreed; it wears the cards' own status now, one token, so they never can again.
+  it("★ counts who waits at the door in the needs-you status the cards wear, and nothing else in it", () => {
+    const { unmount } = door({ door: "approve", waiting: 2 });
+    expect(mark()?.className).toContain("bg-(--needs-you)");
+    expect(mark()?.className).not.toMatch(/warning/);
+    unmount();
+    // A door nobody waits at is the plain dark mark, never the status.
+    door({ door: "password" });
+    expect(mark()?.className).not.toContain("needs-you");
+  });
+
+  it("wears the house's focus, never a ring of its own", () => {
+    door({ door: "invite" });
+    expect(mark()?.className).toContain("focus-halo");
+    expect(mark()?.className).not.toMatch(/focus-visible:outline/);
+  });
+
   it("★ names the mark by its words, and pressing it never opens the code card", async () => {
     door({ door: "password" });
     const words = codeMark({

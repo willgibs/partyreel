@@ -47,12 +47,19 @@ import { cn } from "@/lib/utils";
  *   - ★ NOTHING CALLS `router.refresh()`. The four Server Functions revalidate every page a relation
  *     shapes (each profile, Account's Connections), and Next renders the page the control sits on
  *     into the Server Function's own response, so what a page derives from a relation (a block hides
- *     Follow, a Connections row leaves its list) follows in the same round trip. The hand-called
- *     refresh rendered that page a second time.
+ *     Follow and draws the profile's well) follows in the same round trip. The hand-called refresh
+ *     rendered that page a second time. A surface that must NOT follow the server's answer out (a
+ *     Connections row stays, turned back, until she comes back: `page-connections.tsx`) keeps the
+ *     answer itself, told by `onSettle`;
+ *   - ★ A FLIP THAT NEVER ANSWERED SPRINGS BACK TOO. A Server Function that cannot be reached (offline,
+ *     a dropped connection) rejects, and a rejection inside a transition goes to the page's error
+ *     boundary: she lost the screen she was on over a press that can simply be made again. It is a
+ *     refusal like any other now, one toast, the control back where it was.
  *
  * The faces: `RelationToggle` is the button (the profile's Follow, the quieter Follow beside an
- * album, the Connections card's rows), and the profile menu's Block row (`ProfileActionsMenu`) runs
- * the same hook and renders its ask, since a menu row cannot hold a dialog that outlives its menu.
+ * album, the blocked well's Unblock, the Connections card's rows), and the profile menu's Block row
+ * (`ProfileActionsMenu`) runs the same hook and renders its ask, since a menu row cannot hold a
+ * dialog that outlives its menu.
  */
 
 export type Relation = "follow" | "block";
@@ -107,6 +114,12 @@ export type RelationState = {
   ask: ReactNode;
 };
 
+/**
+ * What a flip says when its Server Function never answered. The write is idempotent in all four
+ * directions, so the one easy way to put it right is the same press again, and the words say so.
+ */
+const UNREACHED = "Couldn't reach Partyreel just now. Please try again.";
+
 /** THE CONTRACT (the module's header says each clause's reason). */
 export function useRelation({
   relation,
@@ -114,6 +127,7 @@ export function useRelation({
   on: serverOn,
   person,
   act,
+  onSettle,
 }: {
   relation: Relation;
   profileId: string;
@@ -123,6 +137,8 @@ export function useRelation({
   person?: string | null;
   /** The write; the Server Functions unless a caller (the Library) hands its own. */
   act?: RelationAct;
+  /** A flip LANDED (never a refusal): the answer, for a surface that keeps the relation beside the control. */
+  onSettle?: (on: boolean) => void;
 }): RelationState {
   const [pending, startTransition] = useTransition();
   const [settled, setSettled] = useState(serverOn);
@@ -137,14 +153,18 @@ export function useRelation({
   function flip(next: boolean) {
     startTransition(async () => {
       setShown(next);
-      const result = await (act
-        ? act(next)
-        : SERVER[relation](profileId, next));
+      let result: RelationResult;
+      try {
+        result = await (act ? act(next) : SERVER[relation](profileId, next));
+      } catch {
+        result = { ok: false, message: UNREACHED };
+      }
       if (!result.ok) {
         toast.error(result.message);
         return;
       }
       setSettled(next);
+      onSettle?.(next);
     });
   }
 
@@ -236,9 +256,11 @@ export function RelationToggle({
   on,
   person,
   label,
+  srLabel,
   quiet = false,
   size,
   act,
+  onSettle,
 }: {
   relation: Relation;
   profileId: string;
@@ -247,14 +269,30 @@ export function RelationToggle({
   person?: string | null;
   /** Whom the button names, where nothing beside it does ("Follow Tom"). */
   label?: string;
+  /**
+   * Whom a screen reader hears it name, where only the layout beside it does: a Connections row says
+   * "Following" over and over, and its name is in the row, not in the button. Spoken after the visible
+   * words, so the name still begins with what the button says ("Following Sam Okafor").
+   */
+  srLabel?: string | null;
   quiet?: boolean;
   /** The button's size; the quiet one defaults to `sm`, the rest to the default. */
   size?: "xs" | "sm" | "default";
   act?: RelationAct;
+  /** A flip landed: the answer, for a surface that keeps the relation itself (`useRelation`). */
+  onSettle?: (on: boolean) => void;
 }) {
-  const state = useRelation({ relation, profileId, on, person, act });
+  const state = useRelation({
+    relation,
+    profileId,
+    on,
+    person,
+    act,
+    onSettle,
+  });
   const face = RELATION_FACE[relation][state.on ? "on" : "off"];
   const Icon = face.icon;
+  const words = label ? `${face.label} ${label}` : face.label;
   const variant = quiet
     ? "ghost"
     : relation === "follow"
@@ -273,13 +311,14 @@ export function RelationToggle({
         size={size ?? (quiet ? "sm" : "default")}
         onClick={state.press}
         aria-pressed={relation === "follow" ? state.on : undefined}
+        aria-label={srLabel ? `${words} ${srLabel}` : undefined}
         aria-busy={state.pending || undefined}
         data-relation={relation}
         data-on={state.on}
         className={cn(quiet && "text-muted-foreground")}
       >
         <Icon />
-        {label ? `${face.label} ${label}` : face.label}
+        {words}
       </Button>
       {state.ask}
     </>

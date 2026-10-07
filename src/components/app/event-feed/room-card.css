@@ -1,307 +1,267 @@
-/* THE DOORS' OWN SHEET (`room-card-door.tsx`): a card at rest, a pill under the bar, and how each is drawn at the three
-   widths the hub meets (event-header r4's cards over the seam, Will's pick).
+/* THE DOORS' OWN SHEET (`room-card-door.tsx`): a card at rest, a pill under the bar, and how each is drawn at the widths
+   the hub meets (event-header r4's cards, Will's pick, as r6 drew them: `card=shoulder`, every glyph ink).
 
    ★ EVERY CLASS CARRIES THE `hub-door` PREFIX: the sheet loads on every page that draws the row (the hub, the Library's
-   specimen, a board's frames).
+   specimen).
    ★ THE REST STATE IS THE DEFAULT (bible 5): every movement sits behind `no-preference`, so reduced motion shows each piece
    whole, at once.
-   ★ NO CSS TRANSITION ON ANYTHING THE FOLD CARRIES (the skin's box, a disc's opacity, a glyph's transform): a running
-   transition outranks an animation in the cascade and would steal the fold's frames (`event-cards-row-fold.ts`).
-   ★ THREE WIDTHS, DECIDED HERE IN CSS (never measured in script), so the server's paint is right from the first byte:
-     a hand (under 640px): a two by two grid with See it as a guest the width under it, every door and its count in sight;
-     a tablet (640 to 1099): five tiles across, the glyph and the count over the title and its line;
-     a desk (1100 and up): five cards across, the glyph, the words and the count on one line.
-   Stuck, a pill is a glyph and its count under 800px and a glyph, its word and its count from it.
-   The dark ground (`.dark`: the app's room) is lit from above and edged; paper takes the tokens alone. */
+   ★ NO CSS TRANSITION ON ANYTHING THE FOLD CARRIES (the skin's box, a disc's opacity, a glyph's or a badge's transform): a
+   running transition outranks an animation in the cascade and would steal the fold's frames (`event-cards-row-fold.ts`).
+   ★ THE WIDTHS ARE DECIDED HERE IN CSS (never measured in script), so the server's paint is right from the first byte, and
+     they are the seam's (`event-hub-head-seam.css`), so the cover's foot clears exactly the doors' resting height:
+     a hand (under 640px): one row of five tiles, each its glyph, the count on it and its short word (r6's `hand-row`);
+     a tablet (640 to 1088): five tiles across, the glyph and its count over the title and its line (r6's `tablet-tiles`),
+       the long names from 740px, where a tile has 130px;
+     a desk (1088 and up): five cards, the glyph and its count beside the title over its line, each 200px or so.
+   Stuck, a hand's pills are five slots sharing the width (each a glyph and its count, 44px tall), and from 640 a pill is
+   one width whatever it counts: a glyph and its count to 800, its word beside them from 800, where five 124px pills, the
+   face and the code fit the band (788px of it).
+   The room (`.dark`) is lit from above and edged; paper takes the tokens alone. */
 
-/* ══ A CARD ════════════════════════════════════════════════════════════════ */
+/* ══ A CARD (a desk's; a tablet's tile and a hand's are below) ═════════════════════════════════════════════════════ */
 
-/* The glyph in its disc, the title over its line, a waiting count at the end. */
 .hub-door {
+  /* The face a badge's cut-out ring takes, so the badge reads as standing on the glyph (a hover in the room changes it). */
+  --door-face: var(--card);
+  /* The house's press (`press-shrink`, identity r4): about two pixels of give at every size. */
+  --press-scale: 0.975;
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  /* ★ NO COLUMN GAP: the words and the count each carry their own margin, so a card with no count leaves its words the
-     width a gap before an empty track would have taken ("Private · Password" is 105px of a phone card's 113). */
-  column-gap: 0;
+  column-gap: 14px;
   min-width: 0;
-  height: 58px;
-  padding: 0 11px;
+  height: 72px;
+  padding: 0 16px;
   text-align: left;
   color: var(--card-foreground);
   outline: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-/* In a hand the guest's view closes the grid at its full width, one line. */
-.hub-door[data-hub-door="as-guest"] {
-  grid-column: 1 / -1;
-  height: 46px;
-}
-.hub-door[data-hub-door="as-guest"] .hub-door-text {
-  flex-direction: row;
-  align-items: baseline;
-  gap: 8px;
-}
-/* ★ A HAND'S GRID FOLDS UP UNDER ITSELF: each row stands on the one below, so as the grid gathers into one line of pills
-   the lower cards tuck under the upper ones (and come out from under them as it unfolds) rather than crossing over their
-   faces mid-flight. */
-.hub-door[data-hub-door="reel"],
-.hub-door[data-hub-door="guests"] {
-  z-index: 3;
-}
-.hub-door[data-hub-door="review"],
-.hub-door[data-hub-door="settings"] {
-  z-index: 2;
-}
-.hub-door[data-hub-door="as-guest"] {
-  z-index: 1;
-}
 
-/* The surface: a card is its tone on the lift, since it overlaps the cover. */
+/* The surface: a card is its tone on the lift, since it stands over the cover's photograph. */
 .hub-door-skin {
+  --door-shadow: var(--shadow-lift);
   position: absolute;
   left: 0;
   top: 0;
   z-index: -1;
   width: 100%;
   height: 100%;
-  border-radius: calc(var(--radius) * 1.5);
+  border-radius: 12px;
   /* ★ A TRANSPARENT EDGE, so a reader on forced colours (Windows' high contrast, which strips a shadow and a tone) still sees
      where a door is: the browser paints the border in the system's own ink there, and nowhere else is it seen. */
   border: 1px solid transparent;
   background-color: var(--card);
-  box-shadow: var(--shadow-lift);
+  box-shadow: var(--door-shadow);
   pointer-events: none;
 }
-/* In the room a card over the seam is lit from above, the room's depth being light first (bible 6), and edged where its
-   tone alone cannot part it from the photograph's dark foot. */
+/* In the room, on the photograph's dark foot, a card is lit from above and edged where its tone alone cannot part it from
+   the picture (the room's depth is light first, bible 6). */
 .dark .hub-door-skin {
-  background-image: linear-gradient(rgb(255 255 255 / 0.045), transparent 70%);
-  box-shadow:
-    var(--shadow-lift),
-    inset 0 1px 0 rgb(255 255 255 / 0.09),
-    0 0 0 1px rgb(255 255 255 / 0.05);
-}
-/* And under the pointer the room's card takes a step of light, with a soft light following the pointer across it
-   (`follow` in `room-card-door.tsx`): Apple TV's focus, the one delight here, costing nothing in clarity. A shadow alone
-   cannot say hover on near-black. */
-.dark .hub-door-skin::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    180px circle at var(--hub-door-x, 50%) var(--hub-door-y, 0%),
-    rgb(255 255 255 / 0.08),
-    transparent 70%
-  );
-  opacity: 0;
+  --door-shadow:
+    var(--shadow-lift), inset 0 1px 0 oklch(1 0 0 / 8%),
+    0 0 0 1px oklch(1 0 0 / 6%);
+  background-image: linear-gradient(oklch(1 0 0 / 4%), transparent 70%);
 }
 
+/* The glyph in its disc, in the ink: no hue is painted on a control (Afterglow), the reel's own violet included. */
 .hub-door-glyph {
   position: relative;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  color: var(--muted-foreground);
+  width: 40px;
+  height: 40px;
+  color: var(--foreground);
 }
 .hub-door-disc {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: var(--secondary);
+  background-color: var(--secondary);
 }
 /* A step lighter in the room, where the secondary step sits too near the card's own. */
 .dark .hub-door-disc {
-  background: var(--accent);
+  background-color: var(--accent);
 }
 .hub-door-mark {
   position: relative;
   display: flex;
 }
 .hub-door-mark > svg {
-  width: 15px;
-  height: 15px;
-}
-/* The reel's own violet, on its glyph alone (one colour per action, never a state). */
-.hub-door-reel {
-  color: var(--reel);
-}
-.hub-door-reel > .hub-door-disc {
-  background: color-mix(in oklab, var(--reel) 16%, var(--card));
+  width: 18px;
+  height: 18px;
 }
 
+/* The title over its line; the short title only where the long one cannot stand (a tile under 130px, a hand). */
 .hub-door-text {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  margin-inline-start: 9px;
 }
-/* A narrow card names the reel in a word; a wide one in its whole name (both are in the page). */
-.hub-door-full {
+.hub-door-short {
   display: none;
 }
+@media (width < 46.25rem) {
+  .hub-door-full {
+    display: none;
+  }
+  .hub-door-short {
+    display: inline;
+  }
+}
+/* The pill's word exists only stuck, from 800px. */
 .hub-door-word {
   display: none;
 }
 
-/* The waiting count: its light, then the numeral, the loudest thing on a card. */
-.hub-door-count {
+/* ══ THE BADGE, ON THE GLYPH'S SHOULDER ════════════════════════════════════════════════════════════════════════════ */
+
+/* Where an app's icon carries its number: the body face's tabular figures, cut out of the card by a ring of its face. */
+.hub-door-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  z-index: 1;
   display: flex;
+  min-width: 20px;
+  height: 20px;
   align-items: center;
-  gap: 6px;
-  margin-inline-start: 9px;
-}
-.hub-door-num {
-  font-size: 24px;
+  justify-content: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  font-size: 11.5px;
+  font-weight: 650;
   line-height: 1;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 0 0 2px var(--door-face);
 }
-.hub-door-left {
-  display: none;
+/* A count that waits on her: the one status, solid and hard-edged, never a light (globals.css, `--needs-you`). */
+.hub-door-badge[data-badge="needs"] {
+  background-color: var(--needs-you);
+  color: var(--needs-you-foreground);
 }
-
-/* A state as a light (status=lights, the atoms' own): the LED a waiting count wears, today's waiting token. */
-.hub-door-light {
-  display: block;
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--warning);
-  box-shadow: 0 0 6px color-mix(in oklab, var(--warning) 70%, transparent);
+/* A count hers that waits on nobody (steps left, a pause): a quiet ring in the muted ink. */
+.hub-door-badge[data-badge="quiet"] {
+  background-color: var(--door-face);
+  color: var(--muted-foreground);
+  box-shadow:
+    inset 0 0 0 1.5px
+      color-mix(in oklab, var(--muted-foreground) 55%, transparent),
+    0 0 0 2px var(--door-face);
 }
-/* An unlit light (a ring), for a count that is hers to act on but waits on nobody. */
-.hub-door-unlit {
-  display: block;
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1.5px currentColor;
-  opacity: 0.6;
+.hub-door-badge > svg {
+  width: 9px;
+  height: 9px;
 }
-
-/* The narrowest phones (320): a card gives its edges and its gaps a pixel or two, so Review's name and its count both fit. */
-@media (max-width: 22.4375rem) {
-  .hub-door {
-    padding: 0 10px;
-  }
-  .hub-door-text,
-  .hub-door-count {
-    margin-inline-start: 7px;
-  }
-}
-
-/* ── a tablet's tile: the glyph and the count over the title and its line ── */
-
-@media (min-width: 40rem) {
-  .hub-door {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas:
-      "glyph . count"
-      "text text text";
-    align-items: start;
-    height: 96px;
-    padding: 12px;
-  }
-  .hub-door[data-hub-door="as-guest"] {
-    grid-column: auto;
-    height: 96px;
-  }
-  .hub-door[data-hub-door="as-guest"] .hub-door-text {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-  }
-  .hub-door-glyph {
-    grid-area: glyph;
-    width: 32px;
-    height: 32px;
-  }
-  .hub-door-mark > svg {
-    width: 16px;
-    height: 16px;
-  }
-  .hub-door-text {
-    grid-area: text;
-    align-self: end;
-    margin-inline-start: 0;
-  }
-  .hub-door-count {
-    grid-area: count;
-    align-self: center;
-    margin-inline-start: 0;
-  }
-  .hub-door-num {
-    font-size: 22px;
-  }
-}
-/* From 800px a tile is wide enough for the reel's whole name. */
-@media (min-width: 50rem) {
-  .hub-door-short {
+/* A count hers to act on stays in the card's own line at rest (a desk's and a tablet's); a hand's tile and a pill have no
+   line, so there the glyph carries it. */
+@media (width >= 40rem) {
+  .hub-band:not([data-stuck]) .hub-door-badge[data-hers] {
     display: none;
   }
-  .hub-door-full {
-    display: inline;
-  }
 }
-
-/* ── a desk's card: the glyph, the words and the count on one line ── */
-
-@media (min-width: 68.75rem) {
-  .hub-door {
-    grid-template-rows: none;
-    grid-template-areas: "glyph text count";
-    align-items: center;
-    height: 72px;
-    padding: 0 16px;
-  }
-  .hub-door[data-hub-door="as-guest"] {
-    height: 72px;
-  }
-  .hub-door-glyph {
-    width: 40px;
-    height: 40px;
-  }
-  .hub-door-mark > svg {
-    width: 18px;
+/* A tablet's tile and a hand's: a step smaller, on a smaller glyph. */
+@media (width < 68rem) {
+  .hub-door-badge {
+    min-width: 18px;
     height: 18px;
-  }
-  .hub-door-text {
-    align-self: center;
-    margin-inline-start: 14px;
-  }
-  .hub-door-count {
-    gap: 8px;
-    margin-inline-start: 14px;
-  }
-  .hub-door-num {
-    font-size: 28px;
+    font-size: 11px;
   }
 }
 
-/* ══ STUCK: A PILL ═════════════════════════════════════════════════════════ */
+/* ══ A TABLET'S TILE: the glyph and its count over the words ═══════════════════════════════════════════════════════ */
+
+@media (40rem <= width < 68rem) {
+  .hub-band:not([data-stuck]) .hub-door {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "glyph"
+      "text";
+    align-content: space-between;
+    align-items: start;
+    height: 108px;
+    padding: 14px 14px 13px;
+  }
+  .hub-band:not([data-stuck]) .hub-door-glyph {
+    grid-area: glyph;
+    width: 36px;
+    height: 36px;
+  }
+  .hub-band:not([data-stuck]) .hub-door-text {
+    grid-area: text;
+  }
+}
+
+/* ══ A HAND'S TILE: one row of five, each its glyph, the count on it and its short word under ══════════════════════ */
+
+/* So the cover keeps its words and the album starts high (r6's `hand-row`). */
+@media (width < 40rem) {
+  .hub-band:not([data-stuck]) .hub-door {
+    --press-scale: 0.95;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 76px;
+    padding: 0 2px;
+    text-align: center;
+  }
+  .hub-band:not([data-stuck]) .hub-door-glyph {
+    width: 36px;
+    height: 36px;
+  }
+  .hub-band:not([data-stuck]) .hub-door-mark > svg {
+    width: 17px;
+    height: 17px;
+  }
+  .hub-band:not([data-stuck]) .hub-door-text {
+    align-items: center;
+    max-width: 100%;
+  }
+  /* The tile's word is a control's label at a tile's size, the body face's, as the pill's word is. */
+  .hub-band:not([data-stuck]) .hub-door-title {
+    font-family: var(--font-sans), ui-sans-serif, sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0;
+  }
+  .hub-band:not([data-stuck]) .hub-door-line {
+    display: none;
+  }
+}
+/* The narrowest phones (a 54px tile at 320): the tile's word a hair smaller, so "As a guest" stands whole. */
+@media (width < 22.5rem) {
+  .hub-band:not([data-stuck]) .hub-door-title {
+    font-size: 10.5px;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ══ STUCK: A PILL ═════════════════════════════════════════════════════════════════════════════════════════════════ */
 
 /* ★ EVERY PILL ONE WIDTH, WHATEVER IT COUNTS: a pill that grew to hold "8" moved every door after it by its count's width
-   the moment Review cleared, under the thumb that knew where Settings was. So a pill is a slot, its glyph, word and count
-   centred in it. The slot is a floor, never a ceiling: a count past two digits widens its own pill rather than leaving
-   its slot (`min-width`, never `width`). In a hand a pill is its glyph and its count. */
-[data-stuck] .hub-door,
-[data-stuck] .hub-door[data-hub-door="as-guest"] {
+   the moment Review cleared, under the thumb that knew where Settings was. So a pill is a slot, its glyph and its word
+   centred in it, and the count rides the glyph, never the slot's width ("99+" at most). */
+[data-stuck] .hub-door {
+  --press-scale: 0.95;
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  min-width: 48px;
+  /* The badge stands clear of the word beside its glyph. */
+  gap: 13px;
+  width: 56px;
   height: 36px;
-  padding: 0 7px;
+  padding: 0 10px;
 }
 [data-stuck] .hub-door-skin {
   border-radius: 999px;
@@ -320,97 +280,95 @@
 [data-stuck] .hub-door-text {
   display: none;
 }
-[data-stuck] .hub-door-count {
-  gap: 4px;
-  margin-inline-start: 0;
+/* Stuck, the glyph is a pill's 16px: the badge rides it smaller. */
+[data-stuck] .hub-door-badge {
+  top: -6px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
 }
-[data-stuck] .hub-door-num {
-  font-size: 13px;
+[data-stuck] .hub-door-badge > svg {
+  width: 7px;
+  height: 7px;
 }
-[data-stuck] .hub-door-left {
-  display: flex;
-}
-/* Paused uploads, once the cover's code (which wears the pause) has gone: a plain pause on Settings' pill, in its ink,
-   never amber (the call G4). */
-.hub-door-pause > svg {
-  width: 11px;
-  height: 11px;
-  color: var(--muted-foreground);
-}
-/* The narrowest phones give the pills the room: 44px slots, the same two digits in them. */
-@media (max-width: 22.4375rem) {
-  [data-stuck] .hub-door,
-  [data-stuck] .hub-door[data-hub-door="as-guest"] {
-    min-width: 44px;
-    padding: 0 5px;
-  }
-}
-/* From 800px the pill has room for its word. */
-@media (min-width: 50rem) {
-  [data-stuck] .hub-door,
-  [data-stuck] .hub-door[data-hub-door="as-guest"] {
-    gap: 6px;
-    min-width: 124px;
-    padding: 0 10px;
+/* From 800px a pill has room for its word. */
+@media (width >= 50rem) {
+  [data-stuck] .hub-door {
+    width: 124px;
   }
   [data-stuck] .hub-door-word {
     display: inline;
   }
-  [data-stuck] .hub-door-count {
-    gap: 5px;
+}
+/* ★ A HAND'S PILLS ARE SLOTS THE THUMB CAN HIT: five sharing the band between the face and the code, each 44px tall (the
+   platform's own target), its glyph and the count on it, no word. */
+@media (width < 40rem) {
+  [data-stuck] .hub-door {
+    --press-scale: 0.93;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    height: 44px;
+    padding: 0 2px;
+    gap: 4px;
   }
 }
 
-/* ══ UNDER THE POINTER, PRESSED, FOCUSED ═══════════════════════════════════ */
+/* ══ UNDER THE POINTER, PRESSED, FOCUSED ═══════════════════════════════════════════════════════════════════════════ */
 
+/* The press's let-go, at the house's pace (`press-shrink` lands it at once). */
 @media (prefers-reduced-motion: no-preference) {
-  /* A press answers at once (frequent: instant), a hover quickly. */
   .hub-door {
-    transition:
-      translate 160ms var(--ease-emphasis),
-      scale 120ms var(--ease-emphasis);
-  }
-  .hub-door:active {
-    scale: 0.97;
+    transition: scale 140ms var(--ease-emphasis);
   }
 }
 
 @media (hover: hover) {
-  /* Under the pointer: on paper the layer's shadow, in the room a step of light. */
+  /* Under the pointer: on paper the layer's shadow; in the room a step of light, which a shadow alone cannot say on
+     near-black, the badge's cut-out following the face it stands on. No light follows the pointer: the Seam is the
+     screen's one light (Afterglow). */
   .hub-door:hover > .hub-door-skin {
-    box-shadow: var(--shadow-layer);
+    --door-shadow: var(--shadow-layer);
+  }
+  .dark .hub-door:hover {
+    --door-face: var(--secondary);
   }
   .dark .hub-door:hover > .hub-door-skin {
+    --door-shadow:
+      var(--shadow-layer), inset 0 1px 0 oklch(1 0 0 / 11%),
+      0 0 0 1px oklch(1 0 0 / 8%);
     background-color: var(--secondary);
-    box-shadow:
-      var(--shadow-layer),
-      inset 0 1px 0 rgb(255 255 255 / 0.11),
-      0 0 0 1px rgb(255 255 255 / 0.07);
-  }
-  .dark .hub-band:not([data-stuck]) .hub-door:hover > .hub-door-skin::after {
-    opacity: 1;
   }
 }
-
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  /* A card over the seam rises a little under the pointer (a hover: quick). */
-  .hub-band:not([data-stuck]) .hub-door:hover {
-    translate: 0 -2px;
-  }
-  .hub-door-skin {
-    transition:
-      background-color 160ms var(--ease-emphasis),
-      box-shadow 160ms var(--ease-emphasis);
-  }
-  .dark .hub-door-skin::after {
-    transition: opacity 200ms var(--ease-emphasis);
+  /* The face's tone alone eases; its shadow never transitions, which would fade the focus halo drawn on it. */
+  .hub-door > .hub-door-skin {
+    transition: background-color 160ms var(--ease-emphasis);
   }
 }
 
-/* A keyboard's focus takes production's ring (`ring-3 ring-ring/50`), drawn on the surface so it travels with the fold and
-   last, so a hover never takes it off. */
-.hub-band .hub-door:focus-visible > .hub-door-skin {
+/* ★ A KEYBOARD'S FOCUS IS THE HOUSE'S HALO (identity r4, `focus-halo`'s numbers and its ground's tokens), DRAWN ON THE
+   SURFACE so it travels with the fold rather than jumping to the pill's box, over the door's own resting shadow, and
+   arriving in the house's one beat (`halo-arrive`). Forced colours drop every shadow, so there it is an outline. */
+.hub-door:focus-visible {
+  z-index: 4;
+}
+.hub-door:focus-visible > .hub-door-skin {
   box-shadow:
-    0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent),
-    var(--shadow-lift);
+    0 0 0 calc(2px + (1 - var(--halo-t)) * 1.5px)
+      var(--halo-gap, var(--background)),
+    0 0 0 calc(2px + (2 - var(--halo-t)) * 1.5px)
+      var(--halo-line, color-mix(in oklab, var(--foreground) 85%, transparent)),
+    0 -1px calc(12px + (1 - var(--halo-t)) * 10px)
+      calc(2px + (2 - var(--halo-t)) * 1.5px) var(--halo-bloom),
+    var(--door-shadow);
+  animation: halo-arrive 140ms var(--ease-emphasis);
+}
+@media (forced-colors: active) {
+  .hub-door:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
 }

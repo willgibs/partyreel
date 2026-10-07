@@ -112,20 +112,41 @@ describe("what the host is told", () => {
     ]);
   });
 
-  it("letting back in answers what came back and refreshes the same rooms", async () => {
+  it("letting back in answers what came back and who came in, and refreshes the same rooms", async () => {
     letBackIn.mockResolvedValue({
       ok: true,
-      data: { eventId: EVENT, restored: 1, noRoom: 0 },
+      data: { eventId: EVENT, restored: 1, noRoom: 0, admitted: 1 },
     });
     await expect(
-      letBackInAction({ blockId: BLOCK, restore: true }),
+      letBackInAction({ blockId: BLOCK, restore: true, letIn: true }),
     ).resolves.toEqual({
       ok: true,
       restored: 1,
       noRoom: 0,
+      admitted: 1,
     });
-    expect(letBackIn).toHaveBeenCalledWith(BLOCK, { restore: true });
+    expect(letBackIn).toHaveBeenCalledWith(BLOCK, {
+      restore: true,
+      letIn: true,
+    });
     expect(revalidatePath).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a lift that names no Let in is today's: the ask the block held stands at the door", async () => {
+    letBackIn.mockResolvedValue({
+      ok: true,
+      data: { eventId: EVENT, restored: 0, noRoom: 0, admitted: 0 },
+    });
+    await letBackInAction({ blockId: BLOCK, restore: false });
+    expect(letBackIn).toHaveBeenCalledWith(BLOCK, {
+      restore: false,
+      letIn: false,
+    });
+    // A Let in that is not a boolean is no request at all.
+    await expect(
+      letBackInAction({ blockId: BLOCK, restore: false, letIn: "yes" }),
+    ).resolves.toEqual(BAD);
+    expect(letBackIn).toHaveBeenCalledTimes(1);
   });
 
   it("a refusal travels as its words, uncaptured; only an unknown failure with a cause is reported", async () => {

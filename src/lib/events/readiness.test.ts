@@ -7,6 +7,7 @@ import { createEventSchema } from "@/lib/validation/event";
 
 import {
   checklistOver,
+  CODE_STILL_NEEDED,
   doorLetsGuestsIn,
   newEventFacts,
   type ReadyFacts,
@@ -16,12 +17,13 @@ import {
   settingsSteps,
   stepsLeft,
   stepWants,
+  stillNeeded,
   storageUsedPct,
 } from "./readiness";
 
 /**
  * READY FOR GUESTS (Will's `event-ready` picks, 2026-10-02): what the hub's checklist, Settings' rail and
- * Create's hand-off all read. These are the claims the three make, held on the one function, so a tick in
+ * Create's close all read. These are the claims the three make, held on the one function, so a tick in
  * one is a tick in all of them.
  */
 
@@ -390,6 +392,49 @@ describe("a new event, as Create hands it over", () => {
       readiness(newEventFacts(sent, 100)).items.find((i) => i.id === "room")
         ?.essential,
     ).toBe(true);
+  });
+});
+
+/**
+ * CREATE'S CLOSE, ONE LINE (create-wizard r4's `close=next`): what guests still need, read off the readiness, so it is
+ * true of a new event by construction and of any other event by the same reading.
+ */
+describe("what guests still need, in one line (Create's close)", () => {
+  const born = (storagePct?: number) =>
+    readiness(
+      newEventFacts(
+        createEventSchema.parse({ name: "Maya's 30th" }),
+        storagePct,
+      ),
+    );
+
+  it("★ names the code on every new event: the one essential Create leaves, which Print and Share do", () => {
+    expect(stillNeeded(born())).toBe(CODE_STILL_NEEDED);
+    // A full shelf makes room essential too, and the code still leads: room is said beside the line, never in it.
+    expect(
+      born(100)
+        .left.filter((i) => i.essential)
+        .map((i) => i.id),
+    ).toEqual(["code", "room"]);
+    expect(stillNeeded(born(100))).toBe(CODE_STILL_NEEDED);
+  });
+
+  it.each([
+    [
+      "a door nobody can pass says the door's own line",
+      { door: "private" },
+      "door",
+    ],
+    ["paused uploads say their own line", { acceptingUploads: false }, "adds"],
+  ] as const)("%s, ahead of the code", (_, patch, id) => {
+    const r = readiness({ ...FRESH, ...patch });
+    expect(stillNeeded(r)).toBe(r.items.find((i) => i.id === id)?.line);
+  });
+
+  it("says the checklist's head once a guest can reach the album: nothing essential is left to name", () => {
+    const r = readiness({ ...FRESH, opened: 1 });
+    expect(r.ready).toBe(true);
+    expect(stillNeeded(r)).toBe(readyHead(r).line);
   });
 });
 

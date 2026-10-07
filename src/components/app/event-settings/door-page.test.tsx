@@ -43,7 +43,7 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
   PricingSheet: () => null,
 }));
 
-const { DoorPage } = await import("./door-page");
+const { DoorPage, passwordGroups } = await import("./door-page");
 const { SettingsProvider } = await import("./settings-state");
 const { hostEvent, NO_COUNTS } = await import("./testing/host-event");
 
@@ -183,8 +183,8 @@ describe("the gates, under Private", () => {
     fireEvent.click(screen.getByRole("radio", { name: "A password" }));
     expect(screen.getByLabelText("Album password")).toBeTruthy();
     expect(setEventDoorAction).not.toHaveBeenCalled();
-    // Nobody waits, so nothing more is said beside the field.
-    expect(document.querySelector("[data-door-password-waiting]")).toBeNull();
+    // Nobody in and nobody waiting, so nothing more is said beside the field.
+    expect(document.querySelector("[data-door-password-groups]")).toBeNull();
   });
 
   it("★ a password with people at the door says it asks them for it too, and writes nothing until confirmed", async () => {
@@ -227,14 +227,99 @@ describe("the gates, under Private", () => {
     expect(setEventDoorAction).not.toHaveBeenCalled();
   });
 
-  it("the first password, set as it opens the door, says the same beside its field", () => {
-    page({ visibility: "private", door: "approve" }, { waiting: 1 });
+  // ★ RESHAPED ON PURPOSE (host-moments r1, `password=both`; scar kept: the first password, set as it opens the door,
+  // says what it does to the people waiting beside its field, before anything is written). The expired reason: "says
+  // the same beside its field", the waiting line alone: both groups are said there now, the guests in first.
+  it("★ a first password with guests in and people waiting says both groups where she types it, and only there", () => {
+    page({ visibility: "private", door: "approve" }, { in: 31, waiting: 3 });
+    // Before: the gates' note says who is in.
+    expect(document.querySelector("[data-door-inside]")).not.toBeNull();
     fireEvent.click(screen.getByRole("radio", { name: "A password" }));
+    const groups = document.querySelector<HTMLElement>(
+      "[data-door-password-groups]",
+    );
     expect(
-      document.querySelector("[data-door-password-waiting]")?.textContent,
-    ).toBe("1 person is waiting at the door. A password asks them for it too.");
-    expect(screen.getByLabelText("Album password")).toBeTruthy();
+      [...groups!.querySelectorAll("[data-door-password-group]")].map(
+        (line) => [
+          line.getAttribute("data-door-password-group"),
+          line.textContent,
+        ],
+      ),
+    ).toEqual(
+      passwordGroups({ in: 31, waiting: 3 }).map((line) => [
+        line.group,
+        `${line.lead} ${line.rest}`,
+      ]),
+    );
+    // Read before she types: the lines stand above the field, in the same panel.
+    const field = screen.getByLabelText("Album password");
+    expect(
+      groups!.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // ★ In place of today's two: the field's waiting line and the gates' inside note are never said beside them.
+    expect(document.querySelector("[data-door-password-waiting]")).toBeNull();
+    expect(document.querySelector("[data-door-inside]")).toBeNull();
+    expect(screen.queryByText(/A password asks them for it too/)).toBeNull();
     expect(setEventDoorAction).not.toHaveBeenCalled();
+    // Picking the saved gate back takes the lines with the field, and the inside note returns.
+    fireEvent.click(choice("You let each person in"));
+    expect(document.querySelector("[data-door-password-groups]")).toBeNull();
+    expect(document.querySelector("[data-door-inside]")).not.toBeNull();
+  });
+
+  it("each group has its line only while someone is in it", () => {
+    page({ visibility: "private", door: "approve" }, { in: 31 });
+    fireEvent.click(choice("A password"));
+    expect(
+      [...document.querySelectorAll("[data-door-password-group]")].map((l) =>
+        l.getAttribute("data-door-password-group"),
+      ),
+    ).toEqual(["in"]);
+    cleanup();
+    page({ visibility: "private", door: "approve" }, { waiting: 1 });
+    fireEvent.click(choice("A password"));
+    expect(
+      [...document.querySelectorAll("[data-door-password-group]")].map((l) =>
+        l.getAttribute("data-door-password-group"),
+      ),
+    ).toEqual(["waiting"]);
+  });
+
+  it("the groups' words: who stays in, and who stops waiting on her, counted and agreeing with the count", () => {
+    expect(passwordGroups({ in: 31, waiting: 3 })).toEqual([
+      {
+        group: "in",
+        lead: "31 guests are in, and stay in",
+        rest: "on every phone they used. Nobody inside is asked for it.",
+      },
+      {
+        group: "waiting",
+        lead: "3 people wait at the door",
+        rest: "and stop waiting on you: they get in with the password, like anyone new.",
+      },
+    ]);
+    // Each verb agrees with its count.
+    expect(
+      passwordGroups({ in: 1, waiting: 1 }).map((l) => `${l.lead} ${l.rest}`),
+    ).toEqual([
+      "1 guest is in, and stays in on every phone they used. Nobody inside is asked for it.",
+      "1 person waits at the door and stops waiting on you: they get in with the password, like anyone new.",
+    ]);
+    expect(passwordGroups({ in: 0, waiting: 0 })).toEqual([]);
+    expect(passwordGroups({ in: 1234, waiting: 0 })[0]!.lead).toBe(
+      "1,234 guests are in, and stay in",
+    );
+  });
+
+  it("★ a password already set, picked with people waiting, still asks first in its consequence line", () => {
+    // The groups are the field's: a password already set has no field to type, and keeps its consequence line.
+    page(
+      { visibility: "private", door: "approve", has_password: true },
+      { waiting: 2, in: 4 },
+    );
+    fireEvent.click(choice("A password"));
+    expect(document.querySelector("[data-door-password-groups]")).toBeNull();
+    expect(document.querySelector("[data-door-inside]")).not.toBeNull();
   });
 
   it("under a gate, says how many are already in", () => {

@@ -1384,7 +1384,7 @@ function WhatStaysCluster() {
 
 const HUB_CARDS: RoomCard[] = [
   { id: "review", ...reviewCardFace(true, 8) },
-  { id: "guests", value: "2 waiting", amber: true, count: 2 },
+  { id: "guests", value: "2 waiting", needs: true, count: 2 },
   { id: "settings", value: "Private · You let in" },
 ];
 

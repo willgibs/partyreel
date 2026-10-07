@@ -386,7 +386,7 @@ export default async function EventDetailPage({
       id: "guests" as const,
       // The guest list is always on (Will, event-safety `room=always`), so the room behind this card always lists them, and the
       // card says how many. ★ AND WHO WAITS AT THE DOOR (event-settings r1, `queue=room`): while a newcomer waits for the
-      // host, the card says so in the needs-action light, as Review's does for held uploads, since letting her in is done
+      // host, the card counts them in the needs-you status, as Review's does for held uploads, since letting her in is done
       // there. ★ AND A SEALED ROLL (crumbs-81): while the list is empty only because the album has not developed, the card
       // says its shots are developing, as the room does.
       ...guestsCardFace({
@@ -525,12 +525,14 @@ export default async function EventDetailPage({
           <HostCreditLookProvider>
             <HostAddProvider>
               <HostSelectionProvider>
+                {/* The row stands on the cover's foot, and draws the cover's light under it (event-header r6): handed the
+                    cover's own photographs and develop facts, so its face and its light read what the cover shows. */}
                 <EventCardsRow
                   eventId={event.id}
                   cards={cards}
                   reel={reel}
                   moderationOn={isModerationOn}
-                  head={{ name: event.name, stills: coverStills }}
+                  head={{ name: event.name, stills: coverStills, develop }}
                 />
                 <EventChecklist
                   eventId={event.id}

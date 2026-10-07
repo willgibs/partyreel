@@ -7,6 +7,7 @@ import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountDeleteCard } from "@/components/app/account-delete-card";
 import { DriveAccountCard } from "@/components/app/drive/drive-account-card";
 import { parseEmailChangeHint } from "./email-change";
+import { ConnectionsLists } from "./page-connections";
 import { PROFILE_SETUP_PATH } from "./profile/invite";
 import { EmailSection } from "./email-section";
 import { getAccountEmailState } from "./email-state";
@@ -15,11 +16,9 @@ import { SignOutEverywhereCard } from "./sign-out-everywhere-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
 import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
-import { RelationToggle } from "@/components/social/relation-toggle";
 import { AttendedEventsVisibility } from "@/components/social/attended-events-visibility";
 import { ProfileBioForm } from "@/components/social/profile-bio-form";
 import { ProfileSlugControl } from "@/components/social/profile-slug-control";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -72,7 +71,7 @@ import {
   getMyProfileSlug,
   getNotificationPrefs,
 } from "@/lib/db/queries/social";
-import { withAvatarUrls, type ProfileCardItem } from "@/lib/social/cards";
+import { withAvatarUrls } from "@/lib/social/cards";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { seedFor } from "@/lib/avatar/seed";
 import { getSiteUrl } from "@/lib/site-url";
@@ -80,48 +79,6 @@ import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Account" };
-
-// A Connections row: the person + one action. The lists are RSC-rendered
-// (avatar URLs resolved server-side); only the action hydrates, and it is the
-// one relation control (`relation-toggle.tsx`): Following flips off at once and
-// Unblock undoes a block at once, and the Server Function's re-render takes the
-// row out of its list in the same round trip (no toast: the list shows it).
-function PersonRow({
-  item,
-  action,
-}: {
-  item: ProfileCardItem;
-  action: React.ReactNode;
-}) {
-  const identity = (
-    <>
-      <Avatar size="sm" seed={item.seed}>
-        <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
-        <AvatarFallback className="text-[10px]">
-          {(item.displayName ?? "?").slice(0, 1).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <span className="truncate text-sm text-foreground">
-        {item.displayName ?? "Someone"}
-      </span>
-    </>
-  );
-  return (
-    <li className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
-      {item.slug ? (
-        <Link
-          href={`/u/${item.slug}`}
-          className="flex min-w-0 items-center gap-2 underline-offset-4 hover:underline"
-        >
-          {identity}
-        </Link>
-      ) : (
-        <span className="flex min-w-0 items-center gap-2">{identity}</span>
-      )}
-      {action}
-    </li>
-  );
-}
 
 // Account settings (auth-accounts.md + the profiles-social.md profile surface). Renders under the
 // (app) gate, so getUser() already ran; getProfile re-checks defensively. Next
@@ -463,60 +420,10 @@ export default async function AccountPage({
             Only you can see this.
           </CardDescription>
         </CardHeader>
+        {/* The lists are an island of their own (`page-connections.tsx`): a row she flips off stays on
+            it, turned back, so what this page re-derives from the server never reaches them. */}
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">
-              Following
-            </p>
-            {followingItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                You&rsquo;re not following anyone yet. Find a host&rsquo;s
-                profile from any album they share.
-              </p>
-            ) : (
-              <ul className="divide-y divide-border/60">
-                {followingItems.map((item) => (
-                  <PersonRow
-                    key={item.id}
-                    item={item}
-                    action={
-                      <RelationToggle
-                        relation="follow"
-                        profileId={item.id}
-                        on
-                        person={item.displayName}
-                        size="sm"
-                      />
-                    }
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
-          {blockItems.length > 0 && (
-            <div className="space-y-2 border-t border-border/60 pt-5">
-              <p className="text-xs font-medium text-muted-foreground">
-                Blocked
-              </p>
-              <ul className="divide-y divide-border/60">
-                {blockItems.map((item) => (
-                  <PersonRow
-                    key={item.id}
-                    item={item}
-                    action={
-                      <RelationToggle
-                        relation="block"
-                        profileId={item.id}
-                        on
-                        person={item.displayName}
-                        size="sm"
-                      />
-                    }
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
+          <ConnectionsLists following={followingItems} blocked={blockItems} />
         </CardContent>
       </Card>
 

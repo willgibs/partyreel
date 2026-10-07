@@ -46,8 +46,10 @@ const CODE_PX = 112;
  * Will 2026-10-02: "the mark keeps the header from getting too crowded with
  * text where icons will likely work 99% of the time, and we could add tooltips
  * to clarify on the mark"). A lock for a gate, a closed eye for Only me, a
- * pause for paused uploads, and the count in the needs-action tone while people
- * wait at the door; a Public album taking uploads wears nothing. The code
+ * pause for paused uploads, and, while people wait at the door, their count in
+ * the needs-you status the cards' badges wear (event-header r6, Will's
+ * `attention=tally`: one token, `--needs-you`, so the corner and the cards can
+ * never disagree again); a Public album taking uploads wears nothing. The code
  * dims where a guest who scans it meets a door that takes no photo (paused, Only
  * me). The mark sits OUTSIDE the mat's edge, so nothing lands on the modules or
  * the quiet zone the code scans by (`module-floor.ts`).
@@ -136,12 +138,15 @@ function CornerMark({ mark }: { mark: CodeMark }) {
         data-code-mark={mark.glyph}
         aria-label={mark.words}
         className={cn(
-          "absolute -top-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-full px-1.5 ring-2 ring-background outline-none",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          "absolute -top-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-full px-1.5 ring-2 ring-background",
+          // The house's focus (identity r4), standing over the photograph's own band, the cover being a photograph.
+          "focus-halo",
           // A finger's target past the 24px glyph, without growing it.
           "before:absolute before:-inset-2 before:content-['']",
+          // ★ WHO WAITS AT THE DOOR NEEDS HER: the one status, solid and hard-edged (globals.css, `--needs-you`), its
+          // figures in their own token. Every other door is the plain dark mark.
           waiting
-            ? "bg-warning text-warning-foreground"
+            ? "bg-(--needs-you) text-(color:--needs-you-foreground)"
             : "bg-neutral-900 text-white",
         )}
       >

@@ -1,12 +1,13 @@
 /**
  * THE CAMERA'S ROLL: how many shots a guest holds at once, and how many she may take, counted by the server.
  *
- * ★ ONE HOME, MIRRORED IN SQL (20261002200000, 20261005190000), under parity tests that read the winning bodies
- * (`roll.test.ts`):
+ * ★ ONE HOME, MIRRORED IN SQL (20261002200000, 20261005190000, 20261007021000), under parity tests that read the
+ * winning bodies (`roll.test.ts`):
  *  - `ROLL_SHOTS`: the roll a camera carries unless its host names another (`events_reveal_stamp` fills it in);
  *  - `ROLL_MIN` and `ROLL_MAX`: the sizes a host may name, two digits on the camera's count (customize r1, Will's
  *    `roll=both`: film's 12, 24 and 36, or any count from 1 to 99; `events_roll_size_range` bounds it);
- *  - `ROLL_RETAKES`: the ceiling's multiple (`c_roll_retakes` in `create_media` and both upload reads).
+ *  - `ROLL_RESHOOTS`: the shots past her roll that taking one back can free, a flat 3 at any roll size
+ *    (`c_roll_reshoots` in `create_media` and both upload reads), so the ceiling is the roll plus 3.
  * Change each side together.
  *
  * ★ HER ROLL OUTLIVES THE CAMERA (20261005190000): the row keeps the size she named while the album takes free
@@ -21,6 +22,11 @@
  * every shot she takes in the period, removed or not, in its own ledger (`camera_rolls`, which the nightly purge of a
  * withdrawn shot leaves standing), and a withdrawn shot is purged that night. A video is one shot (Will, `cost=one`).
  * The host's own uploads are no roll's.
+ *
+ * ★ A FLAT 3 RE-SHOOTS (guest-moments r1's `limit=three`, Will's word since customize r1): the ceiling is the roll plus
+ * `ROLL_RESHOOTS` at any roll size, so a roll of 24 takes at most 27 shots in all: a number she can hold, so a re-shoot
+ * is a choice she makes and not a wall she meets. The camera counts what is left where she takes one back
+ * (`roll-view.ts`'s `reshoots`), and the roll's end says when they are spent.
  */
 export const ROLL_SHOTS = 24;
 
@@ -59,24 +65,32 @@ export function rollShots(n: number): string {
   return `${n} ${n === 1 ? "shot" : "shots"}`;
 }
 
-/** The ceiling's multiple: a guest takes at most `ROLL_RETAKES` rolls' worth in a period, removed or not. */
-export const ROLL_RETAKES = 3;
+/** Her re-shoots a period: the shots past her roll a take-back can free, the same 3 at any roll size. */
+export const ROLL_RESHOOTS = 3;
+
+/** The ceiling: every shot a guest may take in a period, removed or not (`create_media`'s `roll_size + c_roll_reshoots`). */
+export function rollCeiling(size: number): number {
+  return size + ROLL_RESHOOTS;
+}
 
 /** The sentence the shot past the roll meets: the server's own words (create_media raises it; mapCheckViolation reads "roll"). */
 export function rollSpentMessage(size: number): string {
   return `You've taken all ${size} shots on your roll.`;
 }
 
-/** The sentence the shot past the ceiling meets: the server's own words, as create_media raises them. */
-export const ROLL_RETAKES_SPENT_MESSAGE =
-  "You've used every retake this roll allows.";
+/**
+ * The sentence the shot past the ceiling meets: the server's own words, as create_media raises them (its number is
+ * `c_roll_reshoots`, formatted into the raise). ★ ONE WORD FOR ONE IDEA: the camera says re-shoots wherever it counts
+ * them, so the server's refusal does too, in the shape of the roll's own ("You've taken all 24 shots on your roll.").
+ */
+export const ROLL_RESHOOTS_SPENT_MESSAGE = `You've used all ${ROLL_RESHOOTS} re-shoots on your roll.`;
 
 /**
  * The server's roll sentence, when `message` is one of its two (the shot past the roll, at any size, or past the
  * ceiling), else null. The refusal travels as raised, since its number is the album's own roll.
  */
 export function rollRefusalSentence(message: string): string | null {
-  if (message === ROLL_RETAKES_SPENT_MESSAGE) return message;
+  if (message === ROLL_RESHOOTS_SPENT_MESSAGE) return message;
   return /^You've taken all \d{1,3} shots on your roll\.$/.test(message)
     ? message
     : null;
@@ -88,6 +102,13 @@ export type RollCount = {
   cap: number;
   taken: number;
   ceiling: number;
+  /**
+   * THE PERIOD HER ROLL COUNTS IN (`events.sealed_from`, epoch ms), answered by the gate's read alone (`get_upload_gate`,
+   * 20261007021000), never the presign's: a develop time added mid-party, or the camera started again, begins a new one
+   * and every roll starts again with it. The camera keeps the one she last held shots on (`fresh-roll.ts`), so it can
+   * say her fresh roll once. Absent from a read before that migration.
+   */
+  period?: number;
 };
 
 function whole(value: unknown, min: number): number | null {
@@ -107,14 +128,21 @@ export function parseRollCount(json: unknown): RollCount | null {
   if (used === null || cap === null || taken === null || ceiling === null) {
     return null;
   }
-  return { used, cap, taken, ceiling };
+  // The period is a key the camera compares, never a number it counts with: only a whole, safe instant is one.
+  const period =
+    typeof o.period === "number" &&
+    Number.isSafeInteger(o.period) &&
+    o.period > 0
+      ? o.period
+      : null;
+  return { used, cap, taken, ceiling, ...(period !== null ? { period } : {}) };
 }
 
 /** The sentence the next shot would meet, or null where the roll has a frame (or there is no roll). The roll first. */
 export function rollRefusal(roll: RollCount | null): string | null {
   if (!roll) return null;
   if (roll.used >= roll.cap) return rollSpentMessage(roll.cap);
-  if (roll.taken >= roll.ceiling) return ROLL_RETAKES_SPENT_MESSAGE;
+  if (roll.taken >= roll.ceiling) return ROLL_RESHOOTS_SPENT_MESSAGE;
   return null;
 }
 

@@ -19,9 +19,15 @@ import {
   blockedSince,
   blockedToast,
   deletedUntil,
+  isLetIn,
+  LET_IN,
+  LET_IN_LINE,
+  letBackInAct,
   letBackInLede,
   letBackInTitle,
   letBackInToast,
+  letInAtOnce,
+  letInToast,
   namesOnlyOffer,
   restoreOffer,
   type BlockedPerson,
@@ -219,11 +225,13 @@ describe("the Blocked list and the way back", () => {
     }
   });
 
-  it("★ a newcomer declined at the door is told she goes back there, not into the album (build 23's NIT-3)", () => {
-    // ★ RESHAPED ON PURPOSE (crumbs-24; scar kept: back at the door, never the album): the flag became
-    // the landing, since a newcomer can land somewhere other than the door.
+  it("★ a newcomer with no ask left is told she goes back to the door, not into the album (build 23's NIT-3)", () => {
+    // ★ RESHAPED ON PURPOSE (crumbs-24; scar kept: back at the door, never the album): the flag became the landing,
+    // since a newcomer can land somewhere other than the door. ★ AND AGAIN (host-moments r1, `let-back=straight`;
+    // scar kept): the expired reason is "her ask still stands there, and the host lets her in from it". A standing ask
+    // is the act's own to answer now (Let in, below), so `door` is a newcomer whose ask ended, who can ask again.
     expect(letBackInLede("Maya's 30th", "door")).toBe(
-      "They'll be back at the door, and you can let them in from there.",
+      "They'll be back at the door, and can ask you again from there.",
     );
     expect(letBackInToast("Wren", 0, 0, "door")).toEqual({
       title: "Wren is back at the door.",
@@ -288,29 +296,25 @@ describe("the Blocked list and the way back", () => {
     );
   });
 
-  it("★ a declined newcomer whose ask stands at Only me is told she is back at the door, and that letting her in there leaves her at a closed album (crumbs-30)", () => {
-    // The host can still let her in from At the door (Only me keeps its asks), but Only me shuts everyone until the
-    // host opens it, the people already in included, so the door's own promise alone would leave her at a closed
-    // album with nothing said. The door's sentence stands, then the Only me landing's own clause.
-    expect(letBackInLede("Maya's 30th", "door_only_me")).toBe(
-      "They'll be back at the door. You can let them in from there, but Maya's 30th is Only me right now, so they'll meet a closed album until you open it.",
+  it("★ a declined newcomer whose ask stands at Only me is told, before the press, that it lets her in to an album she meets closed (crumbs-30)", () => {
+    // ★ RESHAPED ON PURPOSE (host-moments r1, `let-back=straight`; scar kept: at Only me the words never promise the
+    // album, which stays shut to everyone until the host opens it). The expired reason: "she is back at the door, and
+    // the host's Let in there leaves her at a closed album". The press is the Let in now, so the confirm says that one
+    // thing before it acts, and the toast after it.
+    expect(letBackInLede("Maya's 30th", "let_in_only_me")).toBe(
+      "They'll be in, but Maya's 30th is Only me right now, so they'll meet a closed album until you open it.",
     );
-    expect(letBackInLede("Maya's 30th", "door_only_me")).not.toBe(
-      letBackInLede("Maya's 30th", "door"),
-    );
-    // The toast says only where she is, as the door's does: she is back at it.
-    expect(letBackInToast("Wren", 0, 0, "door_only_me")).toEqual({
-      title: "Wren is back at the door.",
+    expect(letBackInTitle("Wren", "let_in_only_me")).toBe("Let Wren in?");
+    expect(letBackInToast("Wren", 0, 0, "let_in_only_me", 1)).toEqual({
+      title: "Wren is in.",
+      description:
+        "The album is Only me right now, so they'll meet it closed until you open it.",
     });
-    expect(letBackInToast(null, 0, 0, "door_only_me")).toEqual({
-      title: "They're back at the door.",
-    });
-    // Nothing promises the album she still has to be let into, and that stays shut when she is.
     for (const said of [
-      letBackInLede("Maya's 30th", "door_only_me"),
-      letBackInToast("Wren", 0, 0, "door_only_me").title,
+      letBackInLede("Maya's 30th", "let_in_only_me"),
+      letBackInToast("Wren", 0, 0, "let_in_only_me", 1).description ?? "",
     ]) {
-      expect(said).not.toMatch(/add photos|join again/);
+      expect(said).not.toMatch(/add photos|join again|opens .* for them/);
     }
   });
 
@@ -324,6 +328,94 @@ describe("the Blocked list and the way back", () => {
     expect(letBackInToast(null, 0, 0, "out")).toEqual({
       title: "They're no longer blocked.",
     });
+  });
+});
+
+describe("★ Let in, the way back for a declined newcomer whose ask stands (host-moments r1, `let-back=straight`)", () => {
+  it("the act is Let in where the press answers a standing ask, Let back in everywhere else", () => {
+    for (const lands of ["let_in", "let_in_only_me"] as const) {
+      expect(isLetIn(lands)).toBe(true);
+      expect(letBackInAct(lands)).toEqual({
+        label: LET_IN,
+        working: "Letting in",
+      });
+    }
+    for (const lands of ["in", "only_me", "door", "password", "out"] as const) {
+      expect(isLetIn(lands)).toBe(false);
+      expect(letBackInAct(lands)).toEqual({
+        label: "Let back in",
+        working: "Letting back in",
+      });
+    }
+    expect(LET_IN).toBe("Let in");
+  });
+
+  it("★ one press only where the press is the whole answer: no restore to decide, no Only me to hear first", () => {
+    const declined = person({ lands: "let_in" });
+    expect(letInAtOnce(declined)).toBe(true);
+    // Will's restore=ask holds its confirm wherever something of theirs could come back.
+    expect(letInAtOnce({ ...declined, restorable: 2 })).toBe(false);
+    expect(letInAtOnce(person({ lands: "let_in_only_me" }))).toBe(false);
+    for (const lands of ["in", "only_me", "door", "password", "out"] as const) {
+      expect(letInAtOnce(person({ lands })), lands).toBe(false);
+    }
+    // The one-press row says where it takes her before the press (the board's drawn line).
+    expect(LET_IN_LINE).toBe("Let in: into the album, now");
+  });
+
+  it("the confirm, where one stands, asks in the act's own word and says she will be in", () => {
+    expect(letBackInTitle("Dev", "let_in")).toBe("Let Dev in?");
+    expect(letBackInTitle(null, "let_in")).toBe("Let this guest in?");
+    expect(letBackInTitle("Ray", "in")).toBe("Let Ray back in?");
+    expect(letBackInLede("Maya's 30th", "let_in")).toBe(
+      "They'll be in at once: their link opens Maya's 30th for them.",
+    );
+  });
+
+  it("★ the toast says what the answer says: in, or only lifted where nobody was let in", () => {
+    expect(letBackInToast("Dev", 0, 0, "let_in", 1)).toEqual({
+      title: "Dev is in.",
+      description: "Their link opens the album for them now.",
+    });
+    // A stand-in that answers no count is taken at its word.
+    expect(letBackInToast("Dev", 0, 0, "let_in")).toEqual(
+      letBackInToast("Dev", 0, 0, "let_in", 1),
+    );
+    // A door that moved under the press (a password ended her ask) let nobody in: nothing past the lifted block.
+    expect(letBackInToast("Dev", 0, 0, "let_in", 0)).toEqual({
+      title: "Dev is no longer blocked.",
+    });
+    expect(letBackInToast(null, 0, 0, "let_in", 0)).toEqual({
+      title: "They're no longer blocked.",
+    });
+    // What the restore brought back is said after where she is.
+    expect(letBackInToast("Dev", 2, 0, "let_in", 1)).toEqual({
+      title: "Dev is in.",
+      description:
+        "Their link opens the album for them now. 2 uploads are back where they were.",
+    });
+  });
+
+  it("★ one set of words for every Let in, the second line where the person stands", () => {
+    // At the door: a held door, which opens by itself at its next check-in.
+    expect(letInToast("Wren", { from: "door", onlyMe: false })).toEqual({
+      title: "Wren is in.",
+      description: "The album opens for them right where they wait.",
+    });
+    // Declined: the shut door opens nothing by itself, and told them the link works again once let in.
+    expect(letInToast("Dev", { from: "decline", onlyMe: false })).toEqual({
+      title: "Dev is in.",
+      description: "Their link opens the album for them now.",
+    });
+    // ★ Only me opens no album for anyone, wherever she let them in from.
+    for (const from of ["door", "decline"] as const) {
+      expect(letInToast("Wren", { from, onlyMe: true }).description).toBe(
+        "The album is Only me right now, so they'll meet it closed until you open it.",
+      );
+    }
+    expect(letInToast(" ", { from: "door", onlyMe: false }).title).toBe(
+      "They're in.",
+    );
   });
 });
 
@@ -366,19 +458,23 @@ describe("blockedLanding: where Let back in leaves them, from the door as it sta
     expect(at("password", { waiting: true })).toBe("password");
   });
 
-  // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: an ask that stands keeps her at a door the host answers): Only me left
-  // this list for its own landing below, since the host's Let in there leaves her at a closed album.
-  it("an ask that stands keeps her at a door the host answers; the list lets in whom it names; Public lets anyone in", () => {
-    for (const door of ["approve", "invite", "closed"] as const) {
-      expect(at(door, { waiting: true }), door).toBe("door");
+  // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: an ask that stands is the host's to answer): Only me left this list
+  // for its own landing below, since the host's Let in there leaves her at a closed album. ★ AND AGAIN (host-moments
+  // r1, `let-back=straight`; scar kept): the expired reason is "keeps her at a door the host answers, from At the
+  // door". Undoing a decline means yes, so the press itself answers the ask, wherever it stands (Public and the list
+  // let her in by their own arms in the same call, which is why they read as Let in too).
+  it("★ an ask that stands is the press's to answer: Let in, at every door that keeps one", () => {
+    for (const door of ["approve", "invite", "closed", "open"] as const) {
+      expect(at(door, { waiting: true }), door).toBe("let_in");
     }
-    expect(at("invite", { waiting: true, listed: true })).toBe("in");
+    expect(at("invite", { waiting: true, listed: true })).toBe("let_in");
+    // With no ask left, the list that names her and Public let her in by lifting the block alone.
     expect(at("invite", { listed: true })).toBe("in");
     expect(at("open")).toBe("in");
   });
 
-  it("★ an ask that stands at Only me keeps her at the door, where the host's Let in meets a closed album (crumbs-30)", () => {
-    expect(at("private", { waiting: true })).toBe("door_only_me");
+  it("★ an ask that stands at Only me is Let in to an album it keeps shut (crumbs-30)", () => {
+    expect(at("private", { waiting: true })).toBe("let_in_only_me");
     // Someone who was in is the album's own Only me landing, whatever rows of hers wait.
     expect(at("private", { wasIn: true, waiting: true })).toBe("only_me");
   });
@@ -433,7 +529,14 @@ describe("the bible's copy rules hold in every sentence here", () => {
       letBackInLede("Party", "password"),
       letBackInLede("Party", "out"),
       letBackInLede("Party", "only_me"),
-      letBackInLede("Party", "door_only_me"),
+      letBackInLede("Party", "let_in"),
+      letBackInLede("Party", "let_in_only_me"),
+      letBackInLede("Party", "door"),
+      letBackInTitle("Sam", "let_in"),
+      LET_IN_LINE,
+      letInToast("Sam", { from: "door", onlyMe: false }).description,
+      letInToast("Sam", { from: "decline", onlyMe: false }).description,
+      letInToast("Sam", { from: "decline", onlyMe: true }).description,
       restoreOffer({ restorable: 2, restorableUntil: "October 28" })
         ?.description ?? "",
       letBackInToast("Sam", 2, 2).description ?? "",

@@ -13,7 +13,8 @@ import { formatEventDate } from "@/lib/utils";
 /**
  * READY FOR GUESTS, AS ONE PURE FUNCTION (Will's `event-ready` picks, 2026-10-02): what an event still
  * needs before guests arrive, read by the hub's checklist at its head (`list=head`), Settings' rail of
- * steps (`guide=steps`) and Create's hand-off (`create=hand`), so a tick in one of them is a tick in all.
+ * steps (`guide=steps`) and Create's close (create-wizard r4's `close=next`), so a tick in one of them is a
+ * tick in all.
  *
  * ★ EVERY ITEM IS STATE THE APP ALREADY HOLDS, AND READY IS NEVER STORED NOR SHOWN TO A GUEST. The door
  * and its counts, `accepting_uploads`, the album's count and the reel's playable count, `event_date` and
@@ -256,6 +257,13 @@ function codeItem(f: ReadyFacts): ReadyItem {
   };
 }
 
+/**
+ * The code, as Create's close says what guests still need (`stillNeeded`): the two rounds right above the line, Print
+ * and Share, are how it reaches them, so the line names both.
+ */
+export const CODE_STILL_NEEDED =
+  "Guests still need your code: print it, or share it.";
+
 /** Room, only once the shelf runs short (the dashboard's own threshold); essential only when it is full. */
 function roomItem(f: ReadyFacts): ReadyItem | null {
   if (f.storagePct <= STORAGE_STEP_PCT) return null;
@@ -323,6 +331,24 @@ export function readyHead(r: Readiness): { title: string; line: string } {
     title: "Before guests arrive",
     line: `Guests still need ${more === 1 ? "one more thing" : `${formatCount(more)} more things`}.`,
   };
+}
+
+/**
+ * WHAT GUESTS STILL NEED, IN ONE LINE: the line Create closes on, under Print and Share (create-wizard r4's
+ * `close=next`, Will 2026-10-07: "I do like the subtlety versus the steps ... Rather than shouting about what's done and
+ * what's to come, we should simply continue naturally guiding them through"). It names the first essential still open,
+ * never a count to decode.
+ *
+ * ★ TRUE BY CONSTRUCTION, NEVER WRITTEN FOR CREATE: a new event is born with its door and its adds done
+ * (`newEventFacts`), and the photos and the welcome are never essential, so its one essential left is the code, which
+ * the two rounds above the line do. Read off the readiness like every other surface, the line follows whatever the event
+ * holds: another essential says its own line, and an event a guest can already reach says the checklist's head. On the
+ * beat, room is said beside the line where the account runs short (`BeatClose`), since it is the plan's.
+ */
+export function stillNeeded(r: Readiness): string {
+  const need = r.left.find((i) => i.essential);
+  if (!need) return readyHead(r).line;
+  return need.id === "code" ? CODE_STILL_NEEDED : need.line;
 }
 
 /**
@@ -408,10 +434,10 @@ export function checklistOver(
 
 /**
  * A NEW EVENT'S FACTS, from what Create sent (the create schema's defaults filled): nothing in it yet,
- * nobody in, never opened. Create's hand-off lists what is left from these. ★ The account's storage is
- * the route's to read and hand over (create-wizard r2's carried `room`, taken): past the dashboard's own
- * threshold room joins what is left on the beat, as it does on the hub, said beside Settings' steps
- * because it is the plan's, never a step.
+ * nobody in, never opened. Create's close says what guests still need from these (`stillNeeded`). ★ The
+ * account's storage is the route's to read and hand over (create-wizard r2's carried `room`, taken): past
+ * the dashboard's own threshold room joins what is left on the beat, as it does on the hub, said beside
+ * the close's line because it is the plan's.
  */
 export function newEventFacts(
   created: {
@@ -464,9 +490,9 @@ export function storageUsedPct(
 /**
  * SETTINGS' FIVE STEPS, IN ITS RAIL'S ORDER (event-ready `guide=steps`): each step is the checklist item it
  * finishes (who can get in, what guests can add, the reel's first photos, the welcome), then the code. A
- * surface that draws them (Create's beat, under the code: create-wizard r2 `beat=develop`) reads them here,
- * titled as Settings titles its rows, so the rail a host is shown is the rail Get it ready opens onto.
- * Room is never a step: it is the plan's, said beside them.
+ * surface that draws them (the dashboard's stage, `stage.ts`) reads them here, titled as Settings titles its
+ * rows, so the rail a host is shown is the rail Settings opens onto. Room is never a step: it is the plan's,
+ * said beside them.
  */
 export const SETTINGS_STEP_ITEMS = [
   { item: "door", group: "door" },

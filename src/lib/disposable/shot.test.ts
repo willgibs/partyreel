@@ -5,7 +5,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  ROLL_RETAKES_SPENT_MESSAGE,
+  ROLL_RESHOOTS_SPENT_MESSAGE,
+  rollCeiling,
   rollSpentMessage,
 } from "@/lib/disposable/roll";
 import {
@@ -19,7 +20,7 @@ import {
   CAMERA_VIDEO_SECONDS,
 } from "@/lib/media/limits";
 
-const ROOM = { used: 3, cap: 24, taken: 3, ceiling: 72 };
+const ROOM = { used: 3, cap: 24, taken: 3, ceiling: rollCeiling(24) };
 const photo = { size_bytes: 4_000_000 };
 const clip = (seconds: number, bytes = 40 * 1024 ** 2) => ({
   size_bytes: bytes,
@@ -109,7 +110,7 @@ describe("cameraShotRefusal", () => {
       cameraShotRefusal(
         {
           capture: "camera",
-          roll: { used: 12, cap: 12, taken: 12, ceiling: 36 },
+          roll: { used: 12, cap: 12, taken: 12, ceiling: rollCeiling(12) },
         },
         "photo",
         photo,
@@ -117,14 +118,14 @@ describe("cameraShotRefusal", () => {
     ).toBe(rollSpentMessage(12));
     expect(
       cameraShotRefusal(
-        { capture: "camera", roll: { ...ROOM, taken: 72 } },
+        { capture: "camera", roll: { ...ROOM, taken: rollCeiling(24) } },
         "photo",
         photo,
       ),
     ).toEqual({
       status: 409,
       code: "roll_spent",
-      message: ROLL_RETAKES_SPENT_MESSAGE,
+      message: ROLL_RESHOOTS_SPENT_MESSAGE,
     });
     expect(
       cameraShotRefusal({ capture: "camera", roll: ROOM }, "photo", photo),

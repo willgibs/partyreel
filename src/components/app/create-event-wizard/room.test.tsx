@@ -9,6 +9,8 @@ import { CreateEventWizard } from "@/components/app/create-event-wizard";
 import { RouteSkeleton } from "@/components/shared/route-skeleton";
 
 import { setReducedMotion } from "../../../../vitest.setup";
+import { DEVELOP_QUESTION } from "./develop-step";
+import { HELD_QUESTION } from "./held";
 
 /**
  * CREATE AS THE ROOM, IN HIS LAYOUT (create-wizard r1 `shape=screen`, r2 `flow=carry`, Will 2026-10-02/03):
@@ -24,7 +26,10 @@ import { setReducedMotion } from "../../../../vitest.setup";
  *    and going back would offer to make it twice;
  *  - the carry stops carrying: the head forgets her name, or the name flies from a guessed place.
  *  - the add step (create-wizard r3's `add=styles`) stands between the name and the look as a screen of the room like
- *    the rest: its question first, one button at the foot, a hairline of its own, Back and the head the way to the name.
+ *    the rest: its question first, one button at the foot, a hairline of its own, Back and the head the way to the name;
+ *  - the Disposable's own screen (r4's `styles=focused`) stands after it only while Disposable is picked, the
+ *    steppers growing by one with it and shrinking without it;
+ *  - a failed Create (r4's `failed=held`) holds the beat in the same layout, Back there for a change.
  * No class, size, word count or duration is pinned; the words are, where a word is the fact.
  */
 
@@ -108,6 +113,10 @@ async function createIt() {
   await screen.findByRole("button", { name: /^get it ready$/i });
 }
 
+/** A question's own words as a pattern that matches them whole, whatever they hold. */
+const exactly = (words: string) =>
+  new RegExp(`^${words.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
+
 /** The screen as he laid it out: its one question first, its answer under it, one button at the foot. */
 function expectLaidOut(asks: RegExp, go: RegExp) {
   const p = page();
@@ -186,6 +195,23 @@ describe("each screen's question, in one place", () => {
     expectLaidOut(new RegExp(`^${EVENT.name} is live$`), /^get it ready$/i);
   });
 
+  it("★ stands the Disposable's own screen in the same layout, and a failed Create's hold too", async () => {
+    createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
+    renderWizard();
+    await nameIt();
+    await userEvent.click(
+      screen.getByRole("radio", { name: /^disposable\./i }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expectLaidOut(exactly(DEVELOP_QUESTION), /^continue$/i);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^try again$/i });
+    expectLaidOut(exactly(HELD_QUESTION), /^try again$/i);
+  });
+
   it("labels the name's field with its question, so the question is the field's own", () => {
     renderWizard();
     expect(screen.getByRole("textbox")).toHaveAccessibleName(
@@ -220,6 +246,35 @@ describe("each screen's question, in one place", () => {
       "current",
       "todo",
     ]);
+    expect(head()).toHaveTextContent(/step 3 of 4/i);
+  });
+
+  it("★ grows the steppers by one while Disposable is picked, its own screen the third, and shrinks them without it", async () => {
+    renderWizard();
+    const marks = () =>
+      [...head().querySelectorAll<HTMLElement>("[data-room-step]")].map(
+        (m) => m.dataset.state,
+      );
+    await nameIt();
+    await userEvent.click(
+      screen.getByRole("radio", { name: /^disposable\./i }),
+    );
+    expect(marks()).toEqual(["done", "current", "todo", "todo", "todo"]);
+    expect(head()).toHaveTextContent(/step 2 of 5/i);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(question()).toHaveTextContent(DEVELOP_QUESTION);
+    expect(marks()).toEqual(["done", "done", "current", "todo", "todo"]);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    await screen.findByRole("button", { name: /^create event$/i });
+    expect(head()).toHaveTextContent(/step 4 of 5/i);
+    // Back walks it one screen at a time, and another style takes its screen away.
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(question()).toHaveTextContent(DEVELOP_QUESTION);
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    await userEvent.click(screen.getByRole("radio", { name: /^live\./i }));
+    expect(marks()).toEqual(["done", "current", "todo", "todo"]);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(question()).toHaveTextContent(/^pick the code.s look$/i);
     expect(head()).toHaveTextContent(/step 3 of 4/i);
   });
 });
@@ -294,6 +349,24 @@ describe("Back (flow=carry: the head is the way back)", () => {
       "aria-checked",
       "true",
     );
+  });
+
+  it("★ is offered on a held failure, to the look: nothing exists to make twice, and the head names her event", async () => {
+    createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
+    renderWizard();
+    await toTheLook();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await screen.findByRole("button", { name: /^try again$/i });
+    // The question is the failure's, so her name titles the room; the hairlines press nothing while it is held.
+    expect(head().querySelector("[data-room-name]")).toHaveTextContent(
+      EVENT.name,
+    );
+    expect(head().querySelector("[data-room-step] button")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
+    expect(question()).toHaveTextContent(/^pick the code.s look$/i);
+    expect(document.querySelector("[data-beat]")).toBeNull();
   });
 
   it("★ is never offered on the beat: the event exists, and Back would offer to make it twice", async () => {
