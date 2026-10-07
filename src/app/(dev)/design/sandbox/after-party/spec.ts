@@ -405,12 +405,12 @@ export const AFTER_PARTY = defineExploration({
             "A line of Partyreel's own on Maya's album; many guests never reach its end.",
         },
       ],
-      recommended: "end",
+      recommended: "header",
       today: "home",
       because:
-        "She meets it when she's done looking, and both ways start her party in the style she just loved.",
+        "The way stays the album's one quiet corner, as little Partyreel as possible, and now starts her party in the style she loved.",
       overrule:
-        "If the album should carry nothing of Partyreel's own, the header's corner into Create.",
+        "If more guests should meet it once they're done looking, the line at the album's end as well.",
       configs: [SCREEN],
     },
   ],
