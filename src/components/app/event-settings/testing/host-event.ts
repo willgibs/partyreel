@@ -21,6 +21,7 @@ export function hostEvent(over: Partial<HostEvent> = {}): HostEvent {
     has_password: false,
     accepting_uploads: true,
     require_verified_email: true,
+    email_held: false,
     require_upload_to_view: false,
     moderation_mode: "live",
     max_upload_bytes: null,

@@ -27,14 +27,10 @@ import { rollSizeOf } from "@/lib/disposable/roll";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import { holdsEmailOn, type Door } from "@/lib/event/door/door";
+import { emailBackLine } from "@/lib/event/door/words";
+import { useUnparkAfterSave } from "@/components/app/event-settings/settings-state-unpark";
 import { deviceZone } from "@/lib/event/zone";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
-import {
-  emailHeldWhile,
-  emailWasOff,
-  forgetEmailWasOff,
-  rememberEmailWasOff,
-} from "@/components/app/event-settings/settings-state-email";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { REEL_MOOD_IDS, resolveHoldSec } from "@/lib/reel/defaults";
 import {
@@ -70,6 +66,12 @@ export type SettingsValues = {
   door: Door;
   hasPassword: boolean;
   requireVerifiedEmail: boolean;
+  /**
+   * ★ AN EMAIL FIRST IS ON ONLY BECAUSE THE GATE HOLDS IT, AND SHE HAD NAMES ONLY BEFORE (`events.email_held`,
+   * 20261007140000): the event remembers her names-only door and gives it back the moment the gate goes, on every path
+   * and every device. Read off the row, and kept by each door save's own answer; false where nothing remembers.
+   */
+  emailHeld: boolean;
   requireUploadToView: boolean;
   acceptingUploads: boolean;
   review: boolean;
@@ -128,6 +130,7 @@ function valuesOf(
     door: event.door,
     hasPassword: event.has_password,
     requireVerifiedEmail: event.require_verified_email,
+    emailHeld: event.email_held,
     requireUploadToView: event.require_upload_to_view,
     acceptingUploads: event.accepting_uploads,
     review: event.moderation_mode === "hold_for_approval",
@@ -183,6 +186,13 @@ type SettingsState = {
   saveDoor: (
     door: Door,
   ) => Promise<Extract<SetEventDoorResult, { ok: true }> | null>;
+  /**
+   * The password's own save landed (`EventPasswordControl`, through `set_event_password`, which writes the door itself):
+   * what it did is laid at once from its success, never left to a later read of the hub.
+   */
+  passwordSet: () => void;
+  /** The password's own Remove landed (`clear_event_password`): the same, for what Remove does. */
+  passwordCleared: () => void;
   /** The reel's switch, look or hold, written through `setReelDefaults`. */
   saveReel: (
     patch: Partial<
@@ -366,12 +376,23 @@ export function SettingsProvider({
 
   const values: SettingsValues = { ...base, ...overlay };
 
+  /**
+   * ★ A SAVE WHOSE COMMIT REACT PARKS IS LET GO (crumbs-89, red-team 57b: after a hard load the hub's row stopped taking
+   * the saves; `settings-state-unpark.ts` has the cause and the measurement). Once a save has answered, the provider is
+   * nudged while its transition has not landed (`settling`) or the row has not caught up with what a save laid (the
+   * overlay), so the row, and every page move waiting on `afterSaves`, is never held behind a commit nothing will wake.
+   */
+  const unpark = useUnparkAfterSave(
+    settling || Object.keys(overlay).length > 0,
+  );
+
   // A live word's way to its page's own control: set as the word moves her, spent as the control takes her in.
   const [opening, setOpening] = useState<SettingsOpening | null>(null);
 
   const lay = useCallback(
     (patch: Partial<SettingsValues>) => setOverlay((o) => ({ ...o, ...patch })),
-    [],
+    // A setter is stable; named so the compiler keeps this memo where a later callback reads the values it lays.
+    [setOverlay],
   );
 
   /**
@@ -420,6 +441,7 @@ export function SettingsProvider({
       } finally {
         flying.current -= 1;
         flushLanded();
+        unpark();
       }
       const newest = keys.filter((k) => latest.current[k] === seq[k]);
       setInFlight((s) => {
@@ -452,14 +474,11 @@ export function SettingsProvider({
       }
       return true;
     },
-    [flushLanded],
+    [flushLanded, unpark],
   );
 
   const saveEvent = useCallback(
     (patch: Partial<SettingsValues>) => {
-      // ★ HER OWN WORD ON THE EMAIL STEP ENDS WHAT A GATE NOTED FOR HER (`settings-state-email.ts`): the choice a gate
-      // gives back is the one she had before it, and a switch she has touched since is a newer one.
-      if (patch.requireVerifiedEmail !== undefined) forgetEmailWasOff(event.id);
       return run(
         patch,
         async () => {
@@ -477,9 +496,23 @@ export function SettingsProvider({
     [event, run, writes],
   );
 
+  /**
+   * ★ A GATE THAT LETS GO GIVES HER CHOICE BACK, AND THE DATABASE DOES IT (crumbs-89, red-team 57b's MEDIUM; crumbs-87's
+   * Q1). Letting each person in and the invite list hold "An email first" on ("On while you let each person in"); a gate
+   * that turned it on from off is remembered by the event (`events.email_held`), and the door's leaving it gives her
+   * names only back in the same write (`events_email_held`, 20261007140000), whichever page, device or load moved it.
+   * So what the page shows comes from the save's OWN answer, never a later read of the hub: `emailRestored` lays the
+   * switch off at once and says so in the row's words (`emailBackLine`), and `emailHeld` keeps the memory the event
+   * holds. A move from one gate to the other changes nothing the event remembers (the first hold stands). crumbs-87's
+   * device note is gone: it waited on the hub's row, which can miss the saves after a load, and it never reached another
+   * device or the password's first set.
+   */
   const saveDoor = useCallback(
     async (door: Door) => {
+      // The door she moved from, as the page showed it: whose words the giving back is said in.
+      const from = values.door;
       let answer: Extract<SetEventDoorResult, { ok: true }> | null = null;
+      const gave = { back: false };
       const ok = await run(
         { door },
         async () => {
@@ -487,29 +520,70 @@ export function SettingsProvider({
           if (!result.ok)
             return { ok: false as const, message: result.message };
           answer = result;
-          // ★ WHAT THE GATE TOOK IT FROM, NOTED FOR HER (`settings-state-email.ts`): a gate that turned the email step
-          // on from off is the one that gives her names-only back when it lets go (the effect below). ★ NOTHING ELSE
-          // TOUCHES THE NOTE HERE, A MOVE FROM ONE GATE TO ANOTHER LEAST OF ALL: the first gate's hold is still
-          // standing, so the database answers `emailHeld: false` for the second (the step is already on), and a note
-          // dropped on that answer is a choice lost (the live walk that found it: approve, then the invite list, then
-          // out of both, restored nothing). A note is only ever ended by her own word on the switch, or by giving it
-          // back.
-          if (result.emailHeld) rememberEmailWasOff(event.id);
-          // An address gate holds the email step on: the row says so after the revalidation, and
-          // the overlay says it now.
-          return {
-            ok: true as const,
-            kept: result.emailHeld
-              ? { door, requireVerifiedEmail: true }
-              : { door },
-          };
+          gave.back = result.emailRestored === true;
+          // Nothing remembers where the answer says nothing (a database before the memory, the Library's writer):
+          // the step then stands as the database left it, and nothing is said.
+          const remembers = typeof result.emailRestored === "boolean";
+          let kept: Partial<SettingsValues> = { door };
+          if (result.emailRestored) {
+            kept = { door, requireVerifiedEmail: false, emailHeld: false };
+          } else if (result.emailHeld) {
+            // An address gate turned the step on from off: the overlay says it now, and that the event remembers.
+            kept = { door, requireVerifiedEmail: true, emailHeld: remembers };
+          } else if (remembers && !holdsEmailOn(door)) {
+            // Out of the gates with nothing to give back: no memory is left.
+            kept = { door, emailHeld: false };
+          }
+          return { ok: true as const, kept };
         },
         "Couldn't change who can get in.",
       );
+      if (ok && gave.back) {
+        const line = emailBackLine(from);
+        toast.success(line.title, { description: line.description });
+      }
       return ok ? answer : null;
     },
-    [event.id, run, writes],
+    [event.id, run, writes, values.door],
   );
+
+  /**
+   * ★ THE PASSWORD'S OWN SAVE MOVES THE DOOR, AND ITS SUCCESS SAYS WHAT IT DID (crumbs-89). `set_event_password` opens the
+   * password door as it sets one and clears any gate (20260929120000), and a gate that held the step from off gives her
+   * names only back with it (the event's memory, 20261007140000). Its control answers success alone, so what that means
+   * is laid here from what the page knew when she pressed, and said, as the door's own save says it: the hub's row may
+   * never bring it in this visit (red-team 57b).
+   */
+  const passwordSet = useCallback(() => {
+    const was = { door: values.door, emailHeld: values.emailHeld };
+    const givesBack = was.emailHeld && holdsEmailOn(was.door);
+    lay(
+      givesBack
+        ? {
+            door: "password",
+            hasPassword: true,
+            requireVerifiedEmail: false,
+            emailHeld: false,
+          }
+        : { door: "password", hasPassword: true },
+    );
+    if (givesBack) {
+      const line = emailBackLine(was.door);
+      toast.success(line.title, { description: line.description });
+    }
+    // Its own save revalidated the hub in a transition of the control's: let go of it, should React park it.
+    unpark();
+  }, [lay, unpark, values.door, values.emailHeld]);
+
+  /** Remove: the hash goes, and a password door turns Public (`clear_event_password`); a gate it waited under stays. */
+  const passwordCleared = useCallback(() => {
+    lay(
+      values.door === "password"
+        ? { door: "open", hasPassword: false }
+        : { hasPassword: false },
+    );
+    unpark();
+  }, [lay, unpark, values.door]);
 
   const saveReel = useCallback(
     (
@@ -583,43 +657,6 @@ export function SettingsProvider({
     [event.id, run, writes],
   );
 
-  /**
-   * ★ A GATE THAT LETS GO GIVES HER CHOICE BACK (crumbs-87, the gap audit): the row said "On while you let each person
-   * in", so when the door the ROW (never the optimistic overlay, which moves before the database has) shows has left
-   * the gate that held "An email first" on, and a gate turned it on from off on this device
-   * (`settings-state-email.ts`), the switch goes back to off, and she is told in the row's own words. Whichever way the
-   * door left (a pick on the door page, a first password's own save, another device's change reaching this row), since
-   * the row is what changed. Nothing is given back where she never had names only, where the row already says off, or
-   * where she has touched the switch since; and the switch is live again the moment the gate has gone, so a refused
-   * write leaves it on, said, one tap from off.
-   */
-  const rowDoor = useRef<{ id: string; door: Door } | null>(null);
-  const rowEmailOn = base.requireVerifiedEmail;
-  const rowDoorNow = base.door;
-  useEffect(() => {
-    const was = rowDoor.current;
-    rowDoor.current = { id: event.id, door: rowDoorNow };
-    // Only a row that let go of a gate that held the step: its first sight, or any other change, gives nothing back.
-    if (was?.id !== event.id) return;
-    if (!holdsEmailOn(was.door) || holdsEmailOn(rowDoorNow)) return;
-    if (!emailWasOff(event.id)) return;
-    if (!rowEmailOn) {
-      forgetEmailWasOff(event.id);
-      return;
-    }
-    // Her saved choice coming back is a write, started once this commit is done (never state set in the effect's own
-    // turn), and it consumes the note as it starts: a second look at the same row finds nothing left to give back.
-    const heldBy = emailHeldWhile(was.door);
-    void Promise.resolve()
-      .then(() => saveEvent({ requireVerifiedEmail: false }))
-      .then((ok) => {
-        if (!ok) return;
-        toast.success("An email first is off again.", {
-          description: `It was only on ${heldBy}.`,
-        });
-      });
-  }, [event.id, rowDoorNow, rowEmailOn, saveEvent]);
-
   const videosOnPlan = videosAllowedForTier(tier);
   const facts: SettingsFacts = {
     door: values.door,
@@ -656,6 +693,8 @@ export function SettingsProvider({
     reelSample,
     saveEvent,
     saveDoor,
+    passwordSet,
+    passwordCleared,
     saveReel,
     saveProfile,
     saving: (key) => inFlight.has(key),

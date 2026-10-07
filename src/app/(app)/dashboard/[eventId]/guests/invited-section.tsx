@@ -11,6 +11,7 @@ import {
 } from "@/app/(app)/dashboard/[eventId]/guests/actions";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
+import { useUnparkAfterSave } from "@/components/app/event-settings/settings-state-unpark";
 import { Button } from "@/components/ui/button";
 import { Dormant } from "@/components/ui/dormant";
 import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
@@ -100,6 +101,13 @@ export function InvitedSection({
   }>(() => ({ from: invited, emails: NONE }));
   const hidden = removed.from === invited ? removed.emails : NONE;
   const [saving, startSaving] = useTransition();
+  /**
+   * ★ "SAVING…" NEVER OUTLIVES ITS ANSWER (crumbs-89, red-team 57b's LOW): each act's Server Action revalidates the hub,
+   * and after a hard load React could park that commit for good, so `saving` held "Saving… 0 on the list" while the
+   * database held the address, until the room was opened again. Once an act has answered and the room still waits on
+   * its commit, it is nudged (`settings-state-unpark.ts` has the cause), and the room's read lands with it.
+   */
+  const unpark = useUnparkAfterSave(saving);
 
   const list = invited.filter((p) => !hidden.has(p.email));
   const joined = list.filter((p) => p.joined).length;
@@ -114,6 +122,7 @@ export function InvitedSection({
     if (addresses.length === 0) return;
     startSaving(async () => {
       const result = await acts.add({ eventId, emails: addresses });
+      unpark();
       if (!result.ok) {
         // Nothing landed: the addresses go back into the field, to try again.
         setTyped(addresses.join(", "));
@@ -148,6 +157,7 @@ export function InvitedSection({
     }));
     startSaving(async () => {
       const result = await acts.remove({ eventId, email });
+      unpark();
       if (!result.ok) {
         setRemoved((r) => {
           const next = new Set(r.emails);
@@ -197,7 +207,7 @@ export function InvitedSection({
               }
               <Link
                 href={settingsPageHref(eventId, "door")}
-                className="rounded-sm font-medium text-foreground underline underline-offset-4 outline-none focus-halo"
+                className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
               >
                 Change who can get in
               </Link>
@@ -228,7 +238,7 @@ export function InvitedSection({
             }
             <Link
               href={settingsPageHref(eventId, "door")}
-              className="rounded-sm font-medium text-foreground underline underline-offset-4 outline-none focus-halo"
+              className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
             >
               Change who can get in
             </Link>
@@ -253,7 +263,7 @@ export function InvitedSection({
               type="button"
               aria-label={`Drop ${entry}`}
               onClick={() => setFlagged((f) => f.filter((x) => x !== entry))}
-              className="flex size-5 items-center justify-center rounded-full outline-none hover:bg-destructive/10 focus-halo"
+              className="flex size-5 focus-halo items-center justify-center rounded-full outline-none hover:bg-destructive/10"
             >
               <X className="size-3.5" aria-hidden />
             </button>

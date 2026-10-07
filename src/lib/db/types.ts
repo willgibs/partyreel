@@ -850,12 +850,14 @@ export type Database = {
           accepting_uploads: boolean
           allow_videos: boolean
           capture: string
+          create_key: string | null
           created_at: string
           custom_slug: string | null
           deleted_at: string | null
           description: string | null
           develops_at: string | null
           display_in_profile: boolean
+          email_held: boolean
           event_date: string | null
           event_end_date: string | null
           event_password_hash: string | null
@@ -884,12 +886,14 @@ export type Database = {
           accepting_uploads?: boolean
           allow_videos?: boolean
           capture?: string
+          create_key?: string | null
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
           develops_at?: string | null
           display_in_profile?: boolean
+          email_held?: boolean
           event_date?: string | null
           event_end_date?: string | null
           event_password_hash?: string | null
@@ -918,12 +922,14 @@ export type Database = {
           accepting_uploads?: boolean
           allow_videos?: boolean
           capture?: string
+          create_key?: string | null
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
           develops_at?: string | null
           display_in_profile?: boolean
+          email_held?: boolean
           event_date?: string | null
           event_end_date?: string | null
           event_password_hash?: string | null
