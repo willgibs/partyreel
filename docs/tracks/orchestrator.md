@@ -50,7 +50,7 @@ and the lanes' seven test events are in Deleted; what no agent can drive is unde
 | `after-party-r1` | board (desk place 12): the album after its party (over, recap, keepsake, card, bridge) | MERGED at `8e55608e6` (gate 73 green), for the desk after next with no-signal r1; its Deferred and board ideas placed, its lab line retired; pruned | Opus, 3135 | `a4c7c77694c1f980f` |
 | `no-signal-r1` | board (desk place 14): a party with no signal: how far her unsent photos are carried, the drop, a Disposable's roll offline (Will's one-way door, drawn both ways) | MERGED at `fa28bf495` (gate 71 green), for the desk after next; its two album bugs Immediate lines; pruned | Opus, 3136 | `aece05f608a1f0346` |
 | `crumbs-90` | the guest's send and album: Immediate's upload and album lines (a hung complete, the heal beside a Retry, a HEIC with no preview, the failure sheet beside the toast and a roll's refusal, a tile's focus, a photo link's image size, two dead arms); merges after 39 and crumbs-88 | RUNNING (from 13:40Z) | Opus, 3132 | `a792a2c5719fc2ca0` |
-| `redteam-57c` | the re-walk that closes milestone 39: crumbs-89's fixes on every path 57b named, on the desk build `bea40689d` (refreshed 14:09Z, DESK READY); its brief `../partyreel-wt/_scratch/redteam-57c/brief.md` | RUNNING (from 14:11Z) | Opus, its own headless Chrome (never Will's) | `a93c1b646bf62a281` |
+| `redteam-57c` | the re-walk that closes milestone 39, on the desk build `bea40689d` | DONE 15:15Z: no MEDIUM or worse; every path 57b named restores (its strand path 5 of 5); two LOWs (two of her own pages undo her own step under a hold; a slow stream outlasts the save's nudge) and three NITs to the ROADMAP; its two RT57c events in Deleted; ledger `../partyreel-wt/_scratch/redteam-57c/ledger.txt` | Opus | `a93c1b646bf62a281` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q43 answered (each APPLY, each applied); the next migration's read goes to it.
@@ -106,9 +106,11 @@ on its worktree, the same port. Gate numbers continue at 67 (`$S/gate66.log` see
 
 ## Waiting on Will
 
-- **Milestone 39's yes** (Next 2): everything merged, red-team 57 clean, its FULL gate and compute budget run first.
-- **The calls lab** (`docs/calls.md`): the open questions X1, X2, X3, X5, X6 and X8, then each merge's calls, built and
-  his to overrule. He asks direct questions in chat; answer in chat, never only in a file.
+- **Milestone 39's yes** (Next 2): everything merged; red-teams 57, 57b and 57c walked it, nothing above LOW open; the
+  compute budget ran; the FULL gate re-runs at the tip before the merge to `main`.
+- **The calls lab** (`docs/calls.md`, reshaped 2026-10-07 at his word: only what he cannot see by using the product):
+  the open questions X1, X2, X3, X5, X6 and X9 to X17, then 16 built calls by theme; X8 settled by the Orchestrator.
+  He asks direct questions in chat; answer in chat, never only in a file.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,

@@ -272,13 +272,10 @@ describe("content policy", () => {
     // ("No app, no account.") in a JSDoc block to document the change, which is
     // history, not shipped copy - a narrow scan should not relitigate its own record.
     //
-    // The second pattern is the same promise in other words (the event pages' close said "Your
-    // guests need nothing but their phones." until crumbs-34): a guest who must confirm an email
-    // needs an inbox as well as a phone.
-    const BANNED = [
-      /\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i,
-      /\bnothing but (?:their |a |your )?phones?\b/i,
-    ];
+    // ("Nothing but their phones" was a second pattern until 2026-10-07: it read a line that sells
+    // the feeling truthfully as a literal inventory, since the inbox a guest confirms with is on her
+    // phone, against Will's marketing principle of 2026-10-04; the calls lab's X8, settled.)
+    const BANNED = [/\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i];
     const surfaces = [
       ...new Set([
         ...mdxFiles,

@@ -73,8 +73,8 @@ project and its env; the backup Worker and Action secrets; the prune crons and `
 
 ## Waiting on Will
 
-- Milestone 39's yes (everything merged, red-team 57 clean, its FULL gate run first); the calls lab's open
-  questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare analytics token, X5 the
-  CDN-cached album, X6 the operator's uploads credit, X8 the policy tests' style picks) and the calls built for him to
-  overrule; the two backup copies with old EXIF to delete and the six retired Stripe price names to drop; the
-  walks only he can drive (`tracks/orchestrator.md`).
+- Milestone 39's yes (red-teams 57, 57b and 57c walked it, nothing above LOW open; the FULL gate re-runs first); the
+  calls lab's open questions (X1 the develop time, X2 a Vercel token for the limits watch, X3 a Cloudflare analytics
+  token, X5 the CDN-cached album, X6 the operator's uploads credit, X9 to X17 the gap audit's product decisions) and
+  its 16 built calls he cannot see by using the product; the two backup copies with old EXIF to delete and the six
+  retired Stripe price names to drop; the walks only he can drive (`tracks/orchestrator.md`).

@@ -55,6 +55,8 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Create: the beat shares "Add your photos and videos to <name>" (`beat.tsx`'s `BeatActs`) on a Free event, which takes photos only; say what the plan takes (create-wizard r5).
 - Dashboard: the Table at 375 shows no needs-you dot where its rows need her (red-team 57b, NIT).
 - Create: the name field draws a box at rest though NameStep means one field on a rule, never in a box: Input's `field-well` keeps its rim in `--tw-inset-ring-shadow`, which `shadow-none` leaves; give `.cr-name-field` `background-color: transparent; box-shadow: none` (`create-room.css`, unlayered) (after-party r1; app-gaps-r1's shots 02 and 24).
+- Settings: her own "An email first" turned on in one page while another of her pages holds an address gate is undone when the gate goes (`events_email_held` fires only on a change of `gate`, so a write of the step under a standing hold leaves `email_held` true); clear the memory when she writes the step herself (red-team 57c, LOW).
+- Settings: the save's nudge (`settings-state-unpark.ts`) runs 1 to 9 s after the answer, but a slow response stream commits only when it ends: an invite remove answered at 1.75 s stood "Saving… 1 on the list" for 90 s on a slow desk build, and a door save for 2 minutes; nudge until the commit lands, or from the stream's end (red-team 57c, LOW).
 
 ### Admin and operations
 - Storage sums: the restores take their rows without waiting under her lock (`restore_media` NOWAIT, `let_back_in` SKIP LOCKED from let_in's three-argument body, 20261007020000), closing `disown_guest_rows_by_email`'s race with a Restore and the older takedown and Delete-permanently ones (storage-sums-signal's Q2).
@@ -229,6 +231,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Design: the help center's pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; draw them on `floatingDisplayPanel`, the display the real menus wear.
 - Design: the hub's folded band brings its code pill in without the fold when the cover's code leaves the screen after the band has stuck (its sentinel reports a beat later), so it pops in; fold it in on its own arrival (event-header-wiring-2).
 - Design: one face size and caption rule for the guest faces presence r1 and guests-room r1 both draw, set when either wires (guests-room r1).
+- Settings' door page: at 375 the restore toast covers step 1 while it stands; her own step under a gate reads "On while you let each person in"; after Ask or Keep by keyboard focus falls to the sheet (red-team 57c, NITs).
 
 ### Marketing and content
 
