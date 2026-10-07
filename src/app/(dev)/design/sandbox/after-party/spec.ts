@@ -1,0 +1,417 @@
+import { defineExploration } from "@/components/lab/exploration";
+
+import { DESK, GROUND, SCREEN } from "./knobs";
+
+/**
+ * THE ALBUM AFTER ITS PARTY, ROUND ONE (the after-party-r1 track, cut
+ * 2026-10-07 from the gap audit, app-gaps-r1's gap 7, its highest design gap:
+ * "after the party nothing changes"). The album at `/e/[token]` reads the
+ * morning after and a week on as it did at the party, Add its hero; its card
+ * draws its name alone; the host meets no recap; a guest's Start for free
+ * leads to the home page. crumbs-87 made the link's words follow uploads
+ * (`card/words.ts`), the one piece built.
+ *
+ * ★ THE RULES ARE THE FRAME, NEVER ASKED: events never expire and nothing
+ * depends on a timeline, so the album's phase is read from her act (closing
+ * adding, or a wrap of its own), and a date may only offer it, never switch
+ * it (the carried `date` says so where he can overrule it); a card carries
+ * photographs only where anyone with the link sees the album whole, never a
+ * Private album's, a hidden or waiting photo, or a face; no email or push is
+ * assumed (X11), so every moment is met in the app.
+ *
+ * ★ FIVE ASKS, THE MODEL FIRST: what tells the album its party is over (every
+ * other frame waits on it); what a returning guest meets (drawn in that
+ * answer: Add gone or receded); the card every shared link wears; where the
+ * host meets her morning after; where a guest who wants her own party is
+ * taken. The anniversary is carried (it waits on the recap's home), and so
+ * are a card's faces, an email recap and the date's switch.
+ *
+ * ★ EVERY FRAME IS PRODUCTION'S SURFACE: the guest's cover, bar, rows, Guests
+ * and dock, the hub's cover, doors, light and album, the dashboard's stage,
+ * the card route's own markup and Create's room are production's components
+ * or their markup recomposed where an option needs a slot; an option draws
+ * only what differs, in today's tokens (brand-marks r1 and signature r1 ask
+ * the marks and where the light lives; nothing here asks them again).
+ */
+export const AFTER_PARTY = defineExploration({
+  id: "after-party",
+  title: "The album after its party",
+  surface: "shared",
+  desk: 12,
+  lives: [
+    "docs/systems/guest-flow.md",
+    "docs/systems/host-app.md",
+    "src/app/(guest)/e/[token]/page.tsx",
+    "src/app/(guest)/e/[token]/card/route.tsx",
+    "src/app/(guest)/e/[token]/card/words.ts",
+    "src/components/guest/event-experience.tsx",
+    "src/components/guest/event-experience-head.tsx",
+    "src/components/guest/guest-header.tsx",
+    "src/components/app/event-feed/event-hub-head.tsx",
+    "src/components/app/event-feed/checklist.tsx",
+    "src/components/app/dashboard/stage.tsx",
+    "src/components/app/create-event-wizard.tsx",
+    "content/help/share-the-album-after-the-event.mdx",
+  ],
+  round: {
+    n: 1,
+    date: "2026-10-07",
+    changed:
+      "A new board from the gap audit's first design gap: what an album becomes once its party is over, for a guest who comes back, for whoever its link reaches, and for Maya the morning after.",
+  },
+  opening: {
+    about:
+      "What an album becomes once its party is over: for a guest who comes back by its link, for whoever it's shared with, and for Maya the morning after.",
+    settled: [
+      "Events never expire: a date only says when a party happens, so no date turns an album by itself; it may only offer a step she takes.",
+      "A card shows photographs only where anyone with the link sees the whole album: never a Private one's, a hidden or waiting photo, or a face.",
+      "No email or push is assumed (your X11 call): every moment here is met in the app.",
+      "Aperture: colour from the photographs, then the party's seed, then the house; one light to a screen, still until something happens.",
+      "The album already turns to the night in order the morning after (your customize pick); every frame here keeps it.",
+    ],
+    earlier: [
+      "Customize r1: 'it would feel weird to scroll backwards through time if we have a good idea of when the event is over to flip.'",
+      "The wait r1: you liked a premiere 'to open with the reel idea clearly', with an easy skip.",
+      "Drive export r1: export starts the offramp, but 'keeping media on Partyreel... is what gets us paid.'",
+      "Desk 4: 'not like a junior designer was told to build a rainbow app. We are world-class tastemakers.'",
+    ],
+  },
+  terms: [
+    {
+      term: "keepsake",
+      means:
+        "The album once its party is over: the same link and photos, read as something to keep rather than a party to join.",
+    },
+    {
+      term: "wrap",
+      means:
+        "Her own press that tells the album its party is over, apart from closing adding.",
+    },
+    {
+      term: "recap",
+      means:
+        "What her party made, said to her the morning after: its numbers, and what to do with them.",
+    },
+    {
+      term: "card",
+      means:
+        "What a pasted link unfolds into in a chat: a picture, a title and a line.",
+    },
+    {
+      term: "morning after",
+      means:
+        "9 am the day after a dated party's last day, in its own time zone: when the album already turns its order.",
+    },
+  ],
+  carried: [
+    {
+      id: "date",
+      question:
+        "Does the morning after turn the album into its keepsake by itself, as it turns its order?",
+      taken:
+        "No: a date only offers it, and the keepsake begins when she says, so an undated or a weekend party reads as well.",
+      overrule:
+        "It begins at the morning after, as the order turns, and she can bring the live album back.",
+    },
+    {
+      id: "faces",
+      question: "Does a card ever carry a guest's face?",
+      taken:
+        "Never: no face rides a card, whatever the door; the party's faces stay inside the album, past every door.",
+      overrule: "An open album's card shows its guest row beside its name.",
+    },
+    {
+      id: "email",
+      question: "Does anyone hear of the morning after outside the app?",
+      taken:
+        "No one: the recap and the keepsake are met in the app; mailing Maya her recap waits on your X11 call.",
+      overrule:
+        "Mail Maya her recap the morning after, once X11 lets a host hear of her party's moments.",
+    },
+    {
+      id: "anniversary",
+      question: "Does anything mark the album's first anniversary?",
+      taken:
+        "Not this round: a year on is the recap's own later moment, drawn once you pick where the recap lives.",
+      overrule: "Draw the anniversary now, beside the recap.",
+    },
+  ],
+  asks: [
+    {
+      id: "over",
+      label: "When it's over",
+      question: "What should tell Maya's album that her party is over?",
+      where: ["Host", "Her event's hub", "The days after"],
+      when: "Maya & Jay married on Saturday; by Wednesday the photos have stopped, and the album still asks everyone to add theirs.",
+      matters:
+        "Every keepsake moment waits on it: until the album knows, its link and its card keep asking for photos.",
+      lands:
+        "What turns an album from its party into its keepsake, and how she is offered it: her own press, never a date alone.",
+      context:
+        "Maya's hub at a laptop or her phone (her screen) the morning after, then on Wednesday once the photos stop, and her guests' cover once she has acted: the keepsake each answer brings.",
+      options: [
+        {
+          id: "switch",
+          label: "As today: she closes adding in Settings",
+          means:
+            "The album turns keepsake only once she finds Settings, What guests can add, and turns Accepting uploads off; nothing offers it.",
+          gains: "Built, and nothing happens that she didn't choose.",
+          costs:
+            "Few hosts ever find it, so most albums keep asking for photos for good.",
+        },
+        {
+          id: "offer",
+          label: "Close adding, offered once the photos stop",
+          means:
+            "Two days after its last photo, dated or not, her hub offers Close adding beside what the party made; she closes it, or keeps it open.",
+          gains:
+            "One press, offered when it's true, and no date switches anything.",
+          costs:
+            "Add leaves for good: a camera roll found next month has nowhere to go.",
+        },
+        {
+          id: "wrap",
+          label: "Her wrap, with Add still open",
+          means:
+            "The morning after, her hub offers Wrap the party: the album turns keepsake at once, and Add recedes to a quiet line for late photos.",
+          gains: "The keepsake arrives while the late photos still can.",
+          costs:
+            "A state beside adding (a new column) and one more word for her to learn.",
+        },
+      ],
+      recommended: "wrap",
+      today: "switch",
+      because:
+        "The keepsake comes the morning after, when the link is shared most, without shutting out a late camera roll.",
+      overrule:
+        "If closing adding should stay the one switch, Close adding offered once the photos stop.",
+      configs: [DESK],
+    },
+    {
+      id: "keepsake",
+      label: "The album, after",
+      question:
+        "When a guest comes back to the album after its party, what should lead?",
+      where: ["Guest", "Maya & Jay's album", "A week on"],
+      when: "Priya taps the group chat's link a week on: the album holds 214, nine of them hers, and its party is over.",
+      matters:
+        "It's the album's longest life: every visit after the party, and everyone it's shared with, starts here.",
+      lands:
+        "What a keepsake album's cover leads with, where Add goes, and how a guest finds her own photos.",
+      context:
+        "Maya & Jay's album a week on at a phone or a laptop (Screen), on paper or in the room (Ground): Priya's first screen, scrolled into the album, and a newcomer who added nothing. Add is as your first answer leaves it.",
+      options: [
+        {
+          id: "closed",
+          label: "As today: the album, its Add gone",
+          means:
+            "The live cover without Add (the reel's round, Invite), and one line under it: 'The host has closed uploads. You can still browse the album.'",
+          gains: "Built, and the album looks just as she remembers it.",
+          costs:
+            "It reads as a party with its door shut: a notice where a keepsake should be.",
+        },
+        {
+          id: "reel",
+          label: "The reel leads: Watch the party",
+          means:
+            "The cover's white button is Watch the party, the reel from its first photo, with Take them home beside it.",
+          gains:
+            "The party relived in one press: the reel is a keepsake's best minute.",
+          costs: "A guest who came back for one photo is offered a film first.",
+        },
+        {
+          id: "hers",
+          label: "Her own photos lead",
+          means:
+            "Under the name, her nine stand as a strip, 'Yours · 9', opening them; the cover's button is Take yours home.",
+          gains: "The first thing she meets is her own part in the party.",
+          costs: "A newcomer has none, and meets a cover much like today's.",
+        },
+        {
+          id: "still",
+          label: "A still title page",
+          means:
+            "The cover stops dissolving: one photograph, the name and its day, and the party in words, '214 photos and videos from 41 guests'.",
+          gains: "It reads as a finished thing, still until something happens.",
+          costs:
+            "The cover's movement goes, and a little of the party's life with it.",
+        },
+      ],
+      recommended: "reel",
+      today: "closed",
+      because:
+        "The reel is the party relived in one press, and every guest has one, new or not.",
+      overrule:
+        "If the keepsake should feel finished and quiet, the still title page; if personal, her own photos.",
+      after: { ask: "over" },
+      configs: [SCREEN, GROUND],
+    },
+    {
+      id: "card",
+      label: "Its card in a chat",
+      question:
+        "When the album's link is pasted into a chat, what should its card show?",
+      where: ["Shared", "A pasted link", "In a group chat"],
+      when: "The morning after, Maya pastes the album into the family chat; a week on, Priya sends it to a friend who wasn't there.",
+      matters:
+        "The card is the album's first sight for everyone who wasn't there, and every shared album invites the next party.",
+      lands:
+        "The one card family every shared link wears: the album while it takes photos and as its keepsake, one photo, a gated album.",
+      context:
+        "The family chat at a phone: the album pasted the morning after, one photo's link, the album a week on; each card at its true size; and a password album's card beside a Private one's.",
+      options: [
+        {
+          id: "name",
+          label: "As today: its name on a dark card",
+          means:
+            "Partyreel's mark, the album's name and one line (Add your photos, or See the photos); every album alike; a photo's link is that photo.",
+          gains:
+            "Built, and private by construction: nothing of the album leaves.",
+          costs:
+            "Every album looks alike in the chat, and nothing shows it holds photos.",
+        },
+        {
+          id: "cover",
+          label: "Its cover photograph, the name on it",
+          means:
+            "The cover's own photograph edge to edge, the name over its foot as the album's cover sets it; a gated album keeps the name card.",
+          gains:
+            "The card is the album's cover: the same first sight in the chat as on arrival.",
+          costs:
+            "One photograph speaks for the party, and a pasted card keeps the one it showed.",
+        },
+        {
+          id: "strip",
+          label: "A strip of its photographs",
+          means:
+            "Four of its photographs side by side over its name and '214 photos & videos', on the room's dark; a gated album keeps the name card.",
+          gains: "A whole album at a glance: many moments, many people.",
+          costs:
+            "Small pictures at a chat's size, and four photos leave with every paste.",
+        },
+        {
+          id: "light",
+          label: "Its light, never a photograph",
+          means:
+            "The name in the album's own light, read from its photographs as a Bloom behind it, and no picture; a password album wears its light too.",
+          gains: "Every album its own colour, and no photo ever leaves it.",
+          costs: "No picture of the party: its light alone has to sell it.",
+        },
+      ],
+      recommended: "cover",
+      today: "name",
+      because:
+        "The cover is the album's own first sight, and it shows at once that the link holds photographs.",
+      overrule:
+        "If no photograph should leave an album, its light; if a card should show many moments, the strip.",
+    },
+    {
+      id: "recap",
+      label: "Her morning after",
+      question:
+        "The morning after, where should Maya meet what her party made?",
+      where: ["Host", "The morning after", "Her home and her hub"],
+      when: "Sunday at 9: the party was last night, and Maya opens Partyreel with her coffee; 186 photos and videos from 39 guests.",
+      matters:
+        "It's the host's payoff, where Partyreel earns her next party: what she meets decides whether she shares it.",
+      lands:
+        "Where a host's morning-after recap stands and what it offers: Share the album, Make a clip, Download all.",
+      context:
+        "Maya at a laptop or her phone (her screen), on paper or in the room (Ground), Sunday at 9: her home's stage and her event's hub, each as the answer draws it.",
+      options: [
+        {
+          id: "stage",
+          label: "As today: 'Yesterday' on her home's stage",
+          means:
+            "Her home's stage says Yesterday with the album's numbers, Share the album and Open; her hub reads as it did at the party.",
+          gains: "Built: her home already turns to the party just past.",
+          costs:
+            "Her hub, where she ran the party, says nothing of what it made.",
+        },
+        {
+          id: "hub",
+          label: "A recap heading her hub",
+          means:
+            "Where the checklist stood, one plate of the room: what the party made and three acts, Share the album, Make a clip and Download all.",
+          gains: "The payoff on the page she opens most, each act one press.",
+          costs: "One more block above her album, until she puts it away.",
+        },
+        {
+          id: "cover",
+          label: "Her hub's cover turns to the recap",
+          means:
+            "Her cover's line says the party in words ('186 from 39 guests, last night') and its corner holds Share, Make a clip and Download all.",
+          gains: "No new block: the cover she knows becomes the payoff.",
+          costs:
+            "The code steps off the cover after the party, a press further for a late guest.",
+        },
+        {
+          id: "home",
+          label: "Her home's stage, made the recap",
+          means:
+            "Her home's stage leads with the party's best photos and 'Your party made 186', with Share the album, Make a clip and Download all.",
+          gains:
+            "Met the moment she opens Partyreel, before she picks an event.",
+          costs:
+            "A host who goes straight to her event (a bookmark, its link) never sees it.",
+        },
+      ],
+      recommended: "hub",
+      today: "stage",
+      because:
+        "Her hub is where she ran the party: its payoff belongs at the head of the page she opens most.",
+      overrule:
+        "If her home should say it first, the stage made the recap; if nothing new should stand, the cover turns.",
+      configs: [DESK, GROUND],
+    },
+    {
+      id: "bridge",
+      label: "Her own party",
+      question:
+        "When a guest wants a party of her own, where should Partyreel take her?",
+      where: ["Guest", "Maya & Jay's album", "Signed out"],
+      when: "Priya, signed out, has spent ten minutes in the album and has a birthday next month.",
+      matters:
+        "A guest becoming a host is how Partyreel grows, and today her one way in leaves the album for the home page.",
+      lands:
+        "Where a signed-out guest's way to her own album stands, and where it leads: the home page, or Create in this album's style.",
+      context:
+        "Maya & Jay's album at a phone, signed out: its header and its end, then where the way leads: the home page as it is, or Create opening in this album's style.",
+      options: [
+        {
+          id: "home",
+          label: "As today: Start for free, to the home page",
+          means:
+            "The header's quiet Start for free leads to the home page, where she learns what Partyreel is and starts from nothing.",
+          gains: "Built, and quiet: the album stays Maya's, never an ad.",
+          costs:
+            "She leaves her delight for a page about Partyreel, and starts over.",
+        },
+        {
+          id: "header",
+          label: "The same corner, into Create in this style",
+          means:
+            "The header's quiet link says Make one like this and opens Create, after she signs up, already in this album's style and its code's look.",
+          gains: "One press from delight to her own party, already styled.",
+          costs: "Still a quiet corner of the header, easy to miss.",
+        },
+        {
+          id: "end",
+          label: "At the album's end: Make one like this",
+          means:
+            "Past the last photo, above Report, one quiet line in the album's light, 'Your party next?', into Create in its style; the header's link goes there too.",
+          gains: "Met when she's finished looking, the moment she wants one.",
+          costs:
+            "A line of Partyreel's own on Maya's album; many guests never reach its end.",
+        },
+      ],
+      recommended: "end",
+      today: "home",
+      because:
+        "She meets it when she's done looking, and both ways start her party in the style she just loved.",
+      overrule:
+        "If the album should carry nothing of Partyreel's own, the header's corner into Create.",
+      configs: [SCREEN],
+    },
+  ],
+});
