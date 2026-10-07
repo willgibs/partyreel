@@ -88,6 +88,30 @@ export const GUESTS_ROOM = defineExploration({
         "The camera's red a count wears when it waits on her, as on the hub's Guests card.",
     },
   ],
+  carried: [
+    {
+      id: "guests-order",
+      question: "In the calm list, who comes first among the guests?",
+      taken:
+        "Who added most, as the roadmap's sort by photos has it: the night's photographers lead, eight then a page at a time.",
+      overrule:
+        "By name, as today's list orders them, if she finds people by name.",
+    },
+    {
+      id: "card-beside",
+      question: "Where does a person's card open at a desk?",
+      taken:
+        "Beside the room's panel, over the hub, its top at the name: under the name it covered the rows it belongs to.",
+      overrule: "Under the name, as today's card opens.",
+    },
+    {
+      id: "guests-head",
+      question: "What heads the people who added photos?",
+      taken:
+        "GUESTS and their count, the product's own word for them; today they have no head of their own.",
+      overrule: "Another word: In, or Added photos.",
+    },
+  ],
   asks: [
     {
       id: "rows",
