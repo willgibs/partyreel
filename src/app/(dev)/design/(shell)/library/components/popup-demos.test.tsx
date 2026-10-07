@@ -52,6 +52,12 @@ vi.mock("../compositions/pricing-demos", () => ({
 vi.mock("@/components/social/follow-button", () => ({
   FollowButton: () => null,
 }));
+// The card's own Follow runs the one relation contract (`useRelation`), whose module reaches the profile's server
+// actions (server-only): stood in, as the guest list's test stands them in (guests-room r1, `card=standing`).
+vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
+  followProfileAction: vi.fn(),
+  unfollowProfileAction: vi.fn(),
+}));
 
 const KINDS = Object.keys(POPUP_KINDS) as PopupKind[];
 

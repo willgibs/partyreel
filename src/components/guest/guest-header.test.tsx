@@ -98,7 +98,7 @@ import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { setStoredName } from "@/lib/guest/use-stored-name";
 
 describe("GuestHeader: the way home", () => {
-  /** The two doors to the marketing home the header draws: the wordmark, and Start for free. */
+  /** The doors to the marketing home the header draws: the wordmark (and Start for free, off an album). */
   const homeLinks = () =>
     screen
       .getAllByRole("link")
@@ -108,7 +108,8 @@ describe("GuestHeader: the way home", () => {
   it("★ a real album's visitor never fetches the marketing home: not on sight, not on a hover (compute-levers)", () => {
     render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
     const links = homeLinks();
-    expect(links).toHaveLength(2);
+    // On an album the corner is Make one like this, a plain link to its door (below): the wordmark is the way home.
+    expect(links).toHaveLength(1);
     for (const link of links) {
       expect(prefetchOf(link)).toBe("false");
       fireEvent.pointerEnter(link);
@@ -123,10 +124,10 @@ describe("GuestHeader: the way home", () => {
    * from the first paint, and a prefetch on sight fetched the home's payload and preloaded its three sheets into a page
    * that draws none of them ("preloaded but not used", about 17 KB a load: `chrome-link.tsx`).
    */
-  it("★ the demo's two doors fetch the home on intent, never on sight", () => {
+  it("★ the demo's way home fetches it on intent, never on sight", () => {
     render(<GuestHeader qrToken="tok-1" eventId="evt-1" isDemo />);
     const links = homeLinks();
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(1);
     for (const link of links) {
       expect(prefetchOf(link)).toBe("false");
       fireEvent.pointerEnter(link);
@@ -174,9 +175,27 @@ describe("GuestHeader: a guest with a name and no account", () => {
     localStorage.clear();
   });
 
-  it("wears the stranger's CTA until this device has typed a name", () => {
+  // ★ RESHAPED ON PURPOSE (after-party r1's `bridge=end`, Will 2026-10-07): a stranger's corner on an album said Start
+  // for free, to the home page. It is the same quiet corner, saying Make one like this, into Create in this album's
+  // style through the like door; the scar kept: a stranger meets the corner, never a name, until this device has
+  // typed one, and an event-less page keeps Start for free (below).
+  it("★ wears the stranger's corner until this device has typed a name: Make one like this, through the like door", () => {
     render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
-    expect(screen.getByRole("link", { name: /start for free/i })).toBeVisible();
+    const like = screen.getByRole("link", { name: "Make one like this" });
+    expect(like).toBeVisible();
+    expect(like).toHaveAttribute("href", "/dashboard/new/like/tok-1");
+    // A plain link, never a prefetch: the door is a route of its own, asked only on the press.
+    expect(like).not.toHaveAttribute("data-prefetch");
+    expect(screen.queryByRole("link", { name: /start for free/i })).toBeNull();
+  });
+
+  it("★ offers Make one like this in her name menu too, so a guest who joined still meets it", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openMenu();
+    expect(
+      screen.getByRole("menuitem", { name: "Make one like this" }),
+    ).toHaveAttribute("href", "/dashboard/new/like/tok-1");
   });
 
   /** Open the name menu; the trigger only appears once a name is stored. */
@@ -551,7 +570,11 @@ describe("GuestHeader: it follows the viewer the device holds", () => {
     })) as unknown as typeof fetch;
   }
   const account = () => screen.queryByRole("button", { name: "Account menu" });
-  const cta = () => screen.queryByRole("link", { name: /start for free/i });
+  // The stranger's corner: on an album, Make one like this (after-party r1's `bridge=end`).
+  const cta = () =>
+    screen.queryByRole("link", {
+      name: /^(start for free|make one like this)$/i,
+    });
 
   async function signedInHeader() {
     device.session = ME;
@@ -590,6 +613,33 @@ describe("GuestHeader: it follows the viewer the device holds", () => {
         screen.getByRole("menuitem", { name: /your profile/i }),
       ).toHaveAttribute("href", "/u/priya"),
     );
+  });
+
+  it("★ offers Make one like this beside Dashboard on an album, straight into Create through the like door", async () => {
+    device.session = ME;
+    serveMenuWithHandle("priya");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    fireEvent.pointerDown(
+      await screen.findByRole("button", { name: "Account menu" }),
+      { ctrlKey: false, button: 0 },
+    );
+    expect(
+      await screen.findByRole("menuitem", { name: "Make one like this" }),
+    ).toHaveAttribute("href", "/dashboard/new/like/tok-1");
+  });
+
+  it("offers no Make one like this off an album (/u/[slug]): there is no album to be like", async () => {
+    device.session = ME;
+    serveMenuWithHandle("priya");
+    render(<GuestHeader />);
+    fireEvent.pointerDown(
+      await screen.findByRole("button", { name: "Account menu" }),
+      { ctrlKey: false, button: 0 },
+    );
+    await screen.findByRole("menuitem", { name: /dashboard/i });
+    expect(
+      screen.queryByRole("menuitem", { name: "Make one like this" }),
+    ).toBeNull();
   });
 
   it("points Your profile at /me for an account the server says has no handle", async () => {
@@ -654,7 +704,7 @@ describe("GuestHeader: it follows the viewer the device holds", () => {
     serveMenu();
     render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
     expect(
-      await screen.findByRole("link", { name: /start for free/i }),
+      await screen.findByRole("link", { name: "Make one like this" }),
     ).toBeVisible();
     device.session = ME;
     act(() => device.announce("SIGNED_IN"));

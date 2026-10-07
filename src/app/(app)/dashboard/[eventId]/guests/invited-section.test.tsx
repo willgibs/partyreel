@@ -1,8 +1,9 @@
 /**
- * INVITED (event-settings r1, `editor=both`): one field takes one address or a paste of two hundred.
- * Held: the readable addresses are saved, counted by the database; the entries that held none stay in
- * the field as flagged chips to fix or drop, never silently lost; each address on the list says
- * whether it joined; and a removal that fails puts the address back.
+ * INVITED (event-settings r1, `editor=both`; guests-room r1, `rows=list`): one field takes one address or a paste of
+ * two hundred. Held: the readable addresses are saved, counted by the database; the entries that held none stay in
+ * the field as flagged chips to fix or drop, never silently lost; each address on the list says whether it joined
+ * (the not-yet in rows, the joined folded into one row that opens them); a removal that fails puts the address back;
+ * and the keyboard is kept (the field holds the house's halo, a remove by keyboard keeps focus in the list).
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -43,12 +44,88 @@ beforeEach(() => {
 });
 
 describe("the invite list", () => {
-  it("says whether each address joined", () => {
+  // ★ RESHAPED ON PURPOSE (guests-room r1, `rows=list`; scar kept: each address says whether it joined). The expired
+  // reason: "a Joined or Not yet beside every address". Who has not joined leads, under its own head; the joined fold
+  // into one row, its count, that opens them.
+  it("says whether each address joined: the not-yet lead, the joined fold into one row that opens them", () => {
     mount();
-    const maya = document.querySelector("[data-invited='maya@example.com']");
-    const jay = document.querySelector("[data-invited='jay@example.com']");
-    expect(maya?.textContent).toContain("Joined");
-    expect(jay?.textContent).toContain("Not yet");
+    const notYet = screen.getByRole("list", { name: "Not joined yet" });
+    expect(
+      notYet.querySelector("[data-invited='jay@example.com']"),
+    ).not.toBeNull();
+    expect(
+      document.querySelector("[data-invited='maya@example.com']"),
+    ).toBeNull();
+    const fold = screen.getByRole("button", { name: /1 joined/ });
+    expect(fold).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(fold);
+    expect(fold).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen
+        .getByRole("list", { name: "Joined" })
+        .querySelector("[data-invited='maya@example.com']"),
+    ).not.toBeNull();
+  });
+
+  it("★ a joined address wears the face and name the room holds for her, where it holds one", () => {
+    render(
+      <InvitedSection
+        eventId={EVENT}
+        invited={[{ email: "maya@example.com", joined: true }]}
+        listIsTheDoor
+        faces={
+          new Map([
+            ["maya@example.com", { name: "Maya", seed: "s", photo: null }],
+          ])
+        }
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /1 joined/ }));
+    const row = document.querySelector("[data-invited='maya@example.com']");
+    expect(row?.textContent).toContain("Maya");
+    expect(row?.textContent).toContain("maya@example.com");
+  });
+
+  it("★ the field holds the house's halo while it holds the caret (the ROADMAP's focus stragglers)", () => {
+    const field = mount();
+    const well = field.closest(".field-well");
+    expect(well).not.toHaveAttribute("data-halo");
+    fireEvent.focus(field);
+    expect(well).toHaveAttribute("data-halo");
+    fireEvent.blur(field);
+    expect(well).not.toHaveAttribute("data-halo");
+  });
+
+  it("★ a remove by keyboard keeps the keyboard in the list: the next address's remove, else the one before, else the field", async () => {
+    removeInviteAction.mockResolvedValue({ ok: true });
+    const raf = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((run) => {
+        run(0);
+        return 0;
+      });
+    const field = mount([
+      { email: "a@example.com", joined: false },
+      { email: "b@example.com", joined: false },
+    ]);
+    // Enter or Space on a key reaches `click` with no pointer (`detail` 0).
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Remove a@example.com" }),
+        { detail: 0 },
+      );
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Remove b@example.com" }),
+    );
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Remove b@example.com" }),
+        { detail: 0 },
+      );
+    });
+    expect(document.activeElement).toBe(field);
+    raf.mockRestore();
   });
 
   it("★ a paste saves what it can read, and flags what it cannot", async () => {
@@ -189,6 +266,7 @@ describe("★ a list nobody is on, under a door that is not the list, sleeps (cr
     );
     expect(document.querySelector("[data-invited-asleep]")).toBeNull();
     expect(screen.getByLabelText("Add or paste addresses")).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: /1 joined/ }));
     expect(
       screen.getByRole("button", { name: "Remove maya@example.com" }),
     ).toBeInTheDocument();
@@ -203,6 +281,7 @@ describe("★ a list nobody is on, under a door that is not the list, sleeps (cr
     const view = render(
       <InvitedSection eventId={EVENT} invited={[maya]} listIsTheDoor={false} />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /1 joined/ }));
     await act(async () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Remove maya@example.com" }),

@@ -1120,8 +1120,10 @@ a Change. The typed name also rides the code request as `DOOR_NAME_KEY`, so a ma
 
 ## Auth-aware header island
 
-[`guest-header.tsx`](../../src/components/guest/guest-header.tsx): logged out → a quiet "Start for free" CTA (the
-SSR default, so the anonymous majority sees no flash); logged in → the visitor's account menu
+[`guest-header.tsx`](../../src/components/guest/guest-header.tsx): logged out → a quiet corner (the SSR default, so
+the anonymous majority sees no flash): on an album "Make one like this", a plain link to the like door that opens Create
+in the album's style ([host-app.md](host-app.md)), and its row in her name menu and her account menu too; on an
+event-less page (`/u/[slug]`) "Start for free", to the home page; logged in → the visitor's account menu
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` only when a session exists (event ownership is an RLS-scoped select, behind the
 owner-only "Manage event" link; her handle rides the same answer, so Your profile is `/u/<handle>`, and `/me`, which

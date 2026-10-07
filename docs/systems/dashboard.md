@@ -23,7 +23,7 @@ header holds its rule), the page only reads, and the composition is `components/
   `momentEvent`, `moment.ts`: the nearest within a month either way, else the newest made), Upcoming (the soonest dated
   party ahead), Last opened (`events.host_opened_at`) or Latest photos (the album photographs last landed in); a rule
   that finds nothing of its kind leads with her newest and says so. Before its day it shows the code and readiness's
-  essentials, on its day the live wall, after it the album and its numbers ("in the album", never "photos", since the
+  essentials (the door and uploads, and room once full), on its day the live wall, after it the album and its numbers ("in the album", never "photos", since the
   count includes video).
   - ★ **Its first words are the control** (`stage-lead.tsx`, host-dashboard r4 `chooser=words`): where she has a choice
     (`hasChoice`: more than one event and none on its day) the line says why the event leads ("Your newest", "In 18
@@ -63,8 +63,10 @@ header holds its rule), the page only reads, and the composition is `components/
   Disposable's seal at every SQL home and the stage would show the photographs her hub covers until the develop. A
   covered album with nothing unsealed stands as one with no photograph yet (its lamp), its counts staying hers.
 - **One item an event** (`itemFor`, `attention.ts`): the queues in every phase, the day's own steps on its day, before
-  it the first essential readiness leaves undone (`lib/events/readiness.ts`, never a copy), then the code printed the
-  day before. A party long over speaks only when someone waits, since a paused album after its day is a finished
+  it the first essential readiness leaves undone (`lib/events/readiness.ts`, never a copy: a door nobody can pass,
+  paused uploads), then the code's share while nobody has opened it (worth doing since create-wizard r5's
+  `arrival=done`, never a need, and the one thing worth doing the dashboard says), then the code printed the day
+  before. A party long over speaks only when someone waits, since a paused album after its day is a finished
   party, not a step; room is the storage ring's to say.
 - **This week** is every other party within seven days of its nearest day, either way, each with its item or its quiet
   line; a queue on a party further off waits on its tile's mark and in the bell. ★ Its tally counts the stage's own

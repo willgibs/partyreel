@@ -3,8 +3,8 @@
  * stage's lamp igniting once as she lands from Create), so the lamp of the event she made lights up once, the first time
  * her stage draws it, and every visit after finds it already lit.
  *
- * ★ A FLAG IN THE TAB, NOT A PARAMETER ON A LINK. Create's two exits lead to the event itself (Get it ready into its
- * Settings, the room's close into its hub), so there is no landing on /dashboard for a parameter to ride: she meets the
+ * ★ A FLAG IN THE TAB, NOT A PARAMETER ON A LINK. Create's way out leads to the event itself (Go to your event, the room
+ * opening into its hub), so there is no landing on /dashboard for a parameter to ride: she meets the
  * dashboard when she next goes home, minutes later and by a link of the app's own. So Create leaves the new event's id in
  * `sessionStorage`, where it outlives the hub and Settings, dies with the tab (a flag never comes back a day later), and
  * NAMES the event, so another event's lamp (the stage leads with whichever is nearest) never takes the ignition. The

@@ -11,7 +11,8 @@ everyone leaves with the originals. Any album can become a highlight reel.
 
 ## The look
 
-- **Achromatic.** Near-black ink on near-white paper in light mode, the reverse in dark mode. No brand hue.
+- **Achromatic.** Near-black ink on near-white paper in light mode, the reverse in dark mode. No brand hue in the
+  interface: the one warm light is the icon's, the house ember (amber to a deep ember red), lit, never a paint.
 - **The ink is the accent.** Buttons, links and emphasis wear the same ink as the text.
 - **The media is the color.** Photos and videos supply every saturated pixel; the interface stays quiet so they pop.
 - **Premium and calm.** Generous space, soft and sparing shadows, quick subtle motion (under 300 ms, nothing bouncy).
@@ -24,10 +25,11 @@ In [`logo/`](logo), each as SVG and transparent PNG, exported from the product's
 | --- | --- |
 | `partyreel-wordmark-dark` | The primary mark, on a light background |
 | `partyreel-wordmark-light` | The primary mark, on a dark background |
-| `partyreel-mark-dark`, `partyreel-mark-light` | The aperture symbol on a square tile: a small mark (an avatar, a tab) on light or dark |
-| `partyreel-mark-mono` | The bare symbol, to place on a color of your own |
+| `partyreel-mark-dark` | The icon, the Ring on its dark tile: for a light background (an avatar, a tab, an app icon) |
+| `partyreel-mark-light` | The Ring alone, its light and its dark puck: for a dark background |
+| `partyreel-mark-mono` | The Ring in one ink, to place on a color of your own |
 
-The wordmark stands alone. The symbol is the favicon and app icon, never paired with the wordmark as a lockup. Never
+The wordmark stands alone. The Ring is the favicon and app icon, never paired with the wordmark as a lockup. Never
 redraw or recolor either.
 
 ## Type
@@ -63,7 +65,8 @@ buttons, corners and spacing. The kit carries no marketing photography and no fo
 
 ## Sources
 
-Kept current from the Partyreel repo: the wordmark from `src/lib/brand/wordmark.ts`, the symbol from
-`src/app/icon.svg`, the colors from `src/app/globals.css` (`:root`, `.dark`) and `BRAND_HEX` in
+Kept current from the Partyreel repo: the wordmark (its display cut) from `src/lib/brand/wordmark.ts` and the Ring
+from `src/lib/brand/ring.ts`, both drawn into `logo/` by `scripts/build-press-kit.mjs`; the colors from
+`src/app/globals.css` (`:root`, `.dark`) and `BRAND_HEX` in
 `src/lib/constants/site.ts`, the type from `src/app/layout.tsx`, the radii from `globals.css`; the screens are retaken
 from partyreel.com when those pages change.

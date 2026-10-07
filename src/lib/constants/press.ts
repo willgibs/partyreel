@@ -96,57 +96,90 @@ export type PressKitAsset = {
  * THE KIT MANIFEST. The single source for what ships in the press kit: the band on /about
  * draws its plates from it, and scripts/build-press-kit.mjs zips exactly these files.
  *
- * ★ This array is what makes the coming logo change a one-edit job. Swap the files in
- * public/press/, edit the rows, rerun the build script. No component changes.
+ * ★ The marks' files are drawn by scripts/build-press-kit.mjs from the brand's two sources
+ * (`src/lib/brand/`), so a changed mark is one rerun and these rows' bytes; a new file is a row
+ * here. No component changes.
  */
 export const PRESS_KIT: PressKitAsset[] = [
+  {
+    id: "wordmark-dark",
+    file: "/press/partyreel-wordmark-dark.svg",
+    format: "svg",
+    label: "Wordmark, ink",
+    note: "For light backgrounds. Vector, scales forever.",
+    bytes: 12152,
+  },
+  {
+    id: "wordmark-dark-png",
+    file: "/press/partyreel-wordmark-dark.png",
+    format: "png",
+    label: "Wordmark, ink",
+    note: "2487 by 512, transparent background.",
+    bytes: 54838,
+  },
+  {
+    id: "wordmark-light",
+    file: "/press/partyreel-wordmark-light.svg",
+    format: "svg",
+    label: "Wordmark, white",
+    note: "For dark backgrounds. Vector, scales forever.",
+    bytes: 12152,
+  },
+  {
+    id: "wordmark-light-png",
+    file: "/press/partyreel-wordmark-light.png",
+    format: "png",
+    label: "Wordmark, white",
+    note: "2487 by 512, transparent background.",
+    bytes: 47327,
+  },
   {
     id: "mark-dark",
     file: "/press/partyreel-mark-dark.svg",
     format: "svg",
-    label: "Mark, dark chip",
+    label: "Icon, on its tile",
     note: "For light backgrounds. Vector, scales forever.",
-    bytes: 636,
+    bytes: 60353,
   },
   {
     id: "mark-dark-png",
     file: "/press/partyreel-mark-dark.png",
     format: "png",
-    label: "Mark, dark chip",
+    label: "Icon, on its tile",
     note: "1024px square, transparent background.",
-    bytes: 45420,
+    bytes: 227107,
   },
   {
     id: "mark-light",
     file: "/press/partyreel-mark-light.svg",
     format: "svg",
-    label: "Mark, light chip",
+    label: "Icon, on its own",
     note: "For dark backgrounds. Vector, scales forever.",
-    bytes: 636,
+    bytes: 57324,
   },
   {
     id: "mark-light-png",
     file: "/press/partyreel-mark-light.png",
     format: "png",
-    label: "Mark, light chip",
+    label: "Icon, on its own",
     note: "1024px square, transparent background.",
-    bytes: 45771,
+    bytes: 258764,
   },
   {
     id: "mark-mono",
     file: "/press/partyreel-mark-mono.svg",
     format: "svg",
-    label: "Bare mark",
-    note: "One color, any surface. Vector, scales forever.",
-    bytes: 511,
+    label: "Icon, one color",
+    note: "Any surface. Vector, scales forever.",
+    bytes: 409,
   },
   {
     id: "mark-mono-png",
     file: "/press/partyreel-mark-mono.png",
     format: "png",
-    label: "Bare mark",
+    label: "Icon, one color",
     note: "1024px square, transparent background.",
-    bytes: 57895,
+    bytes: 40476,
   },
   {
     id: "app-icon",
@@ -154,7 +187,7 @@ export const PRESS_KIT: PressKitAsset[] = [
     format: "png",
     label: "App icon",
     note: "512px, the rounded icon as it ships on a home screen.",
-    bytes: 26890,
+    bytes: 104201,
   },
   {
     id: "share-card",
@@ -162,7 +195,7 @@ export const PRESS_KIT: PressKitAsset[] = [
     format: "png",
     label: "Share card",
     note: "1200x630, the banner a link preview shows.",
-    bytes: 45015,
+    bytes: 44338,
   },
   {
     id: "qr",

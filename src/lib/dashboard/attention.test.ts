@@ -99,6 +99,23 @@ describe("before the party's day", () => {
     expect(itemFor({ ...saturday, date: "2026-10-09" }, ctx)).toBeNull();
   });
 
+  it("★ still says the code's share once its first open is worth doing, never a need (create-wizard r5's `arrival=done`)", () => {
+    const unopened = { ...saturday, ready: { opened: 0, guestsIn: 0 } };
+    // Ready, so the hub's line greets her as ready; the week's one item is still the share.
+    expect(quietLine({ ...unopened, date: "2026-10-09" }, ctx)).toBe(
+      "Ready for guests",
+    );
+    expect(itemFor({ ...unopened, date: "2026-10-09" }, ctx)).toMatchObject({
+      kind: "code",
+      line: "Code never opened",
+      act: "Invite",
+    });
+    // A door nobody can pass still comes first.
+    expect(itemFor({ ...unopened, door: "private" }, ctx)?.kind).toBe(
+      "door-shut",
+    );
+  });
+
   it("never says what is merely worth doing: the welcome and the first photos are the hub's", () => {
     expect(
       itemFor({ ...saturday, date: "2026-10-09", description: null }, ctx),

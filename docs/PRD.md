@@ -43,10 +43,10 @@ next host. **North-star metric: a host creates a second event.**
    (`hold_for_approval`); the host approves, hides or removes any upload, closes or reopens uploads, and sets who can
    see the album.
 4. **Share**: the same link is the album, and with uploads closed it reads as a view-only album. It unfurls with a
-   per-event preview card (`noindex`; the token is a private capability) and carries a quiet "Start for free" link
-   for a signed-out visitor; after a guest's first upload, a one-time offer invites them to confirm an email, which
-   keeps their photos in an account and brings the event with them onto their dashboard, then offers the host to
-   follow. There is no separate save: uploading to an event is what keeps it.
+   per-event preview card (`noindex`; the token is a private capability) and carries a quiet Make one like this, which
+   opens Create in the album's style for a guest who wants her own; after a guest's first upload, a one-time offer
+   invites them to confirm an email, which keeps their photos in an account and brings the event with them onto their
+   dashboard, then offers the host to follow. There is no separate save: uploading to an event is what keeps it.
 5. **Reel**: from the album's second photo, the event plays as its own highlight reel on every viewer's phone and on
    the room's screen, taking in uploads as they land with nothing for the host to make; anyone with the album makes a
    clip of it on their own device to keep or send, and on a paid event can add it to the album.

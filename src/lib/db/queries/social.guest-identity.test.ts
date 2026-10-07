@@ -1226,7 +1226,11 @@ describe("the album never passes `emails` to GuestList", () => {
     }
   });
 
-  it("★ and no file in the tree but the Guests room passes it", () => {
+  // ★ RESHAPED ON PURPOSE (guests-room r1, `rows=list`; scar kept: no guest-facing list is ever handed an address or
+  // Block). The expired reason: "the Guests room is the one file that passes them", since the room draws its people as
+  // rows of its own (`room-guests.tsx`, its card's address and Block handed per person), so no file hands the guest
+  // list either one now; which files hand the card its host lines is the room's own rule test (`room-rules.test.ts`).
+  it("★ and no file in the tree passes it: the Guests room draws its own rows", () => {
     const passing = files("src")
       .filter((file) => !file.endsWith(".test.tsx"))
       .filter((file) =>
@@ -1234,16 +1238,17 @@ describe("the album never passes `emails` to GuestList", () => {
           (tag) => /\bemails\b/.test(tag) || tag.includes("{..."),
         ),
       );
-    expect(passing).toEqual([ROOM]);
+    expect(passing).toEqual([]);
+    expect(read(ROOM)).not.toMatch(/<GuestList\b/);
   });
 
-  it("★ Block rides the same one room: no file but the Guests room passes `blockFrom`", () => {
+  it("★ Block rides the same rule: no file passes the guest list `blockFrom`", () => {
     const passing = files("src")
       .filter((file) => !file.endsWith(".test.tsx"))
       .filter((file) =>
         guestListTags(read(file)).some((tag) => /\bblockFrom\b/.test(tag)),
       );
-    expect(passing).toEqual([ROOM]);
+    expect(passing).toEqual([]);
   });
 
   it("★ and the credit's look (with its Block) is mounted by the host's hub alone: its page, and Review over it", () => {

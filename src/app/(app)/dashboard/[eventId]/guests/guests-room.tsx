@@ -4,19 +4,27 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { AtTheDoor } from "@/app/(app)/dashboard/[eventId]/guests/at-the-door";
 import { GuestsInvite } from "@/app/(app)/dashboard/[eventId]/guests/guests-invite";
-import { InvitedSection } from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
+import {
+  InvitedSection,
+  type InvitedFace,
+} from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
+import {
+  RoomGuests,
+  type GuestRowsContext,
+} from "@/app/(app)/dashboard/[eventId]/guests/room-guests";
 import type { GuestsRoomData } from "@/app/(app)/dashboard/[eventId]/guests/room.server";
 import { BlockedSection } from "@/components/app/event-blocks/blocked-section";
-import { GuestList } from "@/components/social/guest-list";
 import type { Door } from "@/lib/event/door/door";
 import { formatCount } from "@/lib/format/count";
 
 /**
- * THE GUESTS ROOM, as it stands over the hub (event-header r2, `rooms=over`): At the door heads it (`queue=room`: Let
- * in and Decline on each newcomer who waits), then every guest who added photos with a confirmed guest's address under
- * the name and Block the quiet last line of each look, then Invited (`editor=both`), then Blocked at the foot
- * (`blocked=foot`). Its title is the panel's (`room-panel.tsx`), as Settings' is, so the room draws no heading of its
- * own; Invite is its main action while it is empty and a quiet one after (`GuestsInvite`).
+ * THE GUESTS ROOM, as it stands over the hub (event-header r2, `rooms=over`), every person in it one calm row
+ * (guests-room r1, `rows=list`) whose name opens their card (`card=standing`): At the door heads it (`queue=room`: Let
+ * in on each newcomer who waits, Decline in her card), then the guests who added, who added most first, with a
+ * confirmed guest's address under the name and the people in with nothing added yet at their foot, then Invited
+ * (`editor=both`), then Blocked at the foot (`blocked=foot`). Its title is the panel's (`room-panel.tsx`), as Settings'
+ * is, so the room draws no heading of its own; Invite is its main action while it is empty and a quiet one after, at
+ * the guests' head, where more people come in (`GuestsInvite`).
  *
  * ★ EACH SECTION HOLDS ITS OWN ANSWERED ROWS ONLY UNTIL THE ROOM IS READ AGAIN: every act here revalidates the hub
  * that holds the room, and the hub's render reads the room afresh while its address names it, so the next `data` is
@@ -56,12 +64,38 @@ export function GuestsRoom({
   /** The code card's Everything: the share kit, opened in this room's place. */
   onEverything?: () => void;
 }) {
-  const emails = useMemo(() => new Map(data.emails), [data.emails]);
+  const ctx = useMemo<GuestRowsContext>(
+    () => ({
+      eventId,
+      emails: new Map(data.emails),
+      added: new Map(data.added ?? []),
+      following: new Set(data.following ?? []),
+      barred: new Set(data.barred ?? []),
+    }),
+    [eventId, data.emails, data.added, data.following, data.barred],
+  );
+  const quiet = useMemo(() => data.quiet ?? [], [data.quiet]);
+  // A joined invite's person, where the room holds them: the face and name beside the address on the list.
+  const faces = useMemo(() => {
+    const out = new Map<string, InvitedFace>();
+    const people = [...data.items, ...quiet];
+    for (const [userId, email] of data.emails) {
+      const person = people.find((p) => p.id === userId);
+      if (!person || "kind" in person) continue;
+      out.set(email, {
+        name: person.displayName ?? email,
+        seed: person.seed ?? null,
+        photo: person.avatarUrl ?? null,
+      });
+    }
+    return out;
+  }, [data.items, quiet, data.emails]);
   // The list is empty only because the album has not developed: its roll is on the way, and the room says so.
   const developing = data.items.length === 0 && data.waiting > 0;
   // ★ INVITE IS THE ROOM'S MAIN ACTION WHILE IT IS EMPTY, and a quiet one after (`editor=both`).
   const empty =
     data.items.length === 0 &&
+    quiet.length === 0 &&
     data.waiting === 0 &&
     data.doorTotal === 0 &&
     data.invited.length === 0;
@@ -92,19 +126,14 @@ export function GuestsRoom({
   }, [anchor]);
 
   return (
-    <div ref={root} data-guests-room="" className="space-y-6">
-      {empty ? null : <div className="flex justify-end">{invite}</div>}
+    <div ref={root} data-guests-room="" className="space-y-8">
       <AtTheDoor
         eventId={eventId}
         people={data.atTheDoor}
         total={data.doorTotal}
         door={door}
       />
-      {developing ? (
-        <p data-guests-developing="" className="text-sm text-muted-foreground">
-          {developingLine(data.waiting)}
-        </p>
-      ) : empty ? (
+      {empty ? (
         <div
           data-guests-empty=""
           className="flex flex-col items-start gap-3 rounded-lg border border-dashed p-5"
@@ -116,12 +145,32 @@ export function GuestsRoom({
           {invite}
         </div>
       ) : (
-        <GuestList items={data.items} emails={emails} blockFrom={{ eventId }} />
+        <RoomGuests
+          items={data.items}
+          quiet={quiet}
+          ctx={ctx}
+          invite={invite}
+          empty={
+            developing ? (
+              <p
+                data-guests-developing=""
+                className="text-sm text-muted-foreground"
+              >
+                {developingLine(data.waiting)}
+              </p>
+            ) : (
+              <p data-guests-none="" className="text-sm text-muted-foreground">
+                Nobody has added photos yet.
+              </p>
+            )
+          }
+        />
       )}
       <InvitedSection
         eventId={eventId}
         invited={data.invited}
         listIsTheDoor={door === "invite"}
+        faces={faces}
       />
       <BlockedSection eventName={eventName} people={data.blocked} />
     </div>

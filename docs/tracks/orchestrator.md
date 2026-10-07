@@ -40,11 +40,10 @@ Milestone 39 (`0333cd705`) is live. Ledgers and red-team notes live under `../pa
 | --- | --- | --- | --- | --- |
 | `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
 | `brand-marks-r2` | board: the icon made bespoke on the ember Ring | running (cut d4da2464) | Opus, 3137 | `a7bf754df7e565dbb` |
-| `brand-marks-wiring` | the wordmark finished, the ember Ring icon, the room-black plate, the status tiers; retires the brand board | running (cut d4da2464) | Opus, 3131 | `a5b5ef7ec4210f810` |
-| `create-wizard-wiring-2` | Create's close with the link card, ready from the start, the styles calm, the room dark, the like-entry and Make one like this | running (cut d4da2464) | Opus, 3132 | `acf206769e01c36d9` |
 | `no-signal-wiring` | unsent photos kept on the phone, the send standing by, a Disposable's frame spent when taken | running (cut d4da2464) | Opus, 3133 | `a26816c9ed1b4850a` |
-| `guests-room-wiring` | one calm row a person, the standing card from every name | running (cut d4da2464) | Opus, 3134 | `a1b4c2e7343d06bfc` |
 | `crumbs-91` | AY1's turn at her close, Immediate's small lines | running (cut d4da2464) | Opus, 3138 | `a1de5dd1e813a611c` |
+| `cdn-version` | X5: an open album's "has anything changed?" answer cached at the CDN; AB5's cadence livelier where free | running (cut 5ed23311) | Opus, 3131 | `aa27be79bf2dd9424` |
+| `crumbs-92` | K5 two years idle, X6 the audited uploads credit, the desk's Clear | running (cut 5ed23311) | Sonnet, 3132 | `a321cec9d5fec5e15` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q44 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
@@ -59,8 +58,9 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
 
 1. **Integrate wave 1 as each hands off** (one at a time, `integrate.sh`; the day's first runs `negative.sh` first). At each
    record: the lane's board folder is gone in its branch, so delete its ledger (`docs/reviews/<board>.json`) and its
-   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`
-   and `after-party.json` (its folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
+   `_window.json` notes; brand-marks-wiring retires `brand.json`, event-page-r1 retires `presence.json`, `signature.json`,
+   `after-party.json` and `create-wizard.json` (its manifest reads that one, so it outlives create-wizard-wiring-2's
+   merge; event-page's folder deletes theirs); create-wizard-wiring-2's record retires call G3 (`calls.py
    retire G3`) and adds its successor only if the new checklist rule passes the calls test; ROADMAP lines each lane
    names close through `record.py`. Migrations named in the manifests (`20261008010000_roll_taken`,
    `20261008020000_guest_look`, `20261008030000_crumbs_91`, `20261008040000_first_follow`,
@@ -70,7 +70,8 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
    on the next surfaces in its language, by leverage: the dashboard home and its event cards, the door, her own page
    (`/me` and the public page, folding account-moments r3's teaser), Settings (only the optional and Create's changes,
    never steps: ROADMAP's "Settings' rail reads as steps" line).
-3. **Milestone 40** once wave 1 merges: red-team 58 on a desk refreshed to the tip (crumbs-88's emailed-link paths need
+3. **Milestone 40** once wave 1 merges (after it ships, the kit's screens refresh from partyreel.com by
+   `usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens): red-team 58 on a desk refreshed to the tip (crumbs-88's emailed-link paths need
    a real email: his walk or the red-team's), the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes.
 4. **His desk** (:3000, `b0eb89bc9`) has no open ask but the three `?` until event-page-r1 and brand-marks-r2 land;
    refresh it with `desk-refresh.sh` once both merge, never while a red-team walks it, and tell him which board opens
@@ -85,7 +86,7 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
    REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
    `node usher/kit/vercel-usage.mjs` before any.
 9. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill; nothing new started when the window
-   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so no lane is cut until Will says (told at 21:15Z); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
+   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so Will (21:55Z): the weekly pace is no concern, only that the 5-hour window never kills a running lane, the machine holds its peak and the Orchestrator keeps its depth, so lanes sized to close before the limit run (two cut at 22:00Z), and token efficiency is the compounding win (the runbook's line); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
    keep this block handoff-ready for the other account's seat, and tell Will before it runs low. Who does the work: the
    runbook's "Working with Will".
 
@@ -98,9 +99,6 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
   all routed and retired); 8 calls remain, his Deletion, retention and privacy section (I7, R2, J5, AH4, CG6) and Safety
   (J2, J3, M1). His paste's AY1=keep crossed his chat answer ("when she closes", which crumbs-91 builds): asked in chat
   which stands. He asks direct questions in chat; answer in chat, never only in a file.
-- **Two tokens to mint (his hand; each a credential):** `VERCEL_USAGE_TOKEN` (X2: scoped to the Partyreel team, one-year
-  expiry) and `CLOUDFLARE_ANALYTICS_TOKEN` (X3: Account Analytics Read only), each into `.env.local` by him; the
-  Orchestrator then sets the Vercel envs by stdin through the REST API, and the plan limits' readers are wired.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,

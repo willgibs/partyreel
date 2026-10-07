@@ -47,6 +47,14 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   (`event_blocked_guest_ids`) leave before the rows become people, so a blocked person is in no count and on no list,
   even with a photograph the host restored. Every caller runs these AFTER its own access gate (the host: ownership;
   the album: full access, never demo).
+- ★ **A person's card shows nothing the album does not** (`social/guest-peek.tsx`, guests-room r1 `card=standing`):
+  every name opens it (the Guests room, the album's list, a photograph's credit, Connections), and its four photographs
+  and See all (the album filtered to them, a page of 24) are approved and visible only, read through `guest-look.ts`:
+  the host's by Block's own name for the person on her own RLS read, a guest's behind the album's own gate
+  (`resolveAlbumViewer` at `full`, never the demo) and its gated minter, never an address. The album's card learns its
+  album from the page's own address (`/e/<token>`); anywhere else it shows no photographs. The host's lines (how they
+  stand tonight, its act, Block) come only from her own surfaces (`room-rules.test.ts`), and a Follow landed from a
+  card stays its answer for the page's life, one per person.
 - **Profile cards hydrate by an explicit id list** (the PGRST201 landmine:
   [database-security.md](database-security.md)) through `inChunks`, selecting exactly the card's columns (the row also
   holds the account's email). Nothing in `queries/social.ts` reads an address, and its outputs are pinned
