@@ -75,7 +75,7 @@ export type LookSource =
 const unchanging = () => () => {};
 
 /** The album an address names (`/e/<token>`, the guest page's own route), else null. */
-export function albumTokenOf(pathname: string): string | null {
+function albumTokenOf(pathname: string): string | null {
   const m = /^\/e\/([^/?#]+)/.exec(pathname);
   if (!m) return null;
   try {
@@ -91,7 +91,7 @@ export function albumTokenOf(pathname: string): string | null {
  * needs no prop to give its cards photographs; read from the window, never the router's hooks, so a card renders
  * wherever a name does (a server render reads null: no card is open there).
  */
-export function useAlbumToken(): string | null {
+function useAlbumToken(): string | null {
   return useSyncExternalStore(
     unchanging,
     () => albumTokenOf(window.location.pathname),
@@ -554,7 +554,8 @@ export function LookViewer({
   onClose: () => void;
   viewerIsHost: boolean;
 }) {
-  const [index, setIndex] = useState<number | null>(null);
+  // Mounted on its first use (the card's latch), so the photograph it opens on is already in hand.
+  const [index, setIndex] = useState<number | null>(viewing?.index ?? null);
   const [closeRequest, setCloseRequest] = useState<{
     n: number;
     instant: boolean;

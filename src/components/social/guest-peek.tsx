@@ -363,8 +363,11 @@ export function GuestPeek({
   // The block screen mounts on the first press and stays, so it closes with its own exit.
   const [confirmMounted, setConfirmMounted] = useState(false);
   const [blocking, setBlocking] = useState(false);
-  // See all's panel, and the viewer a photograph opens in: both outlive the card, which closes as they open.
+  // See all's panel, and the viewer a photograph opens in: both outlive the card, which closes as they open. ★ EACH
+  // MOUNTS ON ITS FIRST USE AND STAYS (the lightbox's own latch), so a list of two hundred names holds two hundred
+  // cards that have asked for nothing, and a closing panel or viewer runs its own exit.
   const [panelOpen, setPanelOpen] = useState(false);
+  const [used, setUsed] = useState({ panel: false, viewer: false });
   const [viewing, setViewing] = useState<{
     items: GridMedia[];
     index: number;
@@ -386,6 +389,7 @@ export function GuestPeek({
   // of its tile), so at its close the photograph drops into the name that opened the card, and the keyboard with it.
   function openPhoto(items: GridMedia[], index: number, tile: HTMLElement) {
     setOpen(false);
+    setUsed((u) => ({ ...u, viewer: true }));
     setViewing({
       items,
       index,
@@ -414,6 +418,7 @@ export function GuestPeek({
           onOpenPhoto={openPhoto}
           onSeeAll={() => {
             setOpen(false);
+            setUsed((u) => ({ ...u, panel: true }));
             setPanelOpen(true);
           }}
         />
@@ -463,14 +468,15 @@ export function GuestPeek({
           name={item.displayName ?? null}
         />
       ) : null}
-      {source ? (
+      {source && used.panel ? (
         <LookPanel
           source={source}
           name={name}
           open={panelOpen}
           onOpenChange={setPanelOpen}
           returnFocus={() => triggerRef.current}
-          onOpenPhoto={(items, index, tile) =>
+          onOpenPhoto={(items, index, tile) => {
+            setUsed((u) => ({ ...u, viewer: true }));
             setViewing({
               items,
               index,
@@ -483,11 +489,11 @@ export function GuestPeek({
                     `[data-look-panel] [data-look-photo="${CSS.escape(shown.id)}"]`,
                   ),
               },
-            })
-          }
+            });
+          }}
         />
       ) : null}
-      {source ? (
+      {source && used.viewer ? (
         <LookViewer
           viewing={viewing}
           viewerIsHost={host}
