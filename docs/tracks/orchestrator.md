@@ -23,15 +23,15 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Desk 8's wave runs (2026-10-07; at 23:20Z the week 85%, the 5-hour window 54% to 02:10Z, this context 82%). Merged,
+Desk 8's wave runs (2026-10-07; at 00:05Z 2026-10-08 the week 91%, the 5-hour window 75% to 02:10Z). Merged,
 recorded and pruned since its cut: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring
 (80), brand-marks-wiring (81), crumbs-91 (82; its migration applied on the Advisor's Q45 as 20261007230050),
 no-signal-wiring (83), crumbs-92 (84; its migration applied on the Advisor's Q46 as 20261007233007, advisors 29/4/36, the types
 regenerated and its two seams dropped at the record after it). brand-marks-r2 (85, the board's round two on the desk: one ask, the icon). cdn-version (86: X5's CDN cache, about 30,000 to 9,600 calls at a lit 100-guest party; its call CL1).
 Running, its row below: the board event-page-r1. No new lane until those close: the
 week's last share goes to them and to milestone 40's red-team. Will's calls paste's first sections are routed; his
-Deletion and Safety sections are still to come (the Calls place holds 12, five of them new from lanes: CH1, CI1, CI2,
-CJ1). Both plan-limit tokens are minted and set. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk
+Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from lanes: CH1, CI1,
+CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk
 and every merge above. Milestone 39 (`0333cd705`) is live.
 
 | lane | what | state | model, port | agent |
@@ -88,8 +88,7 @@ Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The sessio
 - **The calls lab** (the desk's Calls place, `/design/lab#calls`, over `docs/calls.json`): his first sections came at
   2026-10-07 20:40Z (`docs/reviews/batches/2026-10-07-b0eb89bc9-calls.txt`; every question and the plans and life calls,
   all routed and retired); 8 calls remain, his Deletion, retention and privacy section (I7, R2, J5, AH4, CG6) and Safety
-  (J2, J3, M1). His paste's AY1=keep crossed his chat answer ("when she closes", which crumbs-91 builds): asked in chat
-  which stands. He asks direct questions in chat; answer in chat, never only in a file.
+  (J2, J3, M1); AY1 is settled (his keep meant the turn at her close, which crumbs-91 built). He asks direct questions in chat; answer in chat, never only in a file.
 - **Two backup copies to delete (privacy; a permanent delete is his hand), now urgent:** `partyreel-backup` redeployed
   its reconcile and restore at 01:43Z 2026-10-07 (version `892795dc`), so its daily run reads Needs a look and mails
   until they go: in the `partyreel-backup` R2 bucket,
