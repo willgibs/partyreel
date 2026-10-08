@@ -28,6 +28,10 @@ import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import { holdsEmailOn, type Door } from "@/lib/event/door/door";
 import { emailBackLine } from "@/lib/event/door/words";
+import {
+  useHostAlbum,
+  useHubCounts,
+} from "@/components/app/event-feed/host-album";
 import { useUnparkAfterSave } from "@/components/app/event-settings/settings-state-unpark";
 import { deviceZone } from "@/lib/event/zone";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
@@ -314,6 +318,13 @@ export function SettingsProvider({
   children: ReactNode;
 }) {
   const base = valuesOf(event, social);
+  /* ★ WHAT WAITS IN REVIEW IS THE ALBUM'S LIVE COUNT, NEVER THE PAGE LOAD'S (crumbs-93, red-team 58's LOW): the sheet is
+     open while guests add, and "Straight into the album" publishes whatever waits the instant she picks it, so its note
+     ("The 3 photos under review appear at once") must be the count the hub's Review door shows beside it, kept live by
+     the same album store (`useHubCounts`). The prop is the first paint's and the fallback where no album store stands
+     (a sheet opened away from the hub). */
+  const liveCounts = useHubCounts(useHostAlbum());
+  const waiting = liveCounts?.pending ?? pendingCount;
 
   // What a host has changed that the row does not say yet, laid over it.
   const [overlay, setOverlay] = useState<Partial<SettingsValues>>({});
@@ -688,7 +699,7 @@ export function SettingsProvider({
     values,
     facts,
     counts,
-    pendingCount,
+    pendingCount: waiting,
     hostHasSlug: social?.hostHasSlug ?? false,
     reelSample,
     saveEvent,
