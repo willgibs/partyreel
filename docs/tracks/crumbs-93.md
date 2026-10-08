@@ -22,6 +22,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/media-grid.tsx                     # 7: the one stand-in exported for the surfaces that draw a photograph
   - src/components/app/photo-img                          # 7: PhotoImg, the one <img> that hands over to that stand-in (and its test)
   - src/components/app/living-stills.tsx                  # 7: the cards' dissolving stills draw through PhotoImg
+  - src/components/app/event-card.tsx                     # 7: the profile and Guest cards' cover (the same event_covers read), one swap
   - docs/systems/guest-flow.md
   - docs/systems/disposable-mode.md
   - docs/systems/dashboard.md
