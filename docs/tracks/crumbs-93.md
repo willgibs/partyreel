@@ -12,20 +12,15 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   # Claimed at boot (no lane runs beside this one): the fixes below reach these, each for the item named.
   - src/lib/guest/upload-refusal                          # 1: a send refused because the album paused is its own class
   - src/lib/guest/camera/                                 # 5: the spent roll's pure rule beside the other camera rules
-  - src/lib/guest/event-card.ts                           # 6: the generic card's words, if the gap is theirs
   - src/lib/db/queries/events.ts                          # 4: the cards' cover read (its WHY-comment)
   - src/lib/disposable/migration-guards.test.ts           # 4: the seal's SQL guard (reshaped on purpose)
   - src/lib/db/migration-guards.test.ts                   # 4: the two cover bodies it pins, reshaped on purpose
   - src/lib/disposable/seal.ts                            # 4: its header comment said the host meets a sealed album on her dashboard
-  - docs/ROADMAP.md                                       # 4: the one line (crumbs-88's) this lane settles, deleted
   - supabase/migrations/20261008090000_crumbs_93          # 4: the cards' covers and stills read the seal as a guest does
   - src/components/app/media-grid.tsx                     # 7: the one stand-in exported for the surfaces that draw a photograph
   - src/components/app/photo-img                          # 7: PhotoImg, the one <img> that hands over to that stand-in (and its test)
   - src/components/app/living-stills.tsx                  # 7: the cards' dissolving stills draw through PhotoImg
   - src/components/app/event-card.tsx                     # 7: the profile and Guest cards' cover (the same event_covers read), one swap
-  - docs/systems/guest-flow.md
-  - docs/systems/disposable-mode.md
-  - docs/systems/dashboard.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/disposable-mode.md
@@ -99,8 +94,9 @@ working.
   the cards' covers and stills carry the predicate with none, the counts stay hers) and the camera's refusal spending the roll.
 - `dashboard.md`: the stage's seal lines (cards included) and `PhotoImg`, the one image of every surface that draws a photograph.
 - `host-app.md`: Settings' "Straight into the album" note reads the album's live count.
-- `docs/ROADMAP.md`: crumbs-88's line (the three SQL homes exempt from the seal) is deleted, settled here (covers and stills
-  held to the guests' view, the count hers by rule).
+- `docs/ROADMAP.md` is never a lane's: its crumbs-88 line (the three SQL homes exempt from the seal, "Host: her dashboard's
+  tile covers and stills...") is settled here (covers and stills held to the guests' view, the count hers by rule), for the
+  Orchestrator to delete with the merge.
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
