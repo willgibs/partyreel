@@ -4,22 +4,25 @@ import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
 import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
+import { CALLS, openCall } from "@/lib/calls/calls";
 import { cn } from "@/lib/utils";
 
 import { Step } from "@/components/lab/step";
 
 import { CopyButton } from "@/app/(dev)/design/(shell)/_shell/copy";
 import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
+import { answerWords } from "../calls/answer-words";
+import { ClearHeld, tallyHeld } from "./copy-so-far";
 import {
   alreadySent,
   composeMessage,
+  heldCallAnswers,
   type SessionAnswer,
   type SessionItem,
   type SessionNote,
   type Transcribed,
 } from "./review-message";
 import {
-  EMPTY_REVIEW,
   type ReviewStore,
   setProgramNote,
   setReviewStore,
@@ -202,13 +205,38 @@ export function ReviewSession({
   // server's first paint, so a word typed before the page hydrated is kept
   // (`adopt-typed-value.ts`).
   const adoptProgram = useAdoptTypedValue<HTMLTextAreaElement>(program);
-  const message = useMemo(
-    () => composeMessage(answers, notes, items, [], build, program),
-    [answers, notes, items, build, program],
+  // ★ AND THE CALLS RIDE THIS MESSAGE TOO (calls-desk: one message a sitting),
+  // by the rule "Copy so far" sends them by, a paste's mark included, since
+  // the calls have no ledger for this page to compare against. Never in a dry
+  // run, whose message is a sample board's alone.
+  const calls = useMemo(
+    () =>
+      sample
+        ? []
+        : heldCallAnswers(store.calls, openCall, (key) =>
+            Boolean(store.sent?.[key]),
+          ).calls,
+    [sample, store],
   );
-  const answered = answers.length + items.length;
+  const message = useMemo(
+    () => composeMessage(answers, notes, items, [], build, program, calls),
+    [answers, notes, items, build, program, calls],
+  );
+  const answered = answers.length + items.length + calls.length;
   // A note on the whole program is a message on its own.
   const said = answered > 0 || program.trim() !== "";
+  // ★ WHAT "CLEAR THIS SESSION" EMPTIES, said as the desk's Clear says it (`ClearHeld`): the whole store, counted the
+  // way the Copy buttons count it. A dry run's sample answers are the store's too (the sample board is no board of
+  // the registry, so the desk's count cannot see them) and the Clear takes them with the rest, so they join the sum.
+  const held = tallyHeld(store, transcribed, build);
+  const tally = sample
+    ? {
+        answers: held.answers + answers.length,
+        verdicts: held.verdicts + items.length,
+        notes: held.notes + notes.length,
+        unsent: held.unsent + answers.length + items.length + notes.length,
+      }
+    : held;
 
   if (steps.length === 0) return null;
 
@@ -291,8 +319,9 @@ export function ReviewSession({
                 The Orchestrator runs it through{" "}
                 <code className="font-sans">pnpm lab:review</code>, which checks
                 every question, option and catalog item against the
-                board&rsquo;s own spec and appends to docs/reviews. Nothing in
-                this page writes the repo.
+                board&rsquo;s own spec and appends to docs/reviews, and every
+                call against the list it was drawn from. Nothing in this page
+                writes the repo.
               </p>
 
               <ul className="mt-6 space-y-3">
@@ -400,6 +429,43 @@ export function ReviewSession({
                     </li>
                   );
                 })}
+                {/* The calls answered at the desk's Calls place, read back
+                    the way the place says them: a check that the paste holds
+                    what he meant, changed where he answered them. */}
+                {calls.length > 0 && (
+                  <li className="rounded-xl border border-border bg-card px-4 py-3">
+                    <p className="flex flex-wrap items-baseline justify-between gap-2 text-sm font-medium">
+                      Calls
+                      <LabLink
+                        href="/design/lab#calls"
+                        className="text-[11px] font-normal text-muted-foreground hover:text-foreground"
+                      >
+                        Change them on the desk
+                      </LabLink>
+                    </p>
+                    <ul className="mt-1.5 space-y-1">
+                      {calls.map((c) => {
+                        const entry = CALLS.entries.find((e) => e.id === c.id);
+                        return (
+                          <li key={c.id} className="text-xs">
+                            <span className="text-muted-foreground">
+                              {c.id} {entry?.title}
+                            </span>{" "}
+                            <span className="font-medium">
+                              {entry ? answerWords(entry, c.answer) : c.answer}
+                            </span>
+                            {c.note && (
+                              <span className="text-muted-foreground">
+                                {" "}
+                                &ldquo;{c.note}&rdquo;
+                              </span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </li>
+                )}
               </ul>
             </>
           )}
@@ -443,16 +509,12 @@ export function ReviewSession({
               Back to the desk
             </LabLink>
             {said && (
-              <button
-                type="button"
-                onClick={() => {
-                  update(EMPTY_REVIEW);
-                  goTo(0);
-                }}
-                className="ml-auto text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Clear this session
-              </button>
+              <ClearHeld
+                tally={tally}
+                label="Clear this session"
+                onCleared={() => goTo(0)}
+                className="ml-auto"
+              />
             )}
           </div>
         </section>

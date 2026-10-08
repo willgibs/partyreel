@@ -280,26 +280,41 @@
 [data-stuck] .hub-door-text {
   display: none;
 }
-/* Stuck, the glyph is a pill's 16px: the badge rides it smaller. */
+/* Stuck, the glyph is a pill's 16px: the badge rides it smaller.
+   ★ AND IT GROWS OUTWARD FROM THE GLYPH'S SHOULDER (red-team 57): its LEFT edge is pinned where a one-digit badge's always
+   stood (6px inside the glyph's right edge), so a wider count ("42", "99+") reaches away from the glyph. Pinned by its
+   right edge it grew back over the glyph, and "99+" hid the whole icon: the pill read only its count. The padding and the
+   tracking are the least that keep "99+" (23px) inside a hand's pill and the 4px gap beside it (a 47px pill with its glyph
+   centred leaves 15.7px on a side), so it never rests on the pill beside. */
 [data-stuck] .hub-door-badge {
   top: -6px;
-  right: -10px;
+  right: auto;
+  left: calc(100% - 6px);
   min-width: 16px;
   height: 16px;
-  padding: 0 4px;
+  padding: 0 2.5px;
   font-size: 10px;
+  letter-spacing: -0.03em;
 }
 [data-stuck] .hub-door-badge > svg {
   width: 7px;
   height: 7px;
 }
-/* From 800px a pill has room for its word. */
+/* From 800px a pill has room for its word, and a count that grows outward must not reach it: the gap above is a one-digit
+   badge's (it ends 3px short of the word), so the door whose count is wider (`data-len`: its characters, "99+" three)
+   keeps that 3px. The slot never changes width (above), only where its glyph and its word stand inside it. */
 @media (width >= 50rem) {
   [data-stuck] .hub-door {
     width: 124px;
   }
   [data-stuck] .hub-door-word {
     display: inline;
+  }
+  [data-stuck] .hub-door:has(.hub-door-badge[data-len="2"]) {
+    gap: 14px;
+  }
+  [data-stuck] .hub-door:has(.hub-door-badge[data-len="3"]) {
+    gap: 20px;
   }
 }
 /* ★ A HAND'S PILLS ARE SLOTS THE THUMB CAN HIT: five sharing the band between the face and the code, each 44px tall (the

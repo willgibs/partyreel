@@ -455,7 +455,7 @@ export default async function AccountPage({
         <CardHeader>
           <CardTitle>Email preferences</CardTitle>
           <CardDescription>
-            What Partyreel may email you about. Your guests never hear from us.
+            What Partyreel may email you about.
           </CardDescription>
         </CardHeader>
         <CardContent>

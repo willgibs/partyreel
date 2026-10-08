@@ -263,6 +263,28 @@ function SelectMark({ selected }: { selected: boolean }) {
   );
 }
 
+/**
+ * ★ THE OPEN BUTTON'S FOCUS, DRAWN OVER ITS PHOTOGRAPH (crumbs-90, red-team 56b; guests-room r1's strip `Tile`). The
+ * button wore `focus-halo halo-inset`, an inset shadow that is painted under the button's own content, so the
+ * photograph covered every pixel of it and a keyboard walking the album saw no tile it stood on. The halo stands on
+ * this layer instead, over the photograph and holding no focus, pinned with `data-halo` while the button holds the
+ * keyboard's focus (the house's way for an element standing for a focus it does not hold, the code field's caret
+ * slot's). On a photograph's ground (`data-surface="photo"`: the white line over a near-black band, whatever the
+ * page is made of), inside the tile's own corner, which clips anything outside it.
+ */
+function TileHalo({ keyboard }: { keyboard: boolean }) {
+  return (
+    <span
+      aria-hidden
+      data-tile-halo
+      data-surface="photo"
+      data-halo={keyboard ? "" : undefined}
+      className="pointer-events-none absolute inset-0 focus-halo halo-inset"
+      style={{ borderRadius: "var(--radius-tile)" }}
+    />
+  );
+}
+
 export type TileLayout = "masonry" | "uniform" | "rows";
 
 export type AlbumTileProps = {
@@ -400,6 +422,17 @@ function AlbumTileBody({
   probeAlbumRender("tile", item.id);
   // Decided at mount and kept (see the head note: a tile enters once).
   const [enter] = useState(enterProp);
+  // The keyboard's focus on the open button: the halo's overlay wears it (`TileHalo`, below).
+  const [keyboard, setKeyboard] = useState(false);
+  const readKeyboard = (button: HTMLElement) => {
+    let visible = false;
+    try {
+      visible = button.matches(":focus-visible");
+    } catch {
+      // An engine without the selector (jsdom) draws no halo, as the grid's keyboard hover does.
+    }
+    setKeyboard(visible);
+  };
   const uniform = layout === "uniform";
   return (
     <div
@@ -467,11 +500,16 @@ function AlbumTileBody({
               : "Play video"
         }
         aria-pressed={selecting ? !!selected : undefined}
+        // The keyboard's focus is the tile's own state, heard on its own button (no prop, no closure from the
+        // grid); a focus a press gave turns the keyboard's at its first key.
+        onFocus={(e) => readKeyboard(e.currentTarget)}
+        onKeyUp={(e) => readKeyboard(e.currentTarget)}
+        onBlur={() => setKeyboard(false)}
         // ★ `cn`, never a template: the dim used to be glued straight onto
         // `active:scale-[0.98]` with no space, one class nobody emits, so a
         // hidden photograph sat in the host album at full brightness.
         className={cn(
-          "size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-halo halo-inset active:scale-[0.98]",
+          "relative size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none active:scale-[0.98]",
           dimmed && "opacity-30",
         )}
       >
@@ -487,6 +525,7 @@ function AlbumTileBody({
             <Skeleton className="absolute inset-0 size-full rounded-none" />
           </span>
         )}
+        <TileHalo keyboard={keyboard} />
       </button>
 
       {/* THE MARKS — state, never controls, and the whole of a phone tile

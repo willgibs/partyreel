@@ -15,6 +15,11 @@ import { RelationToggle } from "@/components/social/relation-toggle";
  * Follow beside" Open album): a small ghost button in the muted ink, beside what matters more, never
  * the filled one a profile page leads with. `name` says who where nothing beside the button does
  * ("Follow Tom").
+ *
+ * ★ HER FIRST FOLLOW SAYS, ONCE, THAT ONLY SHE SEES WHO SHE FOLLOWS (`account-moments` r2, `follow=once`): the control draws
+ * the private line beside this button when the Server Function answers that her list was empty before the press, so every
+ * seat that renders this (her page, a guest's chip, the moment card, a claim's follow-up, the look) gets it with no change
+ * of its own, and the thousandth follow is the button alone. `name` also names the person in it ("Maya just sees…").
  */
 export function FollowButton({
   profileId,
@@ -39,6 +44,7 @@ export function FollowButton({
       quiet={quiet}
       size={size}
       label={name}
+      person={name}
     />
   );
 }

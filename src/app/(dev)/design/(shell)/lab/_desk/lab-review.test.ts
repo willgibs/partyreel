@@ -18,8 +18,60 @@ import { entries } from "@/testing/source-tree";
 
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
+import { CALLS } from "@/lib/calls/calls";
+
 import { composeMessage } from "./review-message";
 import { SAMPLE_BOARD } from "./sample-spec";
+
+/**
+ * THE CALLS THE TRANSCRIPT IS CHECKED AGAINST: the live file's own entries for each kind the calls line's tests answer
+ * (a call, a question with alternatives, a question with none), and a stand-in of the same shape only for a kind the
+ * live file no longer holds. ★ Scar (2026-10-07): these tests read the live entries alone, "so the round trip is held
+ * to the words Will reads"; but the file empties by design, an answer leaving the same day it lands, and the day his
+ * paste answered every open question the whole calls block failed. That reason expired; real words still come first.
+ */
+const STAND_INS = {
+  call: {
+    id: "ZZ1",
+    kind: "call",
+    theme: "An event's life and timing",
+    title: "A stand-in call.",
+    body: "Stands in only while the live file holds no open call.",
+    changeIf: "the stand-in should change.",
+    home: "docs/systems/host-app.md",
+  },
+  asked: {
+    id: "ZZ2",
+    kind: "question",
+    theme: "What Partyreel is",
+    title: "A stand-in question with other ways.",
+    body: "Stands in only while the live file holds no open question with two alternatives.",
+    recommended: "the stand-in's recommendation.",
+    alternatives: ["the first other way", "the second other way"],
+  },
+  bare: {
+    id: "ZZ3",
+    kind: "question",
+    theme: "What Partyreel is",
+    title: "A stand-in question with no other way.",
+    body: "Stands in only while the live file holds no open question without alternatives.",
+    recommended: "the stand-in's one answer.",
+    alternatives: [],
+  },
+} as const;
+const TEST_CALLS = {
+  themes: CALLS.themes,
+  entries: [
+    CALLS.entries.find((e) => e.kind === "call") ?? STAND_INS.call,
+    CALLS.entries.find(
+      (e) => e.kind === "question" && e.alternatives.length >= 2,
+    ) ?? STAND_INS.asked,
+    CALLS.entries.find(
+      (e) => e.kind === "question" && e.alternatives.length === 0,
+    ) ?? STAND_INS.bare,
+  ],
+  retired: CALLS.retired,
+};
 
 /**
  * THE TRANSCRIPT SCRIPT. `pnpm lab:review`
@@ -52,7 +104,7 @@ type Spec = {
   calls: string[];
 };
 type Entry = {
-  kind: "board" | "library" | "unfiled";
+  kind: "board" | "library" | "unfiled" | "calls";
   board: string;
   round: number;
   answers: { ask: string; choice: string | null; note?: string }[];
@@ -61,6 +113,16 @@ type Entry = {
   entries: { entry: string; verdict: string; note?: string }[];
   notes: { text: string; column?: number }[];
   line: number;
+};
+type CallRoute = {
+  id: string;
+  kind: "question" | "call" | null;
+  title: string | null;
+  answer: string;
+  note: string | null;
+  route: string;
+  retire: boolean;
+  home?: string;
 };
 type Failure = {
   line: number;
@@ -77,7 +139,11 @@ type LabReview = {
     entries: Entry[],
     specs: Map<string, Spec>,
     library?: Set<string> | null,
+    ledgerOf?: (board: string) => unknown,
+    calls?: unknown,
   ): Failure[];
+  readCalls(root: string): unknown;
+  callsRouting(routes: CallRoute[]): string[];
   readLibraryEntries(root: string): Set<string> | null;
   run(
     text: string,
@@ -88,6 +154,7 @@ type LabReview = {
     summary: string[][];
     boards?: string[];
     unfiled?: number;
+    calls?: CallRoute[];
     drift?: string | null;
   };
   unfiledAdvice(count: number): string;
@@ -134,6 +201,12 @@ beforeAll(() => {
   mkdirSync(join(root, "docs", "reviews"), { recursive: true });
   // The real file, so the scanner is held to a spec an agent actually writes.
   copyFileSync(SPEC_FILE, join(sandbox, BOARD, "spec.ts"));
+  // The calls a `calls:` line is checked against: Will's own entries where
+  // the live file holds them (TEST_CALLS); the transcript writes nothing.
+  writeFileSync(
+    join(root, "docs", "calls.json"),
+    JSON.stringify(TEST_CALLS, null, 2),
+  );
   // A directory with no spec must simply be skipped, not crash the read.
   mkdirSync(join(sandbox, "no-spec-here"), { recursive: true });
   // The catalog's five family modules, which is what a `review library:`
@@ -1161,5 +1234,181 @@ describe("the desk's note for the whole program", () => {
       'the desk, pictures first; "every" board',
       "not recorded",
     ]);
+  });
+});
+
+/**
+ * THE CALLS LINE (calls-desk, 2026-10-07): his answers at the desk's Calls place ride the same paste as one `calls:`
+ * line. The transcript checks each against docs/calls.json and writes NOTHING: it prints the routing list (each
+ * question's pick, each change with his words, each kept call that may now leave) and the one command that retires
+ * them, since the record acts through usher/kit/calls.py, the file's only writer.
+ */
+describe("the calls line", () => {
+  // Will's own entries where the live file holds them (TEST_CALLS).
+  const [call, asked, bare] = TEST_CALLS.entries;
+  const gone = TEST_CALLS.retired[0];
+  const callsFile = () =>
+    readFileSync(join(root, "docs", "calls.json"), "utf8");
+
+  type CallClause = { id: string; answer: string; note?: string };
+  const answersOf = (e: Entry) => e.answers as unknown as CallClause[];
+
+  it("round-trips: composed by the desk, read back clause for clause, notes whole", () => {
+    const message = composeMessage(
+      [{ board: BOARD, round: ROUND, ask: "default", choice: "always" }],
+      [],
+      [],
+      [],
+      "abc1234",
+      null,
+      [
+        { id: asked.id, answer: "alt2", note: 'only "weddings"; for now' },
+        { id: bare.id, answer: "own", note: "not yet" },
+        { id: call.id, answer: "keep" },
+      ],
+    );
+    const entries = lab.parseMessage(message);
+    expect(entries.map((e) => e.kind)).toEqual(["board", "calls"]);
+    expect(answersOf(entries[1]).map((a) => [a.id, a.answer, a.note])).toEqual([
+      [asked.id, "alt2", 'only "weddings"; for now'],
+      [bare.id, "own", "not yet"],
+      [call.id, "keep", undefined],
+    ]);
+    const result = lab.run(message, { root, dry: true });
+    expect(result.ok, result.errors.map((e) => e.display).join("; ")).toBe(
+      true,
+    );
+    expect(result.calls?.map((r) => [r.id, r.answer, r.retire])).toEqual([
+      [asked.id, "alt2", true],
+      [bare.id, "own", true],
+      [call.id, "keep", true],
+    ]);
+  });
+
+  it("refuses each wrong answer at its column, and the whole paste with it", () => {
+    const before = existsSync(ledgerFile(BOARD))
+      ? readFileSync(ledgerFile(BOARD), "utf8")
+      : null;
+    const cases: [string, string][] = [
+      [`calls: QQ9=keep`, '"QQ9" is not an open call or question'],
+      [
+        `calls: ${call.id}=recommended`,
+        `is not an answer to the call ${call.id}`,
+      ],
+      [`calls: ${bare.id}=keep`, `is not an answer to the question ${bare.id}`],
+      [`calls: ${bare.id}=alt1`, `is not an answer to the question ${bare.id}`],
+      [`calls: ${call.id}=change`, `${call.id}=change needs a note`],
+      [`calls: ${bare.id}=own "  "`, `${bare.id}=own needs his own words`],
+      [
+        `calls: ${call.id}=keep; ${call.id}=keep`,
+        "is answered twice on this line",
+      ],
+    ];
+    for (const [line, says] of cases) {
+      const message = `review ${BOARD} r${ROUND}: default=always\n${line}`;
+      const result = lab.run(message, { root });
+      expect(result.ok, line).toBe(false);
+      expect(result.errors.map((e) => e.message).join("; "), line).toContain(
+        says,
+      );
+      expect(
+        result.errors.every((e) => e.line === 2 && e.column > 7),
+        line,
+      ).toBe(true);
+    }
+    // All or nothing: the board's line beside a bad calls line was not written.
+    expect(
+      existsSync(ledgerFile(BOARD))
+        ? readFileSync(ledgerFile(BOARD), "utf8")
+        : null,
+    ).toBe(before);
+  });
+
+  it("writes nothing: no ledger for the calls, and the calls file as it was", () => {
+    const file = callsFile();
+    const result = lab.run(`calls: ${call.id}=change "a week of grace"`, {
+      root,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.boards).toEqual([]);
+    expect(callsFile()).toBe(file);
+    expect(existsSync(ledgerFile("calls"))).toBe(false);
+  });
+
+  it("routes each answer: a pick to build, his words to weigh, a change to a lane, a keep free to leave", () => {
+    const result = lab.run(
+      `calls: ${asked.id}=recommended "soon"; ${bare.id}=own "not yet"; ${call.id}=keep`,
+      { root, dry: true },
+    );
+    const [pick, own, kept] = result.calls!;
+    expect(pick.route).toBe(
+      `build the recommendation: ${asked.kind === "question" ? asked.recommended : ""}`,
+    );
+    expect(pick.note).toBe("soon");
+    expect(own.route).toContain("his own answer");
+    expect(kept.route).toContain("it may leave now");
+    expect(kept.home).toBe(call.kind === "call" ? call.home : undefined);
+    const alt = lab.run(`calls: ${asked.id}=alt1`, { root, dry: true });
+    expect(alt.calls![0].route).toBe(
+      `build alternative 1: ${asked.kind === "question" ? asked.alternatives[0] : ""}`,
+    );
+    const change = lab.run(`calls: ${call.id}=change "a week"`, {
+      root,
+      dry: true,
+    });
+    expect(change.calls![0].route).toContain("a ROADMAP line or a lane");
+  });
+
+  it("takes a retired id as a re-send: never refused, nothing to route", () => {
+    const result = lab.run(`calls: ${gone}=recommended; ${call.id}=keep`, {
+      root,
+      dry: true,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.calls!.map((r) => [r.id, r.retire])).toEqual([
+      [gone, false],
+      [call.id, true],
+    ]);
+    expect(result.calls![0].route).toContain("retired already");
+    expect(lab.callsRouting(result.calls!).at(-1)).toBe(
+      `  Once routed: python3 usher/kit/calls.py retire ${call.id}`,
+    );
+  });
+
+  it("refuses a calls line where there is no calls file to check it against", () => {
+    const bareRoot = mkdtempSync(join(tmpdir(), "lab-review-nocalls-"));
+    try {
+      mkdirSync(join(bareRoot, "src", "app", "(dev)", "design", "sandbox"), {
+        recursive: true,
+      });
+      const result = lab.run(`calls: ${call.id}=keep`, {
+        root: bareRoot,
+        dry: true,
+      });
+      expect(result.ok).toBe(false);
+      expect(result.errors[0].message).toContain("no docs/calls.json");
+    } finally {
+      rmSync(bareRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("prints the routing list from the command, and the one command that retires them", () => {
+    const out = execFileSync(
+      process.execPath,
+      [
+        join(process.cwd(), "scripts", "lab-review.mjs"),
+        "--root",
+        root,
+        "--dry",
+        `calls: ${call.id}=change "a week of grace"; ${asked.id}=recommended`,
+      ],
+      { encoding: "utf8" },
+    );
+    expect(out).toContain("2 call answers to route (not recorded)");
+    expect(out).toContain(`  ${call.id}  ${call.title}`);
+    expect(out).toContain('his words: "a week of grace"');
+    expect(out).toContain(
+      `Once routed: python3 usher/kit/calls.py retire ${call.id} ${asked.id}`,
+    );
   });
 });

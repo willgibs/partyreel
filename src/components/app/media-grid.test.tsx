@@ -16,7 +16,12 @@
 import { fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { decodeTileImage, MediaTile } from "@/components/app/media-grid";
+import {
+  decodeTileImage,
+  MediaTile,
+  standInFormat,
+  TILE_STAND_IN,
+} from "@/components/app/media-grid";
 
 const realComplete = Object.getOwnPropertyDescriptor(
   HTMLImageElement.prototype,
@@ -249,5 +254,92 @@ describe("the variants only a marketing still carries", () => {
     // A product photograph decodes by its address alone, as before.
     const plain = decodeTileImage("https://r2.test/p.webp?sig=1").image;
     expect(plain.hasAttribute("srcset")).toBe(false);
+  });
+});
+
+/* ★ A PHOTOGRAPH THIS BROWSER CANNOT DRAW IS NAMED, NEVER BLANK (crumbs-90). A HEIC sent from desktop Chrome has no
+   preview (the uploading browser makes it, and could not decode the file), so its tile serves the original, and
+   wherever that cannot draw either the tile shimmered for ever: a photograph that read as still loading. */
+describe("a photograph nothing here can draw", () => {
+  const HEIC = {
+    type: "photo" as const,
+    url: "https://r2.test/events/e/photo/m1/original.heic?sig=a",
+  };
+  const standIn = (container: HTMLElement) =>
+    container.querySelector("[data-tile-stand-in]");
+
+  it("★ says so in the box it keeps, once nothing is left to try: the mark, the words, and the format", () => {
+    complete(false);
+    const { container } = render(<MediaTile item={HEIC} />);
+    expect(standIn(container)).toBeNull();
+    fireEvent.error(imgOf(container));
+    expect(container.querySelector("img")).toBeNull();
+    expect(standIn(container)).toHaveAttribute("data-tile-stand-in", "photo");
+    expect(standIn(container)).toHaveTextContent(TILE_STAND_IN);
+    expect(standIn(container)).toHaveTextContent("HEIC");
+  });
+
+  it("tries the preview's original, and a rolled link, before it says anything", () => {
+    complete(false);
+    const item = {
+      type: "photo" as const,
+      url: "https://r2.test/events/e/photo/m1/original.jpg?sig=a",
+      previewUrl: "https://r2.test/events/e/photo/m1/preview.webp?sig=a",
+    };
+    const { container, rerender } = render(<MediaTile item={item} />);
+    // The preview broke: the original.
+    fireEvent.error(imgOf(container));
+    expect(imgOf(container)).toHaveAttribute("src", item.url);
+    // The original's link rolled meanwhile: the fresh one.
+    const rolled = { ...item, url: item.url.replace("sig=a", "sig=b") };
+    rerender(<MediaTile item={rolled} />);
+    fireEvent.error(imgOf(container));
+    expect(imgOf(container)).toHaveAttribute("src", rolled.url);
+    expect(standIn(container)).toBeNull();
+    // That fails too: nothing left, and a format every browser draws is not named.
+    fireEvent.error(imgOf(container));
+    expect(standIn(container)).toHaveTextContent(TILE_STAND_IN);
+    expect(standIn(container)).not.toHaveTextContent("JPG");
+  });
+
+  it("a clip with no poster that cannot play here is named the same way, as a clip", () => {
+    const clip = {
+      type: "video" as const,
+      url: "https://r2.test/events/e/video/m2/original.mov?sig=a",
+    };
+    const { container } = render(<MediaTile item={clip} />);
+    fireEvent.error(container.querySelector("video")!);
+    expect(container.querySelector("video")).toBeNull();
+    expect(standIn(container)).toHaveAttribute("data-tile-stand-in", "video");
+    expect(standIn(container)).toHaveTextContent("MOV");
+  });
+
+  it("draws afresh when the tile is handed a different photograph", () => {
+    complete(false);
+    const { container, rerender } = render(<MediaTile item={HEIC} />);
+    fireEvent.error(imgOf(container));
+    rerender(
+      <MediaTile
+        item={{
+          type: "photo",
+          url: "https://r2.test/events/e/photo/m3/original.jpg",
+        }}
+      />,
+    );
+    expect(standIn(container)).toBeNull();
+    expect(imgOf(container)).toHaveAttribute(
+      "src",
+      "https://r2.test/events/e/photo/m3/original.jpg",
+    );
+  });
+
+  it.each([
+    ["…/original.heic?X-Amz-Signature=1", "HEIC"],
+    ["…/original.HEIF", "HEIF"],
+    ["…/original.mov#t=0.1", "MOV"],
+    ["…/original.jpg?x=.heic", null],
+    ["…/original.png", null],
+  ])("names %s as %s", (src, name) => {
+    expect(standInFormat(src)).toBe(name);
   });
 });

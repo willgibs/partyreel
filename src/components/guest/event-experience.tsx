@@ -340,11 +340,10 @@ function EventExperienceBody({
    */
   uploadsWait: UploadsWait;
   /**
-   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render, her
-   * remembered choice, and the instant the party's morning after begins (event-zone: read in the party's zone on the
-   * server, one moment for every reader), decided by the page's server so the seed links what the first paint draws
-   * and the hydration lays the same rows. The page keeps it live from here (`useGuestAlbumOrder`). Absent (a stand-in
-   * page), the album stays newest first.
+   * ★ THE ALBUM'S ORDER AT THE FIRST PAINT (album-order, `guestAlbumOrder`): the album's own order at the render (the
+   * night in order once its host has closed adding or its develop has come, AY1) and her remembered choice, decided by
+   * the page's server so the seed links what the first paint draws and the hydration lays the same rows. The page keeps
+   * it live from here (`useGuestAlbumOrder`). Absent (a stand-in page), the album stays newest first.
    */
   albumOrder?: GuestAlbumOrder;
   /**
@@ -528,6 +527,17 @@ function EventExperienceBody({
      reads for itself. The door's upload step draws a bar a pick off the items, so while it is on
      screen (and only then) it gets the queue with live progress folded in. */
   const doorQueue = useLiveQueue(queue, uploadProgress, uploadStepActive);
+  /* ★ WHETHER THE ALBUM TAKES UPLOADS, AS THE PAGE HEARS IT (`useLiveUploadsWord`, guest-requests): the server's reading
+     at render, then each word the album's sync carries. ★ AND ONE WORD FEEDS EVERY READER OF WHETHER SHE CAN ADD
+     (crumbs-93, red-team 58's MEDIUM): the cover and its Add, the shutter, the door's upload step, the camera, the
+     album's order and the picks the door held all read `uploadsOpen` below, never `event.accepting_uploads`, which is
+     the render's and goes stale the moment the host pauses or reopens with her page open (a cover that still offered
+     Add over a closed album, then kept saying closed over a reopened one until she reloaded). The camera asks a closed
+     album again once it says open, and never by itself. */
+  const { word: uploadsWord, onWord: onUploadsWord } = useLiveUploadsWord(
+    event.accepting_uploads,
+  );
+  const uploadsOpen = uploadsWord.open;
   /* ★ HER CHOICE FROM THE HELD DOOR, SENT ON HER RETURN (`door/wait-picks-store.ts`): she chose what she would
      add while the host decided, then left (a closed tab, her phone in her pocket), and the host let her in
      meanwhile; the album she comes back to (the let-in mail, a reload) sends that choice, once, as the door
@@ -538,7 +548,8 @@ function EventExperienceBody({
   });
   useEffect(() => {
     if (isDemo || isOwner || !isVerified || access === "none") return;
-    if (!event.accepting_uploads || deliveringPicks.has(qrToken)) return;
+    // The live word, so picks she chose at the held door go the moment the host reopens, not at her next reload.
+    if (!uploadsOpen || deliveringPicks.has(qrToken)) return;
     deliveringPicks.add(qrToken);
     void (async () => {
       try {
@@ -560,15 +571,7 @@ function EventExperienceBody({
         deliveringPicks.delete(qrToken);
       }
     })();
-  }, [
-    access,
-    addFiles,
-    event.accepting_uploads,
-    isDemo,
-    isOwner,
-    isVerified,
-    qrToken,
-  ]);
+  }, [access, addFiles, uploadsOpen, isDemo, isOwner, isVerified, qrToken]);
 
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
@@ -610,7 +613,14 @@ function EventExperienceBody({
   // note on `stays=shutter`: "when there is more to scroll"), and it goes once the end is in view.
   const { sentinelRef: albumEndRef, inView: albumEndInView } =
     useInViewSentinel<HTMLDivElement>();
-  const canUpload = access === "full" && event.accepting_uploads;
+  const canUpload = access === "full" && uploadsOpen;
+  /* ★ THE SLOT STAYS WHERE IT HAS STOOD (crumbs-93): `GuestUpload` hosts what she may be in the middle of (the camera, the
+     Add sheet, the failure sheet that will say why a send was refused, the follow moment), so a host who pauses with
+     her page open must never pull it out from under her. It mounts when the album takes uploads and stays for the page's
+     life; paused, it draws nothing of its own and the closed line speaks. A page that renders paused never mounts it. */
+  const [slotStood, setSlotStood] = useState(false);
+  if (canUpload && !slotStood) setSlotStood(true);
+  const slotMounted = canUpload || (access === "full" && slotStood);
   /* ★ THE CAP A GUEST'S FILE MEETS, SAID BEFORE THE PICKER (crumbs-43): the host's own per-file cap
      (`events.max_upload_bytes`) on the Add sheet's terms line, at the door's upload step and the album's Add
      alike, so the number she reads is the one the presign holds her to. Never the host's on her own album: her
@@ -690,7 +700,7 @@ function EventExperienceBody({
     isDemo,
     isOwner,
     requireUpload: event.require_upload_to_view,
-    acceptingUploads: event.accepting_uploads,
+    acceptingUploads: uploadsOpen,
     albumFull,
   });
   /* The uploads this visit removed again, by id. The post-upload card counts what is still in the
@@ -746,17 +756,14 @@ function EventExperienceBody({
     pageDevelopsAt: event.develops_at ?? null,
   });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
-  /* ★ WHETHER THE ALBUM TAKES UPLOADS, AS THE PAGE HEARS IT (`useLiveUploadsWord`, guest-requests): the server's reading
-     at render, then each word the album's sync carries. The album's camera asks a closed album again once it says open,
-     and never by itself. */
-  const { word: uploadsWord, onWord: onUploadsWord } = useLiveUploadsWord(
-    event.accepting_uploads,
-  );
-  /* ★ THE ALBUM'S ORDER, LIVE (album-order): the page's word at the first paint, then the turn on this device's clock
-     (a Develop now moves it: the develop time as the page holds it, ahead or reached) and her choice in View's Sort. */
+  /* ★ THE ALBUM'S ORDER, LIVE (album-order, AY1): the page's word at the first paint, then the album's own state as the
+     page hears it: the host's word on adding as the sync carries it (her close turns the album, a reopen turns it back)
+     and the develop on this device's clock (a Develop now moves it: the develop time as the page holds it, ahead or
+     reached); and her choice in View's Sort. */
   const albumOrderNow = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
+    open: uploadsWord.open,
     developsAt: turnDevelopsAt,
     isDemo,
   });
@@ -796,10 +803,7 @@ function EventExperienceBody({
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
   // module-singleton shape the stored session uses for the same reason).
-  useEffect(
-    () => onNameDoorRequest((mode) => entryRef.current?.openToName(mode)),
-    [],
-  );
+  useEffect(() => onNameDoorRequest(() => entryRef.current?.openToName()), []);
   /* ★ THE COVER'S ADD IS THE ONE ADD (`event-header` r1, `guest=cover`). The album's empty state draws
      its river and its words and no button of its own: the cover's white Add asks for the first photo
      on an album with nothing in it yet, in the first screen, and says its ordinary words once anything is (her own
@@ -1200,6 +1204,25 @@ function EventExperienceBody({
     () => galleryRef.current?.askUploadsWord(),
     [],
   );
+  /* ★ A SEND THE ALBUM REFUSED AS CLOSED IS A WORD TOO, AND THE NEWEST THE PAGE HAS (crumbs-93): the host paused between
+     two syncs, and the cover would go on offering Add until the next poll. So a refusal on a page that still thinks the
+     album open asks the album for its word afresh, once a refusal (the queue replaces an item on every change, so a
+     fresh refusal is a fresh item), and the cover, the order and the shutter hear the pause within a round trip. A
+     camera album's camera asks for its own (`album-camera.tsx`), so this is the pickers'. */
+  const askedForClosed = useRef(new WeakSet<object>());
+  useEffect(() => {
+    // Nothing to ask before the album mounts: the refusal stays unheard, and the next render asks.
+    if (cameraAlbum || isDemo || access !== "full" || !galleryRef.current)
+      return;
+    let fresh = false;
+    for (const it of queue) {
+      if (it.status !== "error" || it.errorCode !== "uploads_closed") continue;
+      if (askedForClosed.current.has(it)) continue;
+      askedForClosed.current.add(it);
+      fresh = true;
+    }
+    if (fresh && uploadsOpen) askUploadsWord();
+  }, [queue, cameraAlbum, isDemo, access, uploadsOpen, askUploadsWord]);
 
   /* ────────────────────────────────────────────────────────────────────────
      THE PHONE PAIR: what the phone adds appears on the laptop's album a second
@@ -1448,7 +1471,7 @@ function EventExperienceBody({
         hasContributed={serverContributed}
         contributed={clientContributed}
         returning={returning}
-        uploadsOpen={event.accepting_uploads}
+        uploadsOpen={uploadsOpen}
         requireUpload={event.require_upload_to_view}
         // ★ EMPTY AS THE COVER'S ADD READS IT (red-team 49's NIT): the cover's one source, `galleryEmpty` (what shows,
         // her files on their way, what waits), so the door's upload step never offers the first photo over shots that
@@ -1648,46 +1671,47 @@ function EventExperienceBody({
               your name to upload" PANEL: a confirmed account with no profile name is asked at the DOOR,
               as its name step in `profile` mode, like every other guest and before the album. */}
             <div className={COLUMN}>
-              {access === "full" &&
-                (event.accepting_uploads ? (
-                  <div className="mt-5 empty:hidden">
-                    <GuestUpload
-                      ref={uploadRef}
-                      event={event}
-                      qrToken={qrToken}
-                      queue={queue}
-                      onAddFiles={addFiles}
-                      onRetry={retry}
-                      onDismiss={dismiss}
-                      // The door's own step is showing this run's failures, or its keep stands in
-                      // front of the album: one run never gets two surfaces, and the failure sheet
-                      // waits for the keep to be answered (see the one queue's note above).
-                      suppressFailures={
-                        uploadStepActive || keepDue || cameraOpen
-                      }
-                      onFailuresClosed={flushPendingVerification}
-                      isDemo={isDemo}
-                      host={hostCard}
-                      moment={moment}
-                      elsewhere={elsewhere}
-                      onAccountRenamed={handleAccountRenamed}
-                      removedIds={removedIds}
-                      capBytes={hostCap}
-                      // The album's host (never the demo's visitor, who owns nothing): her camera keeps no roll.
-                      isOwner={isOwner && !isDemo}
-                      // A shot taken back inside the camera is the page's removal too, as her tracker's Remove is.
-                      onOwnRemoved={handleOwnRemoved}
-                      // The door's keep is held while she shoots (`keepDue`).
-                      onCameraOpenChange={setCameraOpen}
-                      // The album's live reading: its line, the camera's develop and the failure sheet's words.
-                      uploadsWait={liveWait}
-                      // The album's word on uploads: the camera hears a reopen from it, never by asking.
-                      uploadsWord={uploadsWord}
-                      onAskUploadsWord={askUploadsWord}
-                    />
-                  </div>
-                ) : (
-                  !isDemo && (
+              {access === "full" && (
+                <>
+                  {slotMounted && (
+                    <div className={cn("empty:hidden", uploadsOpen && "mt-5")}>
+                      <GuestUpload
+                        ref={uploadRef}
+                        event={event}
+                        qrToken={qrToken}
+                        queue={queue}
+                        onAddFiles={addFiles}
+                        onRetry={retry}
+                        onDismiss={dismiss}
+                        // The door's own step is showing this run's failures, or its keep stands in
+                        // front of the album: one run never gets two surfaces, and the failure sheet
+                        // waits for the keep to be answered (see the one queue's note above).
+                        suppressFailures={
+                          uploadStepActive || keepDue || cameraOpen
+                        }
+                        onFailuresClosed={flushPendingVerification}
+                        isDemo={isDemo}
+                        host={hostCard}
+                        moment={moment}
+                        elsewhere={elsewhere}
+                        onAccountRenamed={handleAccountRenamed}
+                        removedIds={removedIds}
+                        capBytes={hostCap}
+                        // The album's host (never the demo's visitor, who owns nothing): her camera keeps no roll.
+                        isOwner={isOwner && !isDemo}
+                        // A shot taken back inside the camera is the page's removal too, as her tracker's Remove is.
+                        onOwnRemoved={handleOwnRemoved}
+                        // The door's keep is held while she shoots (`keepDue`).
+                        onCameraOpenChange={setCameraOpen}
+                        // The album's live reading: its line, the camera's develop and the failure sheet's words.
+                        uploadsWait={liveWait}
+                        // The album's word on uploads: the camera hears a reopen from it, never by asking.
+                        uploadsWord={uploadsWord}
+                        onAskUploadsWord={askUploadsWord}
+                      />
+                    </div>
+                  )}
+                  {!uploadsOpen && !isDemo && (
                     <>
                       <p className="mt-5 text-center text-reading text-muted-foreground">
                         The host has closed uploads. You can still browse the
@@ -1695,8 +1719,9 @@ function EventExperienceBody({
                       </p>
                       {/* A confirmation from the name menu or the mark can land
                       here too, on an album whose uploads have since closed:
-                      the moment still plays, in the slot's place. */}
-                      {moment && (
+                      the moment still plays, in the slot's place (the slot's
+                      own prompt plays it where the slot stands). */}
+                      {moment && !slotMounted && (
                         <div className="mt-4">
                           <ClaimHandlePrompt
                             doneCount={0}
@@ -1709,8 +1734,9 @@ function EventExperienceBody({
                         </div>
                       )}
                     </>
-                  )
-                ))}
+                  )}
+                </>
+              )}
             </div>
 
             {/* THE ALBUM, and nothing else, leaves the column to run the window's

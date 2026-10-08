@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { StateDot } from "@/components/app/dashboard/marks";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { SortKey } from "@/lib/dashboard/display";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
@@ -14,8 +15,8 @@ import { cn } from "@/lib/utils";
 /**
  * THE TABLE (host-dashboard r3, `events=menu`'s second layout; Will 2026-09-20: "for users with more events, I'd
  * expect the table to be more popular with sorting/filtering"): a line an event, its columns the sorts (a press on a
- * head sorts by it, a second press turns it round), the rest of her Display over it. At a phone the date folds under
- * the name and the album's size keeps its column.
+ * head sorts by it, a second press turns it round), the rest of her Display over it. At a phone the date and what
+ * waits fold under the name, what waits with the Waiting column's dot, and the album's size keeps its column.
  *
  * ★ IT LINES UP LIKE A TABLE WITHOUT BEING ONE: a list of links, the heads buttons, no `ui/table`, since a line is
  * one link into its event and a headed grid's cells could not be. A deleted event's line is no link at all, and its
@@ -32,10 +33,8 @@ function Cover({ row }: { row: EventListRow }) {
       )}
     >
       {row.coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+        <PhotoImg
           src={row.coverUrl}
-          alt=""
           loading="lazy"
           className="absolute inset-0 size-full object-cover"
         />
@@ -147,7 +146,11 @@ export function EventsTable({
                 >
                   {row.name}
                 </span>
-                {/* At a phone the Waiting column folds under the name with the date, so what waits is never lost. */}
+                {/* At a phone the Waiting column folds under the name with the date, so what waits is never lost, and it
+                    wears the column's needs-you dot there too (red-team 57b's NIT: the 375 Table was the one view where a
+                    count that waits on her wore no mark), at the column's size and gap, lifted a pixel to sit where the
+                    column's row centres it. ★ Inline, never a flex row: a line too long for the phone truncates within
+                    its words, where an atomic box at the edge would be dropped whole. */}
                 <span className="block truncate text-xs text-muted-foreground sm:hidden">
                   {row.kind === "guest" ? (
                     row.byline
@@ -159,10 +162,14 @@ export function EventsTable({
                     />
                   )}
                   {state?.tone === "waiting" && row.kind === "hosted" && (
-                    <span className="text-foreground">
+                    <>
                       {" · "}
-                      {state.text}
-                    </span>
+                      <StateDot
+                        tone="waiting"
+                        className="mr-1.5 size-1.5 -translate-y-px align-middle"
+                      />
+                      <span className="text-foreground">{state.text}</span>
+                    </>
                   )}
                 </span>
               </span>

@@ -5,14 +5,16 @@
  * and a socket whose state changes while the tab is hidden (the doorbell leaves its channel when the tab hides,
  * album-calm) re-ran the cadence and started it again, under a tab nobody was looking at.
  *
- * ★ AND THE POLLS REST (compute-levers, Will's X4): the net under a live doorbell rests at five minutes after ten
- * untouched minutes and stops after two untouched hours, a touch waking it; the fallback slows to a minute after a
- * quiet minute and returns to twelve seconds on a change; a page watched untouched (the reel's screen) never stops.
+ * ★ AND THE POLLS REST (compute-levers; guest-flow.md, "The conditional poll"): the net under a live doorbell rests
+ * at five minutes after ten untouched minutes and stops after two untouched hours, a touch waking it; the fallback
+ * slows to a minute after a quiet minute and returns to twelve seconds on a change; a page watched untouched (the
+ * reel's screen) never stops.
  */
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  EDGE_QUIET_POLL_MS,
   FAST_POLL_MS,
   QUIET_AFTER_MS,
   REST_AFTER_MS,
@@ -57,20 +59,26 @@ type Props = {
   live: boolean;
   changeKey: unknown;
   unattended?: () => boolean;
+  atEdge?: () => boolean;
 };
 
 function mount(props: Partial<Props> = {}) {
-  const onPoll = vi.fn();
+  const onPoll = vi.fn<(ask: { exact: boolean }) => void>();
   const view = renderHook<void, Props>((p) => useLivePoll({ ...p, onPoll }), {
     initialProps: {
       enabled: props.enabled ?? true,
       live: props.live ?? true,
       changeKey: props.changeKey ?? "v1",
       unattended: props.unattended,
+      atEdge: props.atEdge,
     },
   });
   return { onPoll, ...view };
 }
+
+/** Each ask's word on whether it must be the album's own answer, in order. */
+const exacts = (onPoll: { mock: { calls: [{ exact: boolean }][] } }) =>
+  onPoll.mock.calls.map(([ask]) => ask.exact);
 
 describe("the cadence", () => {
   it("polls a minute apart while the socket is up, and twelve seconds apart while it is down", () => {
@@ -281,5 +289,124 @@ describe("★ the fallback rests on what changes (the doorbell down)", () => {
     rerender({ enabled: true, live: false, changeKey: "v1" });
     vi.advanceTimersByTime(FAST_POLL_MS);
     expect(onPoll).toHaveBeenCalledTimes(12);
+  });
+});
+
+describe("★ each ask says whether it must be the album's own answer (X5)", () => {
+  it("the net under a live doorbell only checks; the return's catch-up is exact", () => {
+    const { onPoll } = mount({ live: true });
+    vi.advanceTimersByTime(2 * SLOW_POLL_MS);
+    goHidden(true);
+    goHidden(false);
+    expect(exacts(onPoll)).toEqual([false, false, true]);
+  });
+
+  it("the moving fallback carries the album (exact); a minute with nothing new, it only checks", () => {
+    const { onPoll } = mount({ live: false });
+    vi.advanceTimersByTime(QUIET_AFTER_MS + SLOW_POLL_MS);
+    // 12, 24, 36 and 48 s inside the moving minute; 60 s ends it with nothing new; then the quiet minute.
+    expect(exacts(onPoll)).toEqual([true, true, true, true, false, false]);
+  });
+
+  it("a touch's wake only checks", () => {
+    const { onPoll } = mount({ live: true });
+    vi.advanceTimersByTime(STOP_AFTER_MS);
+    onPoll.mockClear();
+    touch("pointerdown");
+    expect(exacts(onPoll)).toEqual([false]);
+  });
+});
+
+describe("★ where the CDN answers the album's quiet polls, a quiet fallback is livelier (AB5, X5)", () => {
+  const atEdge = () => true;
+
+  it("asks every twenty seconds while someone looks, then today's minute once nobody has for ten minutes", () => {
+    const { onPoll } = mount({ live: false, atEdge });
+    vi.advanceTimersByTime(QUIET_AFTER_MS);
+    expect(onPoll).toHaveBeenCalledTimes(5);
+    vi.advanceTimersByTime(EDGE_QUIET_POLL_MS - 1);
+    expect(onPoll).toHaveBeenCalledTimes(5);
+    vi.advanceTimersByTime(1);
+    expect(onPoll).toHaveBeenCalledTimes(6);
+    vi.advanceTimersByTime(REST_AFTER_MS - QUIET_AFTER_MS - EDGE_QUIET_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(
+      5 + (REST_AFTER_MS - QUIET_AFTER_MS) / EDGE_QUIET_POLL_MS,
+    );
+    const rested = onPoll.mock.calls.length;
+    vi.advanceTimersByTime(SLOW_POLL_MS - 1);
+    expect(onPoll).toHaveBeenCalledTimes(rested);
+    vi.advanceTimersByTime(1);
+    expect(onPoll).toHaveBeenCalledTimes(rested + 1);
+    // Still never stopped: the fallback is the only way the album hears anything.
+    vi.advanceTimersByTime(8 * HOUR);
+    expect(onPoll).toHaveBeenCalledTimes(rested + 1 + 8 * 60);
+  });
+
+  it("a touch wakes a resting one to twenty seconds, asking at once when its last ask is that old", () => {
+    const { onPoll } = mount({ live: false, atEdge });
+    vi.advanceTimersByTime(REST_AFTER_MS + 30_000);
+    const before = onPoll.mock.calls.length;
+    touch("scroll");
+    expect(onPoll).toHaveBeenCalledTimes(before + 1);
+    expect(onPoll.mock.calls.at(-1)?.[0]).toEqual({ exact: false });
+    vi.advanceTimersByTime(EDGE_QUIET_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(before + 2);
+  });
+
+  it("a touch when its last ask is fresh asks nothing, only quickens the next", () => {
+    const { onPoll } = mount({ live: false, atEdge });
+    vi.advanceTimersByTime(REST_AFTER_MS + 5_000);
+    const before = onPoll.mock.calls.length;
+    touch("keydown");
+    expect(onPoll).toHaveBeenCalledTimes(before);
+    vi.advanceTimersByTime(EDGE_QUIET_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(before + 1);
+  });
+
+  it("a page watched untouched (the party screen) keeps the twenty seconds for good", () => {
+    const { onPoll } = mount({ live: false, atEdge, unattended: () => true });
+    vi.advanceTimersByTime(QUIET_AFTER_MS);
+    const quiet = onPoll.mock.calls.length;
+    vi.advanceTimersByTime(3 * HOUR);
+    expect(onPoll).toHaveBeenCalledTimes(
+      quiet + (3 * HOUR) / EDGE_QUIET_POLL_MS,
+    );
+  });
+
+  it("a change puts it back on twelve seconds for a minute", () => {
+    const { onPoll, rerender } = mount({ live: false, atEdge });
+    vi.advanceTimersByTime(QUIET_AFTER_MS + EDGE_QUIET_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(6);
+    act(() =>
+      rerender({ enabled: true, live: false, changeKey: "v2", atEdge }),
+    );
+    vi.advanceTimersByTime(FAST_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(7);
+  });
+
+  it("asked at each step: an album the CDN stops answering (a password now) slows to today's minute", () => {
+    let edge = true;
+    const { onPoll } = mount({ live: false, atEdge: () => edge });
+    vi.advanceTimersByTime(QUIET_AFTER_MS + EDGE_QUIET_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(6);
+    edge = false;
+    vi.advanceTimersByTime(EDGE_QUIET_POLL_MS);
+    expect(onPoll).toHaveBeenCalledTimes(7);
+    vi.advanceTimersByTime(SLOW_POLL_MS - 1);
+    expect(onPoll).toHaveBeenCalledTimes(7);
+    vi.advanceTimersByTime(1);
+    expect(onPoll).toHaveBeenCalledTimes(8);
+  });
+
+  it("★ moving, it keeps its twelve seconds: each of those polls is the album's own answer however asked", () => {
+    const { onPoll } = mount({ live: false, atEdge });
+    vi.advanceTimersByTime(QUIET_AFTER_MS);
+    expect(onPoll).toHaveBeenCalledTimes(QUIET_AFTER_MS / FAST_POLL_MS);
+  });
+
+  it("the net under a live doorbell is untouched by it", () => {
+    const { onPoll } = mount({ live: true, atEdge });
+    vi.advanceTimersByTime(REST_AFTER_MS);
+    expect(onPoll).toHaveBeenCalledTimes(REST_AFTER_MS / SLOW_POLL_MS);
   });
 });

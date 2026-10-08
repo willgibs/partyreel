@@ -13,7 +13,18 @@
  *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep|refine|kill "a note"; call:<id>=yes|no "a note"; note: "a board note"
  *   review <board> r<n>: <ask>=? "what was unclear"     (not answered: the question needs rewording)
  *   review library: <entry-id>=keep|redesign|retire "a note"
+ *   calls: <id>=keep|change|recommended|alt<n>|own "a note"   (never recorded: printed, with where each goes)
  *   note: "a note that names no board"                   (never recorded: printed, with where it goes)
+ *
+ * ★ THE CALLS LINE WRITES NOTHING (calls-desk, 2026-10-07). His answers at the
+ * desk's Calls place ride the same paste as one `calls:` line, checked against
+ * docs/calls.json (an id open there; a call kept or changed; a question's
+ * `recommended`, `alt<n>` or `own`; a change and his own answer need their
+ * words), and the run prints the routing list: each question's pick, each
+ * change with his words, each kept call that may now leave. The record acts on
+ * it and retires each entry through `usher/kit/calls.py`, the file's only
+ * writer, so this never touches the file. An id retired since is a re-send of
+ * an answer already routed: printed, never refused.
  *
  * `?` is the reviewer's own answer, "this question is not clear to me" (Will's
  * first review, 2026-09-15, skipped two asks for exactly that reason and the
@@ -85,6 +96,14 @@ const FAMILIES = [
 /** The two ladders, mirrored from board-spec.ts's ITEM_VERDICTS / LIBRARY_VERDICTS. */
 const ITEM_VERDICTS = ["keep", "refine", "kill"];
 const LIBRARY_VERDICTS = ["keep", "redesign", "retire"];
+/** The calls' one home, which the record writes through usher/kit/calls.py. */
+const CALLS_FILE = ["docs", "calls.json"];
+/** The words a call is answered in, mirrored from src/lib/calls/answers.ts (the round trip holds them together). */
+const KEEP = "keep";
+const CHANGE = "change";
+const RECOMMENDED = "recommended";
+const OWN = "own";
+const ALT = /^alt([1-9][0-9]*)$/;
 /** The Library's line carries no round; the ledger stores one verdict per entry. */
 export const LIBRARY_LEDGER = "_library";
 /** The summary's words for a note that names no board and is recorded nowhere. */
@@ -545,9 +564,10 @@ function readSeparator(line, at, lineNo) {
  * One line of the grammar, with every token's column kept so a refusal can
  * point at it. A blank line and a `#` comment line parse to null.
  *
- * Three heads: `review <board> r<n>:` for a board, `review library:` for the
+ * Four heads: `review <board> r<n>:` for a board, `review library:` for the
  * Library's own verdicts, which carry no round because the Library is not
- * explored in rounds, and a bare `note:` for a note that names no board.
+ * explored in rounds, `calls:` for the answers at the desk's Calls place, and a
+ * bare `note:` for a note that names no board.
  */
 export function parseLine(raw, lineNo = 1) {
   const line = raw.replace(/\s+$/, "");
@@ -582,6 +602,39 @@ export function parseLine(raw, lineNo = 1) {
       });
     }
     return { kind: "library", entries, line: lineNo };
+  }
+  const callsHead = /^\s*calls\s*:/.exec(line);
+  if (callsHead) {
+    // ★ THE CALLS PLACE'S ANSWERS (see the header): `<id>=<answer> "a note"`,
+    // no round, since an id is never used again and names one entry for good.
+    const answers = [];
+    let i = callsHead[0].length;
+    while (true) {
+      i = skipSpace(line, i);
+      if (i >= line.length) break;
+      const pair = readPair(line, i, lineNo, {
+        id: "a call's id",
+        after: "the call",
+        value: "an answer",
+      });
+      answers.push({
+        id: pair.id,
+        idAt: pair.idAt,
+        answer: pair.value,
+        answerAt: pair.valueAt,
+        note: pair.note,
+      });
+      const sep = readSeparator(line, pair.end, lineNo);
+      i = sep.end;
+      if (!sep.more) break;
+    }
+    if (answers.length === 0) {
+      throw new ReviewError("the line carries no answer", {
+        line: lineNo,
+        column: line.length + 1,
+      });
+    }
+    return { kind: "calls", answers, line: lineNo };
   }
   if (/^\s*note\s*:/.test(line)) {
     // ★ ONLY NOTES, AND NO BOARD (see the header): parsed so the paste around
@@ -849,6 +902,100 @@ export function readLibraryEntries(root) {
   return modules === 0 ? null : ids;
 }
 
+/**
+ * The calls file (docs/calls.json), or null when there is none, which refuses
+ * any `calls:` line rather than letting it through unchecked. Read as data and
+ * held only to the shape this needs: the desk's reader and calls.py hold the
+ * rest, and calls.test.ts holds them to each other.
+ */
+export function readCalls(root) {
+  const file = join(root, ...CALLS_FILE);
+  if (!existsSync(file)) return null;
+  let value;
+  try {
+    value = JSON.parse(readFileSync(file, "utf8"));
+  } catch {
+    throw new ReviewError(`${file} is not JSON`);
+  }
+  if (
+    !value ||
+    !Array.isArray(value.entries) ||
+    !Array.isArray(value.retired) ||
+    value.entries.some((e) => !e || typeof e.id !== "string")
+  ) {
+    throw new ReviewError(
+      `${file} is not the calls file ({ "themes", "entries", "retired" })`,
+    );
+  }
+  return value;
+}
+
+/**
+ * Every answer a `calls:` line carries, against the file: an open id, an
+ * answer its kind takes, and the words a change and his own answer need. An id
+ * the file retired is a re-send of an answer already routed, never refused.
+ */
+function validateCallsLine(e, calls, at) {
+  if (calls === null) {
+    at(
+      e.line,
+      e.answers[0].idAt,
+      "there is no docs/calls.json to check a call against",
+    );
+    return;
+  }
+  for (const a of e.answers) {
+    if (calls.retired.includes(a.id)) continue;
+    const entry = calls.entries.find((x) => x.id === a.id);
+    if (!entry) {
+      at(
+        e.line,
+        a.idAt,
+        `"${a.id}" is not an open call or question (${list(calls.entries.map((x) => x.id))})`,
+      );
+      continue;
+    }
+    const alt = ALT.exec(a.answer);
+    const takes =
+      entry.kind === "call"
+        ? [KEEP, CHANGE].includes(a.answer)
+        : a.answer === RECOMMENDED ||
+          a.answer === OWN ||
+          (alt !== null && Number(alt[1]) <= (entry.alternatives ?? []).length);
+    if (!takes) {
+      const words =
+        entry.kind === "call"
+          ? `${KEEP}, ${CHANGE}`
+          : list([
+              RECOMMENDED,
+              ...(entry.alternatives ?? []).map((_, i) => `alt${i + 1}`),
+              OWN,
+            ]);
+      at(
+        e.line,
+        a.answerAt,
+        `"${a.answer}" is not an answer to ${entry.kind === "call" ? "the call" : "the question"} ${a.id} (${words})`,
+      );
+      continue;
+    }
+    if ((a.answer === CHANGE || a.answer === OWN) && !a.note?.trim()) {
+      at(
+        e.line,
+        a.answerAt,
+        a.answer === CHANGE
+          ? `${a.id}=change needs a note saying what it should be instead`
+          : `${a.id}=own needs his own words, in a note`,
+      );
+    }
+  }
+  refuseDuplicates(
+    e.answers,
+    { id: "id", at: "idAt" },
+    "answered",
+    (column, message) => at(e.line, column, message),
+  );
+}
+
 /* ── A RE-SEND THAT CHANGES NOTHING ──────────────────────────────────────────
  *
  * ★ THE PROBLEM (Will, 2026-09-19). His answers stay in the browser's review
@@ -931,6 +1078,7 @@ export function validate(
   specs,
   library = null,
   ledgerOf = () => null,
+  calls = null,
 ) {
   const errors = [];
   const at = (line, column, message) =>
@@ -938,6 +1086,10 @@ export function validate(
   for (const e of entries) {
     if (e.kind === "library") {
       validateLibrary(e, library, at);
+      continue;
+    }
+    if (e.kind === "calls") {
+      validateCallsLine(e, calls, at);
       continue;
     }
     // A note that names no board has nothing to be checked against: it is
@@ -1203,14 +1355,22 @@ function readLibraryLedger(root) {
  * round: answering again in the same round overwrites, and git keeps the
  * first, which is exactly what the README promises.
  */
-export function applyEntries(root, entries, { by, at }) {
+export function applyEntries(root, entries, { by, at, calls }) {
   // Every ledger this message touched, and the ones it actually CHANGED. A
   // message that is nothing but a stale re-send writes no file at all, so a
   // harmless paste leaves the tree exactly as it found it.
   const seen = new Map();
   const changed = new Map();
   const summary = [];
+  // The calls' routing, by id: a later answer in the same paste replaces an
+  // earlier one, as a board's does. Nothing here is written anywhere.
+  const routes = new Map();
   for (const e of entries) {
+    if (e.kind === "calls") {
+      const file = calls === undefined ? readCalls(root) : calls;
+      for (const a of e.answers) routes.set(a.id, routeOf(a, file));
+      continue;
+    }
     if (e.kind === "unfiled") {
       // ★ NOTHING IS WRITTEN (see the header): not `_window.json`, not a
       // board's ledger. The row says so, and `main` prints where the note goes.
@@ -1376,7 +1536,63 @@ export function applyEntries(root, entries, { by, at }) {
       summary.push([`${e.board} r${e.round}`, "note", n.text, "added"]);
     }
   }
-  return { ledgers: changed, summary };
+  return { ledgers: changed, summary, calls: [...routes.values()] };
+}
+
+/**
+ * WHERE ONE ANSWER GOES (the routing list): a question's pick to build, his own
+ * words to weigh, a change to a ROADMAP line or a lane, a kept call free to
+ * leave since its home holds the fact. `retire` is false only for a re-send of
+ * an id the record retired already.
+ */
+function routeOf(a, file) {
+  const entry = file?.entries.find((x) => x.id === a.id);
+  const note = a.note?.trim() || null;
+  if (!entry) {
+    return {
+      id: a.id,
+      kind: null,
+      title: null,
+      answer: a.answer,
+      note,
+      route:
+        "retired already: a re-send of an answer routed before, nothing to do",
+      retire: false,
+    };
+  }
+  const base = {
+    id: a.id,
+    kind: entry.kind,
+    title: entry.title,
+    answer: a.answer,
+    note,
+    retire: true,
+  };
+  if (entry.kind === "call") {
+    return a.answer === KEEP
+      ? {
+          ...base,
+          home: entry.home,
+          route: `it may leave now: ${entry.home} holds the fact`,
+        }
+      : {
+          ...base,
+          home: entry.home,
+          route: `a ROADMAP line or a lane, as his words say; then ${entry.home} holds the new fact`,
+        };
+  }
+  if (a.answer === RECOMMENDED)
+    return { ...base, route: `build the recommendation: ${entry.recommended}` };
+  if (a.answer === OWN)
+    return {
+      ...base,
+      route: "his own answer: weigh his words, then a ROADMAP line or a lane",
+    };
+  const n = Number(ALT.exec(a.answer)[1]);
+  return {
+    ...base,
+    route: `build alternative ${n}: ${entry.alternatives[n - 1]}`,
+  };
 }
 
 export function writeLedgers(root, ledgers) {
@@ -1414,11 +1630,21 @@ export function run(
   const entries = parseMessage(text);
   if (entries.length === 0) throw new ReviewError("nothing to record");
   const specs = readSpecs(root);
-  const errors = validate(entries, specs, readLibraryEntries(root), (board) =>
-    readLedger(root, board),
+  // Read only when the paste carries a calls line: a board's paste never
+  // depends on the calls file being there, or being whole.
+  const calls = entries.some((e) => e.kind === "calls")
+    ? readCalls(root)
+    : null;
+  const errors = validate(
+    entries,
+    specs,
+    readLibraryEntries(root),
+    (board) => readLedger(root, board),
+    calls,
   );
-  if (errors.length) return { ok: false, errors, summary: [] };
-  const { ledgers, summary } = applyEntries(root, entries, { by, at: stamp });
+  if (errors.length) return { ok: false, errors, summary: [], calls: [] };
+  const applied = applyEntries(root, entries, { by, at: stamp, calls });
+  const { ledgers, summary } = applied;
   if (!dry) writeLedgers(root, ledgers);
   return {
     ok: true,
@@ -1426,8 +1652,31 @@ export function run(
     summary,
     boards: [...ledgers.keys()],
     unfiled: summary.filter((r) => r[3] === NOT_RECORDED).length,
+    calls: applied.calls,
     drift: buildDrift(text, root),
   };
+}
+
+/**
+ * The routing list as the run prints it: each answer under its entry's title,
+ * then the one command that retires every entry once it is routed.
+ */
+export function callsRouting(routes) {
+  if (!routes.length) return [];
+  const out = [
+    "The calls (nothing written: the record routes each answer, then retires it with usher/kit/calls.py):",
+  ];
+  for (const r of routes) {
+    out.push(`  ${r.id}${r.title ? `  ${r.title}` : ""}`);
+    out.push(`      ${r.answer}: ${r.route}`);
+    if (r.note) out.push(`      his words: "${r.note}"`);
+  }
+  const done = routes.filter((r) => r.retire).map((r) => r.id);
+  if (done.length)
+    out.push(
+      `  Once routed: python3 usher/kit/calls.py retire ${done.join(" ")}`,
+    );
+  return out;
 }
 
 // ── The command ──────────────────────────────────────────────────────────────
@@ -1439,6 +1688,9 @@ const HELP = `pnpm lab:review "<the pasted line>"
   review <board> r<n>: item:<id>=keep|refine|kill "a note"   (one catalog card)
   review <board> r<n>: call:<id>=yes|no "a note"   (a call the lane carried)
   review library: <entry-id>=keep|redesign|retire "a note"   (a Library entry)
+  calls: <id>=keep|change "a note"; <id>=recommended|alt<n>|own "a note"
+                     (the desk's Calls place: never recorded, the run prints
+                     where each goes; change and own need their words)
   note: "a note"     (names no board: never recorded, the run says where it goes)
 
   A line that merely repeats what the ledger already holds is a no-op
@@ -1498,6 +1750,7 @@ function main(argv) {
           ok: result.ok,
           summary: result.summary,
           unfiled: result.unfiled,
+          calls: result.calls ?? [],
           drift: result.drift ?? null,
           errors: result.errors.map((e) => ({
             line: e.line,
@@ -1526,14 +1779,18 @@ function main(argv) {
   }
   const same = result.summary.filter((r) => r[3] === "unchanged").length;
   const wrote = result.summary.length - same - result.unfiled;
+  const routed = result.calls.filter((r) => r.retire).length;
+  const resent = result.calls.length - routed;
   console.log(
-    `\n${wrote} recorded${
+    `${result.summary.length ? "\n" : ""}${wrote} recorded${
       result.boards.length
         ? ` in ${result.boards.map((b) => `docs/reviews/${b}.json`).join(", ")}`
         : ""
-    }${same ? `, ${same} already recorded (unchanged)` : ""}${result.unfiled ? `, ${result.unfiled} named no board (not recorded)` : ""}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
+    }${same ? `, ${same} already recorded (unchanged)` : ""}${result.unfiled ? `, ${result.unfiled} named no board (not recorded)` : ""}${routed ? `, ${routed} call answer${routed === 1 ? "" : "s"} to route (not recorded)` : ""}${resent ? `, ${resent} already routed (a re-send)` : ""}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
   );
   if (result.unfiled) console.log(unfiledAdvice(result.unfiled));
+  // The calls' routing list, after the boards': what the record does with each.
+  for (const line of callsRouting(result.calls)) console.log(line);
   // The build he composed on, beside the tree being written into. Printed last
   // because it is context for everything above, and only when the desk stamped
   // the paste: an unstamped message says nothing rather than guessing.

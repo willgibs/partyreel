@@ -30,11 +30,11 @@ import "./create-room.css";
  * the room and the room's own foot rides on it, Continue at the thumb above the keys (the carried
  * `name`: "At a phone the keyboard holds the lower part of the screen and Continue rides on it").
  *
- * ★ THE ROOM'S LIGHT IS THE AURORA'S FIELD, never a gradient of its own: a band at the floor
- * (`SectionLight`, `bottom`), its register and clock the field's own. The board drew it in the lamp
- * set's hues as a stand-in, because its frames have no filter host; production has one in the root
- * layout. The door at the cap stands unlit (design-system.md: light never goes near a cap), and the beat
- * dims the floor for the code's own light (`light="low"`), one lamp to a screen.
+ * ★ THE ROOM IS DARK UNTIL HER CODE (signature r1's `create=dark`, Will 2026-10-07): every step stands still and
+ * unlit, so the room's first light is the code's, lit once in the event's seed at the close (`beat.tsx`), and nothing
+ * competes with it. The field at the floor (`SectionLight`, `bottom`, its register and clock the field's own) stays a
+ * choice of the ground's (`light`) for a drawing of the room as it was; Create's own screens and its wait ask none,
+ * and the door at the cap stands unlit too (design-system.md: light never goes near a cap).
  */
 
 export type RoomStep = { at: number; of: number };
@@ -43,19 +43,24 @@ export type RoomClose = {
   href: string;
   /** What the close does, said: "Close" while nothing exists, the event once it does. */
   label: string;
+  /**
+   * The close steps aside (the carried `close-x`, create-wizard r5): where the foot is the way into her event, the
+   * head offers no second way out. Its place is kept, so nothing in the head moves.
+   */
+  gone?: boolean;
 };
 
-/** The room's ground: the whole screen, dark, its light at the floor. */
+/** The room's ground: the whole screen, dark, unlit unless asked. */
 export function RoomGround({
   onRoom,
-  light = "floor",
+  light = "none",
   screen,
   busy,
   children,
 }: {
   /** The room's own element, for what measures inside it (the carry). */
   onRoom?: (room: HTMLDivElement | null) => void;
-  /** `floor`: the field at the foot; `low`: the beat's, dimmed for the code's light; `none`: unlit. */
+  /** `none`: unlit, Create's every screen; `floor`: the field at the foot; `low`: the field dimmed. */
   light?: "floor" | "low" | "none";
   /** Which screen stands in the room, for a test or a capture to read. */
   screen: string;
@@ -208,7 +213,7 @@ export function RoomHead({
                   onClick={onName}
                   // The visible words stay inside the name a screen reader hears (label in name).
                   aria-label={`Back to the name, ${name}`}
-                  className="max-w-full cursor-pointer truncate rounded-sm outline-none focus-halo"
+                  className="max-w-full focus-halo cursor-pointer truncate rounded-sm outline-none"
                 >
                   {name}
                 </button>
@@ -225,9 +230,17 @@ export function RoomHead({
         asChild
         variant="ghost"
         size="icon-lg"
-        className="relative -mr-1 ml-auto"
+        className="cr-close relative -mr-1 ml-auto"
       >
-        <Link href={close.href} aria-label={close.label} data-room-close="">
+        <Link
+          href={close.href}
+          aria-label={close.label}
+          data-room-close=""
+          data-gone={close.gone ? "" : undefined}
+          // Gone is out of reach as well as out of sight: no tab stop, nothing a reader meets.
+          inert={close.gone || undefined}
+          aria-hidden={close.gone || undefined}
+        >
           <X className="size-5" />
         </Link>
       </Button>
@@ -278,7 +291,15 @@ export function RoomPage({
           {question}
         </h1>
         {sub ? (
-          <p className="mt-2 text-working text-muted-foreground">{sub}</p>
+          <p
+            data-room-sub=""
+            // Held with the question: its words are no truer than it until the moment arrives.
+            data-held={questionHidden ? "" : undefined}
+            aria-hidden={questionHidden || undefined}
+            className="cr-sub mt-2 text-working text-muted-foreground"
+          >
+            {sub}
+          </p>
         ) : null}
       </div>
       <div

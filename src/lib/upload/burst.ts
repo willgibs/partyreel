@@ -4,13 +4,13 @@
  * 20 function calls before the album answered it). The one home of the burst's limits and of its wire, shared by the
  * browser's half (`uploader.ts`) and the engine's (`server-pipeline.ts`). Pure and isomorphic.
  *
- * THE WIRE. A burst's body is the one-file body with its files' own fields moved into `files`: what every file
- * shares (the identity: `session_token`, or the host's `event_id`; the forensic `device_uuid`) once at the top, each
- * file's fields in its entry, and the answer is `{ ok: true, files: [...] }`, one answer a file in the request's order
- * (a presign's or a complete's own answer, or that file's refusal with its `status`). A refusal of the WHOLE request
- * (a body the route cannot read, or a presign's gate about who is sending, which every file would meet alike) is
- * answered as a one-file request's is, its status and `{ ok: false, code, message }`. The one-file body still
- * answers as it always did, for a tab loaded before bursts (until the next milestone).
+ * THE WIRE. A burst's body is what every file shares (the identity: `session_token`, or the host's `event_id`; the
+ * forensic `device_uuid`) once at the top, and each file's own fields in its entry under `files`; the answer is
+ * `{ ok: true, files: [...] }`, one answer a file in the request's order (a presign's or a complete's own answer, or
+ * that file's refusal with its `status`). A refusal of the WHOLE request (a body the route cannot read, or a presign's
+ * gate about who is sending, which every file would meet alike) is answered with its status and
+ * `{ ok: false, code, message }`. ★ IT IS THE ONLY BODY: one file is a burst of one (`uploadFile`), and a body with no
+ * `files` is malformed (a tab loaded before bursts sent one; no build since milestone 37 does).
  */
 
 /** At most this many files ride one request, a presign's or a complete's (the engine refuses more). */
@@ -73,15 +73,15 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 /**
- * A request body as the engine reads it: `null` for the one-file body (no `files`), a burst's split, or `malformed`
- * (a `files` that is not 1 to `MAX_BURST_FILES` objects).
+ * A request body as the engine reads it: a burst's split, or `malformed` (no `files`, or a `files` that is not 1 to
+ * `MAX_BURST_FILES` objects).
  *
  * ★ EACH FILE'S BODY IS ITS ENTRY UNDER THE SHARED FIELDS (`{ ...entry, ...shared }`), so the identity a burst names
  * once is every file's, and an entry can never name another ticket or another event: the session the burst's reads
  * share is the one every file is checked as.
  */
-export function splitBurst(body: unknown): BurstBody | "malformed" | null {
-  if (!isRecord(body) || !("files" in body)) return null;
+export function splitBurst(body: unknown): BurstBody | "malformed" {
+  if (!isRecord(body) || !("files" in body)) return "malformed";
   const { files, ...shared } = body;
   if (
     !Array.isArray(files) ||

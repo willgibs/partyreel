@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LifeBuoy, LogIn, Pencil } from "lucide-react";
+import { CalendarPlus, LifeBuoy, LogIn, Pencil } from "lucide-react";
 
+import { LIKE_WORDS } from "@/components/app/create-event-wizard/like";
 import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
 import {
   AddEmailDialog,
@@ -54,8 +55,11 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  *     header is a SIBLING island of the page that owns the modal.
  *   - "Log in", the chooser's word, for somebody who already has an account and wants tonight's
  *     photographs in it.
- *   - "Help center" (help-center r1: "globally accessible for general questions as well"), under
- *     Log in as the board drew it, opening in a new tab.
+ *   - "Make one like this" (after-party r1's `bridge=end`): the header's corner, for a guest who has joined and so
+ *     meets her own name there instead of it, into Create in this album's style (sign-up first: she has no account).
+ *     A plain row on the icon rail like its neighbours, quiet: no card, no fill.
+ *   - "Help center" (help-center r1: "globally accessible for general questions as well"), at the menu's foot as
+ *     the board drew it, opening in a new tab.
  *
  * ★ THIS IS THE ONE SURFACE THAT KNOWS ABOUT THE UNCONFIRMED ADDRESS. Publicly
  * every unconfirmed guest is handled the same, so the mark says "Unverified"
@@ -80,6 +84,7 @@ export function GuestNameMenu({
   seed,
   emailAttached = false,
   onRenamed,
+  likeHref,
 }: {
   /** The name this device typed at this event. */
   name: string;
@@ -96,6 +101,8 @@ export function GuestNameMenu({
   emailAttached?: boolean;
   /** Fired after a confirmation lands, so the header can re-resolve itself. */
   onRenamed?: () => void;
+  /** The like door for this album (`likeHref`): Make one like this. Absent, the row is not drawn. */
+  likeHref?: string;
 }) {
   const router = useRouter();
   const [door, setDoor] = useState<"keep" | "signin" | null>(null);
@@ -182,13 +189,20 @@ export function GuestNameMenu({
               </DropdownMenuItem>
             )}
           </div>
-          <DropdownMenuItem onSelect={() => requestNameDoor("edit")}>
+          <DropdownMenuItem onSelect={() => requestNameDoor()}>
             <Pencil /> Change name
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => openDoor("signin")}>
             <LogIn /> Log in
           </DropdownMenuItem>
+          {likeHref ? (
+            <DropdownMenuItem asChild>
+              <a href={likeHref} data-guest-like="">
+                <CalendarPlus /> {LIKE_WORDS}
+              </a>
+            </DropdownMenuItem>
+          ) : null}
           {/* THE STANDING DOOR INTO HELP (help-center r1, Will: "Let's also include the help
               center entry in the menu too. That way it's globally accessible for general
               questions as well, not only when encountering trouble"). A new tab, the host

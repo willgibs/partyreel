@@ -30,9 +30,10 @@ export const DEFAULT_DEVELOP_HOUR = 9;
  * else its date: lane `event-dates`) when it is still ahead (or today there), else the day after today there. A party
  * on Saturday develops on Sunday morning, and a weekend from Friday to Sunday on Monday morning, whenever and wherever
  * she sets it up: ★ `zone` IS THE PARTY'S (`events.time_zone`, or the zone Create will carry: `hostPartyZone`), so a
- * destination wedding set up from home develops in the party's morning, the morning its album turns (album-order's
- * `albumTurnAt` reads the same 9 am through the same `wallTimeIn`). An unreadable zone is UTC (`partyZoneOf`). Without
- * one (null or absent: no zone can be named) it is the browser's own 9 am, as before the party kept a zone.
+ * destination wedding set up from home develops in the party's morning, one moment for every guest wherever she reads
+ * it (and its develop turns the album into the night's order there, album-order's `albumOwnSort`). An unreadable zone
+ * is UTC (`partyZoneOf`). Without one (null or absent: no zone can be named) it is the browser's own 9 am, as before
+ * the party kept a zone.
  */
 export function defaultDevelopAt(input: {
   /** `events.event_date` (`YYYY-MM-DD`), or null: a range's first day. */

@@ -12,10 +12,11 @@
  * (`cloud_export_name_items`), under the connection's lock, so two lanes never pick one name; `driveFileName` here is
  * its mirror, pinned to the SQL by a test.
  *
- * ★ ONE FUNCTION TAKES THE CAPTURE TIME (`driveMoment`, Will's X7: a photograph keeps when it was taken). The upload
- * reads it from the original before the strip and the server keeps it in `media.captured_at`, which the lease carries
- * (`cloud_export_lease`), so every name, every description and Drive's own `modifiedTime` say when it was taken, and a
- * batch sent the morning after sorts as the night happened; an upload that kept none says when it arrived.
+ * ★ ONE FUNCTION TAKES THE CAPTURE TIME (`driveMoment`; uploads-and-r2.md: a photograph keeps when it was taken).
+ * The upload reads it from the original before the strip and the server keeps it in `media.captured_at`, which the
+ * lease carries (`cloud_export_lease`), so every name, every description and Drive's own `modifiedTime` say when it
+ * was taken, and a batch sent the morning after sorts as the night happened; an upload that kept none says when it
+ * arrived.
  *
  * ★ NEVER AN ADDRESS, NEVER A MARK. A name is what the album shows beside the photograph (`resolveUploaderIdentity`),
  * cleaned for a file system (a name holding "/" or ":" would break when she downloads the folder), never an email

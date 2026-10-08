@@ -5,11 +5,12 @@
  * guest (another account signed in, or anyone signed out, past Require verified emails, because
  * `create_media` reads the ROW's `verified_at`), so the route asks whose ticket it is before a
  * single byte is presigned. These run the REAL route, pipeline and owner check; only the edges are
- * stubbed (the RPC wrapper, R2, the two Supabase clients), so the row's account and the caller are
- * the two dials every case turns.
+ * stubbed (the RPC wrapper, R2, the two Supabase clients, the limiter's store), so the row's account
+ * and the caller are the two dials every case turns.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { classifyRefusal } from "@/lib/guest/upload-refusal";
 import {
   CAMERA_VIDEO_MAX_BYTES,
   CAMERA_VIDEO_SECONDS,
@@ -22,8 +23,25 @@ const presignUpload = vi.fn();
 const rowRead = vi.fn();
 const getUser = vi.fn();
 const meterUpload = vi.fn();
+const captureWarning = vi.fn();
+const sessionAbuseHashes = vi.fn();
+const checkAbuseRate = vi.fn();
+const recordAbuseEvent = vi.fn();
+
+/** Her ticket's key pair as the store would derive it, readable here: the requester is the ticket. */
+const ticketKeys = (kind: string, token: string) => ({
+  ipHash: `ticket:${token}`,
+  scopeHash: `scope:${kind}`,
+});
 
 vi.mock("server-only", () => ({}));
+// Her own budget's store (`presign`): its keys and its one-insert write are `abuse-rate-limit-store.test.ts`'s, its
+// numbers `abuse-rate-limit.test.ts`'s; here it is the dial for what the window holds.
+vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
+  sessionAbuseHashes: (...args: unknown[]) => sessionAbuseHashes(...args),
+  checkAbuseRate: (...args: unknown[]) => checkAbuseRate(...args),
+  recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
+}));
 // The presign's meter (upload-meter): its own reading and its fail-closed call are `server-pipeline-meter.test.ts`'s;
 // here it is the dial for what the meter answers.
 vi.mock("@/lib/upload/server-pipeline-meter", () => ({
@@ -43,7 +61,7 @@ vi.mock("@/lib/jobs/spend-watch-switches", () => ({
   guestUploadsOpen: () => guestUploadsOpen(),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
-  captureWarning: vi.fn(),
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
   captureError: vi.fn(),
 }));
 vi.mock("@/lib/forensics/capture", () => ({
@@ -79,6 +97,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const { POST } = await import("@/app/api/r2/presign-upload/route");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 
 const TOKEN = "a".repeat(64);
 const EVENT = "33333333-3333-4333-8333-333333333333";
@@ -127,19 +148,14 @@ async function presign() {
     new Request("https://partyreel.com/api/r2/presign-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         session_token: TOKEN,
         content_type: "image/jpeg",
         size_bytes: 1000,
       }),
     }),
   );
-  const body = (await res.json()) as {
-    ok: boolean;
-    code?: string;
-    message?: string;
-  };
-  return { status: res.status, body };
+  return answerOfOne<{ ok: boolean; code?: string; message?: string }>(res);
 }
 
 beforeEach(() => {
@@ -155,6 +171,9 @@ beforeEach(() => {
   callerIs(null);
   claimRpc.mockResolvedValue({ data: 0, error: null });
   meterUpload.mockResolvedValue({ ok: true });
+  sessionAbuseHashes.mockImplementation(ticketKeys);
+  checkAbuseRate.mockResolvedValue({ allowed: true, retryAfterSec: 0 });
+  recordAbuseEvent.mockResolvedValue(undefined);
 });
 
 describe("an account's ticket presigns only for that account", () => {
@@ -304,7 +323,7 @@ describe("the album's camera", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "video/mp4",
           size_bytes: bytes,
@@ -312,10 +331,7 @@ describe("the album's camera", () => {
         }),
       }),
     );
-    return {
-      status: res.status,
-      body: (await res.json()) as { code?: string; message?: string },
-    };
+    return answerOfOne<{ code?: string; message?: string }>(res);
   }
   const ROLL = { used: 3, cap: 24, taken: 3, ceiling: 72 };
 
@@ -423,7 +439,7 @@ describe("the meter", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "image/jpeg",
           size_bytes: 1000,
@@ -431,17 +447,14 @@ describe("the meter", () => {
         }),
       }),
     );
-    return {
-      status: res.status,
-      retryAfter: res.headers.get("Retry-After"),
-      body: (await res.json()) as {
-        ok: boolean;
-        code?: string;
-        message?: string;
-        preview?: unknown;
-        preview_refused?: string;
-      },
-    };
+    const { status, body } = await answerOfOne<{
+      ok: boolean;
+      code?: string;
+      message?: string;
+      preview?: unknown;
+      preview_refused?: string;
+    }>(res);
+    return { status, retryAfter: res.headers.get("Retry-After"), body };
   }
 
   it("★ asks the meter once, with the declared bytes, for the event the ticket resolved, before any URL is minted", async () => {
@@ -538,22 +551,19 @@ describe("the preview", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "image/jpeg",
           ...over,
         }),
       }),
     );
-    return {
-      status: res.status,
-      body: (await res.json()) as {
-        ok: boolean;
-        url?: string;
-        preview?: { key: string };
-        preview_refused?: string;
-      },
-    };
+    return answerOfOne<{
+      ok: boolean;
+      url?: string;
+      preview?: { key: string };
+      preview_refused?: string;
+    }>(res);
   }
   const MB = 1024 * 1024;
 
@@ -639,24 +649,21 @@ describe("staging", () => {
       new Request("https://partyreel.com/api/r2/presign-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: burstOfOne({
           session_token: TOKEN,
           content_type: "image/jpeg",
           ...over,
         }),
       }),
     );
-    return {
-      status: res.status,
-      body: (await res.json()) as {
-        ok: boolean;
-        strategy?: string;
-        media_id?: string;
-        key?: string;
-        preview?: { key: string; url: string };
-        phone?: { key: string; url: string };
-      },
-    };
+    return answerOfOne<{
+      ok: boolean;
+      strategy?: string;
+      media_id?: string;
+      key?: string;
+      preview?: { key: string; url: string };
+      phone?: { key: string; url: string };
+    }>(res);
   }
   const MB = 1024 * 1024;
   const stagedTwin = (key: string) => key.replace(/^events\//, "staging/");
@@ -713,5 +720,231 @@ describe("staging", () => {
     expect(presignUpload.mock.calls[0]![0]).toMatchObject({
       key: stagedTwin(body.preview!.key),
     });
+  });
+});
+
+/**
+ * ★ HER OWN BUDGET (`presign`, abuse-rate-limit.ts): an hour of files a ticket, so one script holding one ticket can
+ * never spend the host's hourly breaker (20,000 across her albums) for every other guest. Asked last of the strategy's
+ * gates, keyed on her own ticket, and counted before anything is metered or presigned; spent, it refuses in her words
+ * with the window in `Retry-After`; a request an earlier gate refuses never asks it; a limiter that cannot answer lets
+ * the upload go (fail OPEN). A burst's one ask and one write are `route.burst.test.ts`'s.
+ */
+describe("her own budget (presign)", () => {
+  const SPENT =
+    "You've sent a lot of uploads this hour. Try again in a little while.";
+
+  async function presignWith(over: Record<string, unknown> = {}) {
+    const res = await POST(
+      new Request("https://partyreel.com/api/r2/presign-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: burstOfOne({
+          session_token: TOKEN,
+          content_type: "image/jpeg",
+          size_bytes: 1000,
+          ...over,
+        }),
+      }),
+    );
+    const { status, body } = await answerOfOne<{
+      ok: boolean;
+      code?: string;
+      message?: string;
+    }>(res);
+    return { status, body, retryAfter: res.headers.get("Retry-After") };
+  }
+
+  it("★ asks once, keyed on her own ticket, and counts the file before anything is metered or presigned", async () => {
+    const { status } = await presignWith();
+    expect(status).toBe(200);
+    expect(sessionAbuseHashes).toHaveBeenCalledWith("presign", TOKEN);
+    expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+    expect(checkAbuseRate).toHaveBeenCalledWith(
+      "presign",
+      `ticket:${TOKEN}`,
+      "scope:presign",
+    );
+    expect(recordAbuseEvent).toHaveBeenCalledTimes(1);
+    expect(recordAbuseEvent).toHaveBeenCalledWith(
+      "presign",
+      `ticket:${TOKEN}`,
+      "scope:presign",
+      1,
+    );
+    const counted = recordAbuseEvent.mock.invocationCallOrder[0]!;
+    expect(checkAbuseRate.mock.invocationCallOrder[0]).toBeLessThan(counted);
+    expect(counted).toBeLessThan(meterUpload.mock.invocationCallOrder[0]!);
+    expect(counted).toBeLessThan(presignUpload.mock.invocationCallOrder[0]!);
+  });
+
+  it("★ a spent hour is refused in her words, 429 with the window in Retry-After, and nothing is metered, presigned or counted", async () => {
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 3600 });
+    const res = await presignWith();
+    expect(res.status).toBe(429);
+    expect(res.body).toEqual({
+      ok: false,
+      code: "rate_limited",
+      message: SPENT,
+    });
+    expect(res.retryAfter).toBe("3600");
+    // Her queue offers the Retry the words promise (`upload-refusal.ts`): a retry can pass once the window drains.
+    expect(classifyRefusal(res.body.code)).toBe("retry");
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+    expect(meterUpload).not.toHaveBeenCalled();
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("her window never stands in for the meter's: the breaker's own refusal keeps its own Retry-After", async () => {
+    meterUpload.mockResolvedValue({
+      ok: false,
+      reason: "hourly",
+      retryAfterSec: 1234,
+    });
+    const res = await presignWith();
+    expect(res.status).toBe(429);
+    expect(res.retryAfter).toBe("1234");
+    expect(res.body.message).not.toBe(SPENT);
+  });
+
+  const ROLL = { used: 24, cap: 24, taken: 24, ceiling: 72 };
+  it.each([
+    [
+      "the platform's switch is off",
+      () => guestUploadsOpen.mockResolvedValue(false),
+      {},
+      "uploads_paused",
+    ],
+    [
+      "a ticket nobody knows",
+      () =>
+        getUploadContext.mockResolvedValue({
+          ok: false,
+          code: "invalid_session",
+          message: "Your upload session has expired. Refresh and rejoin.",
+        }),
+      {},
+      "invalid_session",
+    ],
+    [
+      "a deleted event",
+      () =>
+        getUploadContext.mockResolvedValue(context({ event_deleted: true })),
+      {},
+      "event_gone",
+    ],
+    [
+      "a private album",
+      () =>
+        getUploadContext.mockResolvedValue(context({ visibility: "private" })),
+      {},
+      "unauthorized",
+    ],
+    [
+      "a lock she has not opened",
+      () => {
+        getUploadContext.mockResolvedValue(context({ visibility: "password" }));
+        mayUploadPastLock.mockResolvedValue(false);
+      },
+      {},
+      "unlock_required",
+    ],
+    [
+      "uploads closed",
+      () =>
+        getUploadContext.mockResolvedValue(
+          context({ accepting_uploads: false }),
+        ),
+      {},
+      "uploads_closed",
+    ],
+    [
+      "another account's ticket",
+      () => ticketBelongsTo(OWNER),
+      {},
+      "session_other_account",
+    ],
+    [
+      "an email the album asks for, unconfirmed",
+      () =>
+        getUploadContext.mockResolvedValue(
+          context({ require_verified_email: true, guest_verified: false }),
+        ),
+      {},
+      "verification_required",
+    ],
+    [
+      "an album already full",
+      () =>
+        getUploadContext.mockResolvedValue(context({ at_storage_cap: true })),
+      {},
+      "cap_reached",
+    ],
+    [
+      "a clip in a photos-only album",
+      () =>
+        getUploadContext.mockResolvedValue(context({ video_blocked: true })),
+      { content_type: "video/mp4" },
+      "video_not_allowed",
+    ],
+    [
+      "a file past the album's size cap",
+      () =>
+        getUploadContext.mockResolvedValue(context({ max_upload_bytes: 999 })),
+      {},
+      "too_large",
+    ],
+    [
+      "a shot past her roll",
+      () =>
+        getUploadContext.mockResolvedValue(
+          context({ capture: "camera", roll: ROLL }),
+        ),
+      {},
+      "roll_spent",
+    ],
+  ])(
+    "★ %s: its own refusal first, and her budget is neither asked nor spent",
+    async (_name, arrange, over, code) => {
+      arrange();
+      const res = await presignWith(over);
+      expect(res.body.code).toBe(code);
+      expect(sessionAbuseHashes).not.toHaveBeenCalled();
+      expect(checkAbuseRate).not.toHaveBeenCalled();
+      expect(recordAbuseEvent).not.toHaveBeenCalled();
+      expect(presignUpload).not.toHaveBeenCalled();
+    },
+  );
+
+  it("★ fails OPEN: a limiter that cannot answer lets the upload go, and says so", async () => {
+    checkAbuseRate.mockRejectedValue(new Error("action_rate: unavailable"));
+    const res = await presignWith();
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.retryAfter).toBeNull();
+    expect(presignUpload).toHaveBeenCalledTimes(1);
+    expect(captureWarning).toHaveBeenCalledWith(
+      "security",
+      "abuse_limiter_unavailable_fail_open",
+      { kind: "presign" },
+    );
+  });
+
+  it("fails OPEN without the hashing secret too, and a count that cannot be written never stops the upload", async () => {
+    sessionAbuseHashes.mockImplementation(() => {
+      throw new Error("UNLOCK_COOKIE_SECRET unset");
+    });
+    expect((await presignWith()).status).toBe(200);
+    expect(checkAbuseRate).not.toHaveBeenCalled();
+    expect(captureWarning).toHaveBeenCalledWith(
+      "security",
+      "abuse_limiter_unavailable_fail_open",
+      { kind: "presign" },
+    );
+
+    sessionAbuseHashes.mockImplementation(ticketKeys);
+    recordAbuseEvent.mockRejectedValue(new Error("insert down"));
+    expect((await presignWith()).status).toBe(200);
+    expect(presignUpload).toHaveBeenCalledTimes(2);
   });
 });

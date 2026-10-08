@@ -23,9 +23,10 @@
  * whose state changes under a hidden tab (the doorbell leaving its channel)
  * restarts none.
  *
- * ★ POLLS THAT REST (compute-levers; Will's call X4, built as recommended and
- * his to overrule). A lit album's net was 13% of a wedding's calls, because a
- * page left lit kept asking whether anyone was looking or not:
+ * ★ POLLS THAT REST (compute-levers; guest-flow.md, "The conditional poll",
+ * built as recommended and his to change). A lit album's net was 13% of a
+ * wedding's calls, because a page left lit kept asking whether anyone was
+ * looking or not:
  *   - the net under a live doorbell slows to every five minutes after ten lit
  *     minutes without a touch, and stops after two hours without one. The
  *     doorbell still rings at once; the net only catches a ring that was lost.
@@ -36,6 +37,22 @@
  *     returns to twelve seconds the moment something changes (`changeKey`);
  *   - a page meant to be watched untouched (`unattended`: the reel's screen
  *     posture, a TV at the party) never stops its net, only rests it.
+ * ★ AND WHERE THE CDN ABSORBS IT, THE FALLBACK'S QUIET IS LIVELIER (AB5, kept
+ * with Will's invitation; X5). The quiet minute exists to spare the function a
+ * call that finds nothing. Where the CDN answers the album's quiet polls from
+ * its cache (`atEdge`: its last answer to this device was a cache hit, so a
+ * room is asking the album too and each window's one fill is shared), asking
+ * sooner costs the function nothing, so a quiet fallback asks every 20 s while
+ * someone is looking (a touch in the last ten minutes, or a page meant to be
+ * watched), and rests at today's minute when nobody is. A device asking alone
+ * fills its own windows, each a call, so it keeps today's minute. Moving, it
+ * keeps its twelve seconds: each of those polls finds a change, which is the
+ * function's to answer however it is asked.
+ * ★ EACH ASK SAYS WHETHER IT MUST BE EXACT (`onPoll({ exact })`): the return's
+ * catch-up (a hidden tab heard no ring) and the moving fallback (every poll
+ * carries the album) want the album's own answer; the net under a live
+ * doorbell, a quiet fallback and a touch's wake only check that nothing
+ * changed, which the CDN's few-seconds-old version may answer.
  * ★ Every wait is one whole step of the cadence, never a remainder: a step is
  * the unit the compute model's compressed clock scales (`chrome.mjs` runs a
  * timer over ten seconds K times faster), so the measured calls are the
@@ -55,6 +72,8 @@ export const REST_AFTER_MS = 10 * 60_000;
 export const STOP_AFTER_MS = 2 * 60 * 60_000;
 /** The fallback with nothing new this long slows to `SLOW_POLL_MS`. */
 export const QUIET_AFTER_MS = 60_000;
+/** The quiet fallback's step where the CDN answers its polls and someone is looking (AB5, the head note). */
+export const EDGE_QUIET_POLL_MS = 20_000;
 
 /** A touch: a press, a scroll (a wheel's too, over a page that cannot scroll), a key. */
 const TOUCHES = ["pointerdown", "wheel", "scroll", "keydown"] as const;
@@ -66,6 +85,7 @@ export function useLivePoll({
   onPoll,
   changeKey,
   unattended,
+  atEdge,
 }: {
   /** Nothing to poll (the demo, a locked gallery) switches the whole thing off. */
   enabled: boolean;
@@ -74,9 +94,11 @@ export function useLivePoll({
   /**
    * One fetch. Keep it STABLE (a `useCallback` that does not close over the
    * item list): a callback that changes per arrival would restart the cadence
-   * on every photograph, which is a poll that never actually waits.
+   * on every photograph, which is a poll that never actually waits. `exact`:
+   * this ask wants the album's own answer (the head note); otherwise it only
+   * checks that nothing changed.
    */
-  onPoll: () => void;
+  onPoll: (ask: { exact: boolean }) => void;
   /**
    * The answer on screen, in a value whose identity moves only when the answer
    * does (the album store's snapshot; a 304 keeps it): a move puts a resting
@@ -90,6 +112,12 @@ export function useLivePoll({
    * stops it. Read when asked, so it may read the address as it stands.
    */
   unattended?: () => boolean;
+  /**
+   * Asked at each step: true while the CDN answers the album's quiet polls from
+   * its cache, which makes a quiet fallback livelier (the head note). Absent,
+   * the cadence is as it always was (the host's album, the dashboard's stage).
+   */
+  atEdge?: () => boolean;
 }) {
   // The clocks outlive a socket's flap (the cadence's effect re-runs on `live`): only a new start resets them.
   const lastTouch = useRef(0);
@@ -98,8 +126,10 @@ export function useLivePoll({
   const seenKey = useRef(changeKey);
   const onChange = useRef<(() => void) | null>(null);
   const unattendedRef = useRef(unattended);
+  const atEdgeRef = useRef(atEdge);
   useEffect(() => {
     unattendedRef.current = unattended;
+    atEdgeRef.current = atEdge;
   });
 
   // A start: lit from now, asked just now (the page's own read), and nothing moving yet.
@@ -127,12 +157,18 @@ export function useLivePoll({
     /** The step the pending timer waits, or null when none waits (hidden, or the net stopped). */
     let step: number | null = null;
 
+    const moving = () => Date.now() - lastChange.current < QUIET_AFTER_MS;
     const cadence = (): number | null => {
       const now = Date.now();
-      if (!live)
-        return now - lastChange.current >= QUIET_AFTER_MS
-          ? SLOW_POLL_MS
-          : FAST_POLL_MS;
+      if (!live) {
+        if (moving()) return FAST_POLL_MS;
+        const looked =
+          now - lastTouch.current < REST_AFTER_MS ||
+          unattendedRef.current?.() === true;
+        return looked && atEdgeRef.current?.() === true
+          ? EDGE_QUIET_POLL_MS
+          : SLOW_POLL_MS;
+      }
       const idle = now - lastTouch.current;
       if (idle >= STOP_AFTER_MS && !unattendedRef.current?.()) return null;
       return idle >= REST_AFTER_MS ? RESTED_POLL_MS : SLOW_POLL_MS;
@@ -148,24 +184,33 @@ export function useLivePoll({
       step = cadence();
       if (step !== null) timer = setTimeout(tick, step);
     };
-    const poll = () => {
+    const poll = (exact: boolean) => {
       lastPoll.current = Date.now();
-      onPoll();
+      onPoll({ exact });
     };
     function tick() {
       timer = null;
       step = null;
       // Untouched past the stop: the net ends here, unasked, until a touch wakes it.
       if (document.hidden || cadence() === null) return;
-      poll();
+      // The moving fallback carries the album: its ask is the album's own (the head note).
+      poll(!live && moving());
       schedule();
     }
     const onTouch = () => {
       lastTouch.current = Date.now();
-      // At rest or stopped, a touch wakes the net to its minute (a live doorbell's page only: the fallback rests
-      // on what changes, never on who is looking).
-      if (!live || document.hidden || step === SLOW_POLL_MS) return;
-      if (Date.now() - lastPoll.current >= SLOW_POLL_MS) poll();
+      if (document.hidden) return;
+      if (!live) {
+        // The fallback rests on what changes, and on who is looking only where the CDN answers it: a quiet one
+        // resting at its minute wakes to the quicker step a look earns there (AB5), asking at once if it is due.
+        if (step !== SLOW_POLL_MS || cadence() !== EDGE_QUIET_POLL_MS) return;
+        if (Date.now() - lastPoll.current >= EDGE_QUIET_POLL_MS) poll(false);
+        schedule();
+        return;
+      }
+      // At rest or stopped, a touch wakes the net to its minute.
+      if (step === SLOW_POLL_MS) return;
+      if (Date.now() - lastPoll.current >= SLOW_POLL_MS) poll(false);
       schedule();
     };
     const onVisibility = () => {
@@ -173,14 +218,16 @@ export function useLivePoll({
         stop();
         return;
       }
-      // A return is a touch, and the fallback's quiet minute starts again with it.
+      // A return is a touch, and the fallback's quiet minute starts again with it. A hidden tab heard no ring,
+      // so its one catch-up is exact: the CDN's few seconds could hide what just landed.
       lastTouch.current = Date.now();
       lastChange.current = Date.now();
-      poll();
+      poll(true);
       schedule();
     };
     onChange.current = () => {
-      if (!live && step === SLOW_POLL_MS) schedule();
+      // A change puts a quiet fallback (at either quiet step) back on its twelve seconds.
+      if (!live && step !== null && step !== FAST_POLL_MS) schedule();
     };
 
     schedule();

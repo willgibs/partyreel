@@ -5,7 +5,13 @@ import {
   isBannedRedirect,
   isUserBanned,
 } from "@/app/(auth)/account-deleting";
+import { checkExistingAccount } from "@/app/(auth)/actions";
 import { adoptDoorName } from "@/app/(auth)/adopt-door-name";
+import {
+  TOLD_NAME_COOKIE,
+  TOLD_NAME_MAX_AGE_S,
+  toldNameValue,
+} from "@/app/(auth)/adopt-door-name-told";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { doorFailureKind } from "@/lib/auth/door-failure";
 import {
@@ -17,8 +23,15 @@ import {
   signInReturn,
   withReturn,
 } from "@/lib/auth/return-path";
+import { captureError } from "@/lib/observability/sentry";
 import { syncBillingEmail } from "@/lib/stripe/customer-email";
 import { createClient } from "@/lib/supabase/server";
+
+import {
+  cameFromCreate,
+  drawsExisting,
+  existingLanding,
+} from "./existing-account";
 
 // OAuth / email-link callback. Supabase redirects the browser here with a
 // `code`; we exchange it for a session (the server client writes the auth cookies
@@ -75,12 +88,22 @@ export async function GET(request: Request) {
     signInReturn(url.searchParams.get(NEXT_PARAM), onAdminHost) ??
     signInReturn(kept, onAdminHost);
   const landing = signInLanding(next, onAdminHost);
-  const go = (to: string) => {
+  const go = (to: string, told?: { album: string; name: string }) => {
     const res = NextResponse.redirect(`${base}${to}`);
     if (kept !== null) {
       res.cookies.set(ADMIN_RETURN_COOKIE, "", {
         path: ADMIN_RETURN_COOKIE_PATH,
         maxAge: 0,
+      });
+    }
+    // ★ THE NAME THE LINK ADOPTED, LEFT FOR THE ALBUM TO TELL (`adopt-door-name-told.ts`): a cookie bound to the album, spent
+    // by the page's read, never a query (a name is a person's own).
+    if (told) {
+      res.cookies.set(TOLD_NAME_COOKIE, toldNameValue(told.album, told.name), {
+        path: "/",
+        maxAge: TOLD_NAME_MAX_AGE_S,
+        sameSite: "lax",
+        secure: url.protocol === "https:",
       });
     }
     return res;
@@ -98,8 +121,32 @@ export async function GET(request: Request) {
     if (!error) {
       // A guest's tapped link loses the name typed at the door (the in-page step
       // is gone), so the door carries it in the new account's metadata and it is
-      // adopted here, before the album can ask for it again. Never throws.
-      if (landing.startsWith("/e/")) await adoptDoorName();
+      // adopted here, before the album can ask for it again. Never throws. ★ AND
+      // WHAT HER PHOTOGRAPHS CARRY NOW rides to the album, so it tells her as the
+      // in-page confirm does (crumbs-88).
+      if (landing.startsWith("/e/")) {
+        const name = await adoptDoorName();
+        return go(
+          landing,
+          name ? { album: landing.slice("/e/".length), name } : undefined,
+        );
+      }
+      // ★ A LINK (OR GOOGLE) THAT SIGNS CREATE ACCOUNT INTO AN ADDRESS THAT ALREADY HAD ONE SAYS SO, as the code does (crumbs-88,
+      // `existing=tell`): the Create door marked this address, the exchange has made the session, and the server's own test,
+      // about the caller's own row only, decides; a yes lands the dashboard marked, which draws the one line. Only where
+      // the landing IS the dashboard (a page a gate sent her back to has no such line), and never an answer before the
+      // exchange (the address is proven by now: `existing-account.ts`).
+      if (cameFromCreate(url.searchParams) && drawsExisting(landing)) {
+        // A line that cannot be asked is not said: the sign-in the exchange just made never fails for it.
+        const already = await checkExistingAccount().then(
+          (answer) => answer.existing,
+          (failure: unknown) => {
+            captureError("account", failure, { step: "existing_account" });
+            return false;
+          },
+        );
+        if (already) return go(existingLanding());
+      }
       return go(landing);
     }
     if (isUserBanned(error)) return go(deleting);

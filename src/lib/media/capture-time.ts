@@ -1,6 +1,6 @@
 /**
- * A PHOTOGRAPH'S CAPTURE TIME, ONE HOME (Will, 2026-10-05, the calls lab's X7: "Yes, keep the capture time, never the
- * place or device").
+ * A PHOTOGRAPH'S CAPTURE TIME, ONE HOME (Will, 2026-10-05: "Yes, keep the capture time, never the place or device";
+ * uploads-and-r2.md holds it, "The capture time stays, never the place or the device").
  *
  * The strip reads when a file says it was taken, from the original's own bytes before it rewrites one
  * (`CaptureStamp`, `media/strip-metadata.ts`, which reads and never judges). This module is the rest:

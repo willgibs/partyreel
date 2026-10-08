@@ -11,23 +11,35 @@ import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
  * so "Retry" is only ever offered where a retry could work.
  *
  *   refresh   the event's state changed under the guest and the server must be re-asked. This is
- *             the fail-open path: uploads closed, the album full, the event gone, a lock raised.
+ *             the fail-open path: the album full, the event gone, a lock raised (a paused album is the
+ *             same fail-open at the door, and its own class below).
  *   session   the capability is dead. Never a Retry inside a sheet with no way out: the step goes
  *             back to the name, which mints a fresh row.
  *   verify    the host turned Require verified emails on mid-run; the email step is the way in.
  *   retry     transport, R2, a bad key, a failed completion: the same file may well go next time.
  *   choose    the file itself is the problem, so only a different file can help.
+ *   paused    the host has paused uploads (`uploads_closed`, crumbs-93 from red-team 58's MEDIUM): every send meets the
+ *             same refusal until she reopens them, so a Retry cannot pass now. Its own class, as the spent roll's is:
+ *             said plainly (`uploadFailurePaused`), nothing lost (the file is still with her), no Retry. What lifts it is
+ *             the album saying it is open again, which the page hears (`useLiveUploadsWord`) and the cover answers
+ *             with its Add; a camera album's shots wait for that word on their own (`album-camera.tsx`).
+ *   roll      the album's camera has no frame left for her (`roll_spent`, crumbs-90 from no-signal r1): the
+ *             server counts her shots at insert, so this very shot is refused again, and so is any other she
+ *             takes. Never the file's (another file meets the same roll, so "Take another" would be false),
+ *             and never a Retry: the one thing that frees a frame is taking one of hers back in the camera,
+ *             which says the roll's end in its own words (`rollDoneLine`, `freeAFrameLine`).
  */
 export type RefusalClass =
   | "refresh"
   | "session"
   | "verify"
   | "retry"
-  | "choose";
+  | "choose"
+  | "paused"
+  | "roll";
 
 export function classifyRefusal(code: string | undefined | null): RefusalClass {
   switch (code) {
-    case "uploads_closed":
     case "cap_reached":
     case "event_gone":
     case "event_deleted":
@@ -49,6 +61,10 @@ export function classifyRefusal(code: string | undefined | null): RefusalClass {
     case "too_large":
     case "too_long":
       return "choose";
+    case "uploads_closed":
+      return "paused";
+    case "roll_spent":
+      return "roll";
     default:
       // `bad_key`, `complete_failed`, a code-less transport or R2 failure: worth another go.
       return "retry";
@@ -56,9 +72,11 @@ export function classifyRefusal(code: string | undefined | null): RefusalClass {
 }
 
 /**
- * Whether sending the same file again could land it: every refusal but the file's own. A refresh-class one
- * can pass once the host changes something (reopens uploads, frees space), so it keeps its Retry.
+ * Whether sending the same file again could land it: every refusal but the file's own, the spent roll's and a paused
+ * album's. A refresh-class one can pass once the host changes something (frees space, a lock lifted), so it keeps its
+ * Retry; a pause is the host's own and a Retry is refused again until she reopens, which the cover's Add says.
  */
 export function retryCanPass(code: string | undefined | null): boolean {
-  return classifyRefusal(code) !== "choose";
+  const kind = classifyRefusal(code);
+  return kind !== "choose" && kind !== "roll" && kind !== "paused";
 }

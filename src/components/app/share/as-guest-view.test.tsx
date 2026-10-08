@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,6 +19,8 @@ const live = vi.hoisted(() => ({
   provider: [] as unknown[],
   gallery: [] as unknown[],
   wait: [] as unknown[],
+  /** What the cover was handed, each render. */
+  cover: [] as Record<string, unknown>[],
   /** What the guests' live source says is waiting in the album (`GuestFullSync.waiting`), or null before it has a word. */
   waiting: null as { count: number } | null,
 }));
@@ -43,21 +45,21 @@ vi.mock("@/components/guest/gallery-empty-state-wait", () => ({
   AlbumWait: () => <div data-testid="wait" />,
 }));
 vi.mock("@/components/guest/event-experience-head", () => ({
-  AlbumCover: ({
-    name,
-    actions,
-    eyebrow,
-  }: {
+  AlbumCover: (props: {
     name: string;
     actions: ReactNode;
     eyebrow?: ReactNode;
-  }) => (
-    <section data-testid="cover">
-      {eyebrow ? <p data-testid="eyebrow">{eyebrow}</p> : null}
-      <h1>{name}</h1>
-      {actions}
-    </section>
-  ),
+  }) => {
+    live.cover.push(props);
+    const { name, actions, eyebrow } = props;
+    return (
+      <section data-testid="cover">
+        {eyebrow ? <p data-testid="eyebrow">{eyebrow}</p> : null}
+        <h1>{name}</h1>
+        {actions}
+      </section>
+    );
+  },
   CoverGround: () => null,
   createHeadBridge: () => ({
     get: () => null,
@@ -142,6 +144,7 @@ beforeEach(() => {
   live.provider.length = 0;
   live.gallery.length = 0;
   live.wait.length = 0;
+  live.cover.length = 0;
   live.waiting = null;
 });
 
@@ -204,7 +207,7 @@ describe("its header", () => {
     expect(
       screen.queryByRole("link", { name: /back to your hub/i }),
     ).toBeNull();
-    const start = screen.getByRole("button", { name: /start for free/i });
+    const start = screen.getByRole("button", { name: /make one like this/i });
     expect(start.closest("[inert]")).not.toBeNull();
   });
 
@@ -240,6 +243,51 @@ describe("what a guest meets, as it stands", () => {
     ).toBeInTheDocument();
     expect(screen.queryByTestId("album")).toBeNull();
     expect(live.provider).toHaveLength(0);
+  });
+});
+
+/* THE COUNT NAMES WHAT THE ALBUM HOLDS, AS THE GUEST'S FIRST PAINT DOES (crumbs-74 on the guest page, crumbs-88 here): the
+   cover's count is "12 photos" from the first byte, from the server's own count of the kinds (`stats.kinds`), and the live
+   album's own words once it has told, both through the one function (`albumCountWords`, the cover's); this view never
+   handed the cover either, so its count read "12 photos & videos" over twelve photographs. */
+describe("★ the cover's count names its kinds, as the guest page's does", () => {
+  const cover = () => live.cover.at(-1)!;
+  const provider = () =>
+    live.provider.at(-1) as { onCountWordsChange: (words: string) => void };
+
+  it("hands the cover the server's own count of the kinds from the first render", () => {
+    view({
+      stats: {
+        approvedTotal: 12,
+        guestCount: 4,
+        kinds: { photos: 12, videos: 0 },
+      },
+    });
+    expect(cover()).toMatchObject({
+      mediaCount: 12,
+      mediaKinds: { photos: 12, videos: 0 },
+    });
+    // The live album has told nothing yet: the words are the kinds', not a told string.
+    expect(cover().mediaWords).toBeUndefined();
+  });
+
+  it("names none where the server could not count them (the cover then says both nouns, as it always did)", () => {
+    view({ stats: { approvedTotal: 12, guestCount: 4 } });
+    expect(cover().mediaKinds).toBeNull();
+    view({ stats: { approvedTotal: 12, guestCount: 4, kinds: null } });
+    expect(cover().mediaKinds).toBeNull();
+  });
+
+  it("★ takes the live album's own words once it has told, so the first paint and the live source never disagree", () => {
+    view({
+      stats: {
+        approvedTotal: 12,
+        guestCount: 4,
+        kinds: { photos: 12, videos: 0 },
+      },
+    });
+    act(() => provider().onCountWordsChange("13 photos & videos"));
+    expect(cover().mediaWords).toBe("13 photos & videos");
   });
 });
 
@@ -354,35 +402,46 @@ describe("★ the cover's Add says what a newcomer's does", () => {
   });
 });
 
-/* ★ THE ORDER EVERY GUEST MEETS (event-zone; the ROADMAP's "as-guest-view.tsx hands LiveGallery no order"): the album is
-   handed the guest page's own order over the server's word, the turn an instant, and turns with it while she looks;
-   nothing here can choose one, so a choice writes nothing on her device. */
+/* ★ THE ORDER EVERY GUEST MEETS (album-order, AY1; the ROADMAP's "as-guest-view.tsx hands LiveGallery no order"): the
+   album is handed the guest page's own order over the server's word, read off the album's state, and turns with it while
+   she looks; nothing here can choose one, so a choice writes nothing on her device. RESHAPED ON PURPOSE (crumbs-91; scar
+   kept: the guests' order handed to the album, and a choice that writes nothing). The expired reason: the party's
+   morning after as the turn (`morningAfter`), gone with the date's part in it. */
 describe("★ the album in the order every guest meets", () => {
-  const MORNING = Date.parse("2026-10-03T20:00:00Z");
+  const sortOf = () =>
+    (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort;
 
-  it("after the party's morning the album is handed the night in order", () => {
+  it("an album she has closed is handed the night in order", () => {
     view({
-      albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+      event: { ...EVENT, accepting_uploads: false },
+      albumOrder: { own: "oldest", chosen: null },
     });
-    const order = (live.gallery.at(-1) as { order?: { sort: string } }).order;
-    expect(order?.sort).toBe("oldest");
+    expect(sortOf()).toBe("oldest");
   });
 
-  it("before it, newest first; and with no word from the server, newest first as before", () => {
-    view({
-      albumOrder: {
-        morningAfter: Date.now() + 86_400_000,
-        own: "newest",
-        chosen: null,
-      },
-    });
-    expect(
-      (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort,
-    ).toBe("newest");
+  it("an open album newest first; and with no word from the server, newest first as before", () => {
+    view({ albumOrder: { own: "newest", chosen: null } });
+    expect(sortOf()).toBe("newest");
     view();
-    expect(
-      (live.gallery.at(-1) as { order?: { sort: string } }).order?.sort,
-    ).toBe("newest");
+    expect(sortOf()).toBe("newest");
+  });
+
+  it("★ a develop reached turns the open album while she looks, as every guest's", () => {
+    vi.useFakeTimers();
+    try {
+      const develop = Date.now() + 60_000;
+      view({
+        event: { ...EVENT, develops_at: new Date(develop).toISOString() },
+        albumOrder: { own: "newest", chosen: null },
+      });
+      expect(sortOf()).toBe("newest");
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(sortOf()).toBe("oldest");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("a choice from the inert album writes nothing: no guest's remembered order lands on her device", () => {
@@ -391,7 +450,8 @@ describe("★ the album in the order every guest meets", () => {
     try {
       document.cookie = "pr_album_sort=; Path=/e; Max-Age=0";
       view({
-        albumOrder: { morningAfter: MORNING, own: "oldest", chosen: null },
+        event: { ...EVENT, accepting_uploads: false },
+        albumOrder: { own: "oldest", chosen: null },
       });
       const order = (
         live.gallery.at(-1) as { order: { choose: (s: string) => void } }
@@ -405,5 +465,56 @@ describe("★ the album in the order every guest meets", () => {
       document.cookie = "pr_album_sort=; Path=/e; Max-Age=0";
       window.history.replaceState(null, "", "/");
     }
+  });
+});
+
+/* ★ SEE IT AS A GUEST'S TWO FACTS OF THE GUEST PAGE (crumbs-86, pinned here by crumbs-91): what waits is known before the
+   first paint (`waitingOnArrival`, the server's `albumWaits`), so the cover's Add says a newcomer's words from the first
+   byte, never "the first photo" over shots that wait; and the party's zone rides into every develop time the view says
+   (`PartyZoneContext`, `waitWords`), so a far party's sheet reads on the party's clock, as its guests read it. */
+describe("★ the guest page's own first byte", () => {
+  const AHEAD = new Date(Date.now() + 6 * 3_600_000).toISOString();
+  const add = () => screen.getByRole("button", { name: /photo/i });
+  const nothingVisible = { approvedTotal: 0, guestCount: 4 };
+
+  it("★ what waits on arrival holds the Add off the first photo before the live source has a word", () => {
+    live.waiting = null;
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      stats: nothingVisible,
+      waitingOnArrival: true,
+    });
+    expect(add()).toHaveTextContent(/^Take photos$/);
+    expect(screen.queryByText(/first photo/i)).toBeNull();
+  });
+
+  it("and with nothing waiting on arrival, an empty album's Add is the first photo", () => {
+    live.waiting = null;
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      stats: nothingVisible,
+      waitingOnArrival: false,
+    });
+    expect(add()).toHaveTextContent(/^Take the first photo$/);
+  });
+
+  it("★ the sheet says the party's clock: its develop time carries the party's zone", () => {
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      partyZone: "Pacific/Auckland",
+    });
+    expect((live.wait.at(-1) as { clock: unknown }).clock).toEqual({
+      kind: "develop",
+      developsAt: AHEAD,
+      zone: "Pacific/Auckland",
+    });
+  });
+
+  it("with no zone handed (a lock, the demo), the sheet's time is the reader's own clock", () => {
+    view({ event: { ...EVENT, capture: "camera", develops_at: AHEAD } });
+    expect((live.wait.at(-1) as { clock: unknown }).clock).toEqual({
+      kind: "develop",
+      developsAt: AHEAD,
+    });
   });
 });

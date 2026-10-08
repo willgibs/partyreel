@@ -74,8 +74,17 @@ function firstIssue(message: string | undefined): ActionResult {
 // The create wizard (Phase 6 cut #2) is the sole create path: it RETURNS the new
 // event (no redirect) so the wizard's share step can render the real QR + event
 // link. The wizard owns navigation ("Go to your event").
+//
+// ★ `attempt` IS THE WIZARD'S KEY FOR ONE CREATE, sent with every try of it (20261007120000, `events.create_key`): a Create
+// whose answer was lost after the server made the event is held as failed, and its Try again used to make a second event
+// (a Free host's one event spent on a duplicate). With the key the retry is handed the first try's event
+// (`createEvent`). A PUBLIC ENDPOINT, SO THE KEY IS THE CALLER'S WORD: only a uuid's shape reaches the database (a
+// malformed one is refused here, in the wizard's own words, rather than read as a Postgres cast error), and it is scoped
+// to her own events by the index and RLS, so a key she sends twice can only ever name her own event. None sent is the
+// create it always was (an older build, a specimen).
 export async function createEventInWizard(
   input: CreateEventInput,
+  attempt?: unknown,
 ): Promise<CreateEventWizardResult> {
   const parsed = createEventSchema.safeParse(input);
   if (!parsed.success) {
@@ -87,8 +96,18 @@ export async function createEventInWizard(
         "Please check the form and try again.",
     };
   }
+  if (
+    attempt !== undefined &&
+    (typeof attempt !== "string" || !isUuidShape(attempt))
+  ) {
+    return {
+      ok: false,
+      code: "validation",
+      message: "Please check the form and try again.",
+    };
+  }
 
-  const result = await createEvent(parsed.data);
+  const result = await createEvent(parsed.data, attempt?.toLowerCase());
   if (!result.ok) return result;
 
   revalidatePath("/dashboard");

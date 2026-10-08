@@ -35,6 +35,47 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_actions: {
+        Row: {
+          account_id: string
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          operator_id: string | null
+          reason: string
+          request_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind: string
+          operator_id?: string | null
+          reason: string
+          request_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          operator_id?: string | null
+          reason?: string
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       album_changes: {
         Row: {
           album_version: number | null
@@ -1987,6 +2028,48 @@ export type Database = {
           },
         ]
       }
+      uploads_credits: {
+        Row: {
+          action_id: string
+          bytes: number
+          created_at: string
+          host_id: string
+          id: string
+          window_ends_at: string
+        }
+        Insert: {
+          action_id: string
+          bytes: number
+          created_at?: string
+          host_id: string
+          id?: string
+          window_ends_at: string
+        }
+        Update: {
+          action_id?: string
+          bytes?: number
+          created_at?: string
+          host_id?: string
+          id?: string
+          window_ends_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploads_credits_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: true
+            referencedRelation: "admin_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uploads_credits_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -2595,6 +2678,16 @@ export type Database = {
         }
         Returns: Json
       }
+      grant_uploads_credit: {
+        Args: {
+          p_bytes: number
+          p_host_id: string
+          p_operator_id: string
+          p_reason: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       guest_roll: {
         Args: {
           p_event: Database["public"]["Tables"]["events"]["Row"]
@@ -2806,6 +2899,14 @@ export type Database = {
       upload_allowance: {
         Args: {
           p_storage_cap_bytes: number
+          p_tier: Database["public"]["Enums"]["tier_type"]
+        }
+        Returns: number
+      }
+      uploads_credit: { Args: { p_host_id: string }; Returns: number }
+      uploads_gross: {
+        Args: {
+          p_host_id: string
           p_tier: Database["public"]["Enums"]["tier_type"]
         }
         Returns: number

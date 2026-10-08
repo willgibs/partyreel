@@ -74,7 +74,7 @@ import {
   type AlbumSnapshot,
   type SyncResult,
 } from "@/lib/album/store";
-import { guestAlbumTransport } from "@/lib/album/transport";
+import { guestAlbumTransport, guestAlbumVersion } from "@/lib/album/transport";
 import type { GuestWaiting } from "@/lib/disposable/facts";
 import { entryId, type GuestFullSync } from "@/lib/events/album-wire";
 import { carryingTransport } from "@/lib/events/album-wire-carry";
@@ -553,6 +553,8 @@ export function GalleryLiveProvider({
     const carrying = carryingTransport(tapped);
     const store = createAlbumStore({
       transport: carrying,
+      // The timer's cheap ask (X5): an open album's version from the CDN, the album's own answer only on a change.
+      askVersion: guestAlbumVersion({ qrToken }),
       // A delta that left the album a different size than the server counted can only be a lost
       // or doubled change: never silent, and the store heals it with a fresh manifest first.
       onIntegrityMiss: (detail) =>
@@ -668,20 +670,27 @@ export function GalleryLiveProvider({
     onGuestCountChange?.(guestCount);
   }, [guestCount, onGuestCountChange]);
 
-  /* ── the doorbell and the poll: both are one sync ── */
+  /* ── the doorbell and the poll: a ring is one sync; the timer asks the CDN first where it answers (X5) ── */
   const sync = useCallback(() => void store.sync(), [store]);
+  const poll = useCallback(
+    ({ exact }: { exact: boolean }) =>
+      void (exact ? store.sync() : store.poll()),
+    [store],
+  );
   const { live } = useGalleryDoorbell({
     qrToken,
     enabled: liveEnabled,
     onRefresh: sync,
   });
-  // The store's snapshot is the change (a 304 keeps it); the reel's screen posture is watched untouched.
+  // The store's snapshot is the change (a 304 keeps it); the reel's screen posture is watched untouched; a quiet
+  // fallback is livelier while the CDN answers its asks from its cache, a room asking the album too (AB5).
   useLivePoll({
     enabled: liveEnabled,
     live,
-    onPoll: sync,
+    onPoll: poll,
     changeKey: snap,
     unattended: onReelScreen,
+    atEdge: store.edgeShared,
   });
 
   /* ── the arrivals: what an answer brought that was not on screen a moment ago ── */

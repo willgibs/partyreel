@@ -9,6 +9,7 @@ import { LiveDot, Mark, StateDot } from "@/components/app/dashboard/marks";
 import { LampLight, Plate, Rail } from "@/components/app/dashboard/stage-lit";
 import { useStageLive } from "@/components/app/dashboard/use-stage-live";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
+import { PhotoImg } from "@/components/app/photo-img";
 import { itemFor } from "@/lib/dashboard/attention";
 import {
   type HomeContext,
@@ -102,13 +103,15 @@ function Ticks({
   );
 }
 
-/** A photograph on the stage, filling its (relative, clipped) cell. */
+/**
+ * A photograph on the stage, filling its (relative, clipped) cell. ★ NAMED WHERE THIS BROWSER CANNOT DRAW IT (crumbs-93,
+ * red-team 58's NIT): the wall serves a preview, or the original where a browser made none (a HEIC from a desktop
+ * Chrome), and a broken-image glyph on black said nothing where the album's tile says "Can't show here / HEIC".
+ */
 function Still({ photo }: { photo: StagePhoto }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-    <img
+    <PhotoImg
       src={photo.url}
-      alt=""
       draggable={false}
       className="absolute inset-0 size-full object-cover"
     />
@@ -336,7 +339,7 @@ export function Stage({
           ) : (
             <Link
               href={settingsPageHref(event.id, "event")}
-              className="mt-1.5 inline-block text-sm text-gallery-muted underline decoration-gallery-muted/40 underline-offset-4 outline-none hover:text-white focus-halo"
+              className="mt-1.5 inline-block focus-halo text-sm text-gallery-muted underline decoration-gallery-muted/40 underline-offset-4 outline-none hover:text-white"
             >
               Add the date
             </Link>
@@ -406,7 +409,7 @@ export function Stage({
           <Link
             href={`/dashboard/${event.id}`}
             aria-label={`Open ${event.name}`}
-            className="absolute inset-0 outline-none focus-halo halo-inset"
+            className="absolute inset-0 focus-halo outline-none halo-inset"
           >
             {wall ? (
               <Wall photos={photos} fresh={event.arrivals.lastHour > 0} />

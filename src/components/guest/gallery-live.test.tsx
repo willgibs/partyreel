@@ -49,6 +49,23 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => captureWarning(...args),
   captureError: (...args: unknown[]) => captureError(...args),
 }));
+// The real cadence, with a hand on what the provider gives it: the timer's ask and its word on the CDN (X5).
+const cadence = vi.hoisted(() => ({
+  onPoll: null as ((ask: { exact: boolean }) => void) | null,
+  atEdge: null as (() => boolean) | null,
+}));
+vi.mock("@/lib/shared/use-live-poll", async (importOriginal) => {
+  const real =
+    await importOriginal<typeof import("@/lib/shared/use-live-poll")>();
+  return {
+    ...real,
+    useLivePoll: (opts: Parameters<typeof real.useLivePoll>[0]) => {
+      cadence.onPoll = opts.onPoll;
+      cadence.atEdge = opts.atEdge ?? null;
+      return real.useLivePoll(opts);
+    },
+  };
+});
 
 const { GalleryLiveProvider, useGalleryLive } = await import("./gallery-live");
 type LiveGalleryHandle = import("./gallery-live").LiveGalleryHandle;
@@ -298,7 +315,14 @@ const calls: {
   url: string;
   body: Record<string, unknown>;
   headers: Record<string, string>;
+  credentials?: string;
+  cache?: string;
 }[] = [];
+/** The album's key at the CDN, as the sync route names it on a full answer (X5); none unless a test says. */
+let edgeHeader: string | null = null;
+/** What the CDN's version route answers, and whether from its cache (`x-vercel-cache`). */
+let versionAnswer: Record<string, unknown> = { kind: "ask" };
+let versionCache: string | null = null;
 /**
  * ★ ONE fetch MOCK FOR THE PROVIDER'S LIFE, ITS ANSWER SWAPPED IN PLACE. The album's transport reads
  * `fetch` once, when the store is built, so a test that assigned a fresh mock after mounting would be
@@ -311,10 +335,32 @@ function answer(sync: Answer | (() => Answer)) {
 }
 async function handle(
   url: string,
-  init: { body?: string; headers?: Record<string, string> } = {},
+  init: {
+    body?: string;
+    headers?: Record<string, string>;
+    credentials?: string;
+    cache?: string;
+  } = {},
 ): Promise<Reply> {
   const body = JSON.parse(init.body ?? "{}");
-  calls.push({ url, body, headers: init.headers ?? {} });
+  calls.push({
+    url,
+    body,
+    headers: init.headers ?? {},
+    credentials: init.credentials,
+    cache: init.cache,
+  });
+  if (url.startsWith("/api/album/guest/sync/version?")) {
+    return {
+      status: 200,
+      ok: true,
+      headers: {
+        get: (name: string) =>
+          name === "x-vercel-cache" ? versionCache : null,
+      },
+      json: async () => versionAnswer,
+    };
+  }
   if (url === "/api/album/guest/media") {
     return {
       status: 200,
@@ -341,11 +387,20 @@ async function handle(
   if (a === 500)
     return { status: 500, ok: false, headers: { get: () => null } };
   return a === 304
-    ? { status: 304, ok: false, headers: { get: () => null } }
+    ? {
+        status: 304,
+        ok: false,
+        headers: {
+          get: (name: string) => (name === "x-album-edge" ? edgeHeader : null),
+        },
+      }
     : {
         status: 200,
         ok: true,
-        headers: { get: () => '"a1-next"' },
+        headers: {
+          get: (name: string) =>
+            name === "x-album-edge" ? edgeHeader : '"a1-next"',
+        },
         json: async () => a,
       };
 }
@@ -379,6 +434,9 @@ beforeEach(() => {
   captureError.mockClear();
   global.fetch = vi.fn(handle) as unknown as typeof fetch;
   answer(304);
+  edgeHeader = null;
+  versionAnswer = { kind: "ask" };
+  versionCache = null;
 });
 
 describe("the seed", () => {
@@ -1371,5 +1429,83 @@ describe("★ the album, calmed", () => {
       // What waits is counted anew.
       expect(seen.live?.waiting?.count).toBe(2);
     });
+  });
+});
+
+describe("★ the timer's ask goes to the CDN first, where the album says it may (X5)", () => {
+  const KEY = "AbCdEfGhIjKlMnOpQrStUv";
+  const urls = () => calls.map((c) => c.url.split("?")[0]);
+  async function check(exact = false) {
+    await act(async () => {
+      cadence.onPoll?.({ exact });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+
+  it("never before a real answer names the album's key: the seed says nothing, so the first check is the album's", async () => {
+    await mount();
+    expect(cadence.atEdge?.()).toBe(false);
+    await check();
+    expect(urls()).toEqual(["/api/album/guest/sync"]);
+  });
+
+  it("★ once named, a check asks the CDN by key and window (the token in a header, no cookie), and a quiet answer asks nothing more", async () => {
+    await mount();
+    edgeHeader = KEY;
+    await ring();
+    answer(304);
+    versionAnswer = { kind: "version", v: '"a1-seed"' };
+    await check();
+    expect(urls()).toEqual(["/api/album/guest/sync/version"]);
+    // The function filled that window (no cache word): asking alone, so the quiet fallback keeps its minute.
+    expect(cadence.atEdge?.()).toBe(false);
+    versionCache = "HIT";
+    await check();
+    // A room is asking too: the CDN answered from its cache, so a quicker quiet poll costs the function nothing.
+    expect(cadence.atEdge?.()).toBe(true);
+    calls.length = 0;
+    await check();
+    const [ask] = calls;
+    expect(ask.url).toMatch(new RegExp(`\\?k=${KEY}&w=\\d+$`));
+    expect(ask.url).not.toContain("qr-token");
+    expect(ask.headers).toEqual({ "x-album-token": "qr-token" });
+    expect(ask.credentials).toBe("omit");
+    expect(ask.cache).toBe("default");
+  });
+
+  it("a version that is not the one held asks the album itself; an exact ask never asks the CDN", async () => {
+    await mount();
+    edgeHeader = KEY;
+    await ring();
+    answer(304);
+    versionAnswer = { kind: "version", v: '"a1-moved"' };
+    await check();
+    expect(urls()).toEqual([
+      "/api/album/guest/sync/version",
+      "/api/album/guest/sync",
+    ]);
+    answer(304);
+    await check(true);
+    expect(urls()).toEqual(["/api/album/guest/sync"]);
+  });
+
+  it("an album that stops naming its key (a password now) is asked itself, and its fallback slows to the minute", async () => {
+    await mount();
+    edgeHeader = KEY;
+    await ring();
+    versionCache = "HIT";
+    edgeHeader = null;
+    answer(304);
+    versionAnswer = { kind: "ask" };
+    await check();
+    expect(urls()).toEqual([
+      "/api/album/guest/sync/version",
+      "/api/album/guest/sync",
+    ]);
+    expect(cadence.atEdge?.()).toBe(false);
+    answer(304);
+    await check();
+    expect(urls()).toEqual(["/api/album/guest/sync"]);
   });
 });

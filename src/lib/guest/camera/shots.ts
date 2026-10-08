@@ -6,6 +6,10 @@
  * that travels unchanged from the shutter to the server. Before the File exists (the frame still encoding) the shot is
  * `taking`; before the queue holds it (a first shot's silent join) it is `sending`.
  *
+ * ★ A SHOT WAITING FOR THE LINE IS STILL ON ITS WAY (no-signal r1, Will's `roll=taken`): its send dropped and it stands
+ * by, `queued` (the queue's `waitsForLine`), so it is `sending` with `waiting` set, never `failed`, and it stays counted:
+ * the shutter spent its frame the moment she pressed, sent or not, like film.
+ *
  * ★ WHAT A REFUSAL MEANS TO A CAMERA (`refusalOf`): the roll's own words end the roll (`roll`), a refusal of the
  * album itself (closed, full, private, a confirmed email asked for) stops the shutter in the server's words
  * (`blocked`), a refusal of the file is that shot's alone (`file`), and anything else is a send that may go again
@@ -13,6 +17,7 @@
  *
  * Pure, so every rule is a unit test.
  */
+import { waitsForLine } from "@/lib/guest/unsent/standby";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 export type ShotKind = "photo" | "video";
@@ -54,6 +59,8 @@ export type ShotState = {
   code?: string;
   /** Why the transport ended it (`QueueItem.cause`): `dropped` is the connection, which the camera says in its own line. */
   cause?: QueueItem["cause"];
+  /** On its way and standing by for the line (`waitsForLine`): the reel's half-lit frame, her list's "Waiting…". */
+  waiting?: true;
 };
 
 export function shotState(
@@ -64,7 +71,9 @@ export function shotState(
   const item = queue.find((it) => it.file === shot.file);
   if (!item) return { status: "sending" };
   if (item.status === "queued" || item.status === "uploading") {
-    return { status: "sending", queueId: item.id };
+    return waitsForLine(item)
+      ? { status: "sending", queueId: item.id, waiting: true }
+      : { status: "sending", queueId: item.id };
   }
   if (item.status === "error") {
     return {
@@ -126,7 +135,8 @@ export function refusalOf(code: string | undefined | null): RefusalKind {
 
 /**
  * How many of this camera's shots the roll's last read could not have counted: taken since it began, and not
- * refused. (A read only begins while nothing is in the air, so an older shot was counted or refused.)
+ * refused. (A read only begins while nothing is in the air, so an older shot was counted or refused.) ★ A SHOT WAITING
+ * FOR THE LINE COUNTS (`roll=taken`): it is on its way, never refused, so its frame is spent from the press.
  */
 export function pendingSince(
   shots: readonly { shot: CameraShot; state: ShotState }[],

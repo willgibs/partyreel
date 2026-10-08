@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { BRAND_HEX } from "@/lib/constants/site";
+import { WORDMARK_DISPLAY } from "@/lib/brand/wordmark";
 import { getEventCardName } from "@/lib/db/queries/event-card";
 import {
   EVENT_CARD_ALT,
@@ -9,6 +9,7 @@ import {
   PRIVATE_CARD_PARAM,
 } from "@/lib/guest/event-card";
 
+import { CardTitle } from "./title";
 import { ADD_CARD_PARAM, cardFoot } from "./words";
 
 /**
@@ -28,6 +29,10 @@ import { ADD_CARD_PARAM, cardFoot } from "./words";
  * blocked viewer got the named card while her page said private. A viewer the closed door masks is
  * never pointed here: her page names the private album's card (`?private`, generic by its address
  * alone), as a private album's page does (`privateEventCardPath`).
+ *
+ * ★ ITS TITLE IS DRAWN BY `CardTitle`, NEVER A TEXT NODE (crumbs-93): the renderer draws each word kerned inside the box it
+ * measured unkerned, so the gap after a long word opens ("A Partyreel  event"); a word drawn letter by letter keeps one
+ * gap (`title.tsx`).
  *
  * ★ ITS FOOT FOLLOWS THE ALBUM, BY ITS ADDRESS TOO (`?add`, crumbs-87): the plain card says what is true of every album
  * ("See the photos & videos"), and the address the page names for an album that takes photos right now invites ("Add
@@ -63,54 +68,20 @@ export async function GET(
         color: "#fafafa",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "64px",
-            height: "64px",
-            borderRadius: "16px",
-            backgroundColor: "#fafafa",
-          }}
-        >
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke={BRAND_HEX}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="14.31" y1="8" x2="20.05" y2="17.94" />
-            <line x1="9.69" y1="8" x2="21.17" y2="8" />
-            <line x1="7.38" y1="12" x2="13.12" y2="2.06" />
-            <line x1="9.69" y1="16" x2="3.95" y2="6.06" />
-            <line x1="14.31" y1="16" x2="2.83" y2="16" />
-            <line x1="16.62" y1="12" x2="10.88" y2="21.94" />
-          </svg>
-        </div>
-        <div style={{ fontSize: "34px", fontWeight: 600, color: "#d4d4d8" }}>
-          Partyreel
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          fontSize: "76px",
-          fontWeight: 700,
-          lineHeight: 1.05,
-          letterSpacing: "-0.02em",
-          maxWidth: "1000px",
-        }}
+      {/* The brand signs the card as it signs every page: the wordmark alone,
+          drawn from its one home in its display cut (52px is a poster's size
+          for it, brand-marks r1), quieter than the event's name, which leads. */}
+      <svg
+        width={Math.round(52 * WORDMARK_DISPLAY.aspect)}
+        height="52"
+        viewBox={WORDMARK_DISPLAY.viewBox}
+        fill="#fafafa"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        {heading}
-      </div>
+        <path d={WORDMARK_DISPLAY.d} />
+      </svg>
+
+      <CardTitle text={heading} size={76} wrapWidth={1000} clipWidth={1024} />
 
       <div style={{ display: "flex", fontSize: "30px", color: "#a1a1aa" }}>
         {foot}

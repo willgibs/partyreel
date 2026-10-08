@@ -1,8 +1,9 @@
 /**
- * THE BLOCKED LIST AND THE WAY BACK (Will, `blocked=foot`, `restore=ask`; host-moments r1, `let-back=straight`):
- * nothing renders while nobody is blocked; each row names who and since when; a declined newcomer whose ask stands
- * is let in with one press; every other Let back in confirms, and its "Also restore their uploads" switch appears
- * only while something can come back, off unless the host turns it on.
+ * THE BLOCKED LIST AND THE WAY BACK (Will, `blocked=foot`, `restore=ask`; host-moments r1, `let-back=straight`;
+ * guests-room r1, `rows=list` and `card=standing`): nothing renders while nobody is blocked; each row names who, when,
+ * and how they left, its act at its end naming whom; a declined newcomer whose ask stands is let in with one press;
+ * every other Let back in confirms, and its "Also restore their uploads" switch appears only while something can come
+ * back, off unless the host turns it on; and every name opens their card, the way back in its own words.
  */
 import {
   fireEvent,
@@ -13,12 +14,7 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
-import {
-  LET_IN_LINE,
-  letBackInLede,
-  type BlockedPerson,
-} from "@/lib/events/event-blocks";
+import { letBackInLede, type BlockedPerson } from "@/lib/events/event-blocks";
 
 // Hoisted: the mark's module reaches sonner through the sign-in card, before this file's body runs.
 const { refresh, toast, letBackInAction } = vi.hoisted(() => ({
@@ -31,6 +27,11 @@ vi.mock("sonner", () => ({ toast }));
 vi.mock("@/app/(app)/dashboard/[eventId]/guests/actions", () => ({
   letBackInAction: (...a: unknown[]) => letBackInAction(...a),
 }));
+// A name opens the card every name opens (`GuestPeek`), whose Follow reaches the profile's server actions (server-only).
+vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
+  followProfileAction: vi.fn(),
+  unfollowProfileAction: vi.fn(),
+}));
 
 const { BlockedSection } = await import("./blocked-section");
 
@@ -41,7 +42,7 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
   email: "sam@example.com",
   avatarUrl: null,
   seed: null,
-  since: "Blocked Sep 28",
+  since: "Sep 28",
   restorable: 0,
   restorableUntil: null,
   lands: "in",
@@ -90,33 +91,89 @@ describe("BlockedSection", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("names who, since when, and marks a typed name", () => {
+  // ★ RESHAPED ON PURPOSE (guests-room r1, `rows=list`; scar kept: each row says who and when, and marks a typed name).
+  // The expired reason: "who (the address) and since when, two halves under the name". The row says when beside the
+  // name and how they left under it; the address the block keys on is in their card, under their name.
+  it("names who, when beside the name, how they left under it, and marks a typed name", () => {
     render(
       <BlockedSection
         eventName="Party"
         people={[
-          person(),
+          person({ restorable: 2 }),
           person({ id: "b-theo", name: "Theo", verified: false, email: null }),
+          person({
+            id: "b-dev",
+            name: "Dev",
+            lands: "let_in",
+            since: "9:12 PM",
+          }),
         ]}
       />,
     );
     const rows = screen.getAllByRole("listitem");
-    expect(rows).toHaveLength(2);
-    // Who, then since when: two halves, so a hand can set them on two lines and never cut the date.
-    expect(within(rows[0]).getByText("sam@example.com")).toBeInTheDocument();
-    expect(within(rows[0]).getByText("Blocked Sep 28")).toBeInTheDocument();
-    expect(within(rows[1]).getByText("Typed a name")).toBeInTheDocument();
+    expect(rows).toHaveLength(3);
+    expect(within(rows[0]).getByText("Sep 28")).toBeInTheDocument();
     expect(
-      within(rows[1]).getByLabelText(new RegExp(UNVERIFIED_LABEL, "i")),
+      within(rows[0]).getByText("Blocked · 2 uploads in Deleted"),
     ).toBeInTheDocument();
+    expect(within(rows[1]).getByText("Blocked")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("Unverified")).toBeInTheDocument();
+    expect(within(rows[0]).queryByText("Unverified")).toBeNull();
     expect(
-      within(rows[0]).queryByLabelText(new RegExp(UNVERIFIED_LABEL, "i")),
-    ).toBeNull();
+      within(rows[2]).getByText("Declined · still asking"),
+    ).toBeInTheDocument();
+  });
+
+  it("★ every name opens their card: who they were, when and how they left, and the way back in its own words", async () => {
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[
+          person({
+            id: "b-dev",
+            name: "Dev",
+            lands: "let_in",
+            since: "9:12 PM",
+          }),
+          person({ id: "b-ray", name: "Ray", restorable: 4, since: "Sep 28" }),
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Dev/ }));
+    const dev = screen.getByRole("dialog", { name: "Dev" });
+    expect(dev.querySelector("[data-card-standing] p")?.textContent).toBe(
+      "Declined at 9:12 PM,still asking",
+    );
+    expect(within(dev).getByText("sam@example.com")).toBeInTheDocument();
+    expect(
+      within(dev).getByText(/their link opens the album for them/i),
+    ).toBeInTheDocument();
+    // The card's act is the row's: one press for a standing ask, and the card closes as it answers.
+    fireEvent.click(within(dev).getByRole("button", { name: "Let in Dev" }));
+    await waitFor(() =>
+      expect(letBackInAction).toHaveBeenCalledWith({
+        blockId: "b-dev",
+        restore: false,
+        letIn: true,
+      }),
+    );
+    expect(screen.queryByRole("dialog", { name: "Dev" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /^Ray/ }));
+    const ray = screen.getByRole("dialog", { name: "Ray" });
+    expect(ray.querySelector("[data-card-standing] p")?.textContent).toBe(
+      "Blocked on Sep 28,4 uploads in Deleted",
+    );
+    // Its Let back in opens the confirm that holds the restore, as the row's does.
+    fireEvent.click(
+      within(ray).getByRole("button", { name: "Let back in Ray" }),
+    );
+    expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
   });
 
   it("with nothing to bring back, Let back in confirms with no switch and restores nothing", async () => {
     render(<BlockedSection eventName="Party" people={[person()]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Sam" }));
     const dialog = await screen.findByRole("alertdialog");
     expect(within(dialog).getByText("Let Sam back in?")).toBeInTheDocument();
     expect(within(dialog).queryByRole("switch")).toBeNull();
@@ -146,7 +203,7 @@ describe("BlockedSection", () => {
         people={[person({ id: "b-wren", name: "Wren", lands: "door" })]}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Wren" }));
     const dialog = await screen.findByRole("alertdialog");
     expect(
       within(dialog).getByText(letBackInLede("Party", "door")),
@@ -168,24 +225,24 @@ describe("BlockedSection", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it("★ a declined newcomer whose ask stands is let in with one press, the row saying so first", async () => {
+  // ★ RESHAPED ON PURPOSE (guests-room r1, `rows=list`; scar kept: one press lets her in, and its name says whom). The
+  // expired reason: "the row saying so first" (`LET_IN_LINE`, which said Let in twice on one row): the row says she is
+  // still asking, and her card says where Let in takes her.
+  it("★ a declined newcomer whose ask stands is let in with one press, the row saying she still asks", async () => {
     letBackInAction.mockResolvedValue({
       ok: true,
       restored: 0,
       noRoom: 0,
       admitted: 1,
     });
-    const { container } = render(
+    render(
       <BlockedSection
         eventName="Party"
         people={[person({ id: "b-dev", name: "Dev", lands: "let_in" })]}
       />,
     );
-    // Where the press takes him, before it: no confirm says it for this row.
-    expect(
-      container.querySelector("[data-blocked-let-in-line]")?.textContent,
-    ).toBe(LET_IN_LINE);
-    expect(screen.queryByRole("button", { name: "Let back in" })).toBeNull();
+    expect(screen.getByText("Declined · still asking")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /let back in/i })).toBeNull();
     // ★ Its name says whom: no confirm stands between a press on the wrong row and the act.
     fireEvent.click(screen.getByRole("button", { name: "Let in Dev" }));
     await waitFor(() =>
@@ -250,9 +307,8 @@ describe("BlockedSection", () => {
         ]}
       />,
     );
-    expect(document.querySelector("[data-blocked-let-in-line]")).toBeNull();
-    const [ann, oli] = screen.getAllByRole("button", { name: "Let in" });
-    fireEvent.click(oli!);
+    const ann = screen.getByRole("button", { name: "Let in Ann" });
+    fireEvent.click(screen.getByRole("button", { name: "Let in Oli" }));
     const dialog = await screen.findByRole("alertdialog");
     expect(within(dialog).getByText("Let Oli in?")).toBeInTheDocument();
     expect(
@@ -276,7 +332,7 @@ describe("BlockedSection", () => {
         people={[person({ id: "b-wren", name: "Wren", lands: "password" })]}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Wren" }));
     const dialog = await screen.findByRole("alertdialog");
     expect(
       within(dialog).getByText(
@@ -310,7 +366,7 @@ describe("BlockedSection", () => {
         people={[person({ name: "Sam", lands: "only_me", restorable: 1 })]}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Sam" }));
     const dialog = await screen.findByRole("alertdialog");
     expect(
       within(dialog).getByText(
@@ -338,7 +394,7 @@ describe("BlockedSection", () => {
         people={[person({ restorable: 2, restorableUntil: "October 28" })]}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Sam" }));
     const dialog = await screen.findByRole("alertdialog");
     const offer = within(dialog).getByRole("switch", {
       name: /Also restore their uploads/,
@@ -369,7 +425,7 @@ describe("BlockedSection", () => {
     render(
       <BlockedSection eventName="Party" people={[person({ restorable: 2 })]} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Sam" }));
     const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("switch"));
     fireEvent.click(
@@ -394,7 +450,7 @@ describe("BlockedSection", () => {
       message: "That person or event is no longer available.",
     });
     render(<BlockedSection eventName="Party" people={[person()]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Let back in Sam" }));
     const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Let back in" }),

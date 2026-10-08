@@ -11,9 +11,14 @@ import {
   readTypedName,
   recordMomentPlayed,
   reportConfirmBeat,
+  takeToldName,
   toldNameLine,
   type ConfirmBeat,
 } from "@/lib/guest/confirm-beat";
+import {
+  TOLD_NAME_COOKIE,
+  toldNameValue,
+} from "@/app/(auth)/adopt-door-name-told";
 
 // The claim's own module (whose sentence the lone toast keeps) reaches the browser client.
 vi.mock("@/lib/supabase/client", () => ({ createClient: vi.fn() }));
@@ -198,5 +203,42 @@ describe("readTypedName", () => {
     expect(readTypedName("a1")).toBe("Priya");
     expect(readTypedName("a2")).toBeNull();
     expect(readTypedName("a3")).toBeNull();
+  });
+});
+
+describe("takeToldName: the name a tapped link adopted, left in a cookie for this album", () => {
+  const leave = (album: string, name: string) => {
+    document.cookie = `${TOLD_NAME_COOKIE}=${encodeURIComponent(toldNameValue(album, name))}; Path=/`;
+  };
+  const clear = () => {
+    document.cookie = `${TOLD_NAME_COOKIE}=; Max-Age=0; Path=/`;
+  };
+  const held = () => document.cookie.includes(`${TOLD_NAME_COOKIE}=`);
+
+  beforeEach(clear);
+
+  it("★ takes the name once, beside any other cookie, and spends it", () => {
+    document.cookie = "theme=dark; Path=/";
+    leave("album-1", "Priya");
+    document.cookie = "other=1; Path=/";
+    expect(takeToldName("album-1")).toBe("Priya");
+    expect(held()).toBe(false);
+    expect(takeToldName("album-1")).toBeNull();
+    // What it never touched.
+    expect(document.cookie).toContain("theme=dark");
+    document.cookie = "theme=; Max-Age=0; Path=/";
+    document.cookie = "other=; Max-Age=0; Path=/";
+  });
+
+  it("★ leaves another album's cookie standing and tells nothing from it", () => {
+    leave("album-2", "Priya");
+    expect(takeToldName("album-1")).toBeNull();
+    expect(held()).toBe(true);
+  });
+
+  it("tells nothing without a cookie, or from one that is not a name", () => {
+    expect(takeToldName("album-1")).toBeNull();
+    document.cookie = `${TOLD_NAME_COOKIE}=%7Bnot-json; Path=/`;
+    expect(takeToldName("album-1")).toBeNull();
   });
 });

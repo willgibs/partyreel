@@ -1,10 +1,12 @@
 /**
  * THE ALBUM'S ORDER, ONE HOME (album-order, customize r1's `order=turns`, Will 2026-10-05: "it would feel weird to
- * scroll backwards through time if we have a good idea of when the event is over to flip, which we usually do").
+ * scroll backwards through time if we have a good idea of when the event is over to flip, which we usually do"). The
+ * good idea is hers, never a date's (Will, 2026-10-07, call AY1: "let's say I create an event for a trip with friends
+ * and I simply put in a single date on there, but wanted to stay open for the entire week").
  *
  * Three answers live here, each pure so a test can pin it without a browser:
- *   - THE TURN: an album runs newest first while its party is on, and the night in order from the morning after its
- *     last day (9 am, the hour a develop defaults to) or from its develop; an undated album never turns.
+ *   - THE TURN: an album runs newest first while it takes uploads, and the night in order once its host closes adding
+ *     or its develop is reached; reopening turns it back, and its dates never move it.
  *   - THE NIGHT IN ORDER'S KEY: when each photograph was taken where it carries a capture time, else when it arrived
  *     (`happenedAt`), so the in-order album reads the night as it happened.
  *   - WHAT A GUEST CHOSE: her own Newest or Oldest, remembered per album on this device only as a departure from the
@@ -22,15 +24,11 @@
  * Pure and isomorphic: the guest page's server decides the first paint's order with it, the browser keeps it live.
  */
 import type { ViewMenuGroup } from "@/components/shared/view-menu";
-import { DEFAULT_DEVELOP_HOUR } from "@/lib/disposable/reveal";
 import {
   entryCaptureTime,
   entryTime,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
-import { wallTimeIn } from "@/lib/event/wall-time";
-import { partyZoneOf } from "@/lib/event/zone";
-import { lastDayOf, shiftDay } from "@/lib/events/dates";
 import { yoursView } from "@/lib/guest/yours-filter";
 
 /* ───────────────────────────── the order ─────────────────────────────── */
@@ -69,7 +67,7 @@ export function sortViewGroup(
  * WHEN AN ENTRY WAS TAKEN, as the wire carries it (`entryCaptureTime`: `media.captured_at`, an entry's seventh
  * element), or null where the upload kept none.
  *
- * ★ THE ONE PLACE THE CAPTURE TIME IS READ (Will's X7, 2026-10-05: "keep the capture time, never the place or
+ * ★ THE ONE PLACE THE CAPTURE TIME IS READ (uploads-and-r2.md: "keep the capture time, never the place or
  * device"). The capture-time lane carries `media.captured_at` on the album's wire; this function is the switch it
  * flipped, and nothing that orders an album changed with it. Microseconds, like `t`.
  */
@@ -161,64 +159,44 @@ export function entriesInOrder(
 
 /* ───────────────────────────── the turn ──────────────────────────────── */
 
-/** What decides when an album turns: its days and its develop. */
+/**
+ * What decides the album's own order: whether its host still takes uploads, and its develop. Never its days: a date says
+ * when a party happens, never when she is done collecting it (a week's trip dated on its first day takes photos all
+ * week).
+ */
 export type AlbumTurnFacts = {
-  /** `events.event_date` (`YYYY-MM-DD`), or null: a range's first day. */
-  eventDate: string | null;
-  /** `events.event_end_date`, or null for one day; absent reads as one day. */
-  eventEndDate?: string | null;
-  /** The develop time (ISO), ahead or reached, or null: an album with one turns at it. */
+  /** `events.accepting_uploads`: an album its host has closed to adding reads in order. */
+  acceptingUploads: boolean;
+  /** The develop time (ISO), ahead or reached, or null: once it is reached the album reads in order. */
   developsAt?: string | null;
 };
 
-/**
- * THE HOUR THE MORNING AFTER BEGINS: the hour a develop defaults to (`defaultDevelopAt`), so the album turns when a
- * disposable from the same party would have developed. One hour, one home.
- */
-export const TURN_HOUR = DEFAULT_DEVELOP_HOUR;
-
-export { wallTimeIn };
-
-/** Whether a zone is one `Intl` can read (anything else is no zone, and the turn falls back to UTC). */
-function readableZone(zone: string): boolean {
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: zone });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * WHEN AN ALBUM TURNS (epoch ms), or null for never:
- *   - an album with a develop time turns AT it (a disposable: the roll develops into the night in order, and what is
- *     added after it appends);
- *   - a dated one at 9 am in `zone` the morning after its LAST day (a weekend wedding turns on Monday morning);
- *   - an undated one never: it stays newest first, since nothing says when its party ended.
- *
- * ★ `zone` IS THE PARTY'S (`events.time_zone`, read on the page's server: `guestAlbumOrder`), so every reader meets
- * one moment; the browser is handed the instant, never the zone.
- */
-export function albumTurnAt(
-  facts: AlbumTurnFacts,
-  zone: string,
+/** The develop's instant (epoch ms), or null for none, or for one that is no time (it turns nothing). */
+export function developMoment(
+  developsAt: string | null | undefined,
 ): number | null {
-  if (facts.developsAt) {
-    const at = Date.parse(facts.developsAt);
-    if (Number.isFinite(at)) return at;
-  }
-  const last = lastDayOf(facts.eventDate, facts.eventEndDate);
-  if (!last) return null;
-  return wallTimeIn(
-    shiftDay(last, 1),
-    TURN_HOUR,
-    readableZone(zone) ? zone : "UTC",
-  );
+  if (!developsAt) return null;
+  const at = Date.parse(developsAt);
+  return Number.isFinite(at) ? at : null;
 }
 
-/** The album's own order at `now`: newest first until it turns, then the night in order. */
-export function sortAt(turnAt: number | null, now: number): AlbumSort {
-  return turnAt !== null && now >= turnAt ? "oldest" : "newest";
+/**
+ * THE ALBUM'S OWN ORDER AT `now` (AY1): the night in order once its host closes adding, or once its develop is reached;
+ * newest first while it takes uploads, the live feed. So the turn is the album's state, never a date read in a zone:
+ *   - her close turns it (`accepting_uploads` off), and reopening turns it back, since a reopened album is a live one
+ *     again and what lands next leads it;
+ *   - an undated album turns the same way: nothing about it waits on a day;
+ *   - ★ a Disposable's develop, her own chosen moment, still turns its album (the Orchestrator's call on AY1): the roll
+ *     develops into the night in order and what is added after it appends, whether or not she has closed it.
+ * The demo never turns (`guestAlbumOrder`), and her own choice still wins over all of it (`pr_album_sort`).
+ */
+export function albumOwnSort(
+  facts: AlbumTurnFacts,
+  now: number = Date.now(),
+): AlbumSort {
+  if (!facts.acceptingUploads) return "oldest";
+  const develop = developMoment(facts.developsAt);
+  return develop !== null && now >= develop ? "oldest" : "newest";
 }
 
 /* ─────────────────────────── what she chose ──────────────────────────── */
@@ -291,24 +269,19 @@ export function rememberChosenSort(
 }
 
 /**
- * THE ORDER A GUEST ALBUM OPENS IN, AS THE PAGE'S SERVER HANDS IT (album-order and event-zone's two types, one idea,
- * folded): the album's own order at the render, her remembered choice, and the instant its party's morning after
- * begins. The page keeps it live from here (`useGuestAlbumOrder`).
+ * THE ORDER A GUEST ALBUM OPENS IN, AS THE PAGE'S SERVER HANDS IT: the album's own order at the render and her
+ * remembered choice. The page keeps it live from here (`useGuestAlbumOrder`: the host's word on adding as the album's
+ * sync carries it, and a develop's instant on the device's clock).
  *
- * ★ THE TURN IS AN INSTANT BY THE TIME A BROWSER HOLDS IT. The server reads the party's zone and hands the page the
- * moment its album turns (`morningAfter`), never the zone for the turn: no reader's clock, geography or engine (an older
- * browser's database of zones, or one that cannot read the party's) moves it.
+ * ★ ONE MOMENT FOR EVERY READER (PRD: "One moment for every guest"; Will: "It feels unfair to unlock the album at
+ * different times for certain guests based on geographical location"). The turn is the album's own state, which every
+ * open page hears on its next sync, or the develop's instant, one moment wherever it is read: no reader's clock, zone
+ * or browser moves it, and no zone is read for it at all.
  */
 export type GuestAlbumOrder = {
-  /**
-   * When the dated album turns (epoch ms): 9 am the morning after its LAST day in the party's zone, read once on the
-   * server; null for an undated album, the demo, and behind a gate (where the order knows no days). A develop time,
-   * live on the page, wins over it (`openingTurnAt`).
-   */
-  morningAfter: number | null;
   /** The album's own order at the render: the browser starts from it, so the hydration agrees. */
   own: AlbumSort;
-  /** Her remembered choice on this album, or null: she follows the turn. */
+  /** Her remembered choice on this album, or null: she follows the album's own. */
   chosen: AlbumSort | null;
 };
 
@@ -317,43 +290,19 @@ export const shownSort = (order: Pick<GuestAlbumOrder, "own" | "chosen">) =>
   order.chosen ?? order.own;
 
 /**
- * THE FIRST PAINT'S ORDER (the page's server, and See it as a guest's): the album's own at `now` (the develop wins, an
- * undated album and the demo never turn), her choice on it, and the party's morning after as an instant. `zone` is the
- * party's stored zone (`events.time_zone`), null for none: the fallback is `partyZoneOf`'s, said once.
+ * THE FIRST PAINT'S ORDER (the page's server, and See it as a guest's): the album's own at `now` (`albumOwnSort`; the
+ * demo never turns: it is the party in progress), and her choice on it.
  */
 export function guestAlbumOrder(input: {
   facts: AlbumTurnFacts;
-  zone: string | null;
   chosen: AlbumSort | null;
   isDemo?: boolean;
   now?: number;
 }): GuestAlbumOrder {
-  const zone = partyZoneOf(input.zone);
-  const turnAt = input.isDemo ? null : albumTurnAt(input.facts, zone);
   return {
-    morningAfter: input.isDemo
-      ? null
-      : albumTurnAt(
-          {
-            eventDate: input.facts.eventDate,
-            eventEndDate: input.facts.eventEndDate,
-          },
-          zone,
-        ),
-    own: sortAt(turnAt, input.now ?? Date.now()),
+    own: input.isDemo ? "newest" : albumOwnSort(input.facts, input.now),
     chosen: input.chosen,
   };
-}
-
-/**
- * WHEN THE ALBUM TURNS AS THE PAGE HOLDS IT: at its develop time where one is set (the turn's first rule, asked of the
- * develop alone, so no day and no zone is read), else at the party's morning after, the server's instant.
- */
-export function openingTurnAt(
-  morningAfter: number | null,
-  developsAt: string | null | undefined,
-): number | null {
-  return albumTurnAt({ eventDate: null, developsAt }, "UTC") ?? morningAfter;
 }
 
 /* ───────────────────────────── the lens ──────────────────────────────── */

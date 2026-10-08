@@ -21,6 +21,10 @@ import {
  *
  * ★ AND THE TWO BILLING CHECKS ABOVE THE LIST (credit-watch): the stuck credits and Stripe's change-plan configuration,
  * each read beside the accounts, a failure of either told to Sentry and said on the page, never failing it.
+ *
+ * ★ AND THE LINE AN OPERATOR LIFTED (crumbs-92, X6): an account holding a live uploads credit wears it beside its
+ * allowance (its figure has the credit taken off), the credits read once for the whole page, and a read that failed is said
+ * under the search and told to Sentry, never a row that looks like it holds none.
  */
 
 const accounts = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
@@ -33,6 +37,12 @@ const usage = vi.hoisted(() => ({
   convertedNames: [] as string[],
 }));
 const sentry = vi.hoisted(() => ({ warnings: [] as unknown[][] }));
+/** The live uploads credits' reading for the page's accounts (crumbs-92): by display name, or a failure's words. */
+const lifts = vi.hoisted(() => ({
+  byName: {} as Record<string, number>,
+  failure: null as string | null,
+  calls: 0,
+}));
 /** The admin gate's answer, and how many reads were made behind it. */
 const gate = vi.hoisted(() => ({ aal: "aal2", reads: 0, uploadsCalls: 0 }));
 /** The two billing checks' answers (credit-watch): the stuck credits' reading and the configuration's check. */
@@ -84,6 +94,18 @@ vi.mock("@/lib/db/queries/accounts", () => ({
   },
 }));
 
+vi.mock("@/lib/db/queries/uploads-credits", () => ({
+  readLiveCreditBytes: async (ids: string[]) => {
+    lifts.calls += 1;
+    if (lifts.failure) return { ok: false, message: lifts.failure };
+    const byId = new Map<string, number>();
+    for (const row of accounts.rows as { id: string; display_name: string }[]) {
+      const bytes = lifts.byName[row.display_name];
+      if (bytes && ids.includes(row.id)) byId.set(row.id, bytes);
+    }
+    return { ok: true, value: byId };
+  },
+}));
 vi.mock("@/lib/db/queries/pass-credits", () => ({
   readStuckPassCredits: async () => {
     gate.reads += 1;
@@ -137,6 +159,9 @@ beforeEach(() => {
   usage.byName = {};
   usage.lapsedByName = {};
   usage.convertedNames = [];
+  lifts.byName = {};
+  lifts.failure = null;
+  lifts.calls = 0;
   sentry.warnings = [];
   gate.aal = "aal2";
   gate.reads = 0;
@@ -191,6 +216,59 @@ describe("the Cap column", () => {
     const unwritten = rowOf("Unwritten");
     expect(within(unwritten).getByText("Unlimited")).toBeInTheDocument();
     expect(unwritten.getAttribute("data-tone")).toBeNull();
+  });
+});
+
+describe("the line an operator lifted (crumbs-92, X6)", () => {
+  it("★ marks an account holding a live credit beside its allowance, and no other", async () => {
+    accounts.rows = [
+      row({ display_name: "Credited" }),
+      row({ display_name: "Plain" }),
+    ];
+    usage.byName = { Credited: 212 * MEGABYTE };
+    lifts.byName = { Credited: 100 * MEGABYTE };
+    await draw();
+    const credited = rowOf("Credited");
+    expect(within(credited).getByText("+100 MB credit")).toBeInTheDocument();
+    // Its figure is the count with the credit taken off, beside the plan's own number.
+    expect(within(credited).getByText("212 MB")).toBeInTheDocument();
+    expect(within(credited).getByText("300 MB / mo")).toBeInTheDocument();
+    expect(within(rowOf("Plain")).queryByText(/credit/)).toBeNull();
+  });
+
+  it("★ reads every account's credits in one call", async () => {
+    accounts.rows = [
+      row({ display_name: "One" }),
+      row({ display_name: "Two" }),
+      row({ display_name: "Three" }),
+    ];
+    await draw();
+    expect(lifts.calls).toBe(1);
+  });
+
+  it("★ a failed read is said under the search and told to Sentry, and the rows still draw", async () => {
+    accounts.rows = [row({ display_name: "Credited" })];
+    lifts.byName = { Credited: 100 * MEGABYTE };
+    lifts.failure = 'relation "uploads_credits" does not exist';
+    await draw();
+    expect(
+      screen.getByText(
+        /Uploads credits could not be read, so no row below shows one/,
+      ),
+    ).toBeInTheDocument();
+    expect(within(rowOf("Credited")).queryByText(/credit/)).toBeNull();
+    expect(sentry.warnings).toContainEqual([
+      "admin",
+      "accounts: uploads credits read failed",
+      { of: 1, message: 'relation "uploads_credits" does not exist' },
+    ]);
+  });
+
+  it("says nothing when nothing is wrong", async () => {
+    accounts.rows = [row({ display_name: "Plain" })];
+    await draw();
+    expect(screen.queryByText(/credits could not be read/)).toBeNull();
+    expect(sentry.warnings).toEqual([]);
   });
 });
 

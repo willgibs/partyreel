@@ -42,6 +42,28 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "follow",
+          "choice": "once",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "invite",
+          "choice": "plate",
+          "note": "This design puts more emphasis on the CTA itself (in option 4, my eye goes to the media in the card, but this option by eye goes straight to cta heading/button beside each other to easily digest info at a glance (this is good global philosophy - spreading out copy makes it feel hard to quickly digest, but having copy groups feel a bit more grouped/compact and breathing room allow it draws much better focus/hierarchy/user eye flows), and maybe we can redesign the content below to feel more like a teaser until the profile is set up. That more preview feel prior to profile setup would incentivize many more users to go through the flow to unlock full access.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

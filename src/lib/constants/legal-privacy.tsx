@@ -469,10 +469,12 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         "There is no expiry clock on an album: events stay up until their host takes them down, or until one of the lifecycle rules below applies. We keep other information only as long as the purpose it was collected for requires. This table sets out the clocks.",
       ),
       // Sources: recently-deleted.ts (30d, budget eviction), lifecycle-
-      // recovery.md (45d grace, largest-first), inactivity.ts (180d, 14d
-      // warn), passes.ts (365d), upload_forensics cascade, the 24h sweeps,
-      // trust-safety-forensics.md (1-year preservation), durability-backups.md
-      // (prune in dry-run => backup copies persist).
+      // recovery.md (45d grace, largest-first), passes.ts (365d),
+      // upload_forensics cascade, the 24h sweeps, trust-safety-forensics.md
+      // (1-year preservation), durability-backups.md (prune in dry-run =>
+      // backup copies persist). ★ The idle removal (inactivity.ts) is stated
+      // with NO figure, window or warning lead (the PRD's legal-text
+      // principle); `inactivity.test.ts` holds it.
       table(
         [{ header: "Information" }, { header: "Kept for" }],
         [
@@ -490,7 +492,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           ],
           [
             "Events on free accounts with no activity",
-            "Removed after about 6 months without activity, with an email warning 14 days before, then the recovery bin",
+            "Removed after a long period without activity (a period we may change), with an email warning beforehand, then the recovery bin",
           ],
           [
             "Event Pass events",

@@ -52,12 +52,17 @@ export function EventLinkRow({
     <div className={cn("flex min-w-0 items-center gap-1.5", className)}>
       <Link2 className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       {/* The readable link itself opens the album in a new tab: a host checks
-          what a guest will see far more often than they copy it. */}
+          what a guest will see far more often than they copy it. ★ A keyboard's
+          focus on it is the house's halo, as on the copy control beside it: it
+          was the one stop on the cover wearing the browser's own outline
+          (red-team 57), and the halo is drawn on its box, so the box is round
+          and a hair roomier than its words (the padding the negative margins
+          give back, so the words stay where they stood). */}
       <a
         href={permanentUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="min-w-0 truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
+        className="-mx-1 -my-0.5 min-w-0 focus-halo truncate rounded-sm px-1 py-0.5 text-xs text-muted-foreground transition-colors outline-none hover:text-foreground"
         {...trackAttrs("cta_click", { cta: "event-link", location: "hub" })}
       >
         <span className="hidden sm:inline">{display}</span>

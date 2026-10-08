@@ -51,6 +51,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const { POST } = await import("./route");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 const { roomRefusalWords } =
   await import("@/components/app/storage/storage-figures");
 
@@ -76,21 +79,14 @@ async function presign() {
     new Request("https://partyreel.com/api/host/r2/presign-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         event_id: EVENT,
         content_type: "image/jpeg",
         size_bytes: FILE_BYTES,
       }),
     }),
   );
-  return {
-    status: res.status,
-    body: (await res.json()) as {
-      ok: boolean;
-      code?: string;
-      message?: string;
-    },
-  };
+  return answerOfOne<{ ok: boolean; code?: string; message?: string }>(res);
 }
 
 beforeEach(() => {

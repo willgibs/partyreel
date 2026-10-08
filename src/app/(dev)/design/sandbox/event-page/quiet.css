@@ -1,0 +1,245 @@
+/* ── QUIET'S OWN SHEET (event-page r1, `quiet.tsx`) ──────────────────────────
+   The cover kept, its light given to the empty page: the seed's light where
+   the cover meets the album before any photograph, and the album's light in
+   the edge of the cover's one act once there are photographs.
+
+   ★ UNLAYERED, every selector `.ep-quiet-…` or `[data-ep-quiet…]`, no
+   keyframes, no `:has()`: nothing here moves (still until something happens). */
+
+/* ── the empty page's light ── */
+
+/* THE HORIZON: the seed's band (its three depths across, so the light varies
+   along its length as light does) laid along an edge and spent away from it
+   on a light's own eased fall, the same at every point of its length: no pool,
+   no point of focus, nothing for the eye to land on before the name and the
+   Add. `--ep-quiet-reach` is how far it goes (its box), `--ep-quiet-core` how
+   strong it is at the edge. Its grain lives inside the light's own mask, so
+   where the light is spent the room is the room's own black (a grain over a
+   whole box lifts the black and shows the box's edge). */
+.ep-quiet-glow {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 0;
+  display: block;
+  height: var(--ep-quiet-reach);
+  background: var(--ep-quiet-band);
+  opacity: var(--ep-quiet-core);
+  pointer-events: none;
+  isolation: isolate;
+  /* Flat at the edge, then a light's long tail: a horizon has no crease (a
+     fall that starts steep draws a lit line where two halves meet). */
+  --ep-quiet-ease:
+    #000 0%, rgb(0 0 0 / 0.985) 5%, rgb(0 0 0 / 0.945) 10%,
+    rgb(0 0 0 / 0.865) 16%, rgb(0 0 0 / 0.74) 23%, rgb(0 0 0 / 0.58) 31%,
+    rgb(0 0 0 / 0.42) 40%, rgb(0 0 0 / 0.29) 50%, rgb(0 0 0 / 0.185) 60%,
+    rgb(0 0 0 / 0.105) 70%, rgb(0 0 0 / 0.05) 80%, rgb(0 0 0 / 0.018) 90%,
+    transparent 100%;
+}
+/* Born at a real edge (the cover's foot on paper, a card's, a tile's): hot at
+   the edge it is born at, then the long fall, so it reads as starting there
+   rather than going on past a cut. */
+.ep-quiet-glow[data-ease="edge"] {
+  --ep-quiet-ease:
+    #000 0%, rgb(0 0 0 / 0.76) 7%, rgb(0 0 0 / 0.54) 17%, rgb(0 0 0 / 0.36) 30%,
+    rgb(0 0 0 / 0.21) 45%, rgb(0 0 0 / 0.105) 62%, rgb(0 0 0 / 0.04) 79%,
+    rgb(0 0 0 / 0.012) 91%, transparent 100%;
+}
+/* A stronger breath of grain than a field's, inside the light only: a slow
+   fall of a dark colour bands in eight bits, and the grain dithers it. */
+.ep-quiet-glow > .ep-grain {
+  opacity: 0.14;
+}
+.ep-quiet-glow[data-from="bottom"] {
+  bottom: 0;
+  -webkit-mask-image: linear-gradient(to top, var(--ep-quiet-ease));
+  mask-image: linear-gradient(to top, var(--ep-quiet-ease));
+}
+
+/* The cover's foot lit where the room meets a ground that is not the room
+   (paper under the cover, a card's or a tile's own edge): the light is born
+   at that edge, so the edge itself carries it, ends faded short of any
+   corner. A filled box, never a border (Chrome draws a 1.5px border as 1px). */
+.ep-quiet-line {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 0;
+  display: block;
+  /* A card is drawn at 1200 and seen at a fifth of that or less, so it asks
+     for a heavier line (`--ep-quiet-line-h`) that still reads as a pixel. */
+  height: var(--ep-quiet-line-h, 1.5px);
+  background: var(--ep-quiet-line);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 16%,
+    #000 84%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 16%,
+    #000 84%,
+    transparent 100%
+  );
+}
+
+/* In the room the cover's foot is no edge (the page is the room too), so its
+   light is one box across it (`RoomHorizon`): its brightest line the foot,
+   rising into the cover and running on into the album's place, behind the
+   cover, whose own ground stands down to the room's (the same colour), so no
+   box edge crosses the light. Its mask (the fall either side of the foot) is
+   computed per cover, its grain inside it. */
+.ep-quiet-horizon {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 0;
+  display: block;
+  background: var(--ep-quiet-band);
+  opacity: var(--ep-quiet-core);
+  pointer-events: none;
+  isolation: isolate;
+  -webkit-mask-image: var(--ep-quiet-mask);
+  mask-image: var(--ep-quiet-mask);
+}
+.ep-quiet-horizon > .ep-grain {
+  opacity: 0.14;
+}
+.ep-quiet-cover[data-ep-quiet="empty"][data-ep-quiet-ground="room"]
+  > [data-event-head] {
+  background-color: transparent;
+}
+/* The empty cover is the achromatic room: the house light stands down, the
+   seed's horizon is its one light (never the house ember). */
+.ep-quiet-cover[data-ep-quiet="empty"] [data-head-light] {
+  display: none;
+}
+
+/* ── the light in the controls ── */
+
+/* THE RING, IN SMALL, IN THE ACT'S FACE: the shutter's own anatomy at a
+   glyph's size, never an outline round the button (an offset ring is the sign
+   of focus). A disc of the room's own dark (a light reads as light only on a
+   piece of the room, never on a white face), the album's key in its rim, lit
+   from the top-left as the Ring is, a breath of the same light inside the rim,
+   and the act's glyph in white at its centre. Nested in the pill's round end,
+   as a chip carries its face. */
+.ep-quiet-mark {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: #0c0c0e;
+  color: #fff;
+  isolation: isolate;
+}
+/* The lit rim: a 2px band at the disc's edge (two masks on one element never
+   intersect in Chrome, so the rim is its own layer). */
+.ep-quiet-mark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 2px;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 0%,
+      transparent 40%,
+      rgb(12 12 14 / 0.38) 74%,
+      rgb(12 12 14 / 0.62) 100%
+    ),
+    var(--ep-quiet-ring);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+/* The light's breath inside the rim, spent before the glyph (the shutter's
+   glow, kept within its own dark). */
+.ep-quiet-mark::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    closest-side,
+    transparent 52%,
+    color-mix(in oklab, var(--ep-quiet-halo) 30%, transparent) 100%
+  );
+}
+.ep-quiet-mark > svg {
+  position: relative;
+}
+/* Before the album has a photograph to light it: a hairline of white, nothing
+   glowing (the Ring's own unlit beat); its first photograph lights it. */
+.ep-quiet-mark[data-ep-quiet-mark="unlit"]::before {
+  background: rgb(255 255 255 / 0.3);
+}
+.ep-quiet-mark[data-ep-quiet-mark="unlit"]::after {
+  display: none;
+}
+
+/* ── her cover's scrim ── */
+
+/* With no Seam to be born at its foot, her cover's scrim needs no lift there.
+   At a phone her words fill the cover's height (the name rides near its top),
+   so the weight starts high and holds to the foot. */
+@media (width < 40rem) {
+  .ep-quiet-cover[data-ep-quiet="photos"] [data-event-head="hub"] .head-scrim {
+    background: linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.4) 0%,
+      rgb(0 0 0 / 0.62) 24%,
+      rgb(0 0 0 / 0.74) 48%,
+      rgb(0 0 0 / 0.78) 100%
+    );
+  }
+}
+/* At a desk her words stand on the left line from the name down, her acts
+   and rooms among them, so the weight lies along that line and at the foot,
+   and the photograph runs clear to the right. */
+@media (width >= 40rem) {
+  .ep-quiet-cover[data-ep-quiet="photos"] [data-event-head="hub"] .head-scrim {
+    background:
+      linear-gradient(
+        to right,
+        rgb(0 0 0 / 0.6) 0%,
+        rgb(0 0 0 / 0.42) 30%,
+        rgb(0 0 0 / 0.12) 52%,
+        transparent 66%
+      ),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.38) 0, rgb(0 0 0 / 0) 7.5rem),
+      linear-gradient(to top, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0) 60%);
+  }
+}
+
+/* ── the one moment ── */
+
+/* The moment's headline at the cover's name's step (the moment is the cover,
+   full screen; its lines take the cover's white from `tone="photo"`). Here,
+   never as a lab utility on the words' box: a lab-only class lives in a
+   nested layer that the app's own utilities outrank. */
+[data-ep-quiet-moment] [data-ep-premiere-words] > h2 {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+}
+
+/* ── the words on the cover ── */
+
+/* The guests' count reads in the byline's own white on the cover, never the
+   page's muted grey, which sinks into a photograph. */
+[data-ep-quiet] [data-ep-faces] > span:last-child {
+  color: rgb(255 255 255 / 0.85);
+}

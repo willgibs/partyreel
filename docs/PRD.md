@@ -43,10 +43,10 @@ next host. **North-star metric: a host creates a second event.**
    (`hold_for_approval`); the host approves, hides or removes any upload, closes or reopens uploads, and sets who can
    see the album.
 4. **Share**: the same link is the album, and with uploads closed it reads as a view-only album. It unfurls with a
-   per-event preview card (`noindex`; the token is a private capability) and carries a quiet "Start for free" link
-   for a signed-out visitor; after a guest's first upload, a one-time offer invites them to confirm an email, which
-   keeps their photos in an account and brings the event with them onto their dashboard, then offers the host to
-   follow. There is no separate save: uploading to an event is what keeps it.
+   per-event preview card (`noindex`; the token is a private capability) and carries a quiet Make one like this, which
+   opens Create in the album's style for a guest who wants her own; after a guest's first upload, a one-time offer
+   invites them to confirm an email, which keeps their photos in an account and brings the event with them onto their
+   dashboard, then offers the host to follow. There is no separate save: uploading to an event is what keeps it.
 5. **Reel**: from the album's second photo, the event plays as its own highlight reel on every viewer's phone and on
    the room's screen, taking in uploads as they land with nothing for the host to make; anyone with the album makes a
    clip of it on their own device to keep or send, and on a paid event can add it to the album.
@@ -87,7 +87,7 @@ Deleted:
   Event Pass) opens a 45-day grace on what she keeps by choice, with a warning email and a reminder 7 days before it
   ends; then what she already deleted leaves for good first, and her largest files go to Deleted until she is under
   her cap.
-- **Free-plan inactivity**: an event 180 days past its last activity (the host signing in or using the app, an edit to
+- **Free-plan inactivity**: an event two years (730 days) past its last activity (the host signing in or using the app, an edit to
   the event, a new upload) is removed, with a warning email 14 days before.
 
 Every trigger lands in the same recoverable tail: 30 days in Deleted, restorable by the host in the app (restoring her
@@ -134,9 +134,17 @@ design's ten. Native mobile apps are a non-goal: guests use the mobile web, whic
 - **Delight where it costs nothing in clarity:** "all work and no play is a boring consumer product", so a moment of
   play (a develop, a photograph landing) is worth building wherever it never clouds what a screen says; and never a
   developer's tool (no terminal or code look, no monospace face). Attention is earned the same way: the one thing that
-  needs her may draw the eye, beautiful and inviting, while nothing on a screen yells or crowds it.
+  needs her may draw the eye, beautiful and inviting, while nothing on a screen yells or crowds it, and words sit in
+  compact groups with room around them, read at a glance, never spread across a screen.
+- **Simple on top, deep underneath:** a screen shows its few big ideas plainly, each the door to the features behind
+  it, so she finds the rest by exploring (a clip is made from inside the reel), never every feature one press away like
+  a cockpit's controls; any surface may be redrawn to this.
+- **One product on both sides:** a host and a guest meet the same interface wherever they can, so someone who hosts one
+  party and joins another never switches products; each side adds its own tools.
 - **Nothing depends on a timeline:** undated, morning-only, daytime and multi-day events all read well, and "night" is
-  never identity language (`constants/marketing-voice.ts`).
+  never identity language (`constants/marketing-voice.ts`). A date never closes, ends or reshapes an album by itself:
+  it works as it did until its host closes adding, which is offered and never assumed (a trip dated one day may run all
+  week), and a moment for the party just past is shown once, then steps aside.
 - **Immediate, or a clear state and a way out:** everything should feel immediate; anything that takes longer says what
   it is doing and can be stopped where stopping means something; and a failure says what happened, that nothing was
   lost, and the one easy way to put it right, so it never feels frustrating or scary.
@@ -151,6 +159,8 @@ design's ten. Native mobile apps are a non-goal: guests use the mobile web, whic
   disclosure is a sentence in the Terms.
 - **Help tracks shipped reality; marketing presents the product as complete** (punchy, never pedantic:
   `systems/marketing-content.md`); the Terms and the Privacy Policy are rewritten once, right before launch, and no
-  milestone waits on them.
+  milestone waits on them. They, help and the product's own words promise what the law and trust require and what is
+  true today, never a number or a "never" that would box out a later choice (a removal window, a feature not built
+  yet), so no decision after launch breaks a promise made before it.
 - **A one-way door waits for him:** what defines the product's core output or identity is asked first (build now, or
   research first); well-bounded infrastructure and features are built without asking.

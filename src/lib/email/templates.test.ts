@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Mail } from "@/lib/email/templates";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 
 // templates.ts takes the canonical origin from site.ts, which validates the public env on import.
 // Unset here, so SITE_URL takes its production fallback, which is what every deploy that sends builds.
@@ -461,6 +462,25 @@ describe("system-removal email copy (recovery Phase 5)", () => {
     expect(html).toContain("July 2, 2026");
     expect(html).toContain("Deleted");
     expect(html).not.toMatch(/reply to this email/i);
+  });
+
+  // ★ Both mails tell a host the sweep's own window (inactivity.ts), the only place it lives: a mail typing "6
+  // months" went on telling hosts their events were doomed at six after the window moved to two years.
+  it("★ both inactivity mails say the window the sweep enforces", () => {
+    const warning = T.inactivityWarningEmail({
+      eventName: "Summer Party",
+      deadline: "July 2, 2026",
+      dashboardUrl: "https://partyreel.com/dashboard",
+    });
+    const removed = T.inactivityRemovedEmail({
+      eventName: "Summer Party",
+      recoverableUntil: "July 2, 2026",
+      dashboardUrl: "https://partyreel.com/dashboard",
+    });
+    for (const mail of [warning, removed]) {
+      expect(mail.text).toContain(`${INACTIVE_MONTHS} months of inactivity`);
+      expect(mail.html).toContain(`${INACTIVE_MONTHS} months of inactivity`);
+    }
   });
 });
 

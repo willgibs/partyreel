@@ -1,5 +1,5 @@
 /**
- * A PHOTOGRAPH'S CAPTURE TIME, ONE HOME (`capture-time.ts`; Will's X7, 2026-10-05: "keep the capture time, never the
+ * A PHOTOGRAPH'S CAPTURE TIME, ONE HOME (`capture-time.ts`; uploads-and-r2.md: "keep the capture time, never the
  * place or device"): what instant a stamp names, the claim the uploader sends, and the server's word on it, the
  * bounds' one home. Every case fails on the code before the lane (none of it existed: no capture time was kept).
  */

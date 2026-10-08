@@ -1,7 +1,7 @@
 /**
  * SWEEP 7: FREE-TIER INACTIVITY REMOVAL. A free event is active while the LATEST of its host's
- * `last_active_at`, the event's created/updated and its newest upload is within about six months.
- * Past that: a warning email (14 days out), then a soft-delete (`deleted_at`; the trigger derives
+ * `last_active_at`, the event's created/updated and its newest upload is within the window (`INACTIVE_DAYS`).
+ * Past that: a warning email (`WARN_BEFORE_DAYS` out), then a soft-delete (`deleted_at`; the trigger derives
  * `purge_at`, so sweep 1 reclaims it after the window) and a recoverable-tail email. Free tier only
  * (the PRD): paid accounts keep their events until they cancel. The pure decision is
  * `inactivityAction` (`src/lib/lifecycle/inactivity.ts`).

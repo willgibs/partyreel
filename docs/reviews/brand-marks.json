@@ -1,0 +1,42 @@
+{
+  "board": "brand-marks",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-07",
+      "answers": [
+        {
+          "ask": "wordmark",
+          "choice": "finished",
+          "note": "Still open to other options, but this is my favorite right now. I like that it's a bit bold, so at any size, it still packs a bit of a punch without having to be a large size itself. For example, when you land on the home hero, the log isn't big so your eye draws to the H1/visual first, but at its smaller size in the nav it still carries its weight, rather than a thin/spaced logo that gets lost to the surrounding UI. I guess the core idea is that the wordmark should present as a singular group to present clearly, rather than feel spaced out and spread focus. Additional explorations should keep that philosophy in mind.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "icon",
+          "choice": "ember",
+          "note": "I'd be curious to explore additional designs on top of this, such as filling the ring with more design to feel more bespoke to our brand rather than identifying with a circle alone. However, we can carry this as the working version.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "plate",
+          "choice": "room",
+          "note": "I'm leaning towards this because the contrast feels a lot richer, almost vibrant, compared to the lighter-toned dark gray in option one, which feels a bit more muted. The deeper black also makes the color in the footer (top glow, media) pop much more.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        },
+        {
+          "ask": "status",
+          "choice": "amber",
+          "note": "I think it helps to have green for clear success rather than letting success sneak by in a neutral color. The warning color also allows a bit of distinction between failure and warning states, so less intense states feel less intimidating. Open to your favorite version of this color palette for states. Also open to your new best ideas on how to apply them. Doesn't have to be strictly what you suggest in the option here. My selection was mostly based on including all three to allow for a clearer hierarchy of states rather than simply red or not red.",
+          "by": "Will",
+          "at": "2026-10-07T19:30:12Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

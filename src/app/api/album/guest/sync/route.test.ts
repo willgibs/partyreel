@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * across access levels or gates). A read the reads' own gate refuses answers locked behind the
  * password and is reported, never a 500; a read that FAILS is still a failure.
  */
+import { edgeWindowOf } from "@/lib/album/edge-version";
 import { planAlbumSync } from "@/lib/events/album-sync";
 
 vi.mock("server-only", () => ({}));
@@ -66,7 +67,15 @@ vi.mock("@/lib/r2/presign", () => ({
   }) => `https://r2.test/${key}?sig${downloadFilename ? "&dl" : ""}`,
 }));
 
+// The CDN's ask reads the event with no identity (X5); only its cross-check below asks it.
+const getEventByQrTokenForAnyone = vi.fn();
+vi.mock("@/lib/db/queries/guest-events", () => ({
+  getEventByQrTokenForAnyone: (...a: unknown[]) =>
+    getEventByQrTokenForAnyone(...a),
+}));
+
 const { POST } = await import("@/app/api/album/guest/sync/route");
+const { albumEdgeKey } = await import("@/app/api/album/guest/sync/edge.server");
 
 const EVENT = {
   id: "e0000000-0000-4000-8000-000000000001",
@@ -872,5 +881,106 @@ describe("★ whether the album takes uploads (guest-requests)", () => {
     const body = await (await post({ qr_token: "qr-1" })).json();
     expect(body.kind).toBe("teaser");
     expect(body).not.toHaveProperty("accepting");
+  });
+});
+
+describe("★ the CDN's key (X5): named only where everyone with the link sees the album whole", () => {
+  const KEY = albumEdgeKey("qr-1");
+
+  function viewer(
+    event: Record<string, unknown>,
+    decision: { access: string; gate: string | null } = {
+      access: "full",
+      gate: null,
+    },
+  ) {
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event,
+      decision,
+      isDemo: false,
+      heal: null,
+    });
+  }
+
+  it("rides every full answer of an open album, its 304 included, and is never the token", async () => {
+    const first = await post({ qr_token: "qr-1" });
+    expect(first.headers.get("x-album-edge")).toBe(KEY);
+    expect(KEY).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(KEY).not.toContain("qr-1");
+    const quiet = await post(
+      { qr_token: "qr-1", since: 5 },
+      { "If-None-Match": first.headers.get("etag")! },
+    );
+    expect(quiet.status).toBe(304);
+    expect(quiet.headers.get("x-album-edge")).toBe(KEY);
+  });
+
+  const yours: [string, Record<string, unknown>][] = [
+    ["a password album, unlocked", { visibility: "password" }],
+    [
+      "a gated album, through its door",
+      { visibility: "private", door: "approve" },
+    ],
+    ["the host on her Only me album", { visibility: "private" }],
+    [
+      "an email asked first, and hers confirmed",
+      { require_verified_email: true },
+    ],
+    ["an upload asked first, and hers made", { require_upload_to_view: true }],
+  ];
+  for (const [name, over] of yours) {
+    it(`never where the full album is this viewer's alone: ${name}`, async () => {
+      viewer({ ...EVENT, ...over });
+      const res = await post({ qr_token: "qr-1" });
+      expect((await res.json()).kind).toBe("manifest");
+      expect(res.headers.get("etag")).not.toBeNull();
+      expect(res.headers.get("x-album-edge")).toBeNull();
+    });
+  }
+
+  it("never on a teaser, a lock or a refusal", async () => {
+    viewer(EVENT, { access: "teaser", gate: "account" });
+    expect(
+      (await post({ qr_token: "qr-1" })).headers.get("x-album-edge"),
+    ).toBeNull();
+    resolveAlbumViewer.mockResolvedValue({ kind: "gone" });
+    expect(
+      (await post({ qr_token: "qr-1" })).headers.get("x-album-edge"),
+    ).toBeNull();
+    viewer(EVENT);
+    planGuestAlbumSync.mockResolvedValue(null);
+    const refused = await post({ qr_token: "qr-1" });
+    expect((await refused.json()).kind).toBe("locked");
+    expect(refused.headers.get("x-album-edge")).toBeNull();
+  });
+
+  it("★ the CDN's version IS this route's validator, byte for byte: a quiet room's answer 304s here", async () => {
+    const { GET } = await import("@/app/api/album/guest/sync/version/route");
+    loadGalleryReel.mockResolvedValue({
+      showReel: true,
+      liveReelEnabled: true,
+      styleId: "warm",
+      clip: null,
+    });
+    viewer({ ...EVENT, accepting_uploads: false });
+    getEventByQrTokenForAnyone.mockResolvedValue({
+      ok: true,
+      data: { ...EVENT, accepting_uploads: false },
+    });
+    const etag = (await post({ qr_token: "qr-1" })).headers.get("etag");
+    const res = await GET(
+      new Request(
+        `https://partyreel.com/api/album/guest/sync/version?k=${KEY}&w=${edgeWindowOf(Date.now())}`,
+        { headers: { "x-album-token": "qr-1" } },
+      ),
+    );
+    const { v } = await res.json();
+    expect(v).toBe(etag);
+    const quiet = await post(
+      { qr_token: "qr-1", since: 5 },
+      { "If-None-Match": v },
+    );
+    expect(quiet.status).toBe(304);
   });
 });

@@ -37,8 +37,13 @@ vi.mock("@/lib/supabase/anon", () => ({
   },
 }));
 
-const { getEventByQrToken, getEventMediaByQrToken, olderThan } =
-  await import("@/lib/db/queries/guest-events");
+const {
+  getEventByQrToken,
+  getEventByQrTokenForAnyone,
+  getEventMediaByQrToken,
+  olderThan,
+} = await import("@/lib/db/queries/guest-events");
+const { isUnlocked } = await import("@/lib/events/unlock-cookie");
 
 const OPEN_QR = "d02631f1bfb3455188d224e41bf9510f";
 
@@ -376,7 +381,10 @@ describe("getEventByQrToken: the live reel's event facts", () => {
     // A value the code does not know is never trusted: an unknown capture reads as free uploads, its roll as none.
     answer(eventRow({ capture: "film", roll_size: 99 }));
     const odd = await getEventByQrToken(OPEN_QR);
-    expect(odd.ok && odd.data).toMatchObject({ capture: "upload", roll_size: null });
+    expect(odd.ok && odd.data).toMatchObject({
+      capture: "upload",
+      roll_size: null,
+    });
   });
 
   // A RANGE'S LAST DAY (20261003120000), the read's last column, redacted with the date: carried as the read answers
@@ -408,5 +416,79 @@ describe("getEventByQrToken: the live reel's event facts", () => {
     answer(eventRow());
     const on = await getEventByQrToken(OPEN_QR);
     expect(on.ok && on.data.show_reel).toBe(true);
+  });
+});
+
+describe("getEventByQrTokenForAnyone: the same read with no identity (X5, the CDN's ask)", () => {
+  const ROW: FakeRow = {
+    id: uid(901),
+    qr_token: OPEN_QR,
+    name: "Probe",
+    description: "Dinner, then dancing",
+    moderation_mode: "live",
+    visibility: "open",
+    has_password: false,
+    accepting_uploads: true,
+    require_verified_email: false,
+    require_upload_to_view: false,
+    event_date: "2026-10-10",
+    event_end_date: null,
+    qr_style: "classic",
+    host_display_name: "Maya",
+    custom_slug: null,
+    show_reel: true,
+    reel_style_id: null,
+    reel_hold_sec: null,
+    accepts_video: true,
+    max_upload_bytes: null,
+  };
+
+  it("★ asks with no session, and maps the row exactly as the request read does", async () => {
+    fake = createFakePostgrest({ rpc: { get_event_by_qr_token: () => [ROW] } });
+    anonAsked.mockClear();
+    const anyone = await getEventByQrTokenForAnyone(OPEN_QR);
+    expect(anonAsked).toHaveBeenCalledTimes(1);
+    expect(anyone).toEqual(await getEventByQrToken(OPEN_QR));
+  });
+
+  it("never re-hydrates a password album's withheld details: no unlock is anyone's", async () => {
+    vi.mocked(isUnlocked).mockResolvedValue(true);
+    fake = createFakePostgrest({
+      rpc: {
+        get_event_by_qr_token: () => [
+          {
+            ...ROW,
+            visibility: "password",
+            description: null,
+            event_date: null,
+            host_display_name: null,
+          },
+        ],
+      },
+    });
+    vi.mocked(isUnlocked).mockClear();
+    const anyone = await getEventByQrTokenForAnyone(OPEN_QR);
+    expect(isUnlocked).not.toHaveBeenCalled();
+    expect(anyone.ok && anyone.data.description).toBeNull();
+    expect(anyone.ok && anyone.data.visibility).toBe("password");
+  });
+
+  it("an unknown token is not found, and a failed read throws", async () => {
+    fake = createFakePostgrest({ rpc: { get_event_by_qr_token: () => [] } });
+    expect(await getEventByQrTokenForAnyone(OPEN_QR)).toEqual({
+      ok: false,
+      code: "not_found",
+    });
+    fake = createFakePostgrest({
+      rpc: {
+        get_event_by_qr_token: () => {
+          throw new FakeRpcError(
+            "57014",
+            "canceling statement due to statement timeout",
+          );
+        },
+      },
+    });
+    await expect(getEventByQrTokenForAnyone(OPEN_QR)).rejects.toBeTruthy();
   });
 });

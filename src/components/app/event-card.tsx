@@ -3,13 +3,11 @@ import {
   Calendar,
   Film,
   Image as ImageIcon,
-  Images,
   Lock,
   type LucideIcon,
 } from "lucide-react";
 
-import { CycledCover } from "@/components/app/dashboard/cover-cycle";
-import { formatCount } from "@/lib/format/count";
+import { PhotoImg } from "@/components/app/photo-img";
 import { RangeText } from "@/lib/format/range-text";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -22,12 +20,11 @@ import { cn } from "@/lib/utils";
  *     no thumbnail);
  *   - `video`: the album holds only video, which no card draws: a profile's attended card whose
  *     party is all video (its gates proved, `getPublicProfileAttendedCoverUrls`);
- *   - `locked`: the album is closed to this viewer (a guest card whose host made it private, a
- *     binned event).
+ *   - `locked`: the album is closed to this viewer (a guest card whose host made it private).
  * ★ A MISSING LINK IS NOT A LOCK. A profile's attended card carries no link because attendance is
  * not a capability grant, while its album is open by the RPC's own gate; read off `href: null`, the
- * face told every visitor that album was locked. So the lock is only ever the default for a card
- * that names no face of its own, which is what the dashboard's private and binned cards rely on.
+ * face told every visitor that album was locked. So the lock is only ever the default for an
+ * unlinked card that names no face of its own.
  */
 export type EventCardFace = "photo" | "video" | "locked";
 
@@ -38,25 +35,19 @@ const EMPTY_FACE: Record<EventCardFace, LucideIcon> = {
 };
 
 /**
- * The dashboard event card (Phase 5 S2a, the ratified STAT-FORWARD V3): a 16:10
- * cover with the event identity + stats as an OVERLAY (white chrome on a dark
+ * A party as a card (Phase 5 S2a, the ratified STAT-FORWARD V3): a 16:10 cover
+ * with the event identity + its pills as an OVERLAY (white chrome on a dark
  * gradient, legible over any photo OR the no-cover dark fallback, in both
- * themes). Presentational + server-renderable - the only interactive piece, the
- * QR chip, arrives as the client `qrSlot` (a sibling of the Link, so tapping it
- * never navigates). Used for the dashboard's events list (the events you host
- * and the events you added to), the bin, and the public profile's grid.
+ * themes). Presentational + server-renderable. The public profile's grid draws
+ * it; the dashboard's tile is its own (`dashboard/event-tile.tsx`).
  *
  * `href: null` = an unopenable card: a guest album whose host has since made it
- * private (the guestEventCardProps privacy contract), a binned event, or a
- * profile's attended card (attendance is not a capability). Bare of a cover, the
- * first two wear the lock by default and the third names its own face (`empty`).
- * `variant` drives the chrome: hosted (QR slot + the needs-you review chip +
- * Open/Paused + item count), guest (the profile's own Guest marker + byline: an
- * event you added photos to, guest by upload 2026-09-22), trash (dimmed +
- * countdown + restore action). The review chip and `action` never coexist by
- * construction (hosted has the chip + no action; trash has an action + no
- * pending; guest wears its marker there unless a caller hands an action), so the
- * top-right slot never collides.
+ * private, or a profile's attended card (attendance is not a capability). Bare
+ * of a cover, the first wears the lock by default and the second names its own
+ * face (`empty`). `variant` drives the chrome: hosted (the default, its pills
+ * alone), guest (the Guest marker + byline: an event you added photos to, guest
+ * by upload 2026-09-22). A caller's `action` takes the top-right in place of the
+ * guest marker (the profile hands its own Host/Guest), so that slot holds one.
  */
 /**
  * ★ DARK GLASS, ON PAPER TOO (`paper=dark`, Will 2026-09-20). A chip over a
@@ -101,58 +92,36 @@ export function EventCard({
   coverUrl,
   dateLabel,
   variant = "hosted",
-  itemsLabel,
   statusLabel,
-  pendingCount = 0,
   byline,
-  qrSlot,
   action,
-  living,
   empty,
 }: {
   href: string | null;
   name: string;
   coverUrl: string | null;
   dateLabel: string;
-  variant?: "hosted" | "guest" | "trash";
-  /** Hosted: the "N items" pill (approved count). */
-  itemsLabel?: string | null;
-  /** A status pill: Open/Paused (hosted, `uploadsLabel`), the countdown (trash), Password (guest). */
+  variant?: "hosted" | "guest";
+  /** A status pill: the door a linked album still keeps (the profile's Password, Private). */
   statusLabel?: string | null;
-  /** Hosted: the needs-you "N to review" chip (rendered only when > 0). */
-  pendingCount?: number;
   /** Guest: "Hosted by X". */
   byline?: string | null;
-  /** Hosted: the client QR trigger (a sibling of the Link; tapping it never navigates). */
-  qrSlot?: React.ReactNode;
-  /** Top-right action: restore (trash), or a page's own marker (the profile's Host/Guest). */
+  /** Top-right: a page's own marker (the profile's Host/Guest), in place of the guest variant's. */
   action?: React.ReactNode;
   /**
-   * The dashboard's crossfade (`reel-host`, his `pulse` note): the stills this card dissolves
-   * through when its turn comes in the row's `CoverCycleProvider`, its cover first. Absent, or
-   * fewer than two, and the card holds its `coverUrl`, as every other page draws it.
-   */
-  living?: { id: string; stills: readonly string[] };
-  /**
    * The face a card with no cover wears (`EventCardFace`). Omitted, an unlinked card is locked and
-   * a linked one is waiting for a photograph, which is what the dashboard's cards mean by them.
+   * a linked one is waiting for a photograph.
    */
   empty?: EventCardFace;
 }) {
   const face: EventCardFace = empty ?? (href === null ? "locked" : "photo");
   const EmptyIcon = EMPTY_FACE[face];
 
-  const cycles = Boolean(living && living.stills.length > 1);
-
   const surface = (
     <>
-      {living && cycles ? (
-        <CycledCover id={living.id} stills={living.stills} />
-      ) : coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+      {coverUrl ? (
+        <PhotoImg
           src={coverUrl}
-          alt=""
           loading="lazy"
           className="absolute inset-0 size-full object-cover"
         />
@@ -180,12 +149,6 @@ export function EventCard({
             <Calendar className="size-2.5" aria-hidden />
             <RangeText text={dateLabel} />
           </span>
-          {itemsLabel && (
-            <span className={PILL}>
-              <Images className="size-2.5" aria-hidden />
-              {itemsLabel}
-            </span>
-          )}
           {statusLabel && <span className={PILL}>{statusLabel}</span>}
         </div>
       </div>
@@ -206,39 +169,22 @@ export function EventCard({
         <Link
           href={href}
           data-lit=""
-          className="relative block aspect-[16/10] overflow-hidden rounded-xl transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.99] motion-reduce:active:scale-100"
+          className="relative block aspect-[16/10] focus-halo overflow-hidden rounded-xl transition-transform duration-150 ease-emphasis outline-none active:scale-[0.99] motion-reduce:active:scale-100"
         >
           {surface}
         </Link>
       ) : (
         <div
           data-lit=""
-          className={cn(
-            "relative block aspect-[16/10] cursor-default overflow-hidden rounded-xl",
-            variant === "trash" && "opacity-75 grayscale",
-          )}
+          className="relative block aspect-[16/10] cursor-default overflow-hidden rounded-xl"
         >
           {surface}
         </div>
       )}
 
-      {/* Top-LEFT: the hosted QR chip. */}
-      {qrSlot && <div className="absolute top-2.5 left-2.5 z-10">{qrSlot}</div>}
-
-      {/* Top-RIGHT: the needs-you review chip (hosted) OR the action (trash, or a
-          page's own marker) OR the Guest marker (guest); mutually exclusive by
-          variant, so they never overlap. */}
-      {pendingCount > 0 && (
-        <div
-          className="absolute top-2.5 right-2.5 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-          style={{
-            background: "var(--needs-you)",
-            color: "var(--needs-you-foreground)",
-          }}
-        >
-          {formatCount(pendingCount)} to review
-        </div>
-      )}
+      {/* Top-RIGHT: a page's own action (the profile's Host/Guest marker) OR,
+          for a guest card handed none, the Guest marker: one or the other, so
+          they never overlap. */}
       {action ? (
         <div className="absolute top-2.5 right-2.5 z-10">{action}</div>
       ) : variant === "guest" ? (

@@ -71,6 +71,17 @@ export type AsGuestEvent = Pick<
   | "develops_at"
 >;
 
+/**
+ * The cover's counts, as a guest's are counted (the album's approved total, THE ONE COUNT of guests), and what the album
+ * holds by kind where the server could say it (`getGalleryStats`'s `kinds`, the guest page's own `stats.kinds`): the cover's
+ * count says "12 photos" from the first byte instead of "12 photos & videos" until the live album has told (crumbs-74).
+ */
+export type AsGuestStats = {
+  approvedTotal: number;
+  guestCount: number;
+  kinds?: { photos: number; videos: number } | null;
+};
+
 const noop = () => {};
 
 /**
@@ -111,7 +122,7 @@ export function AsGuestView({
   galleryPromise: Promise<GalleryPayload>;
   /** The order a guest's album opens in (`readAsGuest`'s, the guest page's own answer); absent, newest first. */
   albumOrder?: GuestAlbumOrder;
-  stats: { approvedTotal: number; guestCount: number };
+  stats: AsGuestStats;
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
   shut: boolean;
@@ -196,7 +207,7 @@ function AlbumAsGuest({
   joinUrl: string;
   galleryPromise: Promise<GalleryPayload>;
   albumOrder: GuestAlbumOrder | undefined;
-  stats: { approvedTotal: number; guestCount: number };
+  stats: AsGuestStats;
   host: { avatarUrl: string | null; seed: string | null } | null;
   guests: GuestListItem[];
   waitingOnArrival: boolean;
@@ -211,6 +222,10 @@ function AlbumAsGuest({
   const [bridge] = useState(createHeadBridge);
   // The header's numbers, live off the guests' own source as the guest page keeps them.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
+  // ★ WHAT THAT COUNT SAYS IT HOLDS (`albumCountWords`, crumbs-61 and crumbs-74): the live source tells it with each count
+  // ("12 photos"), and until it has the cover says it from the server's own count of the kinds (`stats.kinds`) through the
+  // same function, as the guest page's cover does, so the first paint and the live album agree.
+  const [mediaWords, setMediaWords] = useState<string | null>(null);
   const [guestCount, setGuestCount] = useState(stats.guestCount);
   const { sentinelRef, inView: rowInView } =
     useInViewSentinel<HTMLDivElement>();
@@ -250,13 +265,15 @@ function AlbumAsGuest({
   );
   // The reel's round, on the guest page's own first guess (the host's switch and two photographs).
   const reelRound = event.show_reel && mediaCount >= 2;
-  /* ★ THE ORDER EVERY GUEST MEETS (album-order, event-zone): the guest page's own hook over the server's word, so the
-     album turns at the party's morning after (an instant, the same for every reader) and the view turns with it while
-     she looks. Nothing here is hers to choose: the album is inert, and a choice would write a guest's remembered order
-     on her own device, so Sort shows the turn's order and answers nothing. */
+  /* ★ THE ORDER EVERY GUEST MEETS (album-order, AY1): the guest page's own hook over the server's word, so the album
+     reads in order once she has closed adding, as her guests' does, and turns at a develop's instant (the same for every
+     reader) while she looks. Her word on adding is the view's own read of the album (the closed line and the Add above
+     say it too), so the order and they never disagree. Nothing here is hers to choose: the album is inert, and a choice
+     would write a guest's remembered order on her own device, so Sort shows the album's own and answers nothing. */
   const order = useGuestAlbumOrder({
     eventId: event.id,
     initial: albumOrder,
+    open: event.accepting_uploads,
     developsAt: event.develops_at ?? null,
     isDemo: false,
   });
@@ -298,6 +315,10 @@ function AlbumAsGuest({
           endDate={event.event_end_date}
           description={event.description}
           mediaCount={mediaCount}
+          mediaWords={mediaWords ?? undefined}
+          // Named from the first byte, where this view's album is a full one (always: it reads as a guest past every
+          // step of the door), so the first paint's words and the live album's never flash.
+          mediaKinds={stats.kinds ?? null}
           guestCount={guestCount}
           actionsRef={sentinelRef}
           actions={
@@ -363,6 +384,7 @@ function AlbumAsGuest({
               sessionToken={null}
               approvedTotal={stats.approvedTotal}
               onCountChange={setMediaCount}
+              onCountWordsChange={setMediaWords}
               onGuestCountChange={setGuestCount}
             >
               <AlbumWaitSource
@@ -453,7 +475,7 @@ function AlbumAsGuest({
 
 /**
  * THE GUEST'S HEADER, AS A GUEST WITH NO ACCOUNT SEES IT (`guest-header.tsx`, drawn still): the wordmark, white on the
- * cover with no rule, and the quiet "Start for free" the anonymous majority meets. Inert like the album. Where the
+ * cover with no rule, and the quiet "Make one like this" the anonymous majority meets. Inert like the album. Where the
  * view is its own page, her way back to the hub stands in that slot instead, the one live control on it.
  */
 function GuestBar({
@@ -483,7 +505,7 @@ function GuestBar({
         ) : (
           <span inert>
             <Button variant="ghost" size="sm" tabIndex={-1}>
-              Start for free
+              Make one like this
             </Button>
           </span>
         )}

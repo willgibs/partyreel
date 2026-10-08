@@ -22,8 +22,13 @@ vi.mock("@/lib/upload/preview", () => ({
   posterPreview: vi.fn(async () => null),
 }));
 
-const { uploadFile, UPLOAD_ANSWER_MS, UPLOAD_STALL_MS, UPLOAD_WORDS } =
-  await import("./uploader");
+const {
+  uploadFile,
+  RETURN_GRACE_MS,
+  UPLOAD_ANSWER_MS,
+  UPLOAD_STALL_MS,
+  UPLOAD_WORDS,
+} = await import("./uploader");
 const { WALK_COPY } = await import("@/lib/export/walk");
 
 const MEDIA = "44444444-4444-4444-8444-444444444444";
@@ -282,6 +287,34 @@ describe("a stalled transfer is ended and said, never left at its percentage", (
     const out = await going;
     expect(xhrs[0].aborted).toBe(false);
     expect(out).toMatchObject({ ok: true, mediaId: MEDIA });
+  });
+
+  /* ★ A PAGE LOOKED AT AGAIN GETS A GRACE, NEVER A WHOLE NEW STALL (crumbs-90): the stall's clock froze with a hidden
+     page's timers, so a return must never end the PUT at once (what moved meanwhile is read first), and it used to
+     restart the whole 45 s, which held a dead transfer that much more at every glance back. */
+  it("★ a stalled PUT looked at again near its stall's end gets the grace, and no whole new stall", async () => {
+    vi.useFakeTimers();
+    const listeners = new Set<() => void>();
+    const page = {
+      visibilityState: "visible" as "visible" | "hidden",
+      addEventListener: (_: string, fn: () => void) => listeners.add(fn),
+      removeEventListener: (_: string, fn: () => void) => listeners.delete(fn),
+    };
+    vi.stubGlobal("document", page);
+    const turn = (state: "visible" | "hidden") => {
+      page.visibilityState = state;
+      for (const fn of [...listeners]) fn();
+    };
+    behaviour = "stall";
+    const going = send();
+    await vi.advanceTimersByTimeAsync(UPLOAD_STALL_MS - 2_000);
+    turn("hidden");
+    turn("visible");
+    await vi.advanceTimersByTimeAsync(RETURN_GRACE_MS - 1_000);
+    expect(xhrs[0].aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(xhrs[0].aborted).toBe(true);
+    expect(await going).toMatchObject({ ok: false, cause: "dropped" });
   });
 
   it("once the last byte is out it waits longer for R2's answer, then calls it a drop", async () => {

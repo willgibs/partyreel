@@ -57,7 +57,6 @@ describe("the refusal ladder", () => {
   it("routes the four classes the step can act on", () => {
     // The event changed under the guest: only the server can answer.
     for (const code of [
-      "uploads_closed",
       "cap_reached",
       "event_gone",
       "event_deleted",
@@ -65,6 +64,9 @@ describe("the refusal ladder", () => {
     ]) {
       expect(classifyRefusal(code)).toBe("refresh");
     }
+    // The host paused (crumbs-93): its own class, since a Retry is refused again until she reopens. At the door it is
+    // the same fail-open as a full album (below), which has no exit but the server's.
+    expect(classifyRefusal("uploads_closed")).toBe("paused");
     // The capability is dead: never a Retry inside a sheet with no exit.
     expect(classifyRefusal("invalid_session")).toBe("session");
     // The host flipped the other switch mid-run: the email step is the way in.
@@ -80,6 +82,16 @@ describe("the refusal ladder", () => {
 
   it("a RUN is only unfixable when EVERY refusal in it is", () => {
     expect(classifyRun([item({ errorCode: "cap_reached" })])).toBe("refresh");
+    // A pause is the door's fail-open too: it lets her through once uploads are closed, so the step shows no Retry.
+    expect(classifyRun([item({ errorCode: "uploads_closed" })])).toBe(
+      "refresh",
+    );
+    expect(
+      classifyRun([
+        item({ id: "a", errorCode: "uploads_closed" }),
+        item({ id: "b", errorCode: "cap_reached" }),
+      ]),
+    ).toBe("refresh");
     // One retryable file among them means the run is not stuck.
     expect(
       classifyRun([
@@ -439,6 +451,45 @@ describe("the surface", () => {
     expect(
       screen.queryByRole("button", { name: "Take a photo" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("★ a pick waiting for the line says so in its bar's place, and the step says it once every pick waits (no-signal r1)", () => {
+    const { container, rerender } = mount({
+      queue: [
+        item({ id: "a", status: "uploading", progress: 40 }),
+        item({ id: "b", status: "queued", progress: 0, cause: "dropped" }),
+      ],
+    });
+    // One still goes: the step still sends, and the waiting pick says it waits, half-lit, with no bar.
+    expect(screen.getByText("Sending your photos")).toBeInTheDocument();
+    expect(container.querySelectorAll("[data-upload-progress]")).toHaveLength(
+      1,
+    );
+    const waiting = container.querySelector(
+      "[data-upload-waiting]",
+    ) as HTMLElement;
+    expect(waiting).toHaveTextContent("Waiting for your connection");
+    expect(waiting.querySelector("[data-wait-point]")).not.toBeNull();
+    rerender(
+      <UploadStep
+        isDemo={false}
+        requireUpload={false}
+        albumEmpty={false}
+        queue={[
+          item({ id: "a", status: "queued", progress: 0, cause: "dropped" }),
+          item({ id: "b", status: "queued", progress: 0, cause: "dropped" }),
+        ]}
+        onSend={() => {}}
+        onRetry={() => {}}
+        onDismiss={() => {}}
+        onContinueWithout={() => {}}
+      />,
+    );
+    // Every pick waits: nothing is sending, and the step never opens a failure over a wait.
+    // The heading and each pick's own line.
+    expect(screen.getAllByText("Waiting for your connection")).toHaveLength(3);
+    expect(screen.queryByText("Sending your photos")).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 
   it("★ each bar fills as its bytes go: the queue's 0 to 100 is a percent, never a fraction", () => {

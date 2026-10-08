@@ -18,9 +18,13 @@
  * develop time (her stack is hidden there, and the approval toast says "One of yours is in the album" as the first is
  * let in), and Show yours opens her uploads, where they wait.
  *
- * ★ ONLY WHAT LANDED. A send with refusals keeps its failure sheet, whose Retry is where an error belongs: a toast
- * has usually gone by the time an error is read (`guest-upload.tsx`'s reason for no upload toasts, which still holds
- * for errors). The toast counts the rest, and a send that landed nothing says nothing here.
+ * ★ ONLY WHAT LANDED, AND NEVER BESIDE THE FAILURE SHEET (crumbs-90, no-signal r1). A send with refusals keeps its
+ * failure sheet, whose Retry is where an error belongs: a toast has usually gone by the time an error is read
+ * (`guest-upload.tsx`'s reason for no upload toasts, which still holds for errors). And the sheet already says what
+ * joined, in the same true words ("Everything else is in Maya's album.", `uploadFailureElsewhere`), so a send that
+ * ends with a file of its own refused, or under a sheet still standing (a row's Retry, a heal of one of its rows),
+ * is said by the sheet alone: the toast's "joined" over "2 of 3 didn't upload" was two voices at one moment, the
+ * one that leaves by itself first. A send that landed nothing says nothing here either.
  *
  * ★ ONE SURFACE SAYS A LANDING. Never where another already does: the door's keep (its Sent line, live as the rest
  * land), the door's own upload step, the album's camera (its own words while it is open), or the reel's view (its
@@ -30,6 +34,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { keepSentLine } from "@/components/guest/save-account-prompt";
+import { failureSheetStands } from "@/components/guest/upload/failure-sheet";
 import { reelOfAddress } from "@/lib/guest/reel-url";
 import type { UploadsWait } from "@/lib/guest/upload-tracker";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
@@ -105,6 +110,7 @@ export function useSendToast({
   isDemo,
   quiet,
   onShow,
+  sheetStands = failureSheetStands,
 }: {
   queue: readonly QueueItem[];
   /** The media ids she took back this visit: a file she removed again is no longer what landed. */
@@ -121,6 +127,8 @@ export function useSendToast({
    */
   quiet: boolean;
   onShow: (place: SendToastPlace) => void;
+  /** Whether a failure sheet stands now, read as the send ends (`failureSheetStands`; a test hands its own). */
+  sheetStands?: () => boolean;
 }): void {
   const wasRunning = useRef(false);
   const before = useRef<ReadonlySet<string>>(new Set());
@@ -133,6 +141,7 @@ export function useSendToast({
     isDemo,
     quiet,
     onShow,
+    sheetStands,
   });
   useEffect(() => {
     latest.current = {
@@ -143,6 +152,7 @@ export function useSendToast({
       isDemo,
       quiet,
       onShow,
+      sheetStands,
     };
   });
   useEffect(() => {
@@ -160,6 +170,13 @@ export function useSendToast({
     const now = latest.current;
     // The reel's view names her arrival on the picture itself (read as the address stands, never a render's copy).
     if (now.quiet || reelOfAddress() !== null) return;
+    // ★ THE SHEET'S MOMENT (the head note): a file of this send refused opens the failure sheet at this very edge (its
+    // slot hears the same end, a render later, so it is read here off the files, never off the sheet), and a sheet
+    // that already stands is the one voice for what this send landed.
+    const ownFailed = queue.some(
+      (it) => it.status === "error" && !before.current.has(it.id),
+    );
+    if (ownFailed || now.sheetStands()) return;
     const landed = queue.filter(
       (it) =>
         it.status === "done" &&

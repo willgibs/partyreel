@@ -62,6 +62,7 @@ import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import { albumWaits } from "@/lib/disposable/waiting.server";
 import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
+import { previewTargetSize } from "@/lib/media/preview-size";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
 import { readPartyZone } from "@/lib/event/zone.server";
@@ -228,6 +229,9 @@ function cardImage(url: string) {
 
 const photoIdSchema = z.uuid();
 
+/** An original a chat's unfurler draws as a card's picture (a JPEG, a PNG, a WebP), by its key's own extension. */
+const CARD_DRAWS = /\.(jpe?g|png|webp)$/i;
+
 /**
  * ★ ONE PHOTOGRAPH'S LINK CARD: `/e/<token>?photo=<id>` (the media viewer's own address for a
  * photograph) unfurls as that photograph, titled "A photo from <event>", its preview presigned here
@@ -235,7 +239,8 @@ const photoIdSchema = z.uuid();
  * upload gate an anonymous visitor would meet (an unfurler IS an anonymous visitor), so a gated
  * album keeps the event card. An id that is malformed, unknown, held, hidden or another event's
  * keeps the event card too, with no sign it exists. A video unfurls as its poster, or as the event
- * card when it has none (a player file is no image).
+ * card when it has none (a player file is no image), and so does a photograph whose only image is an
+ * original no unfurler draws (a HEIC with no preview). The size it declares is the size it serves.
  */
 async function photoCard(
   event: GuestEvent,
@@ -265,16 +270,29 @@ async function photoCard(
   if (anonymous.access !== "full") return null;
   const item = await getOpenAlbumItemForCard(event, parsed.data);
   if (!item) return null;
+  // ★ AN ORIGINAL ONLY WHERE AN UNFURLER CAN DRAW IT (crumbs-90): a photograph with no preview serves its original,
+  // and a HEIC one (its preview is made by the uploading browser, which desktop Chrome cannot decode it in) named an
+  // image the chats' unfurlers do not draw: a card with no picture. Such a link keeps the event's own card.
   const key =
-    item.previewKey ?? (item.type === "photo" ? item.originalKey : null);
+    item.previewKey ??
+    (item.type === "photo" && CARD_DRAWS.test(item.originalKey)
+      ? item.originalKey
+      : null);
   if (!key) return null;
+  // ★ THE SIZE OF WHAT IT SERVES (crumbs-90, red-team 57b): a preview is its original drawn at most 640 on its long
+  // edge by the uploading browser (`previewTargetSize`, the one rule that made it, from these very measures), so a
+  // card declaring the original's 3024x4032 over a 480x640 preview told an unfurler a size it never got.
+  const size =
+    item.width && item.height
+      ? item.previewKey
+        ? previewTargetSize(item.width, item.height)
+        : { width: item.width, height: item.height }
+      : null;
   try {
     const url = await presignDownload({ key, stable: true });
     return {
       url,
-      ...(item.width && item.height
-        ? { width: item.width, height: item.height }
-        : {}),
+      ...(size ?? {}),
       alt: `A photo from ${event.name}`,
     };
   } catch {
@@ -384,14 +402,12 @@ export default async function GuestEventPage({
     );
   }
 
-  // ★ THE PARTY'S ZONE, ASKED NOW AND AWAITED WHERE THE ORDER IS DECIDED (event-zone): the album turns
-  // at 9 am the morning after in the party's own zone, one moment for every reader, so the one read it
-  // costs runs beside the door's and the gate's below, never after them. Only a dated album turns, and a
-  // date here is one this request may see (a gate's anon read blanks it), so nothing else asks. It never
-  // rejects: a failed read is the fallback, reported (`zone.server.ts`). ★ And an album with a develop time asks it
-  // too (crumbs-85): a far party's guest reads its develop time in both clocks, which names the party's place.
+  // ★ THE PARTY'S ZONE, FOR WORDS ALONE, ASKED NOW (crumbs-85): a far party's guest reads its develop time in both
+  // clocks, which names the party's place (`party-zone.tsx`), so only an album with a develop time asks, and its one
+  // read runs beside the door's and the gate's below, never after them. Nothing orders the album by it: the turn is
+  // the album's own state (album-order, AY1). It never rejects: a failed read is no zone, reported (`zone.server.ts`).
   const partyZone =
-    !isDemo && (event.event_date || event.develops_at)
+    !isDemo && event.develops_at
       ? readPartyZone(event.id)
       : Promise.resolve<string | null>(null);
 
@@ -485,22 +501,15 @@ export default async function GuestEventPage({
   const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
   const albumWidth = parseAlbumWidth(cookieJar.get(ALBUM_WIDTH_COOKIE)?.value);
   const rhythmSeed = randomInt(1_000_000);
-  // ★ AND THE ORDER IT OPENS IN (album-order, event-zone): the turn read in the PARTY's zone, one
-  // moment for every reader wherever they are, handed to the page as that instant and never as a zone
-  // (`guestAlbumOrder`), and her remembered order on this album (`pr_album_sort`). Behind a gate nothing
-  // says when the party was (the shell blanks its days below), so neither does the order.
-  // The party's zone for words (a far party's develop time in both clocks), never behind a lock.
-  const zoneForWords = access === "none" ? null : await partyZone;
+  // ★ AND THE ORDER IT OPENS IN (album-order, AY1): the album's own, read off its state (newest first
+  // while it takes uploads, the night in order once its host closes adding or its develop has come), one
+  // moment for every reader wherever she is, and her remembered order on this album (`pr_album_sort`).
+  // Behind a gate the order knows no develop, as the shell does not (it blanks the time below).
   const albumOrder = guestAlbumOrder({
-    facts:
-      access === "none"
-        ? { eventDate: null }
-        : {
-            eventDate: event.event_date,
-            eventEndDate: event.event_end_date ?? null,
-            developsAt: event.develops_at ?? null,
-          },
-    zone: await partyZone,
+    facts: {
+      acceptingUploads: event.accepting_uploads,
+      developsAt: access === "none" ? null : (event.develops_at ?? null),
+    },
     chosen: readChosenSort(cookieJar.get(ALBUM_SORT_COOKIE)?.value, event.id),
     isDemo,
   });
@@ -541,6 +550,10 @@ export default async function GuestEventPage({
   // ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (crumbs-32): her own here are the
   // host's uploads, no guest row behind them, so hers is the host's read, and
   // each Delete goes to her Deleted, as the hub's would.
+  // The party's zone for words (a far party's develop time in both clocks), never behind a lock: awaited here, once
+  // the seed streams, since nothing before it waits on the zone any more.
+  const zoneForWords = access === "none" ? null : await partyZone;
+
   const [stats, canDeleteIds] = await Promise.all([
     getGalleryStats(event),
     userId && !isDemo && access !== "none"

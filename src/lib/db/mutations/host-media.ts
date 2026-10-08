@@ -114,7 +114,7 @@ export async function createMediaAsHost(input: {
    * the album, so the reel never plays itself. Omitted, the RPC's default (true) applies.
    */
   reelEligible?: boolean;
-  /** When the original says it was taken (Will's X7), already held to its bounds by the route; null for none. */
+  /** When the original says it was taken (uploads-and-r2.md), already held to its bounds by the route; else null. */
   capturedAt?: string | null;
 }): Promise<CreateHostMediaResult> {
   // Server-mediated (H1): create_media_as_host is service-role-only now, so it can't be called directly via

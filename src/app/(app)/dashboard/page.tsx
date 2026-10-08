@@ -13,6 +13,8 @@ import {
   disownEventAction,
 } from "@/app/(app)/dashboard/claims-actions";
 import { MarkWelcomedOnMount } from "@/app/(app)/welcome/mark-welcomed";
+import { EXISTING_VALUE } from "@/app/(auth)/auth/callback/existing-account";
+import { ExistingAccountBanner } from "@/components/auth/account-door-existing-banner";
 import { ClaimsReview } from "@/components/app/dashboard/claims-review";
 import { GraceBanner } from "@/components/app/dashboard/grace-banner";
 import { DashboardHome } from "@/components/app/dashboard/home";
@@ -82,6 +84,7 @@ import {
   getMyGuestEventCards,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { storageUsedPct } from "@/lib/events/readiness";
 import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
@@ -146,13 +149,17 @@ export default async function DashboardPage({
 }: {
   // `welcome=pro` is where Stripe Checkout lands a buyer with nothing to go back and finish
   // (`back=finish`, Will 2026-09-20). The legacy ?tab= / ?filter= deep links are gone with the chips
-  // they drove; an old bookmark simply lands here, which is the page they wanted.
-  searchParams: Promise<{ welcome?: string }>;
+  // they drove; an old bookmark simply lands here, which is the page they wanted. `signed_in=existing` is where the
+  // sign-in callback lands a Create account link that signed into an address that already had an account.
+  searchParams: Promise<{ welcome?: string; signed_in?: string }>;
 }) {
-  const { welcome } = await searchParams;
+  const { welcome, signed_in: signedIn } = await searchParams;
   // Exactly the one value the checkout route sends: a hand-typed ?welcome=x must never manufacture a
   // payment confirmation, and the modal's own claim is decided by the SERVER's tier below.
   const justBought = welcome === WELCOME_VALUE;
+  // Likewise the callback's one value (`auth/callback/existing-account.ts`): a hand-typed mark says only whom she is
+  // already signed in as, from her own profile below.
+  const signedIntoExisting = signedIn === EXISTING_VALUE;
 
   // All reads are RLS-scoped to the signed-in host; the (app) layout already gated on getUser(), so an
   // unauthenticated request never reaches here. `guestCards` are THE EVENTS YOU ADDED TO (guest by
@@ -250,10 +257,8 @@ export default async function DashboardPage({
     profile?.storage_cap_bytes ?? null,
   );
   const storageUsed = storage.storedBytes;
-  const storagePct =
-    storageCap && storageCap > 0
-      ? Math.min(100, Math.round((storageUsed / storageCap) * 100))
-      : 0;
+  // The meter's own math, in its one home (`storageUsedPct`): the hub's checklist and Create read it there too.
+  const storagePct = storageUsedPct(storageUsed, storageCap);
   const hasBilling = Boolean(profile?.stripe_customer_id);
   const passExpiry =
     tier === "event_pass" && profile?.tier_expires_at
@@ -529,14 +534,21 @@ export default async function DashboardPage({
         </>
       }
       alert={
-        graceDeadline && (
-          <GraceBanner
-            deadline={graceDeadline}
-            storageUsed={storageUsed}
-            storageCap={storageCap}
-            plan={{ tier, hasBilling }}
-          />
-        )
+        <>
+          {/* "Signed you into the account <email> already had": the line a Create account link owes (crumbs-88), under the
+              head where she arrives, the address her own profile's. */}
+          {signedIntoExisting && (
+            <ExistingAccountBanner email={profile?.email ?? null} />
+          )}
+          {graceDeadline && (
+            <GraceBanner
+              deadline={graceDeadline}
+              storageUsed={storageUsed}
+              storageCap={storageCap}
+              plan={{ tier, hasBilling }}
+            />
+          )}
+        </>
       }
       notes={
         <>

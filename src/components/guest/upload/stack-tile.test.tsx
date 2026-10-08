@@ -131,3 +131,77 @@ describe("the x stops the file in the air (upload-cancel)", () => {
     expect(screen.getByText("3 to go")).toBeInTheDocument();
   });
 });
+
+/**
+ * ★ THE SEND STANDS BY WHERE IT IS (no-signal r1, Will's `drop=standby`): the line dropped, so the photograph stays and
+ * the bar gives way to Standby's point and "No connection", the promise in a few words under it; the x still stops it,
+ * and a press on the photograph opens what waits.
+ */
+describe("the send standing by for the line", () => {
+  it("★ says the state and its promise in the bar's place, with no bar and no count but a spoken one", () => {
+    const { container } = render(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={38}
+        remaining={3}
+        standby={{ note: "Kept on this phone" }}
+      />,
+    );
+    const pane = screen.getByRole("status");
+    expect(pane).toHaveTextContent("No connection");
+    expect(pane).toHaveTextContent("Kept on this phone");
+    expect(pane).toHaveTextContent(", 3 waiting");
+    expect(pane.querySelector("[data-wait-point]")).not.toBeNull();
+    // A photograph goes again from the start: no bar held at 38%, and no "to go" beside a send going nowhere.
+    expect(container.querySelector("[data-pending-progress]")).toBeNull();
+    expect(screen.queryByText(/to go/)).toBeNull();
+    // The bright edge is the album's still: the photograph neither gains nor loses one for the wait.
+    expect(
+      container.querySelector("[data-media-tile][data-lit]"),
+    ).not.toBeNull();
+  });
+
+  it("★ keeps the x, and a press on the photograph opens what waits; nothing opens by itself", () => {
+    const onStop = vi.fn();
+    const onOpenWaits = vi.fn();
+    render(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={0}
+        remaining={1}
+        onStop={onStop}
+        standby={{ note: "Keep this page open" }}
+        onOpenWaits={onOpenWaits}
+      />,
+    );
+    expect(onOpenWaits).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "See what waits for your connection",
+      }),
+    );
+    expect(onOpenWaits).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Stop upload" }));
+    expect(onStop).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Keep this page open")).toBeInTheDocument();
+  });
+
+  it("offers no press on a photograph that is going: the stack is a picture, as ever", () => {
+    render(
+      <UploadStackTile
+        file={file()}
+        url="blob:x"
+        progress={40}
+        remaining={1}
+        onOpenWaits={() => {}}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", {
+        name: "See what waits for your connection",
+      }),
+    ).toBeNull();
+  });
+});

@@ -2,7 +2,9 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  failureSheetStands,
   UploadFailureSheet,
+  uploadFailurePaused,
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 
@@ -180,6 +182,28 @@ describe("★ a dropped connection is drawn apart from a refusal (the queue's ca
     }
     // The mark is a drawing beside the words, never the words: the sentence still reads whole.
     expect(screen.getByText("The line went quiet.")).toBeInTheDocument();
+  });
+});
+
+/* ★ THE SEND'S TOAST ASKS WHETHER A SHEET STANDS (crumbs-90): a send that ends under one is said by the sheet alone
+   (`send-toast.ts`). Standing is the page's `open`, never the words the sheet latches while it leaves. */
+describe("whether it stands", () => {
+  it("stands while open, and not once it is closed or gone", () => {
+    const props = {
+      onOpenChange: vi.fn(),
+      failures: [failure("a.jpg", "Your connection dropped.")],
+      sent: 2,
+      hostName: "Maya",
+      onRetry: vi.fn(),
+    };
+    expect(failureSheetStands()).toBe(false);
+    const view = render(<UploadFailureSheet open {...props} />);
+    expect(failureSheetStands()).toBe(true);
+    view.rerender(<UploadFailureSheet open={false} {...props} />);
+    expect(failureSheetStands()).toBe(false);
+    view.rerender(<UploadFailureSheet open {...props} />);
+    view.unmount();
+    expect(failureSheetStands()).toBe(false);
   });
 });
 
@@ -475,5 +499,104 @@ describe("a failure no retry could pass", () => {
     ]);
     expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
     expect(screen.getByText("Pick something else to add.")).toBeInTheDocument();
+  });
+
+  /* ★ THE SPENT ROLL (crumbs-90, no-signal r1): a Disposable shot past the roll the server counts at insert is refused
+     `roll_spent` in the roll's own words. It wore Retry (the ladder read it as worth another go), and "Retry both"
+     stood over two shots the roll refused again, under a Not now that promised a later go. It is no refusal of the
+     file either: "Take another to add one." under "You've taken all 24 shots on your roll." sends her to a shutter
+     that refuses the next one alike, and the roll's end is the camera's to say. */
+  const ROLL_SPENT = "You've taken all 24 shots on your roll.";
+  const rollRefused = (name: string) => failure(name, ROLL_SPENT, "roll_spent");
+
+  it("★ a shot the spent roll refused: no Retry, the roll's own sentence, Done, and no other file offered", () => {
+    sheet([rollRefused("shot-5.jpg"), rollRefused("shot-6.jpg")], 6, true);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getAllByText(ROLL_SPENT)).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    expect(screen.queryByText("Take another to add one.")).toBeNull();
+    expect(
+      screen.getByText("Everything else is in Maya’s album."),
+    ).toBeInTheDocument();
+  });
+
+  it("★ beside a refusal of the file, still offers no other file: the roll refuses the next shot too", () => {
+    sheet(
+      [
+        rollRefused("shot-6.jpg"),
+        failure(
+          "clip.mp4",
+          "This video is longer than the 30 seconds a camera shot can be.",
+          "too_long",
+        ),
+      ],
+      2,
+      true,
+    );
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.queryByText("Take another to add one.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  /* ★ A SEND THE HOST'S PAUSE REFUSED (crumbs-93, red-team 58's MEDIUM): `uploads_closed` wore Retry (a refresh-class
+     refusal "can pass once the host reopens"), a button that is refused again for as long as the album is paused and
+     said only the server's bare sentence. Its own class now: what happened, that nothing is lost, the way on, once. */
+  const PAUSED = "This event isn't accepting uploads right now.";
+  const pausedRefused = (name: string) =>
+    failure(name, PAUSED, "uploads_closed");
+
+  it("★ a send the host's pause refused: no Retry, the server's sentence, and the plain reason with the way on", () => {
+    sheet([pausedRefused("a.jpg"), pausedRefused("b.jpg")], 2);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getAllByText(PAUSED)).toHaveLength(2);
+    const reason = uploadFailurePaused({ hostName: "Maya", count: 2 });
+    expect(reason).toContain("Maya has paused uploads");
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(reason);
+    // The choose-again line is for the file's own refusals: a pause refuses every file alike.
+    expect(screen.queryByText("Pick something else to add.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  it("says where the file is: on her phone, or in a camera album's camera, one or many", () => {
+    expect(uploadFailurePaused({ hostName: "Maya", count: 1 })).toMatch(
+      /It is still on your phone, so try it again/,
+    );
+    expect(uploadFailurePaused({ hostName: "Maya", count: 3 })).toMatch(
+      /They are still on your phone, so try them again/,
+    );
+    expect(
+      uploadFailurePaused({ hostName: "Maya", count: 1, camera: true }),
+    ).toMatch(/It is still in the camera/);
+  });
+
+  it("beside a dropped connection it says nothing of the pause as a whole, and Retry takes the dropped one alone", () => {
+    sheet(
+      [
+        pausedRefused("a.jpg"),
+        failure("b.jpg", "Your connection dropped.", undefined, "dropped"),
+      ],
+      2,
+    );
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    expect(
+      screen.getByText("a.jpg").closest("li")!.querySelector("button"),
+    ).toBeNull();
+    expect(screen.queryByText(/has paused uploads/)).toBeNull();
+  });
+
+  it("beside a dropped connection, Retry takes the dropped one alone and the roll's line keeps none", () => {
+    sheet(
+      [
+        rollRefused("shot-6.jpg"),
+        failure("shot-7.jpg", "Your connection dropped.", undefined, "dropped"),
+      ],
+      2,
+      true,
+    );
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    expect(
+      screen.getByText("shot-6.jpg").closest("li")!.querySelector("button"),
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Not now" })).toBeInTheDocument();
   });
 });

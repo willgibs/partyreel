@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HomeView } from "@/lib/dashboard/home-view";
@@ -94,6 +95,7 @@ vi.mock("@/lib/db/queries/profile", () => ({
   getProfile: async () => ({
     events_display: db.display,
     id: "host-1",
+    email: "maya@example.com",
     display_name: "Maya",
     welcomed_at: "2026-09-01T00:00:00Z",
     tier: "pro",
@@ -152,15 +154,18 @@ vi.mock("@/components/app/dashboard/home", () => ({
     view,
     head,
     leading,
+    alert,
   }: {
     view: HomeView;
     head: { day: string; line: string };
     leading: Leading | null;
+    alert?: ReactNode;
   }) => {
     shown.view = view;
     shown.head = head;
     shown.leading = leading;
-    return null;
+    // The alert slot is drawn, so what it holds can be asked of the page (the one line a link owes).
+    return <>{alert}</>;
   },
 }));
 const part = vi.hoisted(() => () => null);
@@ -185,8 +190,10 @@ vi.mock("@/app/(app)/welcome/mark-welcomed", () => ({
 
 const { default: DashboardPage } = await import("./page");
 
-async function open() {
-  render(await DashboardPage({ searchParams: Promise.resolve({}) }));
+async function open(
+  searchParams: { welcome?: string; signed_in?: string } = {},
+) {
+  render(await DashboardPage({ searchParams: Promise.resolve(searchParams) }));
   return shown.view!;
 }
 
@@ -199,6 +206,31 @@ beforeEach(() => {
   db.display = undefined;
   db.arrivals = new Map();
   shown.leading = null;
+});
+
+/**
+ * ★ THE LINE A CREATE ACCOUNT LINK OWES (crumbs-88): the callback lands the dashboard marked (`signed_in=existing`) after the
+ * server's own test, and the page draws "Signed you into the account <email> already had." under the head, with the address
+ * her own profile holds. Exactly the one value the callback sends, as `welcome=pro` is the checkout's: a hand-typed other
+ * value draws nothing, and the mark never reads the database for anyone but the viewer's own row.
+ */
+describe("the existing-account line", () => {
+  it("★ is drawn for the callback's mark, with her own profile's address", async () => {
+    await open({ signed_in: "existing" });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Signed you into the account maya@example.com already had.",
+    );
+  });
+
+  it.each([
+    ["no mark", {}],
+    ["another value", { signed_in: "1" }],
+    ["the value in other words", { signed_in: "Existing" }],
+    ["the checkout's mark", { welcome: "pro" }],
+  ])("draws nothing for %s", async (_name, params) => {
+    await open(params);
+    expect(screen.queryByRole("status")).toBeNull();
+  });
 });
 
 describe("the head", () => {

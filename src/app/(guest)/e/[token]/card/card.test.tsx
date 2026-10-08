@@ -26,6 +26,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { DoorDecision } from "@/lib/event/door/decide";
 
+/** The card's title as the markup carries it (`CardTitle`'s `data-card-title`: the letters themselves are one tile each). */
+const titled = (name: string) => `data-card-title="${name}"`;
+
 type PageDoor = {
   decision: DoorDecision;
   standing: Record<string, unknown>;
@@ -218,7 +221,7 @@ describe("the card route: one answer per address", () => {
     const { cacheControl, body } = await card(
       `https://partyreel.test/e/${QR}/card`,
     );
-    expect(body).toContain("Maya&#x27;s 30th");
+    expect(body).toContain(titled("Maya&#x27;s 30th"));
     expect(cacheControl).toBe("public, max-age=3600");
     expect(getEventCardName).toHaveBeenCalledWith(QR);
   });
@@ -226,7 +229,7 @@ describe("the card route: one answer per address", () => {
   it("draws the generic card for a private or unknown event", async () => {
     getEventCardName.mockResolvedValue(null);
     const { body } = await card(`https://partyreel.test/e/${QR}/card`);
-    expect(body).toContain("A Partyreel event");
+    expect(body).toContain(titled("A Partyreel event"));
     expect(body).not.toContain("Maya");
   });
 
@@ -235,7 +238,7 @@ describe("the card route: one answer per address", () => {
     const { cacheControl, body } = await card(
       `https://partyreel.test/e/${QR}/card?private`,
     );
-    expect(body).toContain("A Partyreel event");
+    expect(body).toContain(titled("A Partyreel event"));
     expect(body).not.toContain("Maya");
     expect(cacheControl).toBe("public, max-age=3600");
     expect(getEventCardName).not.toHaveBeenCalled();
@@ -250,14 +253,14 @@ describe("the card route: one answer per address", () => {
     expect(adding.body).toContain("Add your photos &amp; videos on Partyreel");
     expect(adding.body).not.toContain("See the photos");
     // The same album, the same name, the same hour at the edge: only the foot is the flag's.
-    expect(adding.body).toContain("Maya&#x27;s 30th");
+    expect(adding.body).toContain(titled("Maya&#x27;s 30th"));
     expect(adding.cacheControl).toBe(plain.cacheControl);
   });
 
   it("★ the flag is honoured only where a name is: a private, unknown or ?private card never invites", async () => {
     getEventCardName.mockResolvedValue(null);
     const unnamed = await card(`https://partyreel.test/e/${QR}/card?add`);
-    expect(unnamed.body).toContain("A Partyreel event");
+    expect(unnamed.body).toContain(titled("A Partyreel event"));
     expect(unnamed.body).not.toContain("Add your photos");
 
     getEventCardName.mockResolvedValue(NAME);
@@ -265,7 +268,7 @@ describe("the card route: one answer per address", () => {
     const privateAdd = await card(
       `https://partyreel.test/e/${QR}/card?private&add`,
     );
-    expect(privateAdd.body).toContain("A Partyreel event");
+    expect(privateAdd.body).toContain(titled("A Partyreel event"));
     expect(privateAdd.body).not.toContain("Add your photos");
     expect(privateAdd.body).not.toContain("Maya");
     expect(getEventCardName).not.toHaveBeenCalled();
@@ -356,6 +359,90 @@ describe("the page's metadata: which card each viewer's page names", () => {
       "Photos and videos from the day. Take a look.",
     );
     expect(JSON.stringify(closed)).not.toContain("Add yours");
+  });
+
+  /* ★ THE SIZE OF WHAT IT SERVES (crumbs-90, red-team 57b's NIT): the card declared the original's measures over the
+     640-edge preview it serves, a shape and a size the unfurler never got. And an original no unfurler draws (a HEIC
+     with no preview: the uploading browser could not decode it) is no picture, so the event's card stands. */
+  describe("★ a photograph's card declares the size it serves", () => {
+    const photoId = "7d9c5d6e-2f4a-4b3c-8e1f-0a1b2c3d4e5f";
+    const ogImage = (meta: Awaited<ReturnType<typeof generateMetadata>>) => {
+      const images = meta.openGraph?.images;
+      return (Array.isArray(images) ? images[0] : images) as {
+        url: string;
+        width?: number;
+        height?: number;
+      };
+    };
+    const cardOf = async (item: {
+      type: "photo" | "video";
+      originalKey: string;
+      previewKey: string | null;
+      width: number | null;
+      height: number | null;
+    }) => {
+      vi.mocked(getOpenAlbumItemForCard).mockResolvedValueOnce(item);
+      pageDoor.mockResolvedValue(
+        openDoor(guestEvent({ require_verified_email: false })),
+      );
+      return metadataFor(QR, { photo: photoId });
+    };
+
+    it.each([
+      ["a phone's portrait photograph", "photo", 3024, 4032, 480, 640],
+      ["a landscape one", "photo", 4032, 3024, 640, 480],
+      ["a video's poster", "video", 1920, 1080, 640, 360],
+    ] as const)(
+      "%s: its preview's size, never the original's",
+      async (_label, type, w, h, pw, ph) => {
+        const meta = await cardOf({
+          type,
+          originalKey: "events/e/o.jpg",
+          previewKey: "events/e/p.webp",
+          width: w,
+          height: h,
+        });
+        expect(ogImage(meta)).toMatchObject({ width: pw, height: ph });
+      },
+    );
+
+    it("a photograph served as its original (no preview: already small) declares the original's own", async () => {
+      const meta = await cardOf({
+        type: "photo",
+        originalKey: "events/e/o.png",
+        previewKey: null,
+        width: 600,
+        height: 400,
+      });
+      expect(ogImage(meta)).toMatchObject({ width: 600, height: 400 });
+    });
+
+    it("declares no size where the upload measured none", async () => {
+      const meta = await cardOf({
+        type: "photo",
+        originalKey: "events/e/o.jpg",
+        previewKey: "events/e/p.webp",
+        width: null,
+        height: null,
+      });
+      expect(ogImage(meta)).not.toHaveProperty("width");
+      expect(ogImage(meta)).not.toHaveProperty("height");
+    });
+
+    it.each(["events/e/o.heic", "events/e/o.HEIF", "events/e/o.avif"])(
+      "★ an original no unfurler draws (%s, no preview) keeps the event's own card",
+      async (originalKey) => {
+        const meta = await cardOf({
+          type: "photo",
+          originalKey,
+          previewKey: null,
+          width: null,
+          height: null,
+        });
+        expect(meta.title).not.toBe(`A photo from ${NAME}`);
+        expect(imageUrls(meta)[0]).not.toContain("r2.test");
+      },
+    );
   });
 
   it("a password album's door names the event's own card too (its name is link-shared), never the inviting one", async () => {

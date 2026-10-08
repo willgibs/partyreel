@@ -5,6 +5,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { FirstFollowScope, FirstFollowSlot } from "./first-follow-line";
+import { followWords } from "./private-line";
 import { RelationToggle } from "./relation-toggle";
 
 /**
@@ -229,6 +231,200 @@ describe("the relation contract", () => {
     fireEvent.click(screen.getByRole("button", { name: "Follow" }));
     await waitFor(() => expect(act).toHaveBeenCalledWith(true));
     expect(follow).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * HER FIRST FOLLOW SAYS, ONCE, THAT ONLY SHE SEES WHO SHE FOLLOWS (`account-moments` r2, `follow=once`). The Server
+ * Function answers `first` when her list was empty before the press; the control draws the private line beside the
+ * button, announces it, and takes it away the moment she unfollows. Pinned: that, the thousandth being the button alone,
+ * a surface that says it itself (Connections) turning it off, a block never saying it, and a page that draws the line
+ * under its head (the scope) being told instead of drawing a second copy beside the button.
+ */
+describe("her first follow says it once", () => {
+  /** The line the eye sees (the control's own, beside the button), or null. */
+  const line = (container: HTMLElement) =>
+    container.querySelector("[data-follow-line]");
+  /** The words the screen reader is given, which are the line's. */
+  const announced = () => screen.getByRole("status").textContent;
+
+  async function pressFollow(name = "Follow") {
+    fireEvent.click(screen.getByRole("button", { name }));
+    await waitFor(() => expect(follow).toHaveBeenCalled());
+  }
+
+  it("★ draws the line beside the button and announces it, naming the person where it knows them", async () => {
+    follow.mockResolvedValue({ ok: true, first: true });
+    const { container } = render(
+      <RelationToggle
+        relation="follow"
+        profileId="p2"
+        on={false}
+        person="Maya Alvarez"
+      />,
+    );
+    // The announcement stands before its words, so it is announced when they arrive.
+    expect(announced()).toBe("");
+    expect(line(container)).toBeNull();
+
+    await pressFollow();
+    await waitFor(() => expect(announced()).toBe(followWords("Maya Alvarez")));
+    expect(announced()).toContain("Maya just sees one more follower.");
+    expect(line(container)).toHaveTextContent(followWords("Maya Alvarez"));
+    // The eye's copy is not read a second time.
+    expect(line(container)!.querySelector("p")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+  });
+
+  it("says 'They' where no name is known (the guest list's Follow, the moment card's)", async () => {
+    follow.mockResolvedValue({ ok: true, first: true });
+    render(<RelationToggle relation="follow" profileId="p2" on={false} />);
+    await pressFollow();
+    await waitFor(() => expect(announced()).toBe(followWords()));
+    expect(announced()).toContain("They just see one more follower.");
+  });
+
+  it("★ is the button alone when the follow was not her first: the thousandth is quiet", async () => {
+    follow.mockResolvedValue({ ok: true });
+    const { container } = render(
+      <RelationToggle relation="follow" profileId="p2" on={false} />,
+    );
+    await pressFollow();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Following" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+    expect(line(container)).toBeNull();
+    expect(announced()).toBe("");
+  });
+
+  it("takes the line away at once when she unfollows, and a later follow that is not her first does not bring it back", async () => {
+    follow.mockResolvedValueOnce({ ok: true, first: true });
+    const { container } = render(
+      <RelationToggle relation="follow" profileId="p2" on={false} />,
+    );
+    await pressFollow();
+    await waitFor(() => expect(line(container)).not.toBeNull());
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Following" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Following" }));
+    // The optimistic flip: gone with the press, before the write is answered.
+    expect(line(container)).toBeNull();
+    await waitFor(() => expect(unfollow).toHaveBeenCalledWith("p2"));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Follow" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+
+    follow.mockResolvedValueOnce({ ok: true });
+    fireEvent.click(screen.getByRole("button", { name: "Follow" }));
+    await waitFor(() => expect(follow).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Following" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+    expect(line(container)).toBeNull();
+  });
+
+  it("says nothing for a follow that was refused", async () => {
+    follow.mockResolvedValue({ ok: false, message: "Not now." });
+    const { container } = render(
+      <RelationToggle relation="follow" profileId="p2" on={false} />,
+    );
+    await pressFollow();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Not now."));
+    expect(line(container)).toBeNull();
+    expect(announced()).toBe("");
+  });
+
+  it("★ is turned off by a surface that stands the line itself, and draws no announcement either", async () => {
+    follow.mockResolvedValue({ ok: true, first: true });
+    const { container } = render(
+      <RelationToggle
+        relation="follow"
+        profileId="p2"
+        on={false}
+        privateLine={false}
+      />,
+    );
+    await pressFollow();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Following" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+    expect(line(container)).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("is a follow's alone: a block never says it", async () => {
+    block.mockResolvedValue({ ok: true, first: true });
+    const { container } = render(
+      <RelationToggle
+        relation="block"
+        profileId="p1"
+        on={false}
+        person="Maya"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Block" }));
+    const ask = screen.getByRole("alertdialog");
+    fireEvent.click(
+      [...ask.querySelectorAll("button")].find(
+        (b) => b.textContent === "Block",
+      )!,
+    );
+    await waitFor(() => expect(block).toHaveBeenCalledWith("p1"));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Unblock" }),
+      ).toBeInTheDocument(),
+    );
+    expect(line(container)).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("★ reports to a page's scope instead of drawing a second copy: the slot under the head draws it, in her name for the page", async () => {
+    follow.mockResolvedValue({ ok: true, first: true });
+    const { container } = render(
+      <FirstFollowScope name="Maya Alvarez">
+        <RelationToggle relation="follow" profileId="p2" on={false} />
+        <div data-testid="under-the-head">
+          <FirstFollowSlot />
+        </div>
+      </FirstFollowScope>,
+    );
+    expect(line(container)).toBeNull();
+
+    await pressFollow();
+    await waitFor(() =>
+      expect(
+        screen
+          .getByTestId("under-the-head")
+          .querySelector("[data-follow-line]"),
+      ).not.toBeNull(),
+    );
+    // One line, in the slot: the button's own neighbour drew none.
+    expect(container.querySelectorAll("[data-follow-line]")).toHaveLength(1);
+    expect(announced()).toBe(followWords("Maya Alvarez"));
+
+    // Unfollowing empties the slot.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Following" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Following" }));
+    await waitFor(() => expect(line(container)).toBeNull());
   });
 });
 

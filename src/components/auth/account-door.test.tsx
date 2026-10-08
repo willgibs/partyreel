@@ -36,6 +36,14 @@ import { rememberDoor, rememberPasskey } from "@/lib/auth/remembered-email";
 const flags = vi.hoisted(() => ({ passkeys: false }));
 const signInWithPasskey = vi.hoisted(() => vi.fn());
 const signOut = vi.hoisted(() => vi.fn());
+const signInWithOAuth = vi.hoisted(() => vi.fn());
+
+// The portal's host, as the callback address's own guard asks it (`isAdminHost`: the env's, read once at import).
+vi.mock("@/lib/auth/admin-host", () => ({
+  ADMIN_HOST: "admin.partyreel.com",
+  isAdminHost: (host: string | null | undefined) =>
+    host === "admin.partyreel.com",
+}));
 
 vi.mock("@/lib/supabase/client", () => ({
   get PASSKEYS_ENABLED() {
@@ -44,7 +52,7 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
       signOut,
-      signInWithOAuth: vi.fn().mockResolvedValue({ error: null }),
+      signInWithOAuth,
       signInWithPasskey,
       registerPasskey: vi.fn().mockResolvedValue({ error: null }),
     },
@@ -62,12 +70,18 @@ vi.mock("@/components/auth/email-sign-in", async (orig) => ({
     onVerified,
     hintEmail,
     sentAt,
+    emailRedirectTo,
   }: {
     onVerified: (r: { existing: boolean; email: string }) => void;
     hintEmail?: string;
     sentAt?: (email: string | null) => void;
+    emailRedirectTo?: string;
   }) => (
-    <div data-testid="email-sign-in" data-hint={hintEmail ?? ""}>
+    <div
+      data-testid="email-sign-in"
+      data-hint={hintEmail ?? ""}
+      data-redirect={emailRedirectTo ?? ""}
+    >
       <button
         type="button"
         data-testid="stub-send"
@@ -112,10 +126,95 @@ beforeEach(() => {
   signInWithPasskey.mockReset();
   signOut.mockReset();
   signOut.mockResolvedValue({ error: null });
+  signInWithOAuth.mockReset();
+  signInWithOAuth.mockResolvedValue({ error: null });
 });
 
 afterEach(() => {
   localStorage.clear();
+});
+
+/**
+ * ★ THE CREATE DOOR'S LINK SAYS SO (crumbs-88; Will's `existing=tell`): the code says "you already had an account" inside the
+ * door, and a tapped link or Google's round trip leaves the page, so the Create account door marks the callback address both
+ * return to (`intent=create`) and the callback asks the server's test there (`auth/callback/existing-account.ts`). The host's
+ * `/login` door alone: the guests' doors return to an album, and the admin host's callback address is exact (a query lands the
+ * operator's sign-in on the apex).
+ */
+describe("the Create account door marks the address its link returns to", () => {
+  const CALLBACK =
+    "https://partyreel.com/auth/callback?next=%2Fdashboard%2Fnew";
+  const door = (
+    props: Partial<Parameters<typeof AccountDoor>[0]> & { wear: DoorWear },
+  ) =>
+    render(
+      <AccountDoor
+        methods={{ code: true, google: true }}
+        emailRedirectTo={CALLBACK}
+        onVerified={vi.fn()}
+        {...props}
+      />,
+    );
+  const redirect = () =>
+    screen.getByTestId("email-sign-in").getAttribute("data-redirect")!;
+
+  it("★ puts intent=create on the callback address the link comes back to, and keeps the page it was going to", () => {
+    door({ wear: "login", intent: "create" });
+    const url = new URL(redirect());
+    expect(url.origin + url.pathname).toBe(
+      "https://partyreel.com/auth/callback",
+    );
+    expect(url.searchParams.get("intent")).toBe("create");
+    expect(url.searchParams.get("next")).toBe("/dashboard/new");
+  });
+
+  it("★ marks Google's round trip the same, since it returns to the same callback", async () => {
+    door({ wear: "login", intent: "create" });
+    await act(async () => {
+      screen.getByRole("button", { name: /Continue with Google/ }).click();
+    });
+    const options = signInWithOAuth.mock.calls[0]![0].options as {
+      redirectTo: string;
+    };
+    expect(new URL(options.redirectTo).searchParams.get("intent")).toBe(
+      "create",
+    );
+  });
+
+  it("★ leaves a plain sign-in's address as it was: no mark, so the callback asks nothing of it", () => {
+    door({ wear: "login", intent: "signin" });
+    expect(redirect()).toBe(CALLBACK);
+    door({ wear: "login" });
+    expect(
+      screen
+        .getAllByTestId("email-sign-in")
+        .at(-1)!
+        .getAttribute("data-redirect"),
+    ).toBe(CALLBACK);
+  });
+
+  it("★ leaves every guest door's address alone, whatever its intent: they return to an album, which draws no such line", () => {
+    for (const wear of ["gate", "keep", "like", "signin"] as const) {
+      const { unmount } = door({ wear, intent: "create", chrome: "none" });
+      expect(redirect(), wear).toBe(CALLBACK);
+      unmount();
+    }
+  });
+
+  it("★ never touches the admin host's callback: its allow-list entry is exact, and a query lands the operator on the apex", () => {
+    const admin = "https://admin.partyreel.com/auth/callback";
+    door({ wear: "login", intent: "create", emailRedirectTo: admin });
+    expect(redirect()).toBe(admin);
+  });
+
+  it("hands back an address that is no URL whole, rather than throwing in the door", () => {
+    door({
+      wear: "login",
+      intent: "create",
+      emailRedirectTo: "/auth/callback",
+    });
+    expect(redirect()).toBe("/auth/callback");
+  });
 });
 
 describe("the wears", () => {

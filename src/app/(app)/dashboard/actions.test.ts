@@ -101,12 +101,14 @@ vi.mock("@/lib/db/queries/social", () => ({
 vi.mock("@/lib/observability/sentry", () => ({ captureError }));
 
 const {
+  createEventInWizard,
   noteEventOpenedAction,
   readStageGuestsAction,
   setEventsDisplayAction,
   setLeadRuleAction,
   updateEventAction,
 } = await import("@/app/(app)/dashboard/actions");
+const { createEvent } = await import("@/lib/db/mutations/events");
 
 beforeEach(() => {
   updateEvent.mockReset();
@@ -122,6 +124,88 @@ beforeEach(() => {
   guests.read.mockReset();
   updateEvent.mockResolvedValue({ ok: true, data: { id: "event-1" } });
   approveAllPending.mockResolvedValue({ ok: true, data: { count: 0 } });
+});
+
+/**
+ * ★ A CREATE'S KEY IS THE CALLER'S WORD (20261007120000, `events.create_key`): a public endpoint takes it as a second argument,
+ * and only a uuid's shape reaches `createEvent` (a malformed one is refused here in the wizard's own words, never read as a
+ * Postgres cast error), lower-cased so one attempt is one key; none sent is the create it always was. What the key does is
+ * `lib/db/mutations/events-create-key.test.ts`'s and the migration's own check.
+ */
+describe("createEventInWizard: the attempt's key", () => {
+  const FIRST = {
+    id: "evt-first",
+    name: "Maya's 30th",
+    qr_token: "7f3a9c2e5b8d4f1a9e6c3b7d2a5f8e1c",
+    qr_style: "classic",
+    host_id: "host-1",
+  };
+  const KEY = "c2c20000-0000-4000-8000-0000000000a1";
+  const INPUT = { name: "Maya's 30th" };
+
+  beforeEach(() => {
+    vi.mocked(createEvent).mockReset();
+    vi.mocked(createEvent).mockResolvedValue({
+      ok: true,
+      data: FIRST,
+    } as never);
+  });
+
+  it("★ hands the key down with the parsed values, so the retry returns the first event, and answers only what the beat draws", async () => {
+    const result = await createEventInWizard(INPUT, KEY);
+    expect(createEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Maya's 30th" }),
+      KEY,
+    );
+    expect(result).toEqual({
+      ok: true,
+      event: {
+        id: "evt-first",
+        name: "Maya's 30th",
+        qr_token: FIRST.qr_token,
+        qr_style: "classic",
+      },
+    });
+  });
+
+  it("lower-cases it, so one attempt is one key whatever spelling the caller used", async () => {
+    await createEventInWizard(INPUT, KEY.toUpperCase());
+    expect(vi.mocked(createEvent).mock.calls[0]![1]).toBe(KEY);
+  });
+
+  it("sends none down where none came (an older build, a specimen): the create it always was", async () => {
+    await createEventInWizard(INPUT);
+    expect(createEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Maya's 30th" }),
+      undefined,
+    );
+  });
+
+  it.each([
+    ["a string that is not a uuid", "not-a-uuid"],
+    ["an empty string", ""],
+    ["null", null],
+    ["a number", 42],
+    ["an object", { key: KEY }],
+    ["a uuid with a tail", `${KEY}; drop table events`],
+  ])("★ refuses %s before anything is made or read", async (_name, attempt) => {
+    const result = await createEventInWizard(INPUT, attempt);
+    expect(result).toMatchObject({ ok: false, code: "validation" });
+    expect(createEvent).not.toHaveBeenCalled();
+  });
+
+  it("answers a refusal as it comes (the cap, a CHECK), so the wizard holds it in its own words", async () => {
+    vi.mocked(createEvent).mockResolvedValue({
+      ok: false,
+      code: "limit_reached",
+      message: "You've reached the event limit for your plan.",
+    });
+    expect(await createEventInWizard(INPUT, KEY)).toEqual({
+      ok: false,
+      code: "limit_reached",
+      message: "You've reached the event limit for your plan.",
+    });
+  });
 });
 
 describe("updateEventAction: a one-field save is that field", () => {

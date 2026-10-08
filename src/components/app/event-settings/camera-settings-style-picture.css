@@ -6,7 +6,9 @@
   tones are the guest album's own dark and white, which is why they are not the room's foreground).
 
   ★ EVERYTHING THAT MOVES IS A TRANSITION the global reduced-motion guard clamps to an instant (bible 5), and a frame
-  shows by its state alone, so the picture stands complete at rest.
+  shows by its state alone, so the picture stands complete at rest. Its marks (the roll over every frame, the reel's
+  mark, the moment's word) are always drawn and shown by `data-on`, so a story played through them fades each in and
+  out rather than popping, and a story stopped half way leaves nothing behind.
 */
 
 .style-pic {
@@ -20,8 +22,6 @@
   --style-pic-lit: #fff;
   /* The clock on a photograph waiting for the host. */
   --style-pic-held: oklch(1 0 0 / 0.6);
-  /* A photograph coming in as the host lets it in: how much of it shows. */
-  --style-pic-fading: 0.4;
   /* The camera's count on a roll nothing is shot on yet. */
   --style-pic-ink: oklch(1 0 0 / 0.8);
   /* The reel's mark the morning after, and the ink on it. */
@@ -55,7 +55,7 @@
   box-shadow: 0 0 0 1px var(--style-pic-lit);
 }
 
-/* A photograph is shown by its frame's state: the file is always there, so it fades with the night. */
+/* A photograph is shown by its frame's state: the file is always there, so it fades with the story. */
 .style-pic-img {
   opacity: 0;
   transition: opacity 320ms var(--ease-emphasis);
@@ -64,14 +64,40 @@
 .style-pic-cell[data-cell="hers"] > .style-pic-img {
   opacity: 1;
 }
-.style-pic-cell[data-cell="fading"] > .style-pic-img {
-  opacity: var(--style-pic-fading);
+/* The Disposable's frames developing together, the morning its story reaches: one slower fade. */
+.style-pic[data-developing] .style-pic-img {
+  transition-duration: 560ms;
 }
 
 .style-pic-clock {
   width: max(12px, 9cqw);
   height: max(12px, 9cqw);
   color: var(--style-pic-held);
+}
+
+/* The camera standing in its first frame at rest, its roll under it. */
+.style-pic-cam {
+  gap: 1cqw;
+  font-size: max(11px, 8cqw);
+  font-weight: 500;
+  color: var(--style-pic-ink);
+}
+.style-pic-cam > svg {
+  width: max(12px, 9cqw);
+  height: max(12px, 9cqw);
+}
+
+/* The roll over every frame as guests arrive, the reel's mark the morning after, the moment's word: shown by `data-on`. */
+.style-pic-roll,
+.style-pic-play,
+.style-pic-moment {
+  opacity: 0;
+  transition: opacity 240ms var(--ease-emphasis);
+}
+.style-pic-roll[data-on],
+.style-pic-play[data-on],
+.style-pic-moment[data-on] {
+  opacity: 1;
 }
 
 .style-pic-roll {
@@ -95,4 +121,29 @@
 .style-pic-play > svg {
   width: max(7px, 8cqw);
   height: max(7px, 8cqw);
+}
+
+/*
+  THE MOMENT A PLAYING PICTURE STANDS IN, NAMED ON IT (Create's picked card, create-wizard r5's `previews=one`): the
+  reel mark's material, at its top-right, the one corner no style's picture marks (the Disposable's camera stands
+  top-left, Review's clocks below, the reel's mark at the foot's left). A phone's card picture (110px) has no room for a
+  word over its frames: there the story itself carries the when.
+*/
+.style-pic-moment {
+  top: 6cqw;
+  right: 6cqw;
+  display: none;
+  padding: 0.15em 0.65em;
+  border-radius: 9999px;
+  background: var(--style-pic-badge);
+  color: var(--style-pic-badge-ink);
+  font-size: clamp(10px, 4.6cqw, 12px);
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+@container (min-width: 160px) {
+  .style-pic-moment {
+    display: block;
+  }
 }

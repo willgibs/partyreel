@@ -1,15 +1,22 @@
 /**
- * THE ALBUM'S ORDER, AS ARITHMETIC (`album-order.ts`): when an album turns (and the edge cases the lane was cut to
- * pin: undated and never closed, a range turning the morning after its LAST day, a disposable turning at its develop,
- * the zone, the clock changing that night), the night in order's key (a capture time where an item carries one, else
- * its arrival), her remembered choice, and her lens.
+ * THE ALBUM'S ORDER, AS ARITHMETIC (`album-order.ts`): when an album turns (its host's close, a develop reached, a
+ * reopen turning it back, and never a date: Will's AY1), the night in order's key (a capture time where an item carries
+ * one, else its arrival), her remembered choice, and her lens.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-91, call AY1; scar kept: newest first while the party is on, the night in order after
+ * it, a develop turning a Disposable at its moment, the demo never turning). The expired reason: the date as the end of
+ * the party. "Let's say I create an event for a trip with friends and I simply put in a single date on there, but
+ * wanted to stay open for the entire week" (Will, 2026-10-07): the album turned at 9 am the morning after that one
+ * date, mid-trip, and an undated one never did. The end is her close, so these cases hold her word, never a day or a
+ * zone; the party's 9 am is the default develop's alone (`zone-morning.test.ts`).
  */
 import { describe, expect, it } from "vitest";
 
 import { toManifestEntry, type ManifestEntry } from "@/lib/events/album-wire";
 import {
-  albumTurnAt,
+  albumOwnSort,
   ALBUM_SORT_KEEP,
+  developMoment,
   entriesInOrder,
   guestAlbumOrder,
   happenedAt,
@@ -18,154 +25,102 @@ import {
   lensAlbum,
   readChosenSort,
   shownSort,
-  sortAt,
   takenAtOf,
-  TURN_HOUR,
-  wallTimeIn,
   withChosenSort,
 } from "@/lib/shared/album-order";
 
 const at = (iso: string) => Date.parse(iso);
 
-describe("the turn", () => {
-  it("turns at 9 am the morning after a one-day party, in the zone it is read in", () => {
-    expect(TURN_HOUR).toBe(9);
-    // Saturday 3 October 2026 in Los Angeles (PDT, UTC-7): Sunday 9 am there is 16:00 UTC.
+describe("the turn: the album's own state, never its date", () => {
+  const now = at("2026-10-05T12:00:00Z");
+
+  it("★ newest first while it takes uploads, the night in order once its host closes adding, newest again on a reopen", () => {
+    expect(albumOwnSort({ acceptingUploads: true }, now)).toBe("newest");
+    expect(albumOwnSort({ acceptingUploads: false }, now)).toBe("oldest");
+    // A reopen is the same album taking uploads again: the live feed leads once more.
     expect(
-      albumTurnAt({ eventDate: "2026-10-03" }, "America/Los_Angeles"),
-    ).toBe(at("2026-10-04T16:00:00Z"));
-    // The same party read in London (BST, UTC+1) turns on London's Sunday morning.
-    expect(albumTurnAt({ eventDate: "2026-10-03" }, "Europe/London")).toBe(
-      at("2026-10-04T08:00:00Z"),
-    );
-    // And in Auckland (NZDT, UTC+13), half a day earlier than either.
-    expect(albumTurnAt({ eventDate: "2026-10-03" }, "Pacific/Auckland")).toBe(
-      at("2026-10-03T20:00:00Z"),
-    );
+      albumOwnSort({ acceptingUploads: true, developsAt: null }, now),
+    ).toBe("newest");
   });
 
-  it("a weekend turns the morning after its LAST day, never its first", () => {
+  it("★ nothing about it waits on a day: an open album stays newest first for as long as it is open", () => {
+    // The facts carry no date at all: a trip dated on its first day, a weekend, an undated album and a party a year on
+    // all read alike, by her word alone.
+    for (const later of [now, now + 7 * 86_400_000, now + 400 * 86_400_000])
+      expect(albumOwnSort({ acceptingUploads: true }, later)).toBe("newest");
+  });
+
+  it("★ a Disposable turns at its develop, her own chosen moment, whether or not she has closed it", () => {
+    const develop = "2026-10-05T09:00:00.000Z";
+    const moment = at(develop);
     expect(
-      albumTurnAt(
-        { eventDate: "2026-10-02", eventEndDate: "2026-10-04" },
-        "America/New_York",
+      albumOwnSort({ acceptingUploads: true, developsAt: develop }, moment - 1),
+    ).toBe("newest");
+    expect(
+      albumOwnSort({ acceptingUploads: true, developsAt: develop }, moment),
+    ).toBe("oldest");
+    // Closed before the develop: her close turns it already.
+    expect(
+      albumOwnSort(
+        { acceptingUploads: false, developsAt: develop },
+        moment - 1,
       ),
-    ).toBe(at("2026-10-05T13:00:00Z"));
+    ).toBe("oldest");
   });
 
-  it("an end that is no range reads as the one day", () => {
-    expect(
-      albumTurnAt(
-        { eventDate: "2026-10-03", eventEndDate: "2026-10-01" },
-        "UTC",
-      ),
-    ).toBe(at("2026-10-04T09:00:00Z"));
-  });
-
-  it("an undated album never turns, whenever it is read: it stays newest first", () => {
-    const turn = albumTurnAt({ eventDate: null }, "America/Chicago");
-    expect(turn).toBeNull();
-    expect(sortAt(turn, at("2030-01-01T00:00:00Z"))).toBe("newest");
-  });
-
-  it("a disposable turns AT its develop, whatever its date says", () => {
-    expect(
-      albumTurnAt(
-        { eventDate: "2026-10-03", developsAt: "2026-10-03T23:30:00.000Z" },
-        "America/Los_Angeles",
-      ),
-    ).toBe(at("2026-10-03T23:30:00Z"));
-    // An undated disposable still turns at its develop.
-    expect(
-      albumTurnAt(
-        { eventDate: null, developsAt: "2026-10-04T16:00:00+00:00" },
-        "UTC",
-      ),
-    ).toBe(at("2026-10-04T16:00:00Z"));
-  });
-
-  it("a develop time that is no time falls back to the days", () => {
-    expect(
-      albumTurnAt({ eventDate: "2026-10-03", developsAt: "soon" }, "UTC"),
-    ).toBe(at("2026-10-04T09:00:00Z"));
-  });
-
-  it("holds 9 am through the clock changing that night, both ways", () => {
-    // The party on Halloween; the clocks fall back at 2 am on 1 November (PDT to PST, UTC-8).
-    expect(
-      albumTurnAt({ eventDate: "2026-10-31" }, "America/Los_Angeles"),
-    ).toBe(at("2026-11-01T17:00:00Z"));
-    // A party on 7 March; the clocks spring forward at 2 am on the 8th (PST to PDT, UTC-7).
-    expect(
-      albumTurnAt({ eventDate: "2026-03-07" }, "America/Los_Angeles"),
-    ).toBe(at("2026-03-08T16:00:00Z"));
-    // Europe springs forward at 1 am UTC on 29 March 2026: 9 am in Berlin is 07:00 UTC.
-    expect(albumTurnAt({ eventDate: "2026-03-28" }, "Europe/Berlin")).toBe(
-      at("2026-03-29T07:00:00Z"),
+  it("a develop that is no time turns nothing: the album follows her word alone", () => {
+    expect(developMoment("soon")).toBeNull();
+    expect(developMoment(null)).toBeNull();
+    expect(developMoment(undefined)).toBeNull();
+    expect(developMoment("2026-10-04T16:00:00+00:00")).toBe(
+      at("2026-10-04T16:00:00Z"),
     );
-  });
-
-  it("reads a zone it cannot read as UTC rather than throwing", () => {
-    expect(albumTurnAt({ eventDate: "2026-10-03" }, "Mars/Olympus")).toBe(
-      at("2026-10-04T09:00:00Z"),
-    );
-  });
-
-  it("is newest first until the turn's own moment, then the night in order", () => {
-    const turn = at("2026-10-04T16:00:00Z");
-    expect(sortAt(turn, turn - 1)).toBe("newest");
-    expect(sortAt(turn, turn)).toBe("oldest");
-    expect(sortAt(turn, turn + 86_400_000 * 400)).toBe("oldest");
-  });
-
-  it("wallTimeIn names an hour in a zone's own wall clock", () => {
-    expect(wallTimeIn("2026-07-01", 9, "Asia/Kolkata")).toBe(
-      at("2026-07-01T03:30:00Z"),
-    );
-    expect(wallTimeIn("2026-01-15", 9, "Australia/Sydney")).toBe(
-      at("2026-01-14T22:00:00Z"),
-    );
+    expect(
+      albumOwnSort({ acceptingUploads: true, developsAt: "soon" }, now),
+    ).toBe("newest");
   });
 });
 
 describe("the first paint's order (the page's)", () => {
-  const facts = { eventDate: "2026-10-03" };
-  const after = at("2026-10-05T12:00:00Z");
-  const during = at("2026-10-03T20:00:00Z");
-
   it("is the album's own at the render, and hers where she chose one", () => {
-    const morning = guestAlbumOrder({
-      facts,
-      zone: "UTC",
-      chosen: null,
-      now: after,
-    });
-    expect(morning).toEqual({
-      morningAfter: at("2026-10-04T09:00:00Z"),
-      own: "oldest",
+    const closed = guestAlbumOrder({
+      facts: { acceptingUploads: false },
       chosen: null,
     });
-    expect(shownSort(morning)).toBe("oldest");
+    expect(closed).toEqual({ own: "oldest", chosen: null });
+    expect(shownSort(closed)).toBe("oldest");
     const hers = guestAlbumOrder({
-      facts,
-      zone: "UTC",
+      facts: { acceptingUploads: false },
       chosen: "newest",
-      now: after,
     });
     expect(shownSort(hers)).toBe("newest");
     expect(
-      guestAlbumOrder({ facts, zone: "UTC", chosen: null, now: during }).own,
+      guestAlbumOrder({ facts: { acceptingUploads: true }, chosen: null }).own,
     ).toBe("newest");
+  });
+
+  it("reads a develop at the render's own moment", () => {
+    const facts = {
+      acceptingUploads: true,
+      developsAt: "2026-10-05T09:00:00.000Z",
+    };
+    expect(
+      guestAlbumOrder({ facts, chosen: null, now: at("2026-10-05T08:59:59Z") })
+        .own,
+    ).toBe("newest");
+    expect(
+      guestAlbumOrder({ facts, chosen: null, now: at("2026-10-05T09:00:00Z") })
+        .own,
+    ).toBe("oldest");
   });
 
   it("the demo never turns: it is the party in progress", () => {
     expect(
       guestAlbumOrder({
-        facts,
-        zone: "UTC",
+        facts: { acceptingUploads: false, developsAt: "2026-10-01T09:00:00Z" },
         chosen: null,
         isDemo: true,
-        now: after,
+        now: at("2027-01-01T00:00:00Z"),
       }).own,
     ).toBe("newest");
   });
@@ -213,7 +168,7 @@ describe("the night in order", () => {
   });
 
   it("★ reads the capture time the album's wire carries: a late upload's own `captured_at` puts it mid-album", () => {
-    // Built by the wire's own mapper from rows as the manifest reads return them (capture-time, Will's X7): were the
+    // Built by the wire's own mapper from rows as the manifest reads return them (uploads-and-r2.md): were the
     // wire to stop carrying `captured_at`, the late upload would fall back to its arrival and land at the end.
     const row = (id: string, created: string, captured: string | null) =>
       toManifestEntry(

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   composeBoardLine,
+  composeCallsLine,
   composeLibraryLine,
   composeMessage,
   quoteNote,
@@ -242,5 +243,53 @@ describe("a note for the whole program", () => {
       'note: "only this"',
     );
     expect(composeMessage([], [], [], [], "6f25638", "   ")).toBe("");
+  });
+});
+
+/**
+ * THE CALLS' LINE (calls-desk, 2026-10-07): the desk's Calls place answers ride the same paste as one `calls:` line,
+ * after the boards' and the Library's and before the note on the whole program, which always prints last.
+ */
+describe("the calls' line", () => {
+  it("writes each answer as <id>=<answer>, a note quoted beside it", () => {
+    expect(
+      composeCallsLine([
+        { id: "X2", answer: "recommended" },
+        { id: "X12", answer: "own", note: 'a guestbook; "later"' },
+        { id: "L2", answer: "keep" },
+      ]),
+    ).toBe(
+      'calls: X2=recommended; X12=own "a guestbook; \\"later\\""; L2=keep',
+    );
+    expect(composeCallsLine([])).toBe("");
+    expect(composeCallsLine([{ id: "L2", answer: "" }])).toBe("");
+  });
+
+  it("sits after the boards and the Library, before the note on the whole program", () => {
+    expect(
+      composeMessage(
+        [{ board: "light", round: 4, ask: "aurora", choice: "yes" }],
+        [],
+        [],
+        [{ entry: "button", verdict: "keep" }],
+        "6f25638",
+        "the desk reads well",
+        [{ id: "R1", answer: "change", note: "a week of grace" }],
+      ).split("\n"),
+    ).toEqual([
+      "# build 6f25638",
+      "review light r4: aurora=yes",
+      "review library: button=keep",
+      'calls: R1=change "a week of grace"',
+      'note: "the desk reads well"',
+    ]);
+  });
+
+  it("is a message on its own", () => {
+    expect(
+      composeMessage([], [], [], [], "6f25638", null, [
+        { id: "L2", answer: "keep" },
+      ]),
+    ).toBe("# build 6f25638\ncalls: L2=keep");
   });
 });

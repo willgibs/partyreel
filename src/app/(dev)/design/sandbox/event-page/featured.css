@@ -1,0 +1,10 @@
+/* ── FEATURED'S OWN SHEET (event-page r1, the photographs as a featured card) ──
+   What the shared sheet cannot say for this design alone. Unlayered, every
+   selector this design's own hook, no keyframes, no :has(). */
+
+/* The card's photographs carry no words, so they carry no scrim either: the
+   head's scrim exists for a name and acts laid over a photograph, which this
+   design never does, and on a card it only greys the party's own light. */
+[data-ep-featured] .head-scrim {
+  display: none;
+}

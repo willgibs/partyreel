@@ -73,6 +73,7 @@ import {
   CAMERA_CONTROLS,
   CAMERA_HINT,
   cameraSubLine,
+  shotsWaitingLine,
   unsentLine,
   type CameraReveal,
 } from "@/lib/guest/camera/words";
@@ -181,7 +182,7 @@ export function CameraScreen({
   /**
    * Her shots that did not send: how many, whether a Retry could pass, and whether the connection is why (red-team 53's
    * NIT: the camera never said a dropped one). The line then says the uploader's own sentence, never a count that
-   * would read as a broken app.
+   * would read as a broken app; with no Retry that could pass, they wait for the line and it says so (`shotsWaitingLine`).
    */
   unsent: { count: number; retryable: boolean; dropped?: boolean };
   /** The newest refusal of a shot's own file, in the server's words: said once, as it arrives. */
@@ -657,7 +658,10 @@ export function CameraScreen({
         ? ""
         : unsent.count > 0
           ? unsent.dropped
-            ? UPLOAD_WORDS.dropped
+            ? // The line is why and no Retry could pass: her shots wait for it, and go by themselves (no-signal r1).
+              unsent.retryable
+              ? UPLOAD_WORDS.dropped
+              : shotsWaitingLine(unsent.count)
             : unsentLine(unsent.count)
           : filmable
             ? CAMERA_HINT.tapOrHold

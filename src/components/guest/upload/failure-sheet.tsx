@@ -27,9 +27,16 @@
  * ★ RETRY ONLY WHERE A RETRY COULD PASS (build 23's NIT-2): a refusal of the file
  * itself ("This event accepts photos only", a file too large) stands with its
  * sentence and no Retry, since sending the same file again is refused again
- * (`retryCanPass`, the refusal ladder the door's step reads too).
+ * (`retryCanPass`, the refusal ladder the door's step reads too), and so does a
+ * shot the album's spent roll refused (crumbs-90, no-signal r1: "Retry both" stood
+ * over two shots the roll refused again, under a Not now that promised a later go).
+ *
+ * ★ A SEND REFUSED BECAUSE THE HOST PAUSED IS ITS OWN CLASS TOO (crumbs-93, red-team 58's MEDIUM): `paused`, said in the
+ * sheet's reason line (`uploadFailurePaused`: what happened, that nothing is lost, the way on) over the server's own
+ * sentence, and with no Retry, since every send is refused alike until the host reopens (and the cover's Add is back the
+ * moment the album says it has).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
 
 import { DoorHeading } from "@/components/guest/door/heading";
@@ -44,7 +51,7 @@ import {
 } from "@/components/ui/sheet";
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
-import { retryCanPass } from "@/lib/guest/upload-refusal";
+import { classifyRefusal, retryCanPass } from "@/lib/guest/upload-refusal";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { usePartyZone } from "@/components/guest/party-zone";
 import { restWaitLine, waitWords } from "@/lib/disposable/wait-words";
@@ -98,6 +105,24 @@ export function uploadFailureElsewhere(input: {
 }
 
 /**
+ * ★ WHAT SHE IS TOLD WHEN THE HOST PAUSED UPLOADS UNDER A SEND (crumbs-93): what happened, that nothing is lost (the file is
+ * still with her: on her phone, or in the camera a shot was taken in), and the one way to put it right, said once for
+ * the whole run. No Retry stands under it (`retryCanPass`): it would be refused again until the host reopens.
+ */
+export function uploadFailurePaused(input: {
+  hostName: string;
+  /** How many files of the run were refused as paused. */
+  count: number;
+  camera?: boolean;
+}): string {
+  const { hostName, count, camera = false } = input;
+  const one = count === 1;
+  return `${hostName} has paused uploads for now. ${one ? "It is" : "They are"} still ${
+    camera ? "in the camera" : "on your phone"
+  }, so try ${one ? "it" : "them"} again once uploads reopen.`;
+}
+
+/**
  * ★ WHAT SHE CAN DO ABOUT A FAILURE NO RETRY COULD PASS (red-team 54's LOW): the file itself was refused (`retryCanPass`:
  * a type nobody takes, a file over the ceiling, a video where the album takes none), so the same file is refused again.
  * Its line says why, in the refusal's own sentence, and this says the way on: another file. The door's upload step says
@@ -105,6 +130,19 @@ export function uploadFailureElsewhere(input: {
  */
 export function uploadFailureChooseAgain(camera = false): string {
   return camera ? "Take another to add one." : "Pick something else to add.";
+}
+
+/**
+ * ★ WHETHER A FAILURE SHEET STANDS NOW (crumbs-90): the send's toast reads it as a send ends (`send-toast.ts`), so a
+ * send that ends under a sheet (a row's Retry, a heal of one of its rows) is said by the sheet alone, which already
+ * says what joined. A count of the sheets open this moment, written by each while it is open and never during its
+ * exit (its `open` is the page's decision; the latch below only draws the words it closes on). A module's, as the
+ * name door's channel is, because the toast is heard at the page and the sheet stands in the album's slot.
+ */
+let openSheets = 0;
+
+export function failureSheetStands(): boolean {
+  return openSheets > 0;
 }
 
 /** The list's one retry-everything button, in one place (`UploadFailureList` below). */
@@ -274,6 +312,14 @@ export function UploadFailureSheet({
     open && failures.length > 0 ? { failures, sent, landed } : latched;
   const nowMs = useWaitClock();
   const zone = usePartyZone();
+  // Standing while open (`failureSheetStands`).
+  useEffect(() => {
+    if (!open) return;
+    openSheets += 1;
+    return () => {
+      openSheets -= 1;
+    };
+  }, [open]);
   const heading = uploadFailureHeading(shown.failures.length, shown.sent);
   /* ★ A RUN THAT FAILED WHOLE HAS NO "EVERYTHING ELSE" TO SAY (crumbs-76): "1 of 1 didn't upload" under "Everything
      else is in Maya's album" spoke of a rest that does not exist. The line is said only where the run sent more than
@@ -286,10 +332,31 @@ export function UploadFailureSheet({
     others > 0 && (shown.landed ?? others) === others
       ? uploadFailureElsewhere({ hostName, waits, nowMs, zone })
       : null;
-  // Nothing a retry could pass: every line is a refusal of the file itself, so the way on is another file.
+  // Nothing a retry could pass: every line is a refusal of the file itself or of the spent roll.
   const nothingToRetry = !shown.failures.some((f) => retryCanPass(f.code));
+  /* ★ ANOTHER FILE IS THE WAY ON ONLY WHERE EVERY LINE IS THE FILE'S OWN (crumbs-90, no-signal r1): a shot the spent
+     roll refused says "You've taken all 24 shots on your roll.", and "Take another to add one." under it would send
+     her to a shutter that refuses the next one alike. The roll's end is the camera's to say (it stopped her there),
+     so a sheet with a roll refusal says the rest and nothing more, and closes on Done. */
+  const chooseAgain =
+    nothingToRetry &&
+    shown.failures.every((f) => classifyRefusal(f.code) === "choose");
+  // ★ A RUN THE HOST'S PAUSE REFUSED WHOLE says so, first: what happened and the way on, before the rest.
+  const pausedRun =
+    shown.failures.length > 0 &&
+    shown.failures.every((f) => classifyRefusal(f.code) === "paused");
   const reason =
-    [rest, nothingToRetry ? uploadFailureChooseAgain(camera) : null]
+    [
+      pausedRun
+        ? uploadFailurePaused({
+            hostName,
+            count: shown.failures.length,
+            camera,
+          })
+        : null,
+      rest,
+      chooseAgain ? uploadFailureChooseAgain(camera) : null,
+    ]
       .filter(Boolean)
       .join(" ") || null;
 

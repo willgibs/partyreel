@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import { CycledCover } from "@/components/app/dashboard/cover-cycle";
 import { LiveDot, Mark, StateDot } from "@/components/app/dashboard/marks";
 import { RoleMarker } from "@/components/app/event-card";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { RangeText } from "@/lib/format/range-text";
 import { cn } from "@/lib/utils";
@@ -148,10 +149,8 @@ export function EventTile({
       {cycles ? (
         <CycledCover id={row.id} stills={row.stills} />
       ) : row.coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+        <PhotoImg
           src={row.coverUrl}
-          alt=""
           loading="lazy"
           className="absolute inset-0 size-full object-cover"
         />
@@ -213,7 +212,7 @@ export function EventTile({
           data-lit={photo ? "" : undefined}
           className={cn(
             box,
-            "transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.99] motion-reduce:active:scale-100",
+            "focus-halo transition-transform duration-150 ease-emphasis outline-none active:scale-[0.99] motion-reduce:active:scale-100",
           )}
         >
           {surface}

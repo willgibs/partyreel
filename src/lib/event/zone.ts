@@ -3,18 +3,18 @@
  * certain guests based on geographical location. Is there a way to standardize this?").
  *
  * An event keeps one IANA zone, `events.time_zone` (20261005220000), so the morning after the party is ONE morning, the
- * party's, for every reader wherever they are: the album turns at 9 am there and a disposable's default develop is the
- * same 9 am (`zone-morning.ts`). The zone is captured, never asked: Create sends the host's own browser zone, a Settings
- * save of the dates writes it where a row has none, and only her explicit choice of the party's city moves it. A host
- * who never travels never sees a zone.
+ * party's, for every reader wherever they are: a disposable's default develop is 9 am there (`zone-morning.ts`), and a
+ * far party's times are said on its clock. (The album's order reads no zone at all: it turns at her close or at the
+ * develop's instant, album-order's AY1.) The zone is captured, never asked: Create sends the host's own browser zone,
+ * a Settings save of the dates writes it where a row has none, and only her explicit choice of the party's city moves
+ * it. A host who never travels never sees a zone.
  *
  * ★ A ZONE IS READ ONLY WHERE THE RUNTIME CAN READ IT (`readableZone`): an IANA-shaped name (never an offset like
  * "+05:30", which `Intl` accepts and the column refuses) that this runtime's `Intl` constructs. The browser's word is a
  * claim, so the server asks again before it stores one.
  *
  * ★ ONE FALLBACK, SAID HERE (`PARTY_ZONE_FALLBACK`): a row with no zone (test data from before the column) or one the
- * runtime cannot read turns in UTC, album-order's own fallback for an unreadable zone, so even then every reader meets
- * one moment.
+ * runtime cannot read is read in UTC, so even then a develop's default morning is one moment for every reader.
  *
  * ★ STORED AS GIVEN, COMPARED AS THE RUNTIME RESOLVES IT. Node's ICU resolves "Asia/Kolkata" to "Asia/Calcutta" and
  * "Europe/Kyiv" to "Europe/Kiev", so a zone is kept in the browser's own spelling (its place names say the modern
@@ -23,7 +23,7 @@
  * Pure and isomorphic: the page's server, Settings and Create all read it.
  */
 
-/** The one zone a party with none, or one the runtime cannot read, turns in. */
+/** The one zone a party with none, or one the runtime cannot read, is read in. */
 export const PARTY_ZONE_FALLBACK = "UTC";
 
 /**

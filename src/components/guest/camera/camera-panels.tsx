@@ -137,8 +137,9 @@ export type TakeBackState = "sending" | "ready" | "working" | "failed";
 /**
  * HER NEWEST SHOT, PRESSED ON THE REEL (guest-moments r1's `where=reel`): the shot fills the picture's box under the
  * roll's end's dim, with Take it back and Keep it in its keys and what taking it back does to her re-shoots under them.
- * Two keys, never one press, since a mis-press on the reel must not delete (the board's carried BM1); Your shots keeps
- * its X with no question. A shot still on its way waits for its landing, said, before it can be taken back.
+ * Two keys, never one press, since a mis-press on the reel must not delete (disposable-mode.md, "Two doors take a shot
+ * back"); Your shots keeps its X with no question. A shot still on its way waits for its landing, said, before it can
+ * be taken back.
  */
 export function TakeBackPanel({
   src,

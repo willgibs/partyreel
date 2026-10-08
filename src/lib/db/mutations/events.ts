@@ -140,8 +140,56 @@ function storedZone(
   return zone;
 }
 
+/** The catch-all of a Create nothing said more of: the wizard's held failure words its way out from it (`held.ts`). */
+const CREATE_FAILED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: "Couldn't create the event. Please try again.",
+};
+
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * THE EVENT A CREATE'S KEY ALREADY NAMES, HERS ALONE (`events.create_key`, 20261007120000; `events_host_create_key_unique`:
+ * at most one a host). The filter on `host_id` is her own id beside RLS's, for the index's own sake. A read that fails is
+ * `read: false`, never "no event": a Create that cannot tell whether its first try landed must not make a second.
+ */
+async function eventUnderKey(
+  supabase: ServerClient,
+  hostId: string,
+  key: string,
+): Promise<{ read: true; event: EventRow | null } | { read: false }> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("host_id", hostId)
+    .eq("create_key", key)
+    .maybeSingle();
+  if (error) {
+    captureError("db", error, { seam: "create_key_read" });
+    return { read: false };
+  }
+  return { read: true, event: data };
+}
+
+/**
+ * Makes the event, or hands back the one a first try of this same Create already made.
+ *
+ * ★ `attempt` IS THE WIZARD'S KEY FOR ONE CREATE, sent with every try of it (a uuid the action has shaped): a Create whose
+ * answer was lost after the server made the event is held as failed, and its Try again used to make a second event (a Free
+ * host's one event spent on a duplicate). The key is asked for FIRST, so a retry whose first try landed never reaches the
+ * insert (the plan's limit is never asked of it: a Free host at her one event gets that event back, not a refusal), and
+ * ON ANY REFUSAL OF THE KEYED INSERT it is asked for once more before the refusal is answered: a retry that raced the
+ * first try's commit meets the cap (`enforce_event_limit` waits on the host's profile row, then counts the winner) or the
+ * unique index (23505), and either way the event that won is the answer. None sent (an older build, a specimen) is the
+ * create it always was.
+ *
+ * ★ A KEY SPENT ON AN EVENT SHE HAS SINCE DELETED IS NOT HERS TO RETURN: the key stays on the soft-deleted row (the index
+ * spans it, so a restore can never meet a second live row), so this Create is the keyless one it would otherwise be.
+ */
 export async function createEvent(
   values: CreateEventValues,
+  attempt?: string,
 ): Promise<MutationResult<EventRow>> {
   const supabase = await createClient();
   const {
@@ -152,6 +200,18 @@ export async function createEvent(
   // ★ APPROVAL NEVER STANDS WITH A DEVELOP, at birth too: a crafted create asking for both is refused in words, ahead
   // of the database's CHECK (whose violation the branch below would read as the event limit).
   if (approvalWithADevelop(values)) return APPROVAL_REFUSED;
+
+  let key = attempt;
+  if (key) {
+    const prior = await eventUnderKey(supabase, user.id, key);
+    // Not knowing is a failure: a second event is worse.
+    if (!prior.read) return CREATE_FAILED;
+    if (prior.event) {
+      if (prior.event.deleted_at === null)
+        return { ok: true, data: prior.event };
+      key = undefined;
+    }
+  }
 
   // NEVER set qr_token: the DB default generates the unguessable capability token.
   // Empty strings normalize to null for the nullable columns.
@@ -190,6 +250,9 @@ export async function createEvent(
   // insert with no zone names no column.
   const zone = storedZone(values.captured_zone, "create");
   if (zone !== null) insert.time_zone = zone;
+  // The key rides the insert only where one stands: a Create that sent none, or whose key is spent on an event she has
+  // since deleted (the index spans it), names no column, the insert it always was.
+  if (key) insert.create_key = key;
 
   const { data, error } = await supabase
     .from("events")
@@ -198,6 +261,14 @@ export async function createEvent(
     .single();
 
   if (error) {
+    // ★ A KEYED INSERT'S REFUSAL MAY BE THE FIRST TRY WINNING A RACE (above): ask for the key's event once more, ahead of
+    // every branch below, since the cap's own refusal reads as "you have reached your plan's limit" over an event she made.
+    if (key) {
+      const won = await eventUnderKey(supabase, user.id, key);
+      if (won.read && won.event && won.event.deleted_at === null) {
+        return { ok: true, data: won.event };
+      }
+    }
     if (rangeRefusal(error)) return RANGE_REFUSED;
     // Read by its name, ahead of the branch below: any other CHECK on an insert is taken for the plan's limit.
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
@@ -212,11 +283,10 @@ export async function createEvent(
         message: "You've reached the event limit for your plan.",
       };
     }
-    return {
-      ok: false,
-      code: "unknown",
-      message: "Couldn't create the event. Please try again.",
-    };
+    // What nothing above names is unexpected, and said where failures are read (a build ahead of its migration meets
+    // PGRST204 here, a column unknown): the host's words stay the catch-all.
+    captureError("db", error, { seam: "create_event" });
+    return CREATE_FAILED;
   }
   return { ok: true, data };
 }

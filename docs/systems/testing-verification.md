@@ -151,15 +151,20 @@ function of elapsed time can be frozen at a chosen moment and shot.
 - **Downloads in Will's Chrome land in** `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/`, not
   `~/Downloads`. For the export Worker the network panel shows phantom 503s while the stream succeeds: `wrangler tail
   partyreel-export` is the truth (a bad signature is a clean "Forbidden", never a 503).
-- ★ **The desk's answers live in Will's Chrome:** `/design/lab` keeps his held picks, notes, verdicts and desk prefs in
-  the alias origin's localStorage (`review-store.ts`, `lab-prefs.ts`), so an agent walks the desk only in a headless
-  Chrome of its own; a pick, a note or a pref set in his Chrome reads as his.
+- ★ **The desk's answers live in Will's Chrome:** `/design/lab` keeps his held picks, notes, verdicts, call answers and
+  desk prefs in the alias origin's localStorage (`review-store.ts`, `lab-prefs.ts`), so an agent walks the desk only in
+  a headless Chrome of its own; a pick, a note or a pref set in his Chrome reads as his.
 - **The Preview MCP's `preview_start` runs the dev server in the shared git root,** the Orchestrator's checkout and
   branch, never your worktree (it resolves the project by git common dir; `preview_logs`' first line prints the cwd).
   From a worktree, run `pnpm dev -p <your port>` through Bash and drive it with `navigate`, `read_page` and
   `javascript_tool`.
 - **A raw headless `--screenshot` cannot scroll** (a fragment URL paints black; a tall window stretches a 100vh hero),
   so a board is captured through `lab:demo` (`--save-shots`), whose scrolled capture is how subtle light is judged.
+- ★ **A kill by port kills the port's clients too:** `lsof -ti tcp:<port>` lists every process with a socket on it, a
+  walk's headless Chrome's network service among them, and killing that wipes the cookies of every in-memory context
+  at once (sign-ins and welcomes gone, localStorage kept, so a guest's httpOnly ticket returns at its next heal: red-team
+  56b's "vanished" cookies, reproduced by crumbs-91). Kill a server by its listener alone: `lsof -ti tcp:<port>
+  -sTCP:LISTEN` (`kit-env.sh`'s `kit_port_pids`).
 - ★ **A headless Chrome of your own asks for port 0 and reads `DevToolsActivePort` off its own profile** (`lab:demo`;
   `--chrome-port` pins one and refuses a port that answers). A port taken from a pid or a random number can land on
   another lane's Chrome, which the script then connects to and drives (brand-r1 did).

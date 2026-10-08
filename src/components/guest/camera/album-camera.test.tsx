@@ -19,6 +19,7 @@ import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import type { RollAhead } from "@/lib/guest/camera/own-shots";
 import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
 
 import { UPLOAD_WORDS } from "@/lib/upload/uploader";
@@ -97,6 +98,9 @@ let rolls: {
   period?: number;
 }[] = [];
 let ownItems: unknown[] = [];
+/** The next read of her roll waits until a test answers it (`releaseRead`): the round trip a refusal's re-read takes. */
+let holdNextRead = false;
+let releaseRead: ((roll: unknown) => void) | null = null;
 
 function mine() {
   return vi
@@ -116,7 +120,10 @@ function Page({
   onAskWord,
   heldAtDoor,
   event: firstEvent = EVENT,
+  ahead,
 }: {
+  /** Her roll as the album read it as it opened (`useRollAhead`): what a camera first opened in a dead zone counts from. */
+  ahead?: RollAhead;
   /** The album as the page first reads it (a later "Set a develop time" moves it, as the album's sync does). */
   event?: GuestEvent;
   onAdd?: (files: File[], extra?: FileExtra) => void;
@@ -206,6 +213,7 @@ function Page({
         isDemo={false}
         isOwner={isOwner}
         heldAtDoor={heldAtDoor}
+        ahead={ahead}
       />
       <button type="button" onClick={() => setQueue([])}>
         Dismiss them
@@ -242,6 +250,21 @@ function Page({
         }
       >
         Refuse them
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "error" as const,
+              error: "You've taken all 24 shots on your roll.",
+              errorCode: "roll_spent",
+            })),
+          )
+        }
+      >
+        Refuse them as the roll
       </button>
       <button
         type="button"
@@ -294,24 +317,6 @@ function Page({
             prev.map((it) => ({
               ...it,
               status: "error" as const,
-              // A request that never reached the network, as the queue keeps it: the transport's cause, and no
-              // `errorCode` (the server never answered). The words are not the camera's to match: they differ here.
-              error: "The line went quiet.",
-              errorCode: undefined,
-              cause: "dropped" as const,
-            })),
-          )
-        }
-      >
-        Drop them
-      </button>
-      <button
-        type="button"
-        onClick={() =>
-          setQueue((prev) =>
-            prev.map((it) => ({
-              ...it,
-              status: "error" as const,
               // An answer that was an error: not the line's fault (no cause), and no code the camera reads as a refusal.
               error: UPLOAD_WORDS.refused,
               errorCode: "storage_error",
@@ -321,6 +326,25 @@ function Page({
         }
       >
         Fail them
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              // The line dropped, as the queue holds it now (no-signal r1, `drop=standby`): on its way, standing by for the
+              // line, its bar at nothing and its cause kept; never an error.
+              status: "queued" as const,
+              progress: 0,
+              error: undefined,
+              errorCode: undefined,
+              cause: "dropped" as const,
+            })),
+          )
+        }
+      >
+        Lose the line
       </button>
     </>
   );
@@ -350,10 +374,19 @@ beforeEach(() => {
   vi.clearAllMocks();
   rolls = [{ used: 6, cap: 24, taken: 6, ceiling: 27 }];
   ownItems = [];
+  holdNextRead = false;
+  releaseRead = null;
   localStorage.clear();
   localStorage.setItem("pr_session_qr-token-1", "s".repeat(32));
   global.fetch = vi.fn(async (input: RequestInfo | URL) => {
     if (String(input) === "/api/guests/mine") {
+      if (holdNextRead) {
+        holdNextRead = false;
+        const held = await new Promise((resolve) => {
+          releaseRead = resolve;
+        });
+        return Response.json({ ok: true, items: ownItems, roll: held });
+      }
       const roll = rolls.length > 1 ? rolls.shift() : rolls[0];
       return Response.json({ ok: true, items: ownItems, roll });
     }
@@ -545,6 +578,45 @@ describe("the album's camera", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  /* ★ A ROLL_SPENT REFUSAL SPENDS THE ROLL AT ONCE (crumbs-93, red-team 58's NIT): for about half a second after the 409
+     the camera read "Frame 3 of 3 / 1 left / Tap for a photo" with the shutter live, the refused frame offered as free
+     until the re-read the refusal asks for had answered. The server's refusal is its count, so the roll reads spent
+     the moment it lands, and the read then says what is true (a roll with frames after all opens the shutter again). */
+  it("★ reads the roll spent the moment the server refuses a shot for it, before the read it asks for answers", async () => {
+    rolls = [{ used: 22, cap: 24, taken: 22, ceiling: 27 }];
+    render(<Page />);
+    await opened();
+    expect(screen.getByText("Frame 23 of 24")).toBeInTheDocument();
+    await act(async () => press());
+    holdNextRead = true;
+    const reads = mine().length;
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Refuse them as the roll",
+        hidden: true,
+      }),
+    );
+    // The re-read is in the air and unanswered; the camera already says the roll's end and the shutter is gone.
+    await screen.findByText("That’s your roll");
+    await waitFor(() => expect(mine().length).toBe(reads + 1));
+    expect(releaseRead).not.toBeNull();
+    expect(screen.queryByText("Tap for a photo.")).toBeNull();
+    expect(
+      (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    // The read, answered: the server's count is the camera's (this one says frames remain, so the shutter opens again).
+    await act(async () => {
+      releaseRead?.({ used: 20, cap: 24, taken: 20, ceiling: 27 });
+    });
+    await screen.findByText("Frame 21 of 24");
+    expect(screen.queryByText("That’s your roll")).toBeNull();
+    expect(
+      (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
+  });
+
   it("★ stops the shutter when the album itself refuses, in the server's own words", async () => {
     render(<Page />);
     await opened();
@@ -612,38 +684,265 @@ describe("the album's camera", () => {
     await waitFor(() => expect(mine()).toHaveLength(2));
   });
 
-  // ★ RED-TEAM 53's NIT (crumbs-65): a shot cut mid-PUT said "1 shot didn’t send." and never the E6 sentence the
-  // uploader carries, so a stadium's dropped signal read as a broken camera. It still re-sends by itself when the
-  // line returns (`online`); what it says now is why, in the one sentence the uploads and the downloads say. The press
-  // said "Shot 7 taken." first, which stands for a moment (`SAID_MS`) before the standing line comes back. The queue's
-  // `cause` says it was the line's, so the camera never matches the words of the failure.
-  it("★ says the connection dropped when the queue's cause says that is why a shot did not send, with its Retry beside; an answered error is only counted", async () => {
+  // ★ RED-TEAM 53's NIT (crumbs-65): a shot cut mid-PUT said "1 shot didn’t send." and never why, so a stadium's dropped
+  // signal read as a broken camera. RESHAPED (no-signal-wiring, Will's `roll=taken`): this pinned the uploader's drop
+  // sentence beside a Retry, over a shot the queue failed. The reason that expired is the failure: the queue holds a
+  // dropped shot standing by for the line now, so the camera says that, with no press (a Retry in a dead zone could
+  // only fail the same way; the line's return sends it). The scars kept: the line, never a count, says it was the
+  // connection; the queue's `cause` says so, never the words; the press's "Shot 7 taken." stands first for a moment
+  // (`SAID_MS`); and an answered error is still counted, with its Retry.
+  it("★ says a shot waits for the connection when the queue holds it standing by, with no press; an answered error is only counted", async () => {
     render(<Page />);
     await opened();
     await screen.findByText("Frame 7 of 24");
     await act(async () => press());
     fireEvent.click(
-      screen.getByRole("button", { name: "Drop them", hidden: true }),
+      screen.getByRole("button", { name: "Lose the line", hidden: true }),
     );
     const hint = document.querySelector("[data-cam-hint]") as HTMLElement;
     await waitFor(
       () =>
         expect(hint).toHaveTextContent(
-          "Your connection dropped. Check your signal, then try again.",
+          "No connection: your shot waits, and goes in once it’s back.",
         ),
       { timeout: 4000 },
     );
     expect(hint).not.toHaveTextContent("didn’t send");
     expect(
-      screen.getByRole("button", { name: "Retry", hidden: true }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Retry", hidden: true }),
+    ).toBeNull();
 
     // The same shot, failed by an answer that was an error: not the line's, so it is counted, as it always was.
     fireEvent.click(
       screen.getByRole("button", { name: "Fail them", hidden: true }),
     );
     await waitFor(() => expect(hint).toHaveTextContent("1 shot didn’t send."));
-    expect(hint).not.toHaveTextContent("connection dropped");
+    expect(hint).not.toHaveTextContent("No connection");
+    expect(
+      screen.getByRole("button", { name: "Retry", hidden: true }),
+    ).toBeInTheDocument();
+  });
+
+  /* ★ LIKE FILM (no-signal r1, Will's one-way door `roll=taken`): every press spends a frame at once, sent or not. A shot
+     the line could not carry used to leave the count and the reel (`pendingSince` dropped a failed shot), so the camera
+     said "4 left" through a dead zone and the server refused the shots past the roll when the line came back. */
+  it("★ a shot waiting for the line keeps its frame spent: the count stays down, its frame half-lit and still, the caption says it waits", async () => {
+    render(<Page />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    await screen.findByText("Frame 8 of 24 · sending 1");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Lose the line", hidden: true }),
+    );
+    await screen.findByText("Frame 8 of 24 · 1 waiting");
+    expect(screen.getByText("17")).toBeInTheDocument();
+    // On the reel: spent, and waiting (half-lit, `camera-roll.css`), never the pulsing sending dot.
+    expect(document.querySelectorAll(".cam-cell[data-waiting]")).toHaveLength(
+      1,
+    );
+    expect(document.querySelector(".cam-cell[data-sending]")).toBeNull();
+    // Nothing is asked of her roll while it waits: it is not yet in any count of the server's.
+    expect(mine()).toHaveLength(1);
+  });
+
+  it("★ the roll ends at 0 with its waiting shots said first, and none is refused for the roll when they land", async () => {
+    rolls = [{ used: 22, cap: 24, taken: 22, ceiling: 27 }];
+    render(<Page />);
+    await opened();
+    await screen.findByText("Frame 23 of 24");
+    await act(async () => press());
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Lose the line", hidden: true }),
+    );
+    await screen.findByText("That’s your roll");
+    expect(screen.getByText("0")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /^24 shots; 2 wait for your connection, then develop with everyone’s\. They’re back /,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("24 of 24 · 2 waiting")).toBeInTheDocument();
+    // The line is back and both land: none refused, and the roll's end says they are all in, on the count she shot by.
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Land them", hidden: true }),
+      );
+    });
+    expect(
+      await screen.findByText(
+        /^24 shots, developing with everyone’s\. They’re back /,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("24 of 24")).toBeInTheDocument();
+    expect(screen.getByText("0")).toBeInTheDocument();
+  });
+
+  it("★ reads her roll beside a shot that waits for the line, counts it outside that read until it lands, then reads again", async () => {
+    rolls = [
+      { used: 6, cap: 24, taken: 6, ceiling: 27 },
+      { used: 6, cap: 24, taken: 6, ceiling: 27 },
+      { used: 7, cap: 24, taken: 7, ceiling: 27 },
+    ];
+    render(<Page />);
+    await opened();
+    await screen.findByText("Frame 7 of 24");
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Lose the line", hidden: true }),
+    );
+    await screen.findByText("Frame 8 of 24 · 1 waiting");
+    // Closed and opened again in the dead zone: the shot that waits is no shot in the air, so her roll is read beside it.
+    fireEvent.click(screen.getByRole("button", { name: "Back to the album" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Open the camera" }));
+    });
+    // Open again, and its line still says what waits.
+    await screen.findByText(
+      "No connection: your shot waits, and goes in once it’s back.",
+    );
+    await waitFor(() => expect(mine()).toHaveLength(2));
+    // The read could not hold it (it never landed), so it is counted outside it: still 17 left.
+    expect(screen.getByText("17")).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Land them", hidden: true }),
+      );
+    });
+    // Landed, it leaves that count, and her roll is read again in the server's own: 7 of 24, 17 left.
+    await waitFor(() => expect(mine()).toHaveLength(3));
+    expect(screen.getByText("17")).toBeInTheDocument();
+  });
+
+  it("asks her roll again when the line is back if the read could not reach the server", async () => {
+    let down = true;
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) === "/api/guests/mine") {
+        if (down) throw new TypeError("Failed to fetch");
+        return Response.json({
+          ok: true,
+          items: [],
+          roll: { used: 20, cap: 24, taken: 20, ceiling: 27 },
+        });
+      }
+      throw new Error(`unexpected fetch ${String(input)}`);
+    }) as typeof fetch;
+    render(<Page />);
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    // No answer: the roll's own size until it is known.
+    expect(screen.getByText("Frame 1 of 24")).toBeInTheDocument();
+    down = false;
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await waitFor(() => expect(mine()).toHaveLength(2));
+    expect(await screen.findByText("Frame 21 of 24")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+  });
+
+  it("★ counts her shots on their way that it did not take: the door's camera's, or what her phone kept and sent again", async () => {
+    // A shot of hers already in the page's queue as the camera opens (`takenAt` says it is a camera shot), not yet in
+    // any read of her roll: its frame is spent here too.
+    const kept: QueueItem = {
+      id: "kept-1",
+      file: new File([new Uint8Array([1])], "shot-20261007-231500.jpg", {
+        type: "image/jpeg",
+      }),
+      kind: "photo",
+      status: "queued",
+      progress: 0,
+      cause: "dropped",
+      takenAt: OPENED_AT - 60_000,
+    };
+    render(<Page initialQueue={[kept]} />);
+    await opened();
+    // Her roll is 6 of 24 on the server, so 18 left; the kept shot spends one more.
+    await waitFor(() => expect(screen.getByText("17")).toBeInTheDocument());
+  });
+
+  /* ★ A CAMERA FIRST OPENED IN A DEAD ZONE (no-signal-wiring's own red-team): it read her roll only as it opened, so with
+     no line it counted from the roll's size, and a phone that shot 20 of 24 earlier in the night offered 24 again: every
+     shot past her real roll was refused as it landed, the one refusal `roll=taken` rules out. The album reads her roll as
+     it opens (`useRollAhead`), and the camera counts from that until its own read answers. */
+  const offline = () => {
+    global.fetch = vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }) as typeof fetch;
+  };
+  const aheadOf = (used: number, landed: string[] = []): RollAhead => ({
+    read: {
+      roll: { used, cap: 24, taken: used, ceiling: 27 },
+      shots: [],
+    },
+    from: OPENED_AT - 60_000,
+    landed: new Set(landed),
+  });
+  /** What her phone kept from an earlier page, sent again as the page opened, and landed. */
+  const keptLanded = (): QueueItem => ({
+    id: "kept-1",
+    file: new File([new Uint8Array([1])], "shot-20261007-231500.jpg", {
+      type: "image/jpeg",
+    }),
+    kind: "photo",
+    status: "done",
+    progress: 100,
+    mediaId: "m-kept-1",
+    mediaStatus: "sealed",
+    takenAt: OPENED_AT - 120_000,
+  });
+
+  it("★ first opened in a dead zone, it counts from the album's read as it opened, never from the roll's size", async () => {
+    offline();
+    render(<Page ahead={aheadOf(20)} />);
+    await opened();
+    // Its own read could not reach the server: the album's stands, 20 of 24 spent earlier in the night.
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(screen.getByText("Frame 21 of 24")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    await act(async () => press());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Lose the line", hidden: true }),
+    );
+    await screen.findByText("Frame 22 of 24 · 1 waiting");
+    expect(screen.getByText("3")).toBeInTheDocument();
+  });
+
+  it("★ counts a shot of hers that landed after a read on top of it, until a later read holds it", async () => {
+    offline();
+    render(<Page ahead={aheadOf(6)} initialQueue={[keptLanded()]} />);
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    // 6 in the read, and the landed shot no read holds yet: 17 left.
+    expect(screen.getByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.getByText("17")).toBeInTheDocument();
+    // The line is back and the camera reads for itself (a fresh stand-in, so its one call is this read): the server
+    // holds the shot now, and it is never counted twice.
+    global.fetch = vi.fn(async () =>
+      Response.json({
+        ok: true,
+        items: [],
+        roll: { used: 7, cap: 24, taken: 7, ceiling: 27 },
+      }),
+    ) as typeof fetch;
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(await screen.findByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.getByText("17")).toBeInTheDocument();
+  });
+
+  it("a shot that had landed as the read began is in its count: never counted twice", async () => {
+    offline();
+    render(
+      <Page ahead={aheadOf(7, ["kept-1"])} initialQueue={[keptLanded()]} />,
+    );
+    await opened();
+    await waitFor(() => expect(mine()).toHaveLength(1));
+    expect(screen.getByText("Frame 8 of 24")).toBeInTheDocument();
+    expect(screen.getByText("17")).toBeInTheDocument();
   });
 
   it("★ lets a shot the failure sheet dismissed leave her roll, never sending for ever", async () => {

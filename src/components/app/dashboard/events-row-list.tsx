@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Images, Lock } from "lucide-react";
 
 import { StateDot } from "@/components/app/dashboard/marks";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
 import { RangeText } from "@/lib/format/range-text";
@@ -87,10 +88,8 @@ function Row({ row, action }: { row: EventListRow; action?: React.ReactNode }) {
                 data-static
                 className="relative size-11 overflow-hidden rounded-[var(--radius-tile)]"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
-                <img
+                <PhotoImg
                   src={url}
-                  alt=""
                   loading="lazy"
                   className="absolute inset-0 size-full object-cover"
                 />
@@ -149,7 +148,7 @@ function Row({ row, action }: { row: EventListRow; action?: React.ReactNode }) {
           // of that contract on purpose — and copying it across was the mistake
           // the contract caught.
           className={cn(
-            "group/row relative block overflow-hidden rounded-xl border border-border bg-card transition-transform duration-150 ease-emphasis outline-none focus-halo active:scale-[0.995] motion-reduce:active:scale-100",
+            "group/row relative block focus-halo overflow-hidden rounded-xl border border-border bg-card transition-transform duration-150 ease-emphasis outline-none active:scale-[0.995] motion-reduce:active:scale-100",
           )}
         >
           {body}

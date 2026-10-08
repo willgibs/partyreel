@@ -52,6 +52,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const { POST } = await import("@/app/api/host/r2/complete-upload/route");
+// One file is a burst of one on the wire (crumbs-90): its body built as ever, its answer read back as the file's.
+const { answerOfOne, burstOfOne } =
+  await import("@/lib/upload/testing/burst-of-one");
 
 const HOST = "11111111-1111-4111-8111-111111111111";
 const EVENT = "33333333-3333-4333-8333-333333333333";
@@ -76,7 +79,7 @@ async function complete(extra: Record<string, unknown> = {}) {
     new Request("https://partyreel.com/api/host/r2/complete-upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: burstOfOne({
         event_id: EVENT,
         media_id: MEDIA,
         key: `events/${EVENT}/video/${MEDIA}/original.mp4`,
@@ -89,7 +92,7 @@ async function complete(extra: Record<string, unknown> = {}) {
       }),
     }),
   );
-  return { status: res.status };
+  return { status: (await answerOfOne(res)).status };
 }
 
 describe("the host's completion and the live reel", () => {
@@ -123,7 +126,7 @@ describe("the host's completion and the live reel", () => {
   });
 });
 
-describe("★ the capture time a host's complete claims (capture-time, Will's X7)", () => {
+describe("★ the capture time a host's complete claims (capture-time, uploads-and-r2.md)", () => {
   const recorded = () =>
     (createMediaAsHost.mock.calls.at(-1) as [Record<string, unknown>])[0]
       .capturedAt;
