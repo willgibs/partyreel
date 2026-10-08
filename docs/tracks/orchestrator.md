@@ -36,6 +36,7 @@ and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
+| `crumbs-94` | six of Immediate's small lines: the compute model's true clock, a verified-email test pin, red-team 58b's four NITs | running (cut 135a32e95, 07:50Z) | Sonnet, 3131 | `a1852da2d5b7f752f` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q47 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
