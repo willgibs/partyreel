@@ -36,6 +36,7 @@ lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted a
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
+| `redteam-58b` | crumbs-93's fixes on the desk at `ae16365c3` (brief `$S/redteam-58b-brief.txt`, ledger `../partyreel-wt/_scratch/redteam-58b/ledger.txt`); the compute model beside it on 3132 (`$S/compute-40.log`) | running (05:16Z) | Opus, :3000 | `a26465e85395145fd` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q47 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
