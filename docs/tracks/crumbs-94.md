@@ -18,6 +18,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/reel/engine/assets.test.ts
   - src/lib/reel/live/source.ts
   - src/lib/reel/live/source.test.ts
+  # and the harness's tests live in the lib beside its pins (item 1): the true-clock ask, and what a scenario counts
+  - src/lib/compute-model-clock.test.ts
+  - src/lib/compute-model-phones.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/ROADMAP.md
   - docs/systems/guest-flow.md
