@@ -18,6 +18,11 @@
  * truly still take, the frames left or the room under the ceiling, whichever ends first (a host's removal frees a frame
  * the ceiling may not let her fill).
  *
+ * ★ A REFUSAL ABOUT THE ROLL SPENDS IT AT ONCE (crumbs-93, red-team 58's NIT): the server's `roll_spent` is its count, and its
+ * count is the truth, so the moment one lands the roll reads spent (`refused`), before the read it asks for has answered.
+ * The refused shot is no pending shot of the camera's (it never counted), so without this the camera offered the very frame
+ * the server had just refused as free for the half second the read took, and a press in that window met the refusal again.
+ *
  * Pure, so every rule is a unit test.
  */
 import {
@@ -78,12 +83,17 @@ export function rollView(input: {
    * same as `pending`.
    */
   taken?: number;
+  /**
+   * The server refused a shot of hers as past the roll (`roll_spent`) since the last read began, and no read has answered
+   * since: her roll is spent now, whatever the last count says. Absent, false.
+   */
+  refused?: boolean;
 }): RollView {
   const cap = input.server?.cap ?? capOf(input.rollSize);
   const pending = Math.max(0, Math.floor(input.pending));
   const takenSince = Math.max(pending, Math.floor(input.taken ?? pending));
   const counted = input.server?.used ?? 0;
-  const used = Math.min(cap, counted + pending);
+  const used = input.refused ? cap : Math.min(cap, counted + pending);
   // Past the roll only by the server's own count: a shot this camera took past the roll is one the server refuses.
   const held = Math.max(counted, used);
   const taken = (input.server?.taken ?? 0) + takenSince;
