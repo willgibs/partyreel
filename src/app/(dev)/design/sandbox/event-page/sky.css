@@ -1,0 +1,80 @@
+/* ── SKY'S OWN SHEET (event-page r1, the option `sky`) ─────────────────────────
+   The album's light as a dusk over the page's top (its stops are drawn in
+   sky.tsx, one gradient in OKLCH: the album's heaviest light pale at the top
+   edge, its rose, its deepest, night); the words that stand on it; and her
+   notice.
+
+   ★ UNLAYERED, every selector `.ep-sky-…`, no keyframes and no `:has()`: the
+   board's rule (a lab sheet never shadows production's names). Nothing here
+   moves: a sky is drawn once, still until something happens. */
+
+/* ── the sky ── */
+
+.ep-sky-field {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+  isolation: isolate;
+}
+
+/* A breath of grain in the light alone, so a long dark fall never bands. Masked
+   by the sky's own reach: an unmasked grain over a transparent field shows as a
+   faint grey box the size of the room (overlay over nothing draws the noise
+   as it is), and that box's edge is a cut the light never made. */
+.ep-sky-grain {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgb(0 0 0 / 0.5) calc(var(--ep-sky-end, 84%) * 0.4),
+    transparent var(--ep-sky-end, 84%)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgb(0 0 0 / 0.5) calc(var(--ep-sky-end, 84%) * 0.4),
+    transparent var(--ep-sky-end, 84%)
+  );
+}
+
+/* ── words on the sky ──
+   Words standing on light wear the light's ink: the bar's quiet words and
+   glyphs, and the one moment's (whose words stand in the sky at its fullest),
+   a step brighter than the page's muted grey, which reads about 2:1 on the lit
+   sky (design-system.md's register under a muted word). The head's own muted
+   words keep the page's grey: the sky is spent before them. */
+
+.ep-sky-room [data-ep-bar] .text-muted-foreground,
+.ep-sky-lit .text-muted-foreground {
+  color: color-mix(in oklab, var(--foreground) 74%, transparent);
+}
+
+/* The bar stands where the light is born, its brightest: its words take a
+   breath of shadow, as a word on a photograph does (badge.tsx's "so it reads
+   over a bright sky"), so the light can be bright where it is born and the
+   bar's small words still read. A shadow, never a scrim: the sky stays lit. */
+.ep-sky-room [data-ep-bar] {
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.42);
+}
+.ep-sky-room [data-ep-bar] svg {
+  filter: drop-shadow(0 1px 5px rgb(0 0 0 / 0.32));
+}
+
+/* ── her notice ──
+   Wednesday's offer, the one thing on her page that asks her: a quiet pane of
+   the sky's own glass under the acts, so it reads as a word to her and never
+   as one more control in the row. Its corner is the action's ladder (the
+   buttons inside are `sm`, so the pane takes their radius plus its padding). */
+.ep-sky-notice {
+  border-radius: calc(var(--radius-action-sm, 0.8rem) + 12px);
+  padding: 12px 16px;
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09);
+}

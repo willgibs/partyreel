@@ -1,0 +1,77 @@
+/* ── CORNER'S OWN SHEET (event-page r1, `corner.tsx`) ─────────────────────────
+   The one key light from a corner: a slanted field of light whose centre is the
+   box's top-right corner itself, so its hottest point is the corner (half of it
+   beyond the box, never a lamp inside it), drawn inside a clip that ends where
+   the box does, and spent before the box's foot by a fade of its own (a light
+   never cut at a box's edge: design-system.md).
+
+   ★ UNLAYERED, every selector `.ep-corner-…`, no keyframes, no `:has()`:
+   nothing here moves (still until something happens). */
+
+.ep-corner-light {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  /* The foot's fade: whatever reach is left at the box's foot is spent over
+     the last `--ep-corner-fade` pixels, so the box never cuts it into a line. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--ep-corner-fade, 0px)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--ep-corner-fade, 0px)),
+    transparent 100%
+  );
+}
+
+/* The slant: an ellipse centred on the corner, turned so its long axis falls
+   down and to the left across the box (its size and turn are the caller's). */
+.ep-corner-beam {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+}
+
+/* Her rooms along one line at a phone: the desk's short list (the shared
+   `Rooms` row form), its rows side by side, words and never pills; the
+   guestbook's row runs on with them and wraps under where the line is full. */
+.ep-corner-rooms-line {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 20px;
+}
+.ep-corner-rooms-line > span {
+  height: 36px;
+  gap: 8px;
+  border-top-width: 0;
+}
+
+/* The light's grain, only where the light is: masked by the slant's own fall
+   (the beam's box is the slant's ellipse), so the room's unlit dark keeps its
+   own ground and nothing ends in a line at the room's foot. */
+.ep-corner-grain {
+  -webkit-mask-image: radial-gradient(
+    closest-side,
+    #000 0%,
+    rgb(0 0 0 / 0.7) 26%,
+    rgb(0 0 0 / 0.24) 58%,
+    rgb(0 0 0 / 0.03) 87%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    closest-side,
+    #000 0%,
+    rgb(0 0 0 / 0.7) 26%,
+    rgb(0 0 0 / 0.24) 58%,
+    rgb(0 0 0 / 0.03) 87%,
+    transparent 100%
+  );
+}
