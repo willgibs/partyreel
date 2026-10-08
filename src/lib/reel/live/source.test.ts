@@ -467,6 +467,126 @@ describe("a drop", () => {
   });
 });
 
+/** A loader whose `refused` urls came in whole and would not decode (what `decodeImage` says of a HEIC in Chrome). */
+function fakeLoadRefusing(refused: (url: string) => boolean) {
+  const load = vi.fn(async (clips: readonly { url: string }[]) => {
+    const out = clips.filter((clip) => clip.url && refused(clip.url));
+    return {
+      clips: clips.map((clip) =>
+        clip.url && !refused(clip.url)
+          ? {
+              image: fakeImage(clip.url),
+              width: 4,
+              height: 4,
+              wash: null,
+              halo: null,
+            }
+          : null,
+      ),
+      failures: out.length,
+      grain: null,
+      ...(out.length > 0 ? { undecodable: out.map((clip) => clip.url) } : {}),
+    };
+  });
+  return load as never;
+}
+
+/* ★ A PHOTOGRAPH THIS DEVICE CANNOT DRAW IS LEFT OUT OF ITS REEL (crumbs-94, red-team 58b): a HEIC sent from a desktop
+   Chrome has no preview, so the reel is handed the original, which Chrome and Firefox refuse to decode, and it played as a
+   theme-colour hold for its whole turn, once a loop. The loader says when a still's bytes came in and would not decode
+   (`undecodable`); the source then treats it as it treats a hidden photograph, and keeps it out for the session. */
+describe("a photograph this device cannot draw", () => {
+  /** A source over `n` photographs whose loader refuses whichever url the test names (the take's order is the seed's). */
+  function refusing(n: number, over: Record<string, unknown> = {}) {
+    const refused = { url: "" };
+    const s = createClipSource({
+      eventId: "e1",
+      items: album(n),
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url), 8),
+      load: fakeLoadRefusing((url) => url === refused.url),
+      ...over,
+    });
+    return { s, refused };
+  }
+
+  it("★ is cut from the take and every window ahead the moment its decode is refused, and a payload that brings it again does not bring it back", async () => {
+    const { s, refused } = refusing(12);
+    const w0 = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const doomed = w0.ids[2];
+    refused.url = w0.props.clips[2].url;
+    const assets = await s.prepare(w0, { needs: NEEDS });
+    // The window the player holds was planned with it and carries nothing to draw for it.
+    expect(assets.clips[2]).toBeNull();
+    expect(s.isLive(doomed)).toBe(false);
+    expect(s.stats().undrawn).toBe(1);
+    expect(s.eligibleCount()).toBe(11);
+    for (let i = 1; i < 6; i++) {
+      expect(s.windowAt(i, LOOK)?.ids ?? []).not.toContain(doomed);
+    }
+    // The album's next payload hands the photograph in again, as it hands in every photograph.
+    const again = s.setItems(album(12));
+    expect(again.dropped).toEqual([]);
+    expect(s.stats().pending).toBe(0);
+    expect(s.isLive(doomed)).toBe(false);
+    expect(s.eligibleCount()).toBe(11);
+    expect(s.windowAt(7, LOOK)?.ids ?? []).not.toContain(doomed);
+  });
+
+  it("★ gives the player a cutaway for it where it is the clip on screen (the hidden photograph's own path)", async () => {
+    const { s, refused } = refusing(12);
+    const w0 = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    refused.url = w0.props.clips[1].url;
+    await s.prepare(w0, { needs: NEEDS });
+    const cut = s.cutawayFrom(w0, w0.ids[1], LOOK)!;
+    expect(cut).not.toBeNull();
+    expect(cut.ids[0]).toBe(w0.ids[1]);
+    expect(cut.ids.length).toBeGreaterThan(1);
+  });
+
+  it("is never the watchdog's: re-minting its link would change nothing", async () => {
+    const onFailedIds = vi.fn();
+    const { s, refused } = refusing(12, { onFailedIds });
+    const w0 = s.windowAt(0, LOOK)!;
+    refused.url = w0.props.clips[0].url;
+    await s.prepare(w0, { needs: NEEDS });
+    expect(onFailedIds).not.toHaveBeenCalled();
+  });
+
+  it("★ a failure that is not the browser's refusal is still the link's: reported, kept, and tried again", async () => {
+    const onFailedIds = vi.fn();
+    const bad = { url: "" };
+    const { load } = fakeLoadFailing((url) => url === bad.url);
+    const s = createClipSource({
+      eventId: "e1",
+      items: album(12),
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url), 8),
+      load,
+      onFailedIds,
+    });
+    const w0 = s.windowAt(0, LOOK)!;
+    bad.url = w0.props.clips[2].url;
+    await s.prepare(w0, { needs: NEEDS });
+    expect(onFailedIds).toHaveBeenCalledTimes(1);
+    expect([...onFailedIds.mock.calls[0][0]]).toEqual([w0.ids[2]]);
+    expect(s.isLive(w0.ids[2])).toBe(true);
+    expect(s.stats().undrawn).toBe(0);
+  });
+
+  it("goes with the source: a new reel asks again", async () => {
+    const { s, refused } = refusing(12);
+    const w0 = s.windowAt(0, LOOK)!;
+    refused.url = w0.props.clips[0].url;
+    await s.prepare(w0, { needs: NEEDS });
+    expect(s.stats().undrawn).toBe(1);
+    s.dispose();
+    expect(s.stats().undrawn).toBe(0);
+  });
+});
+
 describe("the retains", () => {
   it("pin a window's stills and give them back one window behind", async () => {
     const { source: s, cache } = source(album(40));

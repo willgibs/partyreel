@@ -72,6 +72,13 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   boundary keeps its pan and zoom. After a guest's first upload their own device leads with it.
 - **Likes do not reach it**: the guest payload carries no counts, so the brain's likes term is zero on every guest
   surface.
+- ★ **A photograph this device cannot draw is left out, never played as a theme-colour hold**: when a still's bytes come
+  in and neither decoder takes them (`UndecodableImageError`, `engine/assets.ts`: a HEIC sent from a desktop Chrome has no
+  preview, so the reel is handed the original, which Chrome and Firefox refuse), the source cuts it from the take and every
+  window not yet on screen as it cuts a hidden one (the player's cutaway covers the clip on screen), keeps it out for the
+  view's life when a later payload hands it in again (`undrawn`), and never reports it to the presign watchdog. A failed
+  fetch (an expired link, the network) is not one: it stays a retry. The album's tile still names the photograph; a wall
+  does not.
 - ★ **The take is O(n log n)**: the brain scores the album once a loop (`quickAddScores`) and the passes walk
   that order (6,000 items about 5 ms, down from about 610 ms when it re-scored on every pass). The hub's card
   still plans over a spread of the album (`TAKE_POOL`), and the cover's six stills, while the album has a reel, are

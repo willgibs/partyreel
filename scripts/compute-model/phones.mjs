@@ -52,6 +52,23 @@ export function deviceRegistry(open) {
 }
 
 /**
+ * ★ A SCENARIO COUNTS ITS OWN PHONES, NOTHING ELSE THAT HAPPENS TO BE ON THE PORT (crumbs-94). The ledger labels every
+ * request with the scenario that is running, and a phone's own carry its `cm_device` cookie; anything else (a signed-in
+ * dashboard tab left open on this port posts an action a minute, a tool of a lane's) is labelled with the scenario too and
+ * moved a guest's hour from 23 calls to 29 on the run that found it. A scenario that names its phones (`devices`) is cut to
+ * their requests, and says how many it left out; one that names none (a crawler's plain fetches) is counted whole.
+ * ★ THE CHEAP VERSION ASK IS THE PHONE'S TOO, THOUGH IT CARRIES NO COOKIE (`credentials: "omit"`, so nothing of the viewer
+ * can reach the route): `cookieless` names the paths whose requests are counted whatever their device.
+ */
+export function ownRecords(records, devices, cookieless = []) {
+  if (!devices) return { own: records, foreign: 0 };
+  const own = records.filter(
+    (r) => devices.includes(r.device) || cookieless.includes(r.path),
+  );
+  return { own, foreign: records.length - own.length };
+}
+
+/**
  * Reads a page until it has arrived, pressing what it offers: the screen is read every `every` ms (`probe`, an
  * expression for the page that answers JSON); `arrived` says whether it is where the walk is going; `next` names what to
  * press from what is on screen (or nothing); `press` presses it. A press the screen has not answered in `settle` ms is

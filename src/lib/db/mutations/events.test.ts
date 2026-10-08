@@ -170,6 +170,102 @@ describe("updateEvent: the reel's defaults patch as sent", () => {
   });
 });
 
+/* ★ HER EMAIL-FIRST SWITCH IS NAMED ONLY WHEN HER SWITCH PROVIDES IT (the Advisor's Q45; crumbs-94). `events_email_held`
+   fires on any UPDATE that names `require_verified_email` (20261008030000's client arm: a client role's own write of the
+   step is her word on it, so it ENDS the gate's memory of a names-only door it holds on). A save that merely carried the
+   column along, whole-row, with the value it already had, would therefore undo a hold by a side door. So the patch is
+   built from keys the caller sent, and the schema that feeds it has no defaults (validation/event.ts): this pins both
+   ends of that chain, and the list below must name every other key the schema knows, so a setting added later is
+   pinned the day it is added. */
+describe("updateEvent: the email-first step is named only when her switch provides it", () => {
+  /** A valid value for every key of the update schema but her switch's. */
+  const OTHER_SAVES: Record<string, unknown> = {
+    name: "Backyard party",
+    description: "A summer evening",
+    event_date: "2027-06-12",
+    event_end_date: "2027-06-13",
+    visibility: "private",
+    accepting_uploads: false,
+    require_upload_to_view: true,
+    moderation_mode: "hold_for_approval",
+    qr_style: "dots",
+    max_upload_bytes: null,
+    show_reel: false,
+    reel_style_id: "mono",
+    reel_hold_sec: 5,
+    allow_videos: false,
+    capture: "camera",
+    roll_size: 12,
+    develops_at: null,
+    time_zone: "America/Mexico_City",
+    captured_zone: "Europe/Lisbon",
+  };
+
+  it("the list names every other key the update schema knows (a new setting is pinned the day it is added)", () => {
+    const known = Object.keys(updateEventSchema.shape)
+      .filter((key) => key !== "require_verified_email")
+      .sort();
+    expect(Object.keys(OTHER_SAVES).sort()).toEqual(known);
+  });
+
+  it("★ a save of any other setting never names it, so a held names-only door is never ended by a side door", async () => {
+    for (const [key, value] of Object.entries(OTHER_SAVES)) {
+      patches.length = 0;
+      // A range's last day travels with its first (the schema refuses it alone).
+      const save = {
+        [key]: value,
+        ...(key === "event_end_date"
+          ? { event_date: OTHER_SAVES.event_date }
+          : {}),
+      };
+      const result = await updateEvent(
+        "event-1",
+        updateEventSchema.parse(save),
+      );
+      expect(result.ok, key).toBe(true);
+      expect(patches, key).toHaveLength(1);
+      expect(Object.keys(patches[0]!), key).not.toContain(
+        "require_verified_email",
+      );
+    }
+  });
+
+  it("★ a whole-form save of everything else never names it either", async () => {
+    await updateEvent("event-1", updateEventSchema.parse(OTHER_SAVES));
+    expect(patches).toHaveLength(1);
+    expect(Object.keys(patches[0]!)).not.toContain("require_verified_email");
+    // The pin must not be passing on an empty patch: the save did write the other settings.
+    expect(patches[0]).toMatchObject({
+      name: "Backyard party",
+      qr_style: "dots",
+    });
+  });
+
+  it("★ a key that is present but undefined (a spread of a partial) names nothing", async () => {
+    await updateEvent("event-1", {
+      name: "Backyard party",
+      require_verified_email: undefined,
+    });
+    expect(patches).toEqual([{ name: "Backyard party" }]);
+    expect(Object.keys(patches[0]!)).not.toContain("require_verified_email");
+  });
+
+  it("her switch's own save names it alone, as sent: on and off", async () => {
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ require_verified_email: true }),
+    );
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ require_verified_email: false }),
+    );
+    expect(patches).toEqual([
+      { require_verified_email: true },
+      { require_verified_email: false },
+    ]);
+  });
+});
+
 // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): the three-way "when everyone sees" is ONE save of two
 // columns, so no half-state is ever stored; the database does the rest in that same save (the roll, the period, the
 // rows' rewrite), so the write is the patch and nothing after it.

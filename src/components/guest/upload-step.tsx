@@ -41,6 +41,8 @@ import {
   UploadFailureList,
   uploadFailureChooseAgain,
   uploadFailureHeading,
+  uploadPausedFact,
+  uploadPausedWayOn,
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 import type { Pick } from "@/components/guest/upload/review-step";
@@ -70,6 +72,30 @@ export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
   }
   if (classes.includes("retry")) return "retry";
   return classes.length > 0 ? "choose" : "retry";
+}
+
+/**
+ * ★ WHETHER THE STEP IS STANDING ON ITS FAIL-OPEN VIEW (the server's sentence and "Continue without adding"): nothing is
+ * going up, and every refusal in the run is one the guest cannot fix. One home for the step's own `stuck` and for the
+ * door, which has to know what the step said when the step goes away (`failOpenFailures`).
+ */
+function failOpen(sending: boolean, failures: readonly QueueItem[]): boolean {
+  return !sending && failures.length > 0 && classifyRun(failures) === "refresh";
+}
+
+/**
+ * ★ WHAT THE STEP SAID ON ITS FAIL-OPEN VIEW, as the queue stands (crumbs-94, red-team 58b): the failures it is
+ * showing there, or none. That view is the run's last word (the server's own sentence, no Retry, a way on that only
+ * refreshes), so when the step goes away it has SAID them: the album's failure sheet, which waits behind the step and
+ * opens the moment the step lets go, would say them a second time (a paused album's, about a second later, over the
+ * step's last 200 ms). The door asks the queue to let them go as the step does (`EntryModal`'s upload-step effect).
+ */
+export function failOpenFailures(queue: readonly QueueItem[]): QueueItem[] {
+  const sending = queue.some(
+    (it) => it.status === "queued" || it.status === "uploading",
+  );
+  const failures = queue.filter((it) => it.status === "error");
+  return failOpen(sending, failures) ? failures : [];
 }
 
 /**
@@ -152,7 +178,27 @@ export function UploadStep({
    */
   const sent = useRunSent(queue, failures);
   // The fail-open: nothing this guest can do about any of it.
-  const stuck = showFailures && verdict === "refresh";
+  const stuckNow = failOpen(sending, failures);
+  /* ★ THE FAIL-OPEN VIEW STANDS ON WHAT IT SAID WHILE IT LEAVES (crumbs-94). The door lets the queue's copy of these
+     failures go in the breath the step goes (`failOpenFailures`), and the step spends its last 200 ms leaving: without
+     a copy of its own it would swap to its pick view on the way out. Held in state (adjusted while rendering), kept while
+     the view is up, and dropped the moment anything is going or fails again. */
+  const [said, setSaid] = useState<readonly QueueItem[] | null>(null);
+  if (stuckNow && said !== failures) setSaid(failures);
+  else if (!stuckNow && said !== null && (sending || failures.length > 0))
+    setSaid(null);
+  const standing: readonly QueueItem[] | null = stuckNow
+    ? failures
+    : !sending && failures.length === 0
+      ? said
+      : null;
+  const stuck = standing !== null;
+  // ★ A RUN THE HOST'S PAUSE REFUSED WHOLE says what the album's failure sheet says of it (what happened, that nothing is
+  // lost, the way on: `uploadFailurePaused`'s two sentences, the host unnamed here), in place of the server's bare line:
+  // this view is the only voice there is (the sheet never repeats it, `failOpenFailures`), so it carries all of it.
+  const pausedRun =
+    standing !== null &&
+    standing.every((f) => classifyRefusal(f.errorCode) === "paused");
 
   const failureItems: UploadFailure[] = failures.map((it) => ({
     id: it.id,
@@ -212,21 +258,28 @@ export function UploadStep({
     );
   }
 
-  if (showFailures) {
+  if (showFailures || stuck) {
     return (
       <div data-upload-step="failed" className="flex flex-col gap-4 pt-1">
         <DoorHeading
           hidden
           title={
             stuck
-              ? // The server's own sentence is the heading here: "This album is full right now"
-                // says more than a count of files ever could.
-                (failures[0]?.error ?? "That did not go")
+              ? pausedRun
+                ? uploadPausedFact("The host")
+                : // The server's own sentence is the heading here: "This album is full right now"
+                  // says more than a count of files ever could.
+                  (standing?.[0]?.error ?? "That did not go")
               : uploadFailureHeading(failures.length, sent)
           }
           reason={
             stuck
-              ? undefined
+              ? pausedRun
+                ? uploadPausedWayOn({
+                    count: standing?.length ?? 0,
+                    camera: camera !== null,
+                  })
+                : undefined
               : verdict === "choose"
                 ? uploadStepChooseAgain(requireUpload, camera !== null)
                 : "Give it one more go."

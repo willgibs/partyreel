@@ -13,7 +13,9 @@
  * shimmer's `data-done` (the photograph is showing) and the image's `data-instant` (it switched no
  * transition on to get there).
  */
-import { fireEvent, render } from "@testing-library/react";
+import { act, fireEvent, render } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -28,16 +30,33 @@ const realComplete = Object.getOwnPropertyDescriptor(
   "complete",
 )!;
 
-/** What `img.complete` answers for every image in the test: a photograph the browser already holds, or one still on its way. */
-function complete(answer: boolean) {
+const realNaturalWidth = Object.getOwnPropertyDescriptor(
+  HTMLImageElement.prototype,
+  "naturalWidth",
+)!;
+
+/**
+ * What `img.complete` answers for every image in the test: a photograph the browser already holds (whole, with a width),
+ * or one still on its way. `complete(true, 0)` is one it already FAILED on (`complete` is true for a broken image too).
+ */
+function complete(answer: boolean, width = answer ? 640 : 0) {
   Object.defineProperty(HTMLImageElement.prototype, "complete", {
     configurable: true,
     get: () => answer,
+  });
+  Object.defineProperty(HTMLImageElement.prototype, "naturalWidth", {
+    configurable: true,
+    get: () => width,
   });
 }
 
 afterEach(() => {
   Object.defineProperty(HTMLImageElement.prototype, "complete", realComplete);
+  Object.defineProperty(
+    HTMLImageElement.prototype,
+    "naturalWidth",
+    realNaturalWidth,
+  );
 });
 
 const PHOTO = { type: "photo" as const, url: "https://r2.test/p1.jpg" };
@@ -300,6 +319,45 @@ describe("a photograph nothing here can draw", () => {
     fireEvent.error(imgOf(container));
     expect(standIn(container)).toHaveTextContent(TILE_STAND_IN);
     expect(standIn(container)).not.toHaveTextContent("JPG");
+  });
+
+  it("★ names one that failed before React was listening: attached `complete` with no width, no `error` ever heard (the host's server-rendered album, crumbs-94)", () => {
+    // A broken image is `complete` too: the tile used to read that as a landing and drew the broken image at full opacity.
+    complete(true, 0);
+    const { container } = render(<MediaTile item={HEIC} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(standIn(container)).toHaveTextContent(TILE_STAND_IN);
+    expect(standIn(container)).toHaveTextContent("HEIC");
+  });
+
+  it("★ and the same on a page the server drew: hydration finds the image failed, and the first paint after is the stand-in", () => {
+    const html = renderToString(<MediaTile item={HEIC} />);
+    expect(html).toContain("<img");
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    complete(true, 0);
+    let root!: ReturnType<typeof hydrateRoot>;
+    act(() => {
+      root = hydrateRoot(container, <MediaTile item={HEIC} />);
+    });
+    expect(container.querySelector("img")).toBeNull();
+    expect(standIn(container)).toHaveTextContent(TILE_STAND_IN);
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  it("a failed one still goes the way a failed tile goes: its preview's original is tried before the stand-in speaks", () => {
+    complete(true, 0);
+    const item = {
+      type: "photo" as const,
+      url: "https://r2.test/events/e/photo/m1/original.jpg?sig=a",
+      previewUrl: "https://r2.test/events/e/photo/m1/preview.webp?sig=a",
+    };
+    const { container } = render(<MediaTile item={item} />);
+    // The preview had failed before React listened: the original is asked for, and no stand-in yet.
+    expect(imgOf(container)).toHaveAttribute("src", item.url);
+    expect(standIn(container)).toBeNull();
   });
 
   it("a clip with no poster that cannot play here is named the same way, as a clip", () => {

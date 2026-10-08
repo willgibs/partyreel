@@ -321,8 +321,17 @@ export function MediaTile({
    * arrives after its tile (the paged album mints links per window) is read the same way.
    */
   const imgRef = useCallback((img: HTMLImageElement | null) => {
-    if (img?.complete)
-      setLanding((now) => (now === "pending" ? "instant" : now));
+    if (!img?.complete) return;
+    // ★ COMPLETE WITH NO WIDTH IS A FAILURE, NOT A LANDING (crumbs-94, red-team 58b's walk of the host's album): `complete`
+    // is true for a broken image too. A server-rendered tile whose file this browser cannot decode (a HEIC with no preview,
+    // from the HTTP cache) fails before React is listening, so its `error` is never heard and it was drawn as landed, a
+    // broken image at full opacity, on every load of the host's album. Its own `onError` is told instead, so it goes the way
+    // every failed tile goes (a rolled link, the preview, the original, the stand-in), with the handler of this render.
+    if (img.naturalWidth === 0) {
+      img.dispatchEvent(new Event("error"));
+      return;
+    }
+    setLanding((now) => (now === "pending" ? "instant" : now));
   }, []);
 
   /*

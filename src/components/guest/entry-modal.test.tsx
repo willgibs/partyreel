@@ -805,6 +805,196 @@ describe("the upload step", () => {
   });
 });
 
+/* ★ A PAUSE THAT LETS HER INTO THE ALBUM IS THE ASK PASSED (crumbs-94, red-team 58b): the upload step is read off the
+   album's live word, so a host who paused took it off the door and a reopen put it straight back, unbidden, over the album
+   she had been let into. An ordinary album's ask is a soft one (she is asked once a pass), so the pause that spared her
+   the step marks it passed; a photo-first album's is the rule ("It applies again when they reopen"), so there the step
+   returns. */
+describe("the upload step and a pause", () => {
+  const props = {
+    qrToken: QR,
+    eventName: "Test Wedding",
+    access: "full" as const,
+    gate: null,
+    hasContributed: false,
+    contributed: false,
+    returning: false,
+    uploadsOpen: true,
+    requireUpload: false,
+    albumEmpty: false,
+    isOwner: false,
+    isDemo: false,
+    isVerified: false,
+    hasProfileName: false,
+    storedName: "Priya",
+    queue: [] as QueueItem[],
+    onSend: vi.fn(),
+    onRetry: vi.fn(),
+    onDismissFailures: vi.fn(),
+  };
+  const stepUp = () =>
+    screen.queryByRole("button", { name: "Choose from your album" }) !== null;
+
+  it("★ ordinary album, the step in front of her when the host pauses: the door closes onto the album, and the reopen does not ask her again", () => {
+    seeWelcome();
+    const view = render(<EntryModal {...props} />);
+    expect(stepUp()).toBe(true);
+    view.rerender(<EntryModal {...props} uploadsOpen={false} />);
+    expect(stepUp()).toBe(false);
+    expect(document.querySelector("[role=dialog]")).toBeNull();
+    view.rerender(<EntryModal {...props} uploadsOpen />);
+    expect(stepUp()).toBe(false);
+    expect(document.querySelector("[role=dialog]")).toBeNull();
+  });
+
+  it("★ ordinary album, a page that met the album paused: the reopen does not raise the step over it either", () => {
+    seeWelcome();
+    const view = render(<EntryModal {...props} uploadsOpen={false} />);
+    expect(stepUp()).toBe(false);
+    view.rerender(<EntryModal {...props} uploadsOpen />);
+    expect(stepUp()).toBe(false);
+    expect(document.querySelector("[role=dialog]")).toBeNull();
+  });
+
+  it("★ photo first: the step is the rule, and the reopen brings it back", () => {
+    seeWelcome();
+    const view = render(<EntryModal {...props} requireUpload />);
+    expect(stepUp()).toBe(true);
+    view.rerender(<EntryModal {...props} requireUpload uploadsOpen={false} />);
+    expect(stepUp()).toBe(false);
+    view.rerender(<EntryModal {...props} requireUpload uploadsOpen />);
+    expect(stepUp()).toBe(true);
+  });
+
+  /* ★ ONE VOICE FOR A PAUSED REFUSAL AT THE DOOR (crumbs-94, red-team 58b): the step's fail-open view is the run's last
+     word, and the album's failure sheet waits behind the step on the same failures, so the step lets go of what it said
+     in the breath it goes (the live word takes it off the door about a second after the refusal), or the sheet rose
+     over its last 200 ms and said it all again. */
+  describe("a refusal the step said", () => {
+    const refused = (code: string, error: string): QueueItem => ({
+      id: "q1",
+      file: new File([new Uint8Array([1])], "p.jpg", { type: "image/jpeg" }),
+      kind: "photo",
+      status: "error",
+      progress: 0,
+      error,
+      errorCode: code,
+    });
+    const paused = refused(
+      "uploads_closed",
+      "This event isn't accepting uploads right now.",
+    );
+
+    it("★ is let go as the step goes, in the same effect that tells the page the step is gone, so the sheet opens on nothing", () => {
+      seeWelcome();
+      const onDismissFailures = vi.fn();
+      const onUploadStepActive = vi.fn();
+      const handlers = { onDismissFailures, onUploadStepActive };
+      const view = render(
+        <EntryModal {...props} {...handlers} queue={[paused]} />,
+      );
+      expect(
+        screen.getByText("The host has paused uploads for now."),
+      ).toBeInTheDocument();
+      expect(onDismissFailures).not.toHaveBeenCalled();
+      // The album's live word takes the step off the door.
+      view.rerender(
+        <EntryModal
+          {...props}
+          {...handlers}
+          uploadsOpen={false}
+          queue={[paused]}
+        />,
+      );
+      expect(onDismissFailures).toHaveBeenCalledTimes(1);
+      expect(onDismissFailures).toHaveBeenCalledWith(["q1"]);
+      const dismissed = onDismissFailures.mock.invocationCallOrder[0]!;
+      const gone = onUploadStepActive.mock.calls.findLastIndex(
+        ([active]) => active === false,
+      );
+      expect(gone).toBeGreaterThanOrEqual(0);
+      expect(dismissed).toBeLessThan(
+        onUploadStepActive.mock.invocationCallOrder[gone]!,
+      );
+    });
+
+    it("★ a failure that lands in the very commit the step goes was never said by it, so the album's sheet keeps it", () => {
+      seeWelcome();
+      const onDismissFailures = vi.fn();
+      const view = render(
+        <EntryModal
+          {...props}
+          onDismissFailures={onDismissFailures}
+          queue={[]}
+        />,
+      );
+      view.rerender(
+        <EntryModal
+          {...props}
+          onDismissFailures={onDismissFailures}
+          uploadsOpen={false}
+          queue={[paused]}
+        />,
+      );
+      expect(onDismissFailures).not.toHaveBeenCalled();
+    });
+
+    it("a failure worth another go is not the last word: the step going leaves it for the album's sheet, with its Retry", () => {
+      seeWelcome();
+      const onDismissFailures = vi.fn();
+      const retryable = refused(
+        "complete_failed",
+        "That upload did not finish.",
+      );
+      const view = render(
+        <EntryModal
+          {...props}
+          onDismissFailures={onDismissFailures}
+          queue={[retryable]}
+        />,
+      );
+      expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+      view.rerender(
+        <EntryModal
+          {...props}
+          onDismissFailures={onDismissFailures}
+          uploadsOpen={false}
+          queue={[retryable]}
+        />,
+      );
+      expect(onDismissFailures).not.toHaveBeenCalled();
+    });
+
+    it("the step going with nothing failed lets nothing go", () => {
+      seeWelcome();
+      const onDismissFailures = vi.fn();
+      const view = render(
+        <EntryModal {...props} onDismissFailures={onDismissFailures} />,
+      );
+      view.rerender(
+        <EntryModal
+          {...props}
+          onDismissFailures={onDismissFailures}
+          uploadsOpen={false}
+        />,
+      );
+      expect(onDismissFailures).not.toHaveBeenCalled();
+    });
+  });
+
+  it("a guest who has not got past the welcome meets the step after it as ever: a pause in between only takes it away while it lasts", () => {
+    const view = render(<EntryModal {...props} uploadsOpen={false} />);
+    // The welcome is still hers to answer, so the door is open on it and the pause let nobody in.
+    expect(
+      screen.getByRole("button", { name: "Continue" }),
+    ).toBeInTheDocument();
+    view.rerender(<EntryModal {...props} uploadsOpen />);
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    // Past the welcome, the step (its name already on this device) is the next thing the door owes her.
+    expect(stepUp()).toBe(true);
+  });
+});
+
 describe("the name step (Continue as guest)", () => {
   it("join mode POSTs the qr_token AND the name, and hands the token up", async () => {
     vi.mocked(global.fetch).mockResolvedValue({

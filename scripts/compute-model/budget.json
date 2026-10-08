@@ -1,5 +1,5 @@
 {
-  "note": "pnpm compute:model fails when a scenario's calls or local Vercel-billed CPU (ms) exceed these. Written by --write-budget from a measured run, with headroom (calls +10%, CPU x2: it is noisy on a shared machine; a scenario under 10 calls is held to its calls alone); lower a line when a lever lands, never raise one to make a regression pass without saying why in its commit.",
+  "note": "pnpm compute:model fails when a scenario's calls or local Vercel-billed CPU (ms) exceed these. Written by --write-budget from a measured run, with headroom (calls +10%, CPU x2: it is noisy on a shared machine; a scenario under 10 calls is held to its calls alone); lower a line when a lever lands, never raise one to make a regression pass without saying why in its commit. A scenario's own `measured` says where its line was last taken (the lines without one are the top-level `measured`'s).",
   "measured": {
     "sha": "51ce07c3a",
     "date": "2026-10-04T19:27:14.555Z",
@@ -18,12 +18,26 @@
       "vercelCpuMs": 1550
     },
     "guest-hour-live": {
-      "calls": 26,
-      "vercelCpuMs": 1190
+      "calls": 30,
+      "vercelCpuMs": 1790,
+      "measured": {
+        "sha": "97af63454",
+        "date": "2026-10-08T08:54:30.629Z",
+        "k": 20,
+        "calls": 27,
+        "vercelCpuMs": 893
+      }
     },
     "guest-hour-down": {
-      "calls": 74,
-      "vercelCpuMs": 4270
+      "calls": 76,
+      "vercelCpuMs": 3210,
+      "measured": {
+        "sha": "97af63454",
+        "date": "2026-10-08T08:54:30.629Z",
+        "k": 10,
+        "calls": 69,
+        "vercelCpuMs": 1604
+      }
     },
     "guest-viewer-20": {
       "calls": 2,

@@ -29,7 +29,9 @@
  * Vercel's and Partyreel's hosts, and nothing here sends a request to Vercel. The guest scenarios run on the test event
  * "Compute model (test)" (willg97's, 1,000 photos seeded through the real write path by `scripts/seed-demo-event.mjs`),
  * or the live event `--event-name` names; its token is read with the service key from `.env.local` or the environment
- * and never printed. Each run adds one guest row per joining device and ten photos to that event. The photos it sends
+ * and never printed. Each run adds one guest row per joining device and ten photos to that event. ★ A scenario with
+ * phones counts their requests (and the version ask, which carries no cookie) and reports any other that reached the
+ * port as left out: a dashboard tab left open on it posts every minute. The photos it sends
  * are copies of six shapes in `$PARTYREEL_TEST_MEDIA/images` (the kit's `usher/kit/media-gen.mjs` writes them; a
  * folder without them is generated first, so a machine with no media of its own still runs).
  *
@@ -37,7 +39,9 @@
  * trip stays well inside its compressed interval): the page's Date runs K times fast and
  * every timer over ten seconds (the polls, the doorbell's batch tick, the link re-mint, Realtime's heartbeat) fires K
  * times sooner, so the real client's own cadence is counted request by request. Timers of ten seconds and under (a
- * slot's give-up, a join's timeout) keep real time, because network round trips do.
+ * slot's give-up, a join's timeout) keep real time, because network round trips do. ★ A real phone's clock is true, so the
+ * cheap version ask (`GET /api/album/guest/sync/version?k=..&w=<window>`) is sent the server's window, never the shim's
+ * (`device`'s `trueClockAsks`): left alone, every ask missed the window, was answered `clock`, and fell back to a full sync.
  */
 import { spawn, spawnSync } from "node:child_process";
 import {
@@ -58,7 +62,13 @@ import {
   sleep,
 } from "./chrome.mjs";
 import { printProjections, project, scale, summarize } from "./model.mjs";
-import { deviceRegistry, submitName, walkToName } from "./phones.mjs";
+import {
+  deviceRegistry,
+  ownRecords,
+  submitName,
+  walkToName,
+} from "./phones.mjs";
+import { ALBUM_VERSION_PATH } from "./true-clock.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -357,6 +367,7 @@ const SCENARIOS = [
   ...[
     {
       name: "guest-hour-live",
+      devices: ["hour"],
       live: true,
       k: K,
       about:
@@ -365,6 +376,7 @@ const SCENARIOS = [
     // At the 12 s poll a round trip must stay well inside the compressed interval, so this hour runs at half the speed.
     {
       name: "guest-hour-down",
+      devices: ["hour"],
       live: false,
       k: Math.max(1, Math.round(K / 2)),
       about:
@@ -377,6 +389,8 @@ const SCENARIOS = [
         base,
         name: "hour",
         init: [clockShim(s.k), ...(s.live ? [] : [REFUSE_REALTIME])],
+        // The shimmed `Date` is the model's, never a phone's: its cheap asks name the server's window (chrome.mjs).
+        trueClockAsks: true,
       });
       await label("setup");
       await joinAsGuest(page, event.token, "Compute Hour");
@@ -710,10 +724,16 @@ if (reproject) {
     .map((l) => JSON.parse(l));
   for (const [name, m] of Object.entries(results.scenarios)) {
     if (m.skipped) continue;
-    const recs = ledger.filter((r) => r.scenario === name);
-    const cut = SCENARIOS.find((x) => x.name === name)?.cut;
+    const scenario = SCENARIOS.find((x) => x.name === name);
+    const { own: recs, foreign } = ownRecords(
+      ledger.filter((r) => r.scenario === name),
+      scenario?.devices,
+      [ALBUM_VERSION_PATH],
+    );
+    const cut = scenario?.cut;
     results.scenarios[name] = {
       ...m,
+      ...(foreign > 0 ? { foreignRequests: foreign } : {}),
       ...summarize(recs),
       ...(cut && !m.error ? { units: cut(recs, m) } : {}),
     };
@@ -801,13 +821,23 @@ try {
     // Its phones go with it, errored or not, before the label moves on: an open one would poll under the next scenario's.
     await phones.closeAll();
     await label("(between)");
-    const recs = await recordsOf(s.name);
+    const { own: recs, foreign } = ownRecords(
+      await recordsOf(s.name),
+      s.devices,
+      [ALBUM_VERSION_PATH],
+    );
+    if (foreign > 0)
+      console.log(
+        `\n  ${foreign} request(s) came from something that is not this scenario's phone and are left out of its count: ` +
+          `a tab or a tool is on port ${port} (close it; every request stays in requests.jsonl)`,
+      );
     results.scenarios[s.name] = extra.skipped
       ? { about: s.about, ...extra }
       : {
           about: s.about,
           seconds: Math.round((Date.now() - started) / 1000),
           ...extra,
+          ...(foreign > 0 ? { foreignRequests: foreign } : {}),
           ...summarize(recs),
           ...(s.cut && !extra.error ? { units: s.cut(recs, extra) } : {}),
         };

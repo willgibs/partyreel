@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { devToolsPort } from "../../usher/kit/kit-env.mjs";
+import { keepVersionAsksTrue } from "./true-clock.mjs";
 
 const CHROME =
   process.env.CHROME_PATH ??
@@ -155,6 +156,7 @@ export async function device(
     init = [],
     block = [],
     cookies = [],
+    trueClockAsks = false,
   },
 ) {
   const { browserContextId } = await browser.send(
@@ -211,6 +213,8 @@ export async function device(
   await send("Emulation.setFocusEmulationEnabled", { enabled: true });
   for (const source of init)
     await send("Page.addScriptToEvaluateOnNewDocument", { source });
+  // ★ A shimmed phone asks the window its TRUE clock would (`true-clock.mjs`: why, and how).
+  if (trueClockAsks) await keepVersionAsksTrue({ browser, send, sessionId });
 
   const origin = new URL(base).origin;
   const page = {
@@ -352,7 +356,8 @@ export async function device(
  * request by request. Date runs k times fast and every timer OVER ten seconds fires k times sooner; timers of ten
  * seconds and under keep real time (a slot's give-up, a join's reply timeout), because network round trips do, and
  * performance.now stays real (React's scheduler, animation). A timer re-armed by its own callback (setTimeout chains)
- * stays scaled.
+ * stays scaled. ★ A page on this clock needs `device`'s `trueClockAsks` too: its version asks would otherwise name the
+ * shimmed clock's window and be told the server's (the model measures a phone with a true clock).
  */
 export function clockShim(k) {
   return `(() => {

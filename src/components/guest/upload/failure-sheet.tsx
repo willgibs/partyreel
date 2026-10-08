@@ -116,8 +116,22 @@ export function uploadFailurePaused(input: {
   camera?: boolean;
 }): string {
   const { hostName, count, camera = false } = input;
+  return `${uploadPausedFact(hostName)} ${uploadPausedWayOn({ count, camera })}`;
+}
+
+/** What happened when the host paused under a send: the sheet's first sentence, and the door's step's heading (the host unnamed there). */
+export function uploadPausedFact(hostName: string): string {
+  return `${hostName} has paused uploads for now.`;
+}
+
+/** That nothing is lost, and the one way on: the sheet's second sentence, and the door's step's line under its heading. */
+export function uploadPausedWayOn(input: {
+  count: number;
+  camera?: boolean;
+}): string {
+  const { count, camera = false } = input;
   const one = count === 1;
-  return `${hostName} has paused uploads for now. ${one ? "It is" : "They are"} still ${
+  return `${one ? "It is" : "They are"} still ${
     camera ? "in the camera" : "on your phone"
   }, so try ${one ? "it" : "them"} again once uploads reopen.`;
 }

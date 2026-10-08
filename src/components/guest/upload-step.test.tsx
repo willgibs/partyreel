@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   UploadStep,
   classifyRun,
+  failOpenFailures,
   uploadBarPercent,
   uploadStepChooseAgain,
   uploadStepReason,
@@ -112,6 +113,34 @@ describe("the refusal ladder", () => {
         item({ id: "b", errorCode: "verification_required" }),
       ]),
     ).toBe("verify");
+  });
+});
+
+describe("what the step said on its fail-open view", () => {
+  const paused = (id: string) => item({ id, errorCode: "uploads_closed" });
+
+  it("★ is the run's failures when nothing is going and none can be fixed (a pause among them), and nothing otherwise", () => {
+    const a = paused("a");
+    const b = item({ id: "b", errorCode: "cap_reached" });
+    expect(failOpenFailures([a])).toEqual([a]);
+    expect(failOpenFailures([a, b])).toEqual([a, b]);
+    // A file worth another go makes the view the Retry's, which the album's sheet carries on: not the last word.
+    expect(
+      failOpenFailures([a, item({ id: "c", errorCode: "complete_failed" })]),
+    ).toEqual([]);
+    // A file refused for itself, a dead session, a flipped switch: each its own view, not this one.
+    expect(failOpenFailures([item({ errorCode: "too_large" })])).toEqual([]);
+    expect(failOpenFailures([item({ errorCode: "invalid_session" })])).toEqual(
+      [],
+    );
+  });
+
+  it("is nothing while a file is still going, and nothing for a queue with no failure", () => {
+    const going = item({ id: "g", status: "uploading" });
+    expect(failOpenFailures([going, paused("a")])).toEqual([]);
+    expect(failOpenFailures([item({ id: "q", status: "queued" })])).toEqual([]);
+    expect(failOpenFailures([item({ id: "d", status: "done" })])).toEqual([]);
+    expect(failOpenFailures([])).toEqual([]);
   });
 });
 
@@ -553,6 +582,113 @@ describe("the surface", () => {
       screen.getByRole("button", { name: "Continue without adding" }),
     );
     expect(onContinueWithout).toHaveBeenCalled();
+  });
+
+  it("★ a run the host's pause refused whole says what the album's failure sheet says of it: what happened, that nothing is lost, the way on, the host unnamed (crumbs-94)", () => {
+    const { onContinueWithout } = mount({
+      queue: [
+        item({
+          id: "a",
+          errorCode: "uploads_closed",
+          error: "This event isn't accepting uploads right now.",
+        }),
+        item({
+          id: "b",
+          errorCode: "uploads_closed",
+          error: "This event isn't accepting uploads right now.",
+        }),
+      ],
+    });
+    expect(
+      screen.getByText("The host has paused uploads for now."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "They are still on your phone, so try them again once uploads reopen.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/accepting uploads/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Retry" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue without adding" }),
+    );
+    expect(onContinueWithout).toHaveBeenCalled();
+  });
+
+  it("a pause that refused one shot of the camera says the camera holds it", () => {
+    mount({
+      camera: { onOpen: vi.fn() },
+      queue: [item({ errorCode: "uploads_closed", error: "Not now." })],
+    });
+    expect(
+      screen.getByText(
+        "It is still in the camera, so try it again once uploads reopen.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("a pause beside another unfixable refusal keeps the server's own sentence (the pause words are for a run it refused whole)", () => {
+    mount({
+      queue: [
+        item({ id: "a", errorCode: "uploads_closed", error: "Not now." }),
+        item({
+          id: "b",
+          errorCode: "cap_reached",
+          error: "This album is full right now.",
+        }),
+      ],
+    });
+    expect(screen.getByText("Not now.")).toBeInTheDocument();
+    expect(screen.queryByText(/has paused uploads/)).not.toBeInTheDocument();
+  });
+
+  it("★ the fail-open view stands on what it said while it leaves: the door lets the queue's copy go, and the view does not swap to its picker on the way out (crumbs-94)", () => {
+    const paused = item({ errorCode: "uploads_closed", error: "Not now." });
+    const view = mount({ queue: [paused] });
+    expect(
+      screen.getByText("The host has paused uploads for now."),
+    ).toBeInTheDocument();
+    // The queue lets the failure go (the step is leaving): the view is the same view.
+    view.rerender(
+      <UploadStep
+        isDemo={false}
+        requireUpload={false}
+        albumEmpty={false}
+        queue={[]}
+        onSend={view.onSend}
+        onRetry={view.onRetry}
+        onDismiss={view.onDismiss}
+        onContinueWithout={view.onContinueWithout}
+      />,
+    );
+    expect(
+      screen.getByText("The host has paused uploads for now."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Continue without adding" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Choose from your album" }),
+    ).not.toBeInTheDocument();
+    // A new run takes the view back: it never stays over files that are going.
+    view.rerender(
+      <UploadStep
+        isDemo={false}
+        requireUpload={false}
+        albumEmpty={false}
+        queue={[item({ id: "n", status: "uploading", progress: 10 })]}
+        onSend={view.onSend}
+        onRetry={view.onRetry}
+        onDismiss={view.onDismiss}
+        onContinueWithout={view.onContinueWithout}
+      />,
+    );
+    expect(
+      screen.queryByText("The host has paused uploads for now."),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Sending your photos")).toBeInTheDocument();
   });
 
   it("the failure view never carries the soft skip, even OFF", () => {

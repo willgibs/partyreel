@@ -40,6 +40,7 @@ import {
   type ReelAssets,
 } from "@/lib/reel/engine/assets";
 import type { CanvasImage } from "@/lib/reel/engine/canvas2d";
+import type { ReelClip } from "@/lib/reel/engine/reel-types";
 
 import { isReelEligible, stillUrlFor, type LiveMediaItem } from "./items";
 import { motionSeed, planTake } from "./take";
@@ -76,6 +77,8 @@ export type ClipSourceStats = {
   retained: number;
   /** Distinct urls pinned, across those windows. */
   retainedUrls: number;
+  /** Photographs this device cannot draw, left out of its reel (`UndecodableImageError`). */
+  undrawn: number;
   /** Per-clip derived assets (wash + halo) resident — the other number that must stay flat. */
   derived: number;
   pending: number;
@@ -236,6 +239,15 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
   const departed = new Map<string, LiveMediaItem>();
   /** When each waiting arrival was queued: the start of its bounded wait for a still. */
   const queuedAt = new Map<string, number>();
+  /**
+   * ★ THE PHOTOGRAPHS THIS DEVICE CANNOT DRAW, left out of its reel for the session (crumbs-94, red-team 58b): the ids
+   * whose still's bytes came in and which the browser refused to decode (`UndecodableImageError`), a HEIC from a desktop
+   * Chrome above all (it has no preview, so the reel is handed the original). Played, one is a theme-colour hold for its
+   * whole turn, once a loop, which reads as a bug and not as a photograph. Each payload hands the item in again, so the
+   * set is kept and applied as the item arrives (`setItems`): it is flagged undrawable (`drawable: false`) and every
+   * eligibility check in the take and the windows already leaves it out, as it leaves out a held or hidden one.
+   */
+  const undrawn = new Set<string>();
 
   function eligibleItems(): LiveMediaItem[] {
     return [...items.values()].filter(isReelEligible);
@@ -574,6 +586,18 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     if (touched) invalidateAhead();
   }
 
+  /**
+   * Leave these photographs out of the reel for good (the device cannot draw them): cut from the take and every window not
+   * yet on screen the way a hidden one is (`dropIds`, whose cutaway the player already runs for the clip on screen), and
+   * remembered so no later payload brings them back as an arrival.
+   */
+  function leaveOut(ids: readonly string[]) {
+    const fresh = ids.filter((id) => !undrawn.has(id));
+    if (fresh.length === 0) return;
+    for (const id of fresh) undrawn.add(id);
+    dropIds(fresh);
+  }
+
   function spliceIds(ids: readonly string[]) {
     const fresh = ids.filter(
       (id) => items.has(id) && !pending.includes(id) && !loopIds.includes(id),
@@ -593,7 +617,11 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     setItems(next) {
       const before = items;
       const after = new Map<string, LiveMediaItem>();
-      for (const item of next) after.set(item.id, item);
+      for (const item of next)
+        after.set(
+          item.id,
+          undrawn.has(item.id) ? { ...item, drawable: false } : item,
+        );
 
       const added: string[] = [];
       const dropped: string[] = [];
@@ -803,7 +831,8 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
 
       const key = lookKey(window, needs, frame);
       const missingIds: string[] = [];
-      const missingClips = [];
+      const missingClips: ReelClip[] = [];
+      const cannotDraw: string[] = [];
       for (let i = 0; i < window.ids.length; i++) {
         const id = window.ids[i];
         if (derived.has(`${key}|${id}`) || missingIds.includes(id)) continue;
@@ -820,12 +849,17 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
           decode: cache.decode,
           signal,
         });
+        const refused = new Set(built.undecodable ?? []);
         built.clips.forEach((asset, i) => {
           // ★ ON THE PAGED ALBUM A STILL THAT DID NOT LOAD IS NOT REMEMBERED. Its link can land late
           // or be re-minted (the watchdog `onFailedIds` feeds), so the next window holding the clip
           // tries again with whatever url it reads then; a remembered null would keep it blank for
           // as long as any window held it. A linked payload keeps the old rule: its url is its url.
           if (asset || !resolver) derived.set(`${key}|${missingIds[i]}`, asset);
+          // ★ ONE THAT CAME IN WHOLE AND WILL NOT DRAW IS NOT A LINK'S FAILURE: asking again, or a fresh link, changes
+          // nothing, so it is left out instead (below), and the watchdog is never asked about it.
+          if (!asset && refused.has(missingClips[i].url))
+            cannotDraw.push(missingIds[i]);
         });
         if (!grains.has(key)) grains.set(key, built.grain);
       }
@@ -836,10 +870,13 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         const asset = derived.get(`${key}|${id}`) ?? null;
         if (!asset && window.props.clips[i]?.url) {
           failures += 1;
-          if (!failed.includes(id)) failed.push(id);
+          if (!failed.includes(id) && !cannotDraw.includes(id)) failed.push(id);
         }
         return asset;
       });
+      // The window the player holds was planned with them in it: the cut rewrites the plan behind it (a hidden
+      // photograph's own path), so the next frame it would have drawn cannot reach them.
+      leaveOut(cannotDraw);
       if (failed.length > 0 && opts.onFailedIds) {
         try {
           opts.onFailedIds(failed);
@@ -875,6 +912,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       derived.clear();
       grains.clear();
       departed.clear();
+      undrawn.clear();
       lastBuilt = null;
     },
 
@@ -885,6 +923,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       windows: slots.size,
       retained: retains.size,
       retainedUrls: new Set([...retains.values()].flat()).size,
+      undrawn: undrawn.size,
       derived: derived.size,
       pending: pending.length,
       revision: rev,

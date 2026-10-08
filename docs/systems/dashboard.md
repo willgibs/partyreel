@@ -69,9 +69,12 @@ header holds its rule), the page only reads, and the composition is `components/
   ★ A photograph this browser cannot draw (a HEIC from a desktop Chrome has no preview, so a read falls back to the
   original) is named, never a broken image, on every surface that draws one: `PhotoImg` (`components/app/photo-img.tsx`)
   is the one `<img>` there and hands over to the album's own stand-in (`TileStandIn`: "Can't show here" and the format),
-  in the box the image filled; the stage's wall, a tile, a row, the table, the pill and the week's face wear it, the cover
-  cycle's dissolving stills too (`LivingStills`). A decoration (a row's 12 percent ground, the stage's blurred light) stays
-  a plain image: an ornament that cannot draw is nothing to name.
+  in the box the image filled, when the browser says it cannot draw `src`: an `error` event, or, for an image that failed
+  before React listened (a server-rendered one fails from the cache before hydration, so `onError` never hears it), a
+  callback ref reading `complete` with no `naturalWidth` (the album's own tile, `MediaTile`, reads the same and tells its
+  own `onError`, so a server-rendered host album names it too); the stage's wall, a tile, a row, the table, the pill and
+  the week's face wear it, the cover cycle's dissolving stills too (`LivingStills`). A decoration (a row's 12 percent
+  ground, the stage's blurred light) stays a plain image: an ornament that cannot draw is nothing to name.
 - **One item an event** (`itemFor`, `attention.ts`): the queues in every phase, the day's own steps on its day, before
   it the first essential readiness leaves undone (`lib/events/readiness.ts`, never a copy: a door nobody can pass,
   paused uploads), then the code's share while nobody has opened it (worth doing since create-wizard r5's

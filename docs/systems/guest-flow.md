@@ -466,13 +466,24 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   `event-experience.tsx`; red-team 58's MEDIUM): the server's reading at render, then each `accepting` the album's sync
   carries, so a host's pause or reopen with her page open turns the cover and its Add, the shutter, the album's Add and a
   clip's, the door's upload step, the camera, the album's order, the last-removal rule and the picks the held door kept,
-  with no reload. No reader takes `event.accepting_uploads`, which is the render's and goes stale. `GuestUpload` hosts what
+  with no reload. ★ **A pause that lets her into an ordinary album marks the door's upload step passed**
+  (`EntryModal`: the flag her own Skip sets, raised while rendering when the pause is what spared her a step `computeDoor`
+  would have asked, with nothing else left at the door), so the reopen never raises it, unbidden, over the album she is
+  in; on a photo-first album the step is the rule and returns (`computeDoor` ignores the flag there). ★ **A guest the
+  pause let into a photo-first album does not hear the reopen**: the sync answers her a teaser at the `upload` gate, which
+  carries no `accepting`, so her cover keeps its closed line and no step returns until a reload.
+  No reader takes `event.accepting_uploads`, which is the render's and goes stale. `GuestUpload` hosts what
   she may be in the middle of (the camera, the Add sheet, the failure sheet), so once mounted it stays for the page's life
   (a pause draws nothing of its own there); a page that renders closed never mounts it. A send the album refuses as closed
   asks the album for its word afresh (a round trip, not the next poll; a camera album's camera asks for its own) and is
   the ladder's own class, `paused` (`upload-refusal.ts`): said plainly with where the file is, no Retry (every send is
   refused alike until the reopen, which the cover's Add then says), and no wait on the phone for the reopen: only a camera
-  album's shots wait for it, in the camera.
+  album's shots wait for it, in the camera. ★ **One voice at the door**: where the refusal meets the door's upload step,
+  the step's fail-open view says it (what happened, that the file is still on her phone, the way on: the sheet's own two
+  sentences, `uploadPausedFact` and `uploadPausedWayOn`, the host unnamed) and the album's failure sheet, which waits
+  behind the step on the same failures, never says it again: the door lets go of what the step stood on in the effect
+  that tells the page the step is gone (`failOpenFailures`), and the step keeps its own copy for its exit. A failure
+  worth another go keeps its Retry in the sheet, and one that lands in the very commit the step goes is the sheet's.
 
 ## Gallery access: `none` / `teaser` / `full` (the gated VIEW)
 

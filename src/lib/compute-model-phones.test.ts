@@ -7,6 +7,7 @@ import {
   nameContinue,
   nameScreen,
   nextDoorPress,
+  ownRecords,
   submitName,
   walkToName,
 } from "../../scripts/compute-model/phones.mjs";
@@ -460,5 +461,43 @@ describe("the name sheet's Continue", () => {
       );
     expect(read(sheetScope)).toEqual({ name: true, ready: true });
     expect(read(pending)).toEqual({ name: true, ready: false });
+  });
+});
+
+describe("what a scenario counts (crumbs-94)", () => {
+  /** A ledger row, as the measuring server writes it (the fields a scenario's own count reads). */
+  const row = (device: string | null, path: string) => ({ device, path });
+  const VERSION = "/api/album/guest/sync/version";
+
+  it("★ counts its own phones' requests and the cookie-less version ask, and leaves out whatever else is on the port", () => {
+    // A signed-in dashboard tab left open on the port posts an action a minute, and the ledger labels it with the scenario
+    // running: it moved a guest's hour from 23 calls to 29 on the run that found it.
+    const mine = [
+      row("hour", "/e/abcd…"),
+      row("hour", "/api/album/guest/sync"),
+      row(null, VERSION),
+    ];
+    const strangers = [row(null, "/dashboard"), row("someone-elses", "/")];
+    const { own, foreign } = ownRecords(
+      [...mine, ...strangers],
+      ["hour"],
+      [VERSION],
+    );
+    expect(own).toEqual(mine);
+    expect(foreign).toBe(2);
+  });
+
+  it("the version ask is the phone's only where the scenario says its path is cookie-less", () => {
+    const { own, foreign } = ownRecords([row(null, VERSION)], ["hour"]);
+    expect(own).toEqual([]);
+    expect(foreign).toBe(1);
+  });
+
+  it("a scenario that names no phones (a crawler's plain fetches) is counted whole", () => {
+    const all = [row(null, "/"), row(null, "/pricing")];
+    expect(ownRecords(all, undefined, [VERSION])).toEqual({
+      own: all,
+      foreign: 0,
+    });
   });
 });
