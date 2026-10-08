@@ -54,6 +54,12 @@ export type ReelAssets = {
   clips: (ClipAsset | null)[];
   /** How many non-empty urls failed to load (surfaced by the player/harness, not thrown). */
   failures: number;
+  /**
+   * The urls among those failures whose bytes ARRIVED and this browser cannot decode (`UndecodableImageError`): a HEIC in
+   * Chrome or Firefox, a truncated file. A failed fetch (an expired link, the network) is not one: asking again may
+   * answer, and this never will. Absent from a loader that does not say (a fake, an older caller).
+   */
+  undecodable?: readonly string[];
   /** The feTurbulence grain tile (only decoded when the style's overlays include "grain"). */
   grain: CanvasImage | null;
 };
@@ -68,6 +74,20 @@ export type DecodeImage = (
   signal?: AbortSignal,
 ) => Promise<CanvasImage>;
 
+/**
+ * ★ A STILL THAT CAME IN WHOLE AND WILL NOT DRAW (crumbs-94, red-team 58b). Told apart from every other failure because
+ * only this one is permanent for the device: the presigned link answered and the browser's decoders both refused the
+ * bytes (a HEIC from a desktop Chrome has no preview, so the reel is handed the original; Chrome and Firefox cannot
+ * draw it). The live source leaves such a photograph out of the reel (`live/source.ts`) instead of playing it as a
+ * theme-colour hold for its whole turn, once a loop.
+ */
+export class UndecodableImageError extends Error {
+  constructor(readonly url: string) {
+    super(`image cannot be decoded: ${url}`);
+    this.name = "UndecodableImageError";
+  }
+}
+
 export async function decodeImage(
   url: string,
   signal?: AbortSignal,
@@ -81,11 +101,15 @@ export async function decodeImage(
   // ACAO-less response. A later CORS fetch of that URL then reads the poisoned cache entry and
   // fails ("Failed to fetch"), nulling EVERY clip -> the whole reel draws theme holds. Bypassing
   // the HTTP cache guarantees a fresh request that carries Origin. (~16KB/preview re-download.)
+  // Whether the bytes came in: what makes a later refusal of them the browser's own, not the link's or the network's.
+  let arrived = false;
   if (typeof createImageBitmap === "function") {
     try {
       const res = await fetch(url, { mode: "cors", cache: "no-store", signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await createImageBitmap(await res.blob());
+      const blob = await res.blob();
+      arrived = true;
+      return await createImageBitmap(blob);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") throw err;
       // Fall through to the <img> path (some hosts reject fetch CORS but allow crossOrigin images).
@@ -95,7 +119,12 @@ export async function decodeImage(
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`image load failed: ${url}`));
+    img.onerror = () =>
+      reject(
+        arrived
+          ? new UndecodableImageError(url)
+          : new Error(`image load failed: ${url}`),
+      );
     img.src = url;
   });
 }
@@ -123,6 +152,7 @@ export async function loadReelAssets(
   const byUrl = new Map<string, Promise<CanvasImage>>();
   const decode = opts.decode ?? decodeImage;
   let failures = 0;
+  const undecodable = new Set<string>();
 
   // The grain tile decodes in parallel with the clips; a failure is a graceful null (the draw
   // reports + skips grain), never a crash.
@@ -160,6 +190,7 @@ export async function loadReelAssets(
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") throw err;
         failures += 1;
+        if (err instanceof UndecodableImageError) undecodable.add(clip.url);
         return null;
       }
     }),
@@ -195,5 +226,10 @@ export async function loadReelAssets(
     });
   }
 
-  return { clips: results, failures, grain: await grainPromise };
+  return {
+    clips: results,
+    failures,
+    grain: await grainPromise,
+    ...(undecodable.size > 0 ? { undecodable: [...undecodable] } : {}),
+  };
 }
