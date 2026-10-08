@@ -41,7 +41,7 @@ brand-marks r2's icon beside it; the Calls place holds 16 entries.
   leases from partyreel.com every 15 minutes; `DRIVE_WORKER_URL` is set on production; Will's Drive walk is next.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
-- **The shared database** runs every migration through `crumbs_92` (2026-10-07, applied as 20261007233007), each by protocol (the
+- **The shared database** runs every migration through `crumbs_93` (2026-10-08, applied as 20261008050912), each by protocol (the
   Advisor's read, the file's md5 matched), each an expand the older build ran beside; no build reads a dropped thing.
   Advisors stand at 27 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);

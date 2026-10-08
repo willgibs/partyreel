@@ -82,6 +82,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Uploads: a HEIC the uploading browser cannot decode gets no preview, phone copy or measures; decode it there with a WASM decoder fetched only then ($0, in-house; libheif and libde265 are LGPL, Will's call before it is built) (crumbs-90).
 - Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `roll.ts`'s `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring, crumbs-90; one line since no-signal-wiring).
 - Uploads: a file whose bytes went up but whose complete lost its answer waits in its page alone, so a reload there loses it ("Keep this page open" says so): the uploader's kept complete (`UNANSWERED`, by File) lives in memory; kept beside the copy, the next open could ask that complete again instead of sending the file whole (no-signal-wiring).
+- Media: `PhotoImg` (crumbs-93) is the one image of the dashboard, the profile and Guest cards and the cover cycle; the hub's own stills (`event-feed/event-cards-row.tsx`'s face, `hub-develop.tsx`, `selectable-media-grid.tsx`), the reel's clip tray and order, and the lightbox's filmstrip still draw a bare `<img>` of a stored photograph, broken where a browser cannot decode an un-previewed original (a HEIC from a desktop Chrome): adopt it there (crumbs-93).
 
 ### The guest's album
 
@@ -112,6 +113,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Guests: an album open across her close turns its order at the sync's word (AY1) but keeps its Add and its open words until a reload (`event-experience.tsx`'s `canUpload` reads the render's `accepting_uploads`, the camera alone the live word); say the close from the live word too (crumbs-91).
 - Uploads: on an album that waits (her host's yes, a develop) a photograph waiting for the line stands in her uploads with no stop (the stack's x is a live album's), so one she no longer wants still goes when the line is back; a Stop on that row would take it back first (no-signal-wiring).
 - Album: the photo viewer's chunk (`media-lightbox.lazy.tsx`) is fetched on a tile's first touch, so a first tap in a dead zone cannot load it; fetched once the album is idle, as the camera's is as it mounts, it would open with no line (no-signal-wiring).
+- Guests: a reopen reaches a quiet open page on its next version poll (up to a minute, 50 s measured), and the cover's Add returns then; a doorbell on `accepting_uploads` flips (a trigger, so a migration) would bring the Add back at once (crumbs-93).
 
 ### Accounts and profiles
 
@@ -147,7 +149,6 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Lab exploration: Settings' rail still reads as steps (five numbered, two ticked, Next leading to the code), so the optional reads as owed once Create is the payoff; draw its groups as places, not steps, once Will answers create-wizard r5's `arrival` (create-wizard r5).
 - Settings' door menu (`settings-rows.tsx`'s `doorConsequence`) says an address gate "Turns An email first on" but not what it asks of the guests in by name, which the door page now says before the move (crumbs-89).
 - Hub: the Live mark (`EventLive`) reads only the realtime connection, so a closed album's hub says LIVE beside its paused code; it gives way to the album's phase (after-party r1's `over` answer) (after-party r1).
-- Host: her dashboard's tile covers and stills (`event_covers`, `event_stills`) and the stage's "in the album" count (`event_card_stats`) are exempt from a disposable album's seal for her own session, so sealed photographs and the full count show there while the hub and the stage's wall cover them; hold the three SQL homes to the guests' view, or say on the cards why they are hers (a migration) (crumbs-88).
 - **Share studio (QR and share-content configurator):** more focus now (Will's X16 note, 2026-10-07): a light first layer where a few presets get the code around the event, a second-layer designer for the artifacts, never complicated, inside the event's own experience rather than a separate page, perhaps an optional step near Create's end so a new host learns it exists before she designs her own; a lab exploration that zooms out to the whole. An in-app generator for polished share outputs, so hosts never build their own; it builds on the share sheet's QR designer and Print, its outputs land as share-sheet sections, and it doubles as a growth lever (every output carries the QR).
   - A gallery of printable QR designs to pick from (`print-stock.tsx` prints one design).
   - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
@@ -161,6 +162,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Drive: the album tile's Standby dot (`drive-tile-mark.tsx`, `bg-info`) is now the page's muted ink on glass, the same grey as its stopped dot: draw it half-lit in the glass's white, as the Badge draws Standby (brand-marks-wiring).
 - Mail: every mail's head wears the wordmark as drawn at 22px (`public/email/wordmark-v1.png`): `scripts/build-email-wordmark.mjs` on the small cut into `wordmark-v2.png`, and `templates.ts`'s `WORDMARK` pointed at it, so his three near-touching pairs stop blotting (brand-marks-wiring).
 - Settings: after a password's first set, a page that never saw her own write of "An email first" elsewhere says names only are back while the step stays on (the trigger kept her word, 20261008030000) until a reload; read the step from `set_event_password`'s answer (crumbs-91).
+- Host: a photograph reaching Review in the round trip between Settings' last live count and the press still publishes unsaid; `updateEventAction` could return how many `approveAllPending` approved, and Settings say it in a toast (crumbs-93).
 
 ### Admin and operations
 
@@ -223,6 +225,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Marketing: live drawn green on the site (`demo-modal/demo-door.tsx`'s LiveDot and its ring, `home/live-demo.tsx`, `live-album-stage.tsx`'s Live now, `feature-door.tsx`'s Filling live, `review-modes.tsx`'s Live icon): live is the recording red that breathes, as the app's `LiveDot` and the Badge's `live` draw it (brand-marks-wiring).
 - About: the press band's words (`ABOUT_PRESS_KIT.body`) name "the mark, the app icon, the share card and a QR code"; the kit now carries the wordmark in ink and in white beside the icon (brand-marks-wiring).
 - Marketing: the idle window reads "about 24 months" on every surface that derives `INACTIVE_MONTHS`; "about 2 years" reads warmer, one phrase export in `lib/lifecycle/inactivity.ts` plus an edit in each consumer (the home FAQ data, llms, the event constants, the comparison table, the album copy, the privacy feature section, the JSON-LD, help's `<InactivityMonths />`) (crumbs-92).
+- Marketing: the OG images (`lib/og/marketing-og-card.tsx`, `app/opengraph-image.tsx`, the blog's and the events') draw a title as one Satori text node, whose gap after a long word opens by that word's kerning (36 px against 23 on the share card, measured); crumbs-93's `CardTitle` (`e/[token]/card/title.tsx`) is the fix, moved to `lib/og/` and used there (crumbs-93).
 
 ### The lab and the kit
 
