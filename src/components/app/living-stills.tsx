@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { PhotoImg } from "@/components/app/photo-img";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { cn } from "@/lib/utils";
 
@@ -58,11 +59,9 @@ export function LivingStills({
       className={cn("absolute inset-0 overflow-hidden", className)}
     >
       {mounted.map((i) => (
-        // eslint-disable-next-line @next/next/no-img-element -- a presigned R2 preview, never optimizable
-        <img
+        <PhotoImg
           key={i}
-          src={stills[i]}
-          alt=""
+          src={stills[i]!}
           loading="lazy"
           decoding="async"
           draggable={false}

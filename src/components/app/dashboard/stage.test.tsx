@@ -1,9 +1,10 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Stage } from "./stage";
 import { lampOf } from "@/lib/dashboard/stage";
 import type { StageLive } from "@/lib/dashboard/stage-action";
+import { TILE_STAND_IN } from "@/components/app/media-grid";
 import { homeContext, homeEvent } from "@/lib/dashboard/testing/home";
 
 /**
@@ -266,6 +267,37 @@ describe("on its day", () => {
     expect(screen.getByText("142")).toBeInTheDocument();
     expect(screen.getByText("23")).toBeInTheDocument();
     expect(doorbell.enabled).toBe(true);
+  });
+
+  /* ★ A PHOTOGRAPH THIS BROWSER CANNOT DRAW IS NAMED ON THE WALL TOO (crumbs-93, red-team 58's NIT): a HEIC from a
+     desktop Chrome has no preview, the wall serves its original, and the tile was a broken-image glyph on black where the
+     album's own tile says "Can't show here / HEIC". The wall's tile is the album's stand-in, in the cell the photograph
+     filled; its neighbours draw. */
+  it("★ names the wall's photograph that will not draw, as the album's tile does, and leaves the rest drawn", () => {
+    const wall = photos(9);
+    wall[3] = {
+      id: "heic",
+      url: "https://r2.test/events/e/photo/heic/original.heic?X-Amz-Signature=abc",
+    };
+    const { container } = render(
+      <Stage
+        event={tonight}
+        ctx={homeContext(FRIDAY, { evening: true })}
+        guests={23}
+        photos={wall}
+        share={share}
+        qrToken="tok"
+      />,
+    );
+    const wallEl = container.querySelector("[data-stage-wall]")!;
+    const heic = wallEl.querySelector('img[src*="original.heic"]')!;
+    fireEvent.error(heic);
+    const standIn = wallEl.querySelector("[data-photo-stand-in]")!;
+    expect(standIn).toHaveTextContent(TILE_STAND_IN);
+    expect(standIn).toHaveTextContent("HEIC");
+    expect(wallEl.querySelector('img[src*="original.heic"]')).toBeNull();
+    // The other eight still draw as images.
+    expect(wallEl.querySelectorAll("img")).toHaveLength(8);
   });
 
   it("★ marks what waits on her with the needs-you status beside its label, and leaves every figure the stage's white", () => {

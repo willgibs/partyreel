@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { StateDot } from "@/components/app/dashboard/marks";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { SortKey } from "@/lib/dashboard/display";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { formatCount } from "@/lib/format/count";
@@ -32,10 +33,8 @@ function Cover({ row }: { row: EventListRow }) {
       )}
     >
       {row.coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+        <PhotoImg
           src={row.coverUrl}
-          alt=""
           loading="lazy"
           className="absolute inset-0 size-full object-cover"
         />

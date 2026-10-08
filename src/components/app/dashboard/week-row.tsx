@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 
 import { ActDoor } from "@/components/app/dashboard/act-door";
 import { Mark, StateDot } from "@/components/app/dashboard/marks";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { WeekCard } from "@/lib/dashboard/home-view";
 import { formatCount } from "@/lib/format/count";
 import { RangeText } from "@/lib/format/range-text";
@@ -50,10 +51,8 @@ export function weekTally(
 function Face({ card }: { card: WeekCard }) {
   if (card.coverUrl)
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-      <img
+      <PhotoImg
         src={card.coverUrl}
-        alt=""
         loading="lazy"
         className="absolute inset-0 size-full object-cover"
       />
@@ -133,7 +132,7 @@ export function WeekRow({
                 <h3 className="truncate font-heading text-card-title md:mt-0.5">
                   <Link
                     href={card.href}
-                    className="outline-none hover:underline hover:underline-offset-4 focus-halo"
+                    className="focus-halo outline-none hover:underline hover:underline-offset-4"
                   >
                     {card.name}
                   </Link>

@@ -16,6 +16,7 @@ import { CalendarDays, Check, ChevronDown, X } from "lucide-react";
 
 import { Stage } from "@/components/app/dashboard/stage";
 import { lampLight, nextLamp } from "@/components/app/dashboard/stage-lit";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { HomeContext } from "@/lib/dashboard/home-event";
 import type { HostedEvent, StageView } from "@/lib/dashboard/home-view";
 import { RULES, type RuleId } from "@/lib/dashboard/lead";
@@ -102,10 +103,8 @@ function Face({
       )}
     >
       {cover ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+        <PhotoImg
           src={cover}
-          alt=""
           className="absolute inset-0 size-full object-cover"
         />
       ) : (
@@ -458,7 +457,7 @@ export function StageLead({
                 type="button"
                 aria-label="Close"
                 onClick={() => close(true)}
-                className="flex items-center justify-center rounded-full text-white/70 outline-none hover:bg-white/10 hover:text-white focus-halo max-lg:-my-3.5 max-lg:-mr-3 max-lg:size-11 lg:-my-2 lg:-mr-2 lg:size-8"
+                className="flex focus-halo items-center justify-center rounded-full text-white/70 outline-none hover:bg-white/10 hover:text-white max-lg:-my-3.5 max-lg:-mr-3 max-lg:size-11 lg:-my-2 lg:-mr-2 lg:size-8"
               >
                 <X className="size-4" aria-hidden />
               </button>
@@ -499,7 +498,7 @@ export function StageLead({
                     onPointerEnter={(ev) => {
                       if (ev.pointerType !== "touch") show(r);
                     }}
-                    className="group -mx-3 flex items-center gap-3 rounded-xl px-3 text-left outline-none hover:bg-white/[0.06] focus-halo max-lg:min-h-12 max-lg:py-1 lg:min-h-14 lg:py-1.5"
+                    className="group -mx-3 flex focus-halo items-center gap-3 rounded-xl px-3 text-left outline-none hover:bg-white/[0.06] max-lg:min-h-12 max-lg:py-1 lg:min-h-14 lg:py-1.5"
                   >
                     <span
                       aria-hidden
