@@ -1,0 +1,343 @@
+/* ── THE EVENT PAGE'S SHEET (event-page r1) ───────────────────────────────────
+   The whole designs' shared drawings: the head's glow and its grain, the Seam
+   and the Ring's puck (carried from signature's sheet, which retires into this
+   board), the Ring held at an instant, and the guest row's faces.
+
+   ★ STILL UNTIL SOMETHING HAPPENS: nothing here loops. A glow is a field drawn
+   once; the Ring's envelope is drawn at its height where a frame is the
+   instant a photo lands; the comb's lift answers a real pointer only.
+
+   ★ UNLAYERED, every selector `.ep-…` or a `data-ep-…` hook, and no keyframes
+   (keyframe names are document-global; a lab one would shadow production's). */
+
+/* ── the head's glow ── */
+
+.ep-glow {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
+}
+/* A breath of grain over the field, so a long dark fall never bands: a fixed
+   noise at a few percent, multiplied into the light only. */
+.ep-grain {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+
+/* ── the Seam in the room ── */
+
+.ep-seam {
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.ep-seam[data-edge="top"],
+.ep-seam[data-edge="bottom"] {
+  left: 0;
+  right: 0;
+  height: var(--ep-reach);
+}
+.ep-seam[data-edge="top"] {
+  top: 0;
+}
+.ep-seam[data-edge="bottom"] {
+  bottom: 0;
+  transform: scaleY(-1);
+}
+.ep-seam[data-edge="left"],
+.ep-seam[data-edge="right"] {
+  top: 0;
+  bottom: 0;
+  width: var(--ep-reach);
+}
+.ep-seam[data-edge="left"] {
+  left: 0;
+}
+.ep-seam[data-edge="right"] {
+  right: 0;
+  transform: scaleX(-1);
+}
+.ep-seam-light {
+  position: absolute;
+  display: block;
+  background: var(--ep-band);
+  opacity: var(--ep-o, 0.95);
+}
+.ep-seam[data-edge="top"] .ep-seam-light,
+.ep-seam[data-edge="bottom"] .ep-seam-light {
+  inset: 0 -14%;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 62% 100% at 22% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 58% 92% at 50% 0%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 78% 0%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+}
+.ep-seam[data-edge="left"] .ep-seam-light,
+.ep-seam[data-edge="right"] .ep-seam-light {
+  inset: -14% 0;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 100% 62% at 0% 22%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 92% 58% at 0% 50%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 100% 62% at 0% 78%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 100% 62% at 0% 22%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 92% 58% at 0% 50%,
+      rgb(0 0 0 / 0.8) 0%,
+      rgb(0 0 0 / 0.38) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 100% 62% at 0% 78%,
+      rgb(0 0 0 / 0.86) 0%,
+      rgb(0 0 0 / 0.4) 22%,
+      rgb(0 0 0 / 0.1) 58%,
+      transparent 100%
+    );
+}
+/* The source line: the edge itself, lit (a filled box: Chrome draws a 1.5px
+   border or outline as 1px, design-system.md's gotcha). */
+.ep-seam-line {
+  position: absolute;
+  display: block;
+  background: var(--ep-line);
+}
+.ep-seam[data-edge="top"] .ep-seam-line,
+.ep-seam[data-edge="bottom"] .ep-seam-line {
+  inset: 0 0 auto 0;
+  height: 1.5px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+.ep-seam[data-edge="left"] .ep-seam-line,
+.ep-seam[data-edge="right"] .ep-seam-line {
+  inset: 0 auto 0 0;
+  width: 1.5px;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+/* ── the Ring's puck on paper ── */
+
+.ep-puck-holder {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+.ep-puck {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: #0c0c0e;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 1px 2px rgb(0 0 0 / 0.12),
+    0 12px 26px -14px rgb(0 0 0 / 0.42);
+}
+.ep-puck-halo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 9999px;
+  opacity: 0;
+}
+
+/* ── the Ring: production's shutter in the album's one key light ──
+   (signature r1's `add=answer`, carried): one light at three depths lit from
+   the top-left, resting low and still, its envelope a halo centred on it,
+   drawn at its height where a frame is the instant her photo lands. */
+
+[data-ep-ring] {
+  isolation: isolate;
+}
+[data-ep-ring] [data-slot="shutter"].shutter .shutter-glow {
+  animation: none !important;
+}
+[data-ep-ring="key"] [data-slot="shutter"].shutter {
+  --shutter-light: var(--ep-key-conic);
+}
+[data-ep-ring="key"] [data-slot="shutter"].shutter .shutter-glow {
+  opacity: 0.35;
+}
+[data-ep-ring="key"]:not([data-ep-paper])::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 132px;
+  height: 132px;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--ep-halo) 62%, transparent) 46%,
+    color-mix(in oklab, var(--ep-halo) 22%, transparent) 68%,
+    transparent 100%
+  );
+  opacity: calc(0.92 * var(--ep-lift, 0));
+  pointer-events: none;
+}
+[data-ep-ring="key"][data-ep-paper] .ep-puck-halo {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--ep-halo) 70%, transparent) 70%,
+    color-mix(in oklab, var(--ep-halo) 20%, transparent) 90%,
+    transparent 100%
+  );
+  opacity: calc(0.92 * var(--ep-lift, 0));
+}
+/* Unlit: the band a hairline of the ground's own ink, nothing glowing. */
+[data-ep-ring="unlit"] [data-slot="shutter"].shutter .shutter-glow {
+  opacity: 0 !important;
+}
+[data-ep-ring="unlit"] [data-slot="shutter"].shutter .shutter-track {
+  opacity: 0.32;
+  filter: grayscale(1);
+}
+
+/* ── the guest row ── */
+
+.ep-faces {
+  display: inline-flex;
+  align-items: center;
+}
+.ep-face {
+  position: relative;
+  display: inline-flex;
+  width: var(--ep-face);
+  height: var(--ep-face);
+  border-radius: 9999px;
+  /* The parting ring: the ground under the row, so each face stands clear of the next. */
+  box-shadow: 0 0 0 2px var(--background);
+  transition: translate 260ms cubic-bezier(0.34, 3.85, 0.64, 1);
+}
+.ep-face + .ep-face {
+  margin-left: calc(var(--ep-face) * -0.25);
+}
+.ep-face:hover {
+  translate: 0 -4px;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ep-face-avatar {
+  width: 100% !important;
+  height: 100% !important;
+}
+/* The newest: a fine ring of the album's key light, a pixel out past the parting. */
+.ep-face[data-newest]::after {
+  content: "";
+  position: absolute;
+  inset: -3.5px;
+  border-radius: 9999px;
+  padding: 1.5px;
+  background: var(--ep-face-ring);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
