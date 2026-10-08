@@ -161,6 +161,19 @@ describe("keepVersionAsksTrue", () => {
     );
   });
 
+  it("never leaves a request paused: one whose address cannot be read goes on as it was", async () => {
+    const d = device();
+    await keepVersionAsksTrue({
+      browser: d.browser,
+      send: d.send,
+      sessionId: d.sessionId,
+    });
+    d.paused("not a url at all");
+    const resumed = d.sent.filter((c) => c.method === "Fetch.continueRequest");
+    expect(resumed).toHaveLength(1);
+    expect(resumed[0].params).toEqual({ requestId: "r1" });
+  });
+
   it("a page that went away with its ask in the air is no failure of the model's", async () => {
     const d = device();
     await keepVersionAsksTrue({

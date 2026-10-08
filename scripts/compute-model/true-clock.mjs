@@ -47,9 +47,16 @@ export async function keepVersionAsksTrue({
     if (msg.sessionId !== sessionId || msg.method !== "Fetch.requestPaused")
       return;
     const { requestId, request } = msg.params;
+    // A request is never left paused: one whose address cannot be read goes on as it was.
+    let url;
+    try {
+      url = trueWindowUrl(request.url, now());
+    } catch {
+      url = undefined;
+    }
     send("Fetch.continueRequest", {
       requestId,
-      url: trueWindowUrl(request.url, now()),
+      ...(url === undefined ? {} : { url }),
     }).catch(() => {
       // the page went away with its ask in the air
     });
