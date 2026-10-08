@@ -13,6 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HostEvent } from "@/lib/db/queries/events";
 
+import type { SettingsValues } from "./settings-state";
+
 const { toast } = vi.hoisted(() => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -578,5 +580,94 @@ describe("the email step a gate held on", () => {
       requireVerifiedEmail: true,
       emailHeld: true,
     });
+  });
+});
+
+/* ★ HER EMAIL-FIRST SWITCH IS NAMED ONLY WHEN HER SWITCH PROVIDES IT (the Advisor's Q45; crumbs-94). `events_email_held`
+   fires on any UPDATE that names `require_verified_email` (20261008030000's client arm): a client write of the step is
+   her word on it and ENDS the gate's memory of a names-only door it holds on, so a save that carried the column along
+   (a whole-row save, with the value it already had) would undo a hold by a side door. Each Settings save sends its own
+   field and nothing else (this file's head); `eventPatch` is where that is true of the event row, and `updateEvent`
+   (`lib/db/mutations/events.test.ts`) is the other end. The two lists below must name every value there is, so a setting
+   added later is pinned, or placed outside the event row, the day it is added. */
+describe("a save names the email-first step only when her switch provides it", () => {
+  /** One save of each setting the event row holds, but her switch. */
+  const OTHER_SAVES: Record<string, Partial<SettingsValues>> = {
+    name: { name: "Maya's 31st" },
+    description: { description: "A garden party" },
+    eventDate: { eventDate: "2026-10-10" },
+    eventEndDate: { eventEndDate: "2026-10-12" },
+    requireUploadToView: { requireUploadToView: true },
+    acceptingUploads: { acceptingUploads: false },
+    review: { review: true },
+    maxUploadBytes: { maxUploadBytes: 5_000_000 },
+    allowVideos: { allowVideos: false },
+    capture: { capture: "camera" },
+    rollSize: { rollSize: 12 },
+    developsAt: { developsAt: "2026-10-11T08:00:00.000Z" },
+    timeZone: { timeZone: "America/Mexico_City" },
+  };
+  /** The values written by another action (the door, the reel's defaults, the profile) or read off the row alone. */
+  const NOT_THE_EVENT_ROW = [
+    "door",
+    "hasPassword",
+    "emailHeld",
+    "showReel",
+    "reelStyleId",
+    "reelHoldSec",
+    "displayInProfile",
+  ];
+  const lastPatch = (updateEvent: ReturnType<typeof vi.fn>) =>
+    updateEvent.mock.calls.at(-1)![1] as Record<string, unknown>;
+
+  it("the lists name every value Settings holds (a new setting is pinned, or placed, the day it is added)", () => {
+    const settings = mount({});
+    const known = Object.keys(settings.current.values)
+      .filter(
+        (key) =>
+          key !== "requireVerifiedEmail" && !NOT_THE_EVENT_ROW.includes(key),
+      )
+      .sort();
+    expect(Object.keys(OTHER_SAVES).sort()).toEqual(known);
+  });
+
+  it("★ a save of any other setting never names it, so a held names-only door is never ended by a side door", async () => {
+    for (const [key, save] of Object.entries(OTHER_SAVES)) {
+      const updateEvent = vi.fn();
+      const settings = mount({ updateEvent } as unknown as Partial<Writes>);
+      await act(async () => {
+        await settings.current.saveEvent(save);
+      });
+      expect(updateEvent, key).toHaveBeenCalledTimes(1);
+      expect(Object.keys(lastPatch(updateEvent)), key).not.toContain(
+        "require_verified_email",
+      );
+    }
+  });
+
+  it("★ a value that is present but undefined (a spread of a partial) names nothing", async () => {
+    const updateEvent = vi.fn();
+    const settings = mount({ updateEvent } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveEvent({
+        name: "Maya's 31st",
+        requireVerifiedEmail: undefined,
+      });
+    });
+    // Strict: a key set to undefined is still a key, and the column is named by the key.
+    expect(lastPatch(updateEvent)).toStrictEqual({ name: "Maya's 31st" });
+  });
+
+  it("her switch's own save names it alone, as she set it: on and off", async () => {
+    const updateEvent = vi.fn();
+    const settings = mount({ updateEvent } as unknown as Partial<Writes>);
+    await act(async () => {
+      await settings.current.saveEvent({ requireVerifiedEmail: false });
+    });
+    expect(lastPatch(updateEvent)).toEqual({ require_verified_email: false });
+    await act(async () => {
+      await settings.current.saveEvent({ requireVerifiedEmail: true });
+    });
+    expect(lastPatch(updateEvent)).toEqual({ require_verified_email: true });
   });
 });
