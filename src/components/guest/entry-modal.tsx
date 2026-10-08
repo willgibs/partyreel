@@ -56,7 +56,11 @@ import {
   KeepOffer,
   type KeepSent,
 } from "@/components/guest/save-account-prompt";
-import { UploadStep, uploadStepReason } from "@/components/guest/upload-step";
+import {
+  failOpenFailures,
+  UploadStep,
+  uploadStepReason,
+} from "@/components/guest/upload-step";
 import { Button } from "@/components/ui/button";
 import { waitWords } from "@/lib/disposable/wait-words";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
@@ -446,7 +450,7 @@ export const EntryModal = forwardRef<
   const filesGoing = queue.some(
     (it) => it.status === "queued" || it.status === "uploading",
   );
-  const { steps, autoOpen } = computeDoor({
+  const doorInput = {
     gate,
     access,
     hasContributed,
@@ -467,7 +471,26 @@ export const EntryModal = forwardRef<
     // files in groups, so the keep rose at the first group's complete ("Your 5 photos joined") over six files still
     // going and then said eleven. It comes once nothing is queued or in the air, with its whole count.
     keepDue: keepDue && !cameraOpen && !filesGoing,
-  });
+  };
+  const { steps, autoOpen } = computeDoor(doorInput);
+  /* ★ A PAUSE THAT LETS HER INTO THE ALBUM IS THE ASK PASSED, SO A REOPEN NEVER RAISES IT OVER THE ALBUM SHE IS IN
+     (crumbs-94, red-team 58b). Uploads paused take the upload step off the door (`computeDoor`'s `uploadsOpen`), and a
+     door with nothing else left closes onto the album, whether the pause came with the step in front of her or before
+     she ever met it. The step is read off the live word, so the reopen put it straight back, unbidden, over whatever she
+     was looking at: an interruption on an ordinary album, whose ask is a soft one (it is passed, once a pass, by
+     `skipped`). So the pause that spared her the step, with nothing else at the door, marks it passed: the same flag
+     her own Skip sets, which `computeDoor` ignores on a photo-first album, where the rule IS the rule ("It applies
+     again when they reopen"). Whether the step was hers to be asked is `computeDoor`'s own answer with uploads open,
+     never a copy of its rule here. Derived while rendering, as the page's other adjusted states are. */
+  if (
+    !skipped &&
+    !uploadsOpen &&
+    !requireUpload &&
+    steps.length === 0 &&
+    computeDoor({ ...doorInput, uploadsOpen: true }).steps.includes("upload")
+  ) {
+    setSkipped(true);
+  }
   const current: EntryStep | null = steps[0] ?? null;
   // ★ "YOU'RE IN" ONLY WHERE THE ALBUM IS BEHIND THE STEP: at a gate the host answers, confirming an
   // email or asking leads to the held door, so the beat waits for the door itself to open.
@@ -579,9 +602,28 @@ export const EntryModal = forwardRef<
   }, [hydrated, pending, onPendingChange]);
   // And mirror which surface owns a run's failures (see the prop's own note). Same shape.
   const uploadStepShowing = current === "upload" && !holding;
+  /* ★ A STEP THAT HAS SAID ITS FAIL-OPEN VIEW LETS IT GO WHEN IT GOES (crumbs-94, red-team 58b). That view is the run's
+     last word (the server's sentence, no Retry), and the album's failure sheet waits behind the step on the queue's very
+     failures, opening the moment the step lets go: a host who paused under a send closes the door by itself about a
+     second after the refusal (the live word takes the step off), and the sheet then said it all again over the step's
+     last 200 ms. So the failures the step stood on are dismissed in the same effect that tells the page the step is gone,
+     batched with it: the page's next render sees the failures gone and the sheet unsuppressed, and opens nothing. What the
+     step was showing is read off the queue of the commit before this one, the one it drew. */
+  const queueShown = useRef(queue);
+  const dismissShown = useRef(onDismissFailures);
+  useEffect(() => {
+    queueShown.current = queue;
+    dismissShown.current = onDismissFailures;
+  });
   useEffect(() => {
     onUploadStepActive?.(uploadStepShowing);
-    return () => onUploadStepActive?.(false);
+    return () => {
+      if (uploadStepShowing) {
+        const said = failOpenFailures(queueShown.current);
+        if (said.length > 0) dismissShown.current(said.map((it) => it.id));
+      }
+      onUploadStepActive?.(false);
+    };
   }, [uploadStepShowing, onUploadStepActive]);
   // ★ THE DOOR'S CAMERA SAYS ITSELF, APART FROM THE STEP: its steps may have dropped (her first shot landed) and it still
   // owns the run's failures, in its own words, until she closes it. It is not the step: the page folds the queue's live
