@@ -13,16 +13,16 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, milestone 39 live, desk 8's wave 1 running
+## The current round: round 15, milestone 39 live, desk 8's wave 1 merged
 
 - **Milestone 39 is live** (`0333cd705`, 2026-10-07 16:15Z, tagged; its merge commit says what it holds): desk 7's
   moments, the storage sums proven nightly, a names-only door, the site brought to today's product, and Send to Google
   Drive live. Red-teamed by 57, 57b and 57c (nothing above LOW open). Milestone 40 forms on `launch-prep`: crumbs-88,
-  crumbs-90, calls-desk, and desk 8's wave 1 as it merges.
-- **Desk 8 answered, wave 1 running** (2026-10-07): the event page redrawn from the ground up (Will's idea 1 led: the
-  head's UI on a glow sampled from the album, no slideshow), the bespoke icon, and six wirings (the marks and status
+  crumbs-90, calls-desk, and desk 8's wave 1, merged whole.
+- **Desk 8 answered, wave 1 merged** (2026-10-08 00:27Z, gates 78 to 87 green): six wirings (the marks and status
   tiers, Create, the offline send, the Guests room, following and her page's plate, the crumbs with AY1's turn at her
-  close). The Orchestrator sits on Will's Mac; its lanes run in local worktrees, paced by the 5-hour window.
+  close), X5's CDN-cached album, K5's two quiet years and X6's uploads credit; the event page redrawn whole (Will's idea
+  1 led) and the bespoke icon wait on his desk. The Orchestrator sits on Will's Mac; its lanes run in local worktrees.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days, under the REFUSE line around
   2026-10-16; nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
 
@@ -31,8 +31,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 Will's desk (`localhost:3000/design/lab?key=fiesta`; refreshed by `S=<scratch> zsh usher/kit/desk-refresh.sh <sha>`)
 answered desk 8 on 2026-10-07 (`docs/reviews/batches/2026-10-07-b0eb89bc9.txt`): brand-marks, signature, presence,
 after-party, no-signal, guests-room, account-moments r2 and create-wizard r5, three asks unclear (atmosphere, recap,
-card), now the event-page board's. It serves `b0eb89bc9` until event-page r1 and brand-marks r2 land; the Calls place
-holds 29 entries.
+card), now the event-page board's. It serves the event-page-r1 record (2026-10-08): event-page r1 (desk 4) opens first,
+brand-marks r2's icon beside it; the Calls place holds 16 entries.
 
 ## Live state
 

@@ -260,6 +260,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - The Library: the "At the door and Invited" specimen's hint says "Let in · Decline, then Undo on its toast"; Decline is a name's card's now (`library/compositions/gallery-demos.tsx`) (guests-room-wiring).
 - Library: the Logo specimens (`library/patterns/gallery-demos.tsx`) still call the mark "a stand-in" until the v1 icon arrives, and draw the display size in the small cut: the Ring by name, and `cut="display"` on the 48px specimen (the specimens' JSON regenerated) (brand-marks-wiring).
 - The lab and the kit: the kit kills servers by port the broad way (`lsof -ti tcp:$PORT | xargs kill` in `capture.sh`, `capture-all.sh`, `gate-lane.sh`, `demo-rerun.sh`, pinned by `gate-dev-cache-policy.test.ts`), which also kills a walk's headless Chrome's network service and wipes its cookies; kill the listener alone (`-sTCP:LISTEN`, `kit_port_pids`) (crumbs-91, red-team 56b's vanished cookies).
+- The lab and the kit: a step keeps every option's frames mounted, so a whole-design board loads all its options' pages at once (event-page r1: up to 30 iframes on one moment, each a full page of photographs); mount a hidden option's frames on its first view (`src/components/lab/step.tsx`) (event-page-r1).
 
 ### Code hygiene
 

@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "d4da2464"          # the launch-prep SHA this state was written at
+cut: "08303a65"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -23,63 +23,59 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Desk 8's wave runs (2026-10-07; at 00:05Z 2026-10-08 the week 91%, the 5-hour window 75% to 02:10Z). Merged,
-recorded and pruned since its cut: account-moments-wiring-2 (gate 78), create-wizard-wiring-2 (79), guests-room-wiring
-(80), brand-marks-wiring (81), crumbs-91 (82; its migration applied on the Advisor's Q45 as 20261007230050),
-no-signal-wiring (83), crumbs-92 (84; its migration applied on the Advisor's Q46 as 20261007233007, advisors 29/4/36, the types
-regenerated and its two seams dropped at the record after it). brand-marks-r2 (85, the board's round two on the desk: one ask, the icon). cdn-version (86: X5's CDN cache, about 30,000 to 9,600 calls at a lit 100-guest party; its call CL1).
-Running, its row below: the board event-page-r1. No new lane until those close: the
-week's last share goes to them and to milestone 40's red-team. Will's calls paste's first sections are routed; his
-Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from lanes: CH1, CI1,
-CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set. Milestone 40 forms on `launch-prep`: crumbs-88, crumbs-90, calls-desk
-and every merge above. Milestone 39 (`0333cd705`) is live.
+Desk 8's wave is in (2026-10-08 00:27Z; then the week 91%, the 5-hour window 75% to 02:10Z). Merged, recorded and
+pruned since its cut, gates 78 to 87 green: account-moments-wiring-2, create-wizard-wiring-2, guests-room-wiring,
+brand-marks-wiring, crumbs-91 (its migration applied on the Advisor's Q45 as 20261007230050), no-signal-wiring,
+crumbs-92 (on Q46 as 20261007233007, advisors 29/4/36, the types regenerated), cdn-version (86: X5's CDN cache, about
+30,000 to 9,600 calls at a lit 100-guest party; its call CL1), and the boards brand-marks-r2 (85: one ask, the icon) and
+event-page-r1 (87: one ask, six whole designs, sky recommended; presence, signature and after-party retired into it, their
+ledgers and create-wizard's deleted at its record). No lane runs. Milestone 40 forms on `launch-prep`: crumbs-88,
+crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live. Will's calls paste's first sections
+are routed; his Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from
+lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `event-page-r1` | board: the event page from the ground up, Will's idea 1 led (presence, signature, after-party retire into it) | running (cut d4da2464) | Opus, 3136 | `a1628c600f5768eb0` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q46 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
 
 **Seats.** A successor in another session respawns a lane from its transcript
 (`~/.claude/projects/-Users-gibby-local-ai-partyreel/ce3ea37b-9032-4189-8a20-a57d78adb657/subagents/agent-<id>.jsonl`).
-Gate numbers continue at 78 (`$S/gate77.log` seeds a new scratchpad). The session's context names hi@willgibs.com since
-18:45Z; at the cut (19:40Z) weekly 59% (resetting 2026-10-13 21:00Z), the 5-hour window 8% (resetting 21:10Z), memory
-81% free, this session's context 42%.
+Gate numbers continue at 88 (`$S/gate87.log` seeds a new scratchpad). The session's context names hi@willgibs.com since
+18:45Z 2026-10-07.
 
 ## Next, in order
 
-1. **Integrate each running lane as it hands off** (`integrate.sh` detached with a waiter; a Handoff read from its
-   Questions down). event-page-r1's record deletes the ledgers its folder retires (`presence.json`, `signature.json`,
-   `after-party.json`) and `create-wizard.json`, which its manifest read; then the desk refreshes (`desk-refresh.sh`)
-   and Will is told which board opens first (event-page, desk 4). cdn-version and crumbs-92 each may carry a migration
-   (crumbs-92's `20261008060000_crumbs_92.sql`): the Advisor (`af9f31cb46a4e98aa`) first, then the protocol. Waiting to
-   cut when the week allows: X1's develop time (the ROADMAP's Immediate Disposable line) with the two plan-limit
-   readers (Upcoming, Billing), and Settings' board.
-2. **Then, as seats free (six to eight agents, `get_usage` at every cut):** the event page's wiring once Will picks its
-   direction (one lane builds the whole: faces, the offer, the keepsake, the light, the end line); fresh whole designs
-   on the next surfaces in its language, by leverage: the dashboard home and its event cards, the door, her own page
-   (`/me` and the public page, folding account-moments r3's teaser), Settings (only the optional and Create's changes,
-   never steps: ROADMAP's "Settings' rail reads as steps" line).
-3. **Milestone 40** once wave 1 merges (after it ships, the kit's screens refresh from partyreel.com by
-   `usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens): red-team 58 on a desk refreshed to the tip (crumbs-88's emailed-link paths need
-   a real email: his walk or the red-team's), the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes.
-4. **His desk** (:3000, `b0eb89bc9`) has no open ask but the three `?` until event-page-r1 and brand-marks-r2 land;
-   refresh it with `desk-refresh.sh` once both merge, never while a red-team walks it, and tell him which board opens
-   first (event-page, desk 4).
-5. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
+1. **Milestone 40** once the 5-hour window resets (02:10Z; nothing starts that would outrun it): red-team 58 on Will's
+   desk at the tip (crumbs-88's emailed-link paths need a real email: his walk or the red-team's), the FULL gate,
+   `pnpm compute:model --port <3131 to 3139>`, his yes. After it ships: the kit's screens refresh from partyreel.com
+   (`usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens), and cdn-version's live check on his
+   word (an open album's sync answers `x-vercel-cache` MISS, then HIT).
+2. **His desk** (:3000) serves the event-page-r1 record: event-page r1 (desk 4) opens first, brand-marks r2's icon
+   beside it; his batch is kept verbatim, then transcribed; never refreshed while a red-team walks it. Then, as seats
+   free (six to eight agents, `get_usage` at every cut): the event page's wiring once he picks its direction (one lane
+   builds the whole: faces, the offer, the keepsake, the light, the end line; event-page-r1's Handoff holds the wiring
+   notes), and fresh whole designs on the next surfaces in its language, by leverage: the dashboard home and its event
+   cards, the door, her own page (`/me` and the public page, folding account-moments r3's teaser), Settings (only the
+   optional and Create's changes, never steps: ROADMAP's "Settings' rail reads as steps" line).
+3. **Waiting to cut when the week allows:** X1's develop time (the ROADMAP's Immediate Disposable line) with the two
+   plan-limit readers (Upcoming, Billing), and Settings' board.
+4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
    app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6, marketing's
    light, N4, N7, N9, and the ROADMAP's marketing lines unless one breaks production.
-6. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
+5. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
    ROADMAP's buckets and areas, a proposed order of rounds on top.
-7. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks.
-8. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling toward the
+6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks.
+7. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling toward the
    REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
    `node usher/kit/vercel-usage.mjs` before any.
-9. **Pacing** (Will, 2026-10-07): the 5-hour window paces the lanes, never a kill; nothing new started when the window
-   would run out before its reset. ★ The week reads 72% at 21:15Z (59% at 19:40Z: about 9 points an hour with eight lanes), so Will (21:55Z): the weekly pace is no concern, only that the 5-hour window never kills a running lane, the machine holds its peak and the Orchestrator keeps its depth, so lanes sized to close before the limit run (two cut at 22:00Z), and token efficiency is the compounding win (the runbook's line); the seven running finish, and a lane the limit stops is respawned on the other account's seat from its transcript (Seats, above). Earlier: the week ran 58% on day one:
-   keep this block handoff-ready for the other account's seat, and tell Will before it runs low. Who does the work: the
-   runbook's "Working with Will".
+8. **Pacing** (Will, 2026-10-07): the weekly pace is no concern; only that the 5-hour window never kills a running lane
+   (nothing starts that would outrun its reset), the machine holds its peak and the Orchestrator keeps its depth. Lanes
+   sized to close before the weekly limit run; token efficiency is the compounding win (the runbook's line: a lane near
+   800K of context a turn draws the window several times faster than a fresh one). A lane the limit stops is respawned
+   on the other account's seat from its transcript (Seats, above): keep this block handoff-ready for that seat, and tell
+   Will before the week runs low. Who does the work: the runbook's "Working with Will".
 
 ## Waiting on Will
 
