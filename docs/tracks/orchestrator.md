@@ -29,14 +29,14 @@ brand-marks-wiring, crumbs-91 (its migration applied on the Advisor's Q45 as 202
 crumbs-92 (on Q46 as 20261007233007, advisors 29/4/36, the types regenerated), cdn-version (86: X5's CDN cache, about
 30,000 to 9,600 calls at a lit 100-guest party; its call CL1), and the boards brand-marks-r2 (85: one ask, the icon) and
 event-page-r1 (87: one ask, six whole designs, sky recommended; presence, signature and after-party retired into it, their
-ledgers and create-wizard's deleted at its record). Red-team 58 walked the desk at `42ffd220d` (02:15Z to 03:55Z; ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`): one MEDIUM (a guest's cover deaf to the host's pause and reopen), three LOWs and three NITs, all fixed by crumbs-93 (gate 88, FULL: milestone 40's full gate at `fe46dbc6a`; its migration applied on the Advisor's Q47 as 20261008050912). Running, its row below: red-team 58b on crumbs-93's fixes, and the compute model. Milestone 40 forms on `launch-prep`: crumbs-88,
+ledgers and create-wizard's deleted at its record). Red-team 58 walked the desk at `42ffd220d` (02:15Z to 03:55Z; ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`): one MEDIUM (a guest's cover deaf to the host's pause and reopen), three LOWs and three NITs, all fixed by crumbs-93 (gate 88, FULL: milestone 40's full gate at `fe46dbc6a`; its migration applied on the Advisor's Q47 as 20261008050912). The compute model (`$S/compute-40.log`): six scenarios within budget; the two hour scenarios over, the harness's clock shim defeating cdn-version's windows, never production (ROADMAP's Immediate "Cost: the compute model cannot measure" line). Running, its row below: red-team 58b on crumbs-93's fixes. Milestone 40 forms on `launch-prep`: crumbs-88,
 crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live. Will's calls paste's first sections
 are routed; his Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from
 lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `redteam-58b` | crumbs-93's fixes on the desk at `ae16365c3` (brief `$S/redteam-58b-brief.txt`, ledger `../partyreel-wt/_scratch/redteam-58b/ledger.txt`); the compute model beside it on 3132 (`$S/compute-40.log`) | running (05:16Z) | Opus, :3000 | `a26465e85395145fd` |
+| `redteam-58b` | crumbs-93's fixes on the desk at `ae16365c3` (brief `$S/redteam-58b-brief.txt`, ledger `../partyreel-wt/_scratch/redteam-58b/ledger.txt`) | running (05:16Z) | Opus, :3000 | `a26465e85395145fd` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q47 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).

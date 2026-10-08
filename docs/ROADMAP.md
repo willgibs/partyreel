@@ -17,6 +17,10 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ## Immediate
 
+### Platform, data and cost
+
+- Cost: the compute model cannot measure cdn-version's path in its hour scenarios: its clock shim (`--k`, 20) runs a phone's `Date` K times fast, so every version ask's window misses the server's, answers `clock`, and the store falls back to a full sync (milestone 40's run: guest-hour-live 43 calls against 26, guest-hour-down 127 against 74, each `GET .../sync/version` followed 5 ms later by a `POST .../sync`). On a true clock the answer is `version`, equal to the held ETag (checked on the desk 2026-10-08: no sync follows). The model asks with the server's window, as a phone's true clock would (a CDP rewrite of `w` in `scripts/compute-model/`), then both lines are re-measured and lowered; never raised to pass (budget.json's note).
+
 ### Security and abuse
 
 - Settings: pin in a test that `eventPatch` and `updateEvent` name `require_verified_email` only when her switch provides it: `events_email_held`'s client arm (20261008030000) clears the gate's memory on any client write of the step, so a future whole-row save would undo a hold by a side door (the Advisor's Q45).
