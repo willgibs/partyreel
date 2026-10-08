@@ -29,14 +29,14 @@ brand-marks-wiring, crumbs-91 (its migration applied on the Advisor's Q45 as 202
 crumbs-92 (on Q46 as 20261007233007, advisors 29/4/36, the types regenerated), cdn-version (86: X5's CDN cache, about
 30,000 to 9,600 calls at a lit 100-guest party; its call CL1), and the boards brand-marks-r2 (85: one ask, the icon) and
 event-page-r1 (87: one ask, six whole designs, sky recommended; presence, signature and after-party retired into it, their
-ledgers and create-wizard's deleted at its record). Running, its row below: red-team 58, then the FULL gate and the compute model. Milestone 40 forms on `launch-prep`: crumbs-88,
+ledgers and create-wizard's deleted at its record). Red-team 58 walked the desk at `42ffd220d` (02:15Z to 03:55Z; ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`): one MEDIUM (a guest's cover deaf to the host's pause and reopen), three LOWs and three NITs, all crumbs-93's. Running, its row below: crumbs-93. Milestone 40 forms on `launch-prep`: crumbs-88,
 crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live. Will's calls paste's first sections
 are routed; his Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from
 lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `redteam-58` | milestone 40's walk on the desk at `42ffd220d` (brief `$S/redteam-58-brief.txt`, ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`) | running (02:15Z, the window fresh) | Opus, :3000 | `a0dd1e77c00539ad7` |
+| `crumbs-93` | red-team 58's MEDIUM, three LOWs and three NITs at their source | running (cut b882826b4, 03:58Z) | Sonnet, 3131 | `af8d8bbe92da8288d` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q46 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
@@ -48,11 +48,10 @@ Gate numbers continue at 88 (`$S/gate87.log` seeds a new scratchpad). The sessio
 
 ## Next, in order
 
-1. **Milestone 40** once the 5-hour window resets (02:10Z; nothing starts that would outrun it): red-team 58 on Will's
-   desk at the tip (crumbs-88's emailed-link paths need a real email: his walk or the red-team's), the FULL gate,
-   `pnpm compute:model --port <3131 to 3139>`, his yes. After it ships: the kit's screens refresh from partyreel.com
-   (`usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens), and cdn-version's live check on his
-   word (an open album's sync answers `x-vercel-cache` MISS, then HIT).
+1. **Milestone 40:** crumbs-93 integrated, then red-team 58b on its fixes only (the MEDIUM and the LOWs, from 58's
+   ledger lines), the FULL gate, `pnpm compute:model --port <3131 to 3139>`, his yes. After it ships: the kit's screens
+   refresh from partyreel.com (`usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens), and
+   cdn-version's live check on his word (an open album's sync answers `x-vercel-cache` MISS, then HIT).
 2. **His desk** (:3000) serves the event-page-r1 record: event-page r1 (desk 4) opens first, brand-marks r2's icon
    beside it; his batch is kept verbatim, then transcribed; never refreshed while a red-team walks it. Then, as seats
    free (six to eight agents, `get_usage` at every cut): the event page's wiring once he picks its direction (one lane
@@ -107,4 +106,4 @@ Gate numbers continue at 88 (`$S/gate87.log` seeds a new scratchpad). The sessio
   for good on "RT51 free", Make room from Deleted back on and one upload past the line, Empty Deleted, a guest's own
   removal reading its purge that night); a Ladder A checkout with the test card on the alias; and what red-team 57
   could not drive: a guest waiting at a door that asks for a confirmed email (a second confirmed account: the code's
-  corner counting her, a fresh Decline, the password's waiting line), and `/me` without a handle on hi@willgibs.com.
+  corner counting her, a fresh Decline, the password's waiting line), and `/me` without a handle on hi@willgibs.com; and red-team 58's, each needing a second account: Make one like this from a shut door as a signed-in non-host, a second follow.
