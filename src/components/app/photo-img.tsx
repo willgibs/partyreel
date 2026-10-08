@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ImgHTMLAttributes } from "react";
+import { useCallback, useState, type ImgHTMLAttributes } from "react";
 
 import { TileStandIn } from "@/components/app/media-grid";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,15 @@ import { cn } from "@/lib/utils";
  * absolutely placed cover, a fading still and a 24 px pill each keep their geometry). A different `src` (the next
  * still, a rolled link) is asked afresh.
  *
+ * ★ THE BROWSER SAYS IT TWO WAYS, AND BOTH ARE HEARD (crumbs-94, red-team 58b). An `error` event, for an image that fails
+ * after React is listening; and, for one that failed BEFORE it, a read when the element is attached: the page's own HTML
+ * names the `<img>`, the browser starts it at once (a HEIC from the HTTP cache, through the head's preload link, in about
+ * 6 ms) and fires `error` while the script is still on its way, so `onError` attaches after the only `error` it would
+ * ever have heard and the wall drew a broken image on every reload after the first. An image that is `complete` with
+ * no `naturalWidth` is exactly that failure (`complete` is true for a broken one too), and the album's tile reads
+ * `complete` in a callback ref for the same reason (`MediaTile`'s `imgRef`, crumbs-18). A callback ref and not a mount
+ * effect, so the stand-in lands in the commit that attached the image, before the first paint.
+ *
  * Decorative copies of a photograph (a card's 12 percent ground, the stage's blurred light) stay plain images: a
  * decoration that cannot draw is nothing to name, and an ornament that says "can't show" is a failure of its own.
  */
@@ -28,6 +37,12 @@ export function PhotoImg({
   ...rest
 }: Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & { src: string }) {
   const [undrawn, setUndrawn] = useState<string | null>(null);
+  const imgRef = useCallback(
+    (img: HTMLImageElement | null) => {
+      if (img && src && img.complete && img.naturalWidth === 0) setUndrawn(src);
+    },
+    [src],
+  );
   if (undrawn === src) {
     return (
       <span
@@ -42,6 +57,7 @@ export function PhotoImg({
     // eslint-disable-next-line @next/next/no-img-element -- a presigned R2 URL, never optimizable
     <img
       {...rest}
+      ref={imgRef}
       src={src}
       alt={alt}
       className={className}
