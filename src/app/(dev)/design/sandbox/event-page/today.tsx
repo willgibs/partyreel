@@ -45,6 +45,7 @@ import { AS_GUEST_DOOR, EVENT_ROOMS } from "@/lib/event/sections";
 import { newEventFacts } from "@/lib/events/readiness";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { RangeText } from "@/lib/format/range-text";
+import { WORDMARK_DISPLAY } from "@/lib/brand/wordmark";
 import { formatEventDate } from "@/lib/utils";
 
 import { Cover, DayFace, DoorOver, TileBox } from "./common";
@@ -474,14 +475,16 @@ function Card({
   const album = useAlbum();
   return (
     <div className="flex size-full flex-col justify-between bg-[#0d0d0d] p-[88px] text-[#fafafa]">
-      <div className="flex items-center gap-5">
-        <div className="flex size-16 items-center justify-center rounded-2xl bg-[#fafafa] text-[#0d0d0d]">
-          <Images className="size-10" />
-        </div>
-        <div className="text-[34px] font-semibold text-[#d4d4d8]">
-          Partyreel
-        </div>
-      </div>
+      {/* The route since brand-marks-wiring: the wordmark alone, its display cut at 52px, quieter than the name. */}
+      <svg
+        width={Math.round(52 * WORDMARK_DISPLAY.aspect)}
+        height="52"
+        viewBox={WORDMARK_DISPLAY.viewBox}
+        fill="#fafafa"
+        aria-hidden
+      >
+        <path d={WORDMARK_DISPLAY.d} />
+      </svg>
       <div className="max-w-[1000px] text-[76px] leading-[1.05] font-bold tracking-[-0.02em]">
         {variant === "open" ? album.name : "A Partyreel event"}
       </div>

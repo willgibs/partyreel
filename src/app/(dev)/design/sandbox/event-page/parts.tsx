@@ -68,7 +68,7 @@ type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
 /* ── the bars ───────────────────────────────────────────────────────────── */
 
-/** The guest's corner, signed out: the quiet Start for free; or Priya's own name, a guest the device knows. */
+/** The guest's corner: a stranger's quiet Make one like this (production's, on an album); or Priya's own name, a guest the device knows. */
 export function GuestCorner({ known = true }: { known?: boolean }) {
   return known ? (
     <span className="flex items-center gap-2 text-sm">
@@ -79,7 +79,7 @@ export function GuestCorner({ known = true }: { known?: boolean }) {
     </span>
   ) : (
     <Button type="button" variant="ghost" size="sm" tabIndex={-1}>
-      Start for free
+      Make one like this
     </Button>
   );
 }
