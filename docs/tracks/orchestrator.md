@@ -23,16 +23,16 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Desk 8's wave is in (2026-10-08 00:27Z; then the week 91%, the 5-hour window 75% to 02:10Z). Merged, recorded and
-pruned since its cut, gates 78 to 87 green: account-moments-wiring-2, create-wizard-wiring-2, guests-room-wiring,
-brand-marks-wiring, crumbs-91 (its migration applied on the Advisor's Q45 as 20261007230050), no-signal-wiring,
-crumbs-92 (on Q46 as 20261007233007, advisors 29/4/36, the types regenerated), cdn-version (86: X5's CDN cache, about
-30,000 to 9,600 calls at a lit 100-guest party; its call CL1), and the boards brand-marks-r2 (85: one ask, the icon) and
-event-page-r1 (87: one ask, six whole designs, sky recommended; presence, signature and after-party retired into it, their
-ledgers and create-wizard's deleted at its record). Red-team 58 walked the desk at `42ffd220d` (02:15Z to 03:55Z; ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`): one MEDIUM (a guest's cover deaf to the host's pause and reopen), three LOWs and three NITs, all fixed by crumbs-93 (gate 88, FULL: milestone 40's full gate at `fe46dbc6a`; its migration applied on the Advisor's Q47 as 20261008050912). The compute model (`$S/compute-40.log`): six scenarios within budget; the two hour scenarios over, the harness's clock shim defeating cdn-version's windows, never production (ROADMAP's Immediate "Cost: the compute model cannot measure" line). Red-team 58b walked crumbs-93's fixes (05:16Z to 06:00Z; ledger `../partyreel-wt/_scratch/redteam-58b/ledger.txt`): the MEDIUM fixed, the three LOWs pass, four NITs (ROADMAP's Immediate). No lane runs: milestone 40 waits on Will's yes. Milestone 40 forms on `launch-prep`: crumbs-88,
-crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live. Will's calls paste's first sections
-are routed; his Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from
-lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set.
+**Milestone 40 is live** (2026-10-08 07:40Z, `f1dfc6349`, tagged `milestone-40`; both projects READY; cdn-version's live
+check on partyreel.com answered MISS, then HIT; the kit's screens retaken from partyreel.com). It holds desk 8's wave
+(gates 78 to 87) and crumbs-93 (gate 88: red-team 58's MEDIUM, three LOWs and three NITs; its migration applied on the
+Advisor's Q47 as 20261008050912); gate 89 is its FULL gate; red-teams 58 and 58b left nothing above NIT open; the
+compute model held six scenarios, its two hour scenarios a harness clock artifact. At 07:45Z the week reads 95%
+(resetting 2026-10-13 21:00Z) and the 5-hour window 0%: one small Sonnet lane runs on Immediate's six small lines; X1's
+develop time (with the two plan-limit readers) and the next boards wait for the reset or the other account's seat.
+Will's calls paste's first sections are routed; his Deletion and Safety sections are still to come (the Calls place
+holds 16: his eight, and eight new from lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted
+and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
@@ -47,30 +47,25 @@ Gate numbers continue at 89 (`$S/gate88.log` seeds a new scratchpad). The sessio
 
 ## Next, in order
 
-1. **Milestone 40 on his yes** (asked 2026-10-08 06:05Z): gate 88 (FULL, `fe46dbc6a`) green, red-teams 58 and 58b
-   (nothing above NIT open), the compute model read (the two hour scenarios a harness artifact); then the runbook's
-   "Milestone" from `launch-prep`'s tip, partyreel.com's pass kept small (Hobby at REFUSE), and on his word cdn-version's
-   live check (an open album's sync answers `x-vercel-cache` MISS, then HIT). After it ships: the kit's screens refresh
-   from partyreel.com (`usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens).
-2. **His desk** (:3000) serves the event-page-r1 record: event-page r1 (desk 4) opens first, brand-marks r2's icon
+1. **His desk, desk 9** (:3000) serves `ae16365c3`, milestone 40's code: event-page r1 (desk 4) opens first, brand-marks r2's icon
    beside it; his batch is kept verbatim, then transcribed; never refreshed while a red-team walks it. Then, as seats
    free (six to eight agents, `get_usage` at every cut): the event page's wiring once he picks its direction (one lane
    builds the whole: faces, the offer, the keepsake, the light, the end line; event-page-r1's Handoff holds the wiring
    notes), and fresh whole designs on the next surfaces in its language, by leverage: the dashboard home and its event
    cards, the door, her own page (`/me` and the public page, folding account-moments r3's teaser), Settings (only the
    optional and Create's changes, never steps: ROADMAP's "Settings' rail reads as steps" line).
-3. **Waiting to cut when the week allows:** X1's develop time (the ROADMAP's Immediate Disposable line) with the two
+2. **Waiting to cut when the week allows:** X1's develop time (the ROADMAP's Immediate Disposable line) with the two
    plan-limit readers (Upcoming, Billing), and Settings' board.
-4. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
+3. **The order to launch holds marketing back** (PROGRAM.md): the marketing foundation, site and visuals wait for the
    app to settle, then go from the ground up (sitemap first). Waiting there: page themes, demo-framing r6, marketing's
    light, N4, N7, N9, and the ROADMAP's marketing lines unless one breaks production.
-5. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
+4. **His list of 100+ items, when he sends it** (Will, 2026-10-06): each batch kept verbatim first, slotted into the
    ROADMAP's buckets and areas, a proposed order of rounds on top.
-6. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks.
-7. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling toward the
+5. **The alias serves `bbfcc544`** (deployed once on his word); no other deploy until he asks.
+6. **★ Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days (REFUSE), falling toward the
    REFUSE line around 2026-10-16. Nothing runs against the alias or partyreel.com but what Will asks for by name;
    `node usher/kit/vercel-usage.mjs` before any.
-8. **Pacing** (Will, 2026-10-07): the weekly pace is no concern; only that the 5-hour window never kills a running lane
+7. **Pacing** (Will, 2026-10-07): the weekly pace is no concern; only that the 5-hour window never kills a running lane
    (nothing starts that would outrun its reset), the machine holds its peak and the Orchestrator keeps its depth. Lanes
    sized to close before the weekly limit run; token efficiency is the compounding win (the runbook's line: a lane near
    800K of context a turn draws the window several times faster than a fresh one). A lane the limit stops is respawned

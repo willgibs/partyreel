@@ -13,16 +13,16 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch). Work ri
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 15, milestone 39 live, desk 8's wave 1 merged
+## The current round: round 15, milestone 40 live, desk 9 waiting on Will
 
-- **Milestone 39 is live** (`0333cd705`, 2026-10-07 16:15Z, tagged; its merge commit says what it holds): desk 7's
-  moments, the storage sums proven nightly, a names-only door, the site brought to today's product, and Send to Google
-  Drive live. Red-teamed by 57, 57b and 57c (nothing above LOW open). Milestone 40 forms on `launch-prep`: crumbs-88,
-  crumbs-90, calls-desk, and desk 8's wave 1, merged whole.
-- **Desk 8 answered, wave 1 merged** (2026-10-08 00:27Z, gates 78 to 87 green): six wirings (the marks and status
-  tiers, Create, the offline send, the Guests room, following and her page's plate, the crumbs with AY1's turn at her
-  close), X5's CDN-cached album, K5's two quiet years and X6's uploads credit; the event page redrawn whole (Will's idea
-  1 led) and the bespoke icon wait on his desk. The Orchestrator sits on Will's Mac; its lanes run in local worktrees.
+- **Milestone 40 is live** (`f1dfc6349`, 2026-10-08 07:40Z, tagged; its merge commit says what it holds): desk 8 wired
+  (Create's payoff, no signal at a party, the Guests room, the brand's final marks), an album turning at her close, and
+  an open album's version at the CDN (MISS, then HIT, on partyreel.com). Red-teamed by 58 and 58b (nothing above NIT
+  open); the kit's screens retaken from partyreel.com. `launch-prep` equals `main`; the next round forms there.
+- **Desk 9 waits on Will** (2026-10-08): the event-page board (the event page from the ground up, six whole designs, sky
+  recommended) and brand-marks r2's icon. ROADMAP's Immediate holds red-team 58b's four NITs and the compute model's
+  harness fix. The Orchestrator sits on Will's Mac; its lanes run in local worktrees, paced by the 5-hour window and the
+  week.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days, under the REFUSE line around
   2026-10-16; nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).
 
@@ -31,19 +31,19 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 Will's desk (`localhost:3000/design/lab?key=fiesta`; refreshed by `S=<scratch> zsh usher/kit/desk-refresh.sh <sha>`)
 answered desk 8 on 2026-10-07 (`docs/reviews/batches/2026-10-07-b0eb89bc9.txt`): brand-marks, signature, presence,
 after-party, no-signal, guests-room, account-moments r2 and create-wizard r5, three asks unclear (atmosphere, recap,
-card), now the event-page board's. It serves the event-page-r1 record (2026-10-08): event-page r1 (desk 4) opens first,
+card), now the event-page board's. It serves `ae16365c3`, milestone 40's code: event-page r1 (desk 4) opens first,
 brand-marks r2's icon beside it; the Calls place holds 16 entries.
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at milestone 39 (`0333cd705`, tagged `milestone-39`), both projects READY. Its
+- **Prod:** partyreel.com is `main` at milestone 40 (`f1dfc6349`, tagged `milestone-40`), both projects READY. Its
   crons: the purge at 04:00 UTC and the spend watch at 05:00. Drive's Worker (`partyreel-drive`, version `96513f29`)
   leases from partyreel.com every 15 minutes; `DRIVE_WORKER_URL` is set on production; Will's Drive walk is next.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `bbfcc544` (2026-10-06 19:45Z), deployed
   once on Will's word for his desk review; no other deploy until he asks. Vercel installs with pnpm 9.14.4.
 - **The shared database** runs every migration through `crumbs_93` (2026-10-08, applied as 20261008050912), each by protocol (the
   Advisor's read, the file's md5 matched), each an expand the older build ran beside; no build reads a dropped thing.
-  Advisors stand at 27 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
+  Advisors stand at 29 / 4 / 36 ([`systems/database-security.md`](systems/database-security.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

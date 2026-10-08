@@ -60,6 +60,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Vercel / Next.js optimization: one `getUser()` a request: a route handler misses React's `cache()`, so a signed-in album request asks Auth twice (`events/album-viewer.server.ts:74,99`; PRICING.md lever 3).
 - Upkeep: a contract migration drops `standby_hosts` with its test pins and renames `host_storage_summary.standby_bytes` to `deleted_bytes` (DROP + CREATE) with `readHostStorageSummary`; since `upload_sums` the rename carries `host_storage_walk`'s OUT column, `storage_sums_drift`'s comparison and the `standby_bytes` keys of its answer, and `rebuild_storage_sums`' before and after (with whatever reads them, the storage sums' signal lane included).
 - Docs: a prune pass over `PRICING.md`, `systems/billing-caps.md`, `systems/reel.md` and `PRD.md` by CLAUDE.md's "Keeping the docs healthy" (docs-prune counted about 92 history and restatement lines there on 2026-10-04, never applied) (scratch-synthesis).
+- Cost: `/pricing`'s first render after milestone 40's deploy took about 30 s on partyreel.com (curl's limit; the CDN then answered HIT in 0.47 s): find what that render waits on, and render it at the build if it can be (milestone 40).
 
 ### Security and abuse
 
