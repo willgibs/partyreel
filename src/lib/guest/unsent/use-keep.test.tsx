@@ -3,11 +3,13 @@
  * hold the store): a copy for each file on its way, written as she sends it and never before an identity; put down the
  * moment it lands, is stopped or refused, even when that happens while its copy is written; re-filed when the queue's
  * ticket moves; this page's lock held only while it keeps a copy; and, once as the page opens, what an earlier page
- * kept handed back, under this page, with what is not hers put down.
+ * kept handed back, under this page, with what is not hers put down; and (crumbs-93) what a page that closed left
+ * handed back to one that stayed open, on its own line checks, its lock free.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { LINE_EVERY_MS } from "@/lib/guest/unsent/line";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 const store = vi.hoisted(() => ({
@@ -282,7 +284,7 @@ describe("once, as the page opens", () => {
     expect(k.onRestore).not.toHaveBeenCalled();
   });
 
-  it("★ asks once, and only with someone to send as: never in the demo, never at a door that holds her", async () => {
+  it("★ asks as it opens, and only with someone to send as: never in the demo, never at a door that holds her", async () => {
     store.read = [kept({})];
     const k = mount({ items: [], owner: null });
     await act(async () => {});
@@ -326,5 +328,151 @@ describe("once, as the page opens", () => {
       enabled: true,
     });
     await waitFor(() => expect(forgetFiles).toHaveBeenCalledWith(["old-1"]));
+  });
+});
+
+/**
+ * ★ WHAT A CLOSED PAGE LEFT, ADOPTED BY ONE THAT STAYED OPEN (crumbs-93, red-team 58's LOW): the adoption was the open's
+ * alone, so photographs kept by a tab that closed in a dead zone were neither sent nor said while another tab of the
+ * album stayed open (30 s, then a reload sent them). The open page now looks again on its own line checks.
+ */
+describe("on its own line checks, after the open", () => {
+  const closedPageLeft = (over: Record<string, unknown> = {}) => ({
+    id: "left-1",
+    album: "qr-1",
+    owner: "ticket:t-1",
+    tab: "tab-closed",
+    at: Date.now() - 5_000,
+    name: "IMG_9.jpg",
+    type: "image/jpeg",
+    lastModified: 3,
+    blob: new Blob([new Uint8Array([1])], { type: "image/jpeg" }),
+    ...over,
+  });
+  const look = () =>
+    act(async () => {
+      await vi.advanceTimersByTimeAsync(LINE_EVERY_MS);
+    });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    // A lock table that lists no closed page: the closed tab's lock is free.
+    store.live = new Set();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("★ hands the queue what a closed page left, on the line's cadence, under this page, and the stack can say them", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    // The open found nothing; the other tab closes afterwards, leaving two photographs.
+    expect(k.onRestore).not.toHaveBeenCalled();
+    store.read = [closedPageLeft(), closedPageLeft({ id: "left-2" })];
+    await look();
+    expect(k.onRestore).toHaveBeenCalledTimes(1);
+    const [files] = k.onRestore.mock.calls[0] as [{ id: string }[]];
+    expect(files.map((f) => f.id)).toEqual(["left-1", "left-2"]);
+    expect(refile).toHaveBeenCalledWith(["left-1", "left-2"], {
+      tab: thisTab(),
+    });
+    // Taken and held under this page's lock, as at an open.
+    expect(store.held).toBe(1);
+  });
+
+  it("looks when the phone says it is online and when she comes back to the page, without waiting for the cadence", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    store.read = [closedPageLeft()];
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(k.onRestore).toHaveBeenCalledTimes(1);
+    store.read = [closedPageLeft({ id: "left-2" })];
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(k.onRestore).toHaveBeenCalledTimes(2);
+  });
+
+  it("★ leaves a page that is still alive its own files, a frozen one included", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    store.live = new Set(["tab-frozen"]);
+    store.read = [closedPageLeft({ tab: "tab-frozen" })];
+    await look();
+    expect(k.onRestore).not.toHaveBeenCalled();
+    expect(refile).not.toHaveBeenCalled();
+  });
+
+  it("★ takes nothing where the browser has no lock table to tell a closed page from a frozen one (only the open takes)", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    store.live = null;
+    store.read = [closedPageLeft()];
+    await look();
+    expect(k.onRestore).not.toHaveBeenCalled();
+    expect(refile).not.toHaveBeenCalled();
+    expect(forgetFiles).not.toHaveBeenCalled();
+  });
+
+  it("★ never takes a record filed under this very page: that is its own copy, being put down", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    store.read = [closedPageLeft({ id: "mine", tab: thisTab() })];
+    await look();
+    expect(k.onRestore).not.toHaveBeenCalled();
+    expect(refile).not.toHaveBeenCalled();
+  });
+
+  it("puts down what is not hers or too old, and sends nothing of it", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    store.read = [
+      closedPageLeft({ id: "not-hers", owner: "ticket:someone-else" }),
+      closedPageLeft({ id: "stale", at: Date.now() - 15 * 24 * 3_600_000 }),
+    ];
+    await look();
+    expect(forgetFiles).toHaveBeenCalledWith(["not-hers", "stale"]);
+    expect(k.onRestore).not.toHaveBeenCalled();
+  });
+
+  it("★ takes no lock when another page left nothing, and never looks with no one to send as, a door holding her, or a page hidden", async () => {
+    const { aloneForAlbum } = await import("./keep");
+    const k = mount({ items: [], owner: null });
+    await look();
+    expect(readKept).not.toHaveBeenCalled();
+    k.rerender({ items: [], owner: "ticket:t-1", enabled: true });
+    await act(async () => {});
+    vi.mocked(readKept).mockClear();
+    vi.mocked(aloneForAlbum).mockClear();
+    // Nothing left by another page (and one filed under this page): the cheap look reads, and takes no lock.
+    store.read = [closedPageLeft({ tab: thisTab() })];
+    await look();
+    expect(readKept).toHaveBeenCalledTimes(1);
+    expect(aloneForAlbum).not.toHaveBeenCalled();
+    // A page shown nowhere is not looked for.
+    vi.mocked(readKept).mockClear();
+    store.read = [closedPageLeft()];
+    const shown = vi
+      .spyOn(document, "visibilityState", "get")
+      .mockReturnValue("hidden");
+    await look();
+    expect(readKept).not.toHaveBeenCalled();
+    shown.mockRestore();
+    // Disabled (a door holds her): no look either.
+    k.rerender({ items: [], owner: "ticket:t-1", enabled: false });
+    await look();
+    expect(readKept).not.toHaveBeenCalled();
+  });
+
+  it("stops looking when the page goes", async () => {
+    const k = mount({ items: [] });
+    await act(async () => {});
+    k.unmount();
+    vi.mocked(readKept).mockClear();
+    store.read = [closedPageLeft()];
+    await vi.advanceTimersByTimeAsync(LINE_EVERY_MS * 3);
+    expect(readKept).not.toHaveBeenCalled();
   });
 });

@@ -22,14 +22,26 @@
  * after the host's switch, a dead ticket put down), so the next open finds them under the ticket the device holds.
  * Nothing is written while there is no one to send as (a first pick waiting on its join, a door that holds her): the
  * held door keeps its own choice (`door/wait-picks-store.ts`), and those files live in the page.
+ *
+ * ★ AND WHAT A PAGE THAT CLOSED LEFT, ADOPTED BY ONE THAT STAYED OPEN (crumbs-93, red-team 58's LOW): a guest who scanned
+ * the code twice and closed the tab she added from in a dead zone left copies that no page sent and none said, for as long
+ * as the other tab stayed open (the adoption was the open's alone). An open page now looks again on its own line checks
+ * (the phone's `online`, her return to the page, and the line's own cadence while it is shown), and what a CLOSED page left,
+ * its lock free, comes into its queue as at an open, where the stack says them and the line carries them. The look is local
+ * (IndexedDB and the lock table: no request, nothing billed). ★ IT NEEDS THE LOCKS TO TELL A CLOSED PAGE FROM A FROZEN ONE:
+ * where the browser cannot say (no Web Locks) only the open takes, since a look every 20 s that took another open page's
+ * files would be the one case that sends a file twice. And it never takes a record filed under this very page: that is
+ * a copy this page is putting down.
  */
 import { useEffect, useRef } from "react";
 
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import { LINE_EVERY_MS } from "@/lib/guest/unsent/line";
 import {
   aloneForAlbum,
   forgetFiles,
   holdThisTab,
+  isRecord,
   keepFile,
   liveTabs,
   readKept,
@@ -182,36 +194,79 @@ export function useUnsentKeep(input: {
     holdWhileKept();
   }, [items, owner, enabled, album]);
 
-  /* ── once, as the page opens: what an earlier page kept for this album, back in the queue ─────────────────────── */
+  /* ── what an earlier page kept for this album, back in the queue: as the page opens, then on its own line checks ───── */
   const restored = useRef(false);
+  /** One look at a time: a look that is still reading is not asked again. */
+  const looking = useRef(false);
+  const adopt = useRef(async (opening: boolean) => {
+    const { enabled, owner, album } = latest.current;
+    if (!enabled || !owner || looking.current) return;
+    looking.current = true;
+    try {
+      // A cheap look first, outside the album's lock: where another page left nothing, a look every 20 s takes no lock.
+      if (!opening) {
+        const tab = thisTab();
+        const there = await readKept(album);
+        if (!there.some((r) => !(isRecord(r) && r.tab === tab))) return;
+      }
+      await aloneForAlbum(album, async () => {
+        const records = await readKept(album);
+        if (records.length === 0) return;
+        const tab = thisTab();
+        const tabs = await liveTabs();
+        // After the open, only a lock table can tell a closed page from a frozen one (the head note).
+        if (!opening && tabs === null) return;
+        // After the open, a record filed under this page is its own copy in the middle of being put down, never a
+        // closed page's. (At an open nothing is filed under it yet but what an earlier mount of this page load left.)
+        const looked = opening
+          ? records
+          : records.filter((r) => !(isRecord(r) && r.tab === tab));
+        const { take, drop } = sortKept(looked, {
+          owner,
+          liveTabs: tabs,
+          held: new Set(latest.current.items.map((it) => it.id)),
+          tab,
+          now: Date.now(),
+        });
+        if (drop.length > 0) await forgetFiles(drop);
+        if (take.length === 0) return;
+        // Taken under this page, and its lock held, before the album's lock is let go: a page opening after this one
+        // finds them held by a live page and leaves them.
+        if (
+          !(await refile(
+            take.map((r) => r.id),
+            { tab },
+          ))
+        )
+          return;
+        for (const r of take) copies.current.set(r.id, "restoring");
+        holdWhileKept();
+        latest.current.onRestore(take.map(restoredFile));
+      });
+    } finally {
+      looking.current = false;
+    }
+  });
   useEffect(() => {
     if (!enabled || !owner || restored.current) return;
     restored.current = true;
-    void aloneForAlbum(album, async () => {
-      const records = await readKept(album);
-      if (records.length === 0) return;
-      const tab = thisTab();
-      const { take, drop } = sortKept(records, {
-        owner,
-        liveTabs: await liveTabs(),
-        held: new Set(latest.current.items.map((it) => it.id)),
-        tab,
-        now: Date.now(),
-      });
-      if (drop.length > 0) await forgetFiles(drop);
-      if (take.length === 0) return;
-      // Taken under this page, and its lock held, before the album's lock is let go: a page opening after this one
-      // finds them held by a live page and leaves them.
-      if (
-        !(await refile(
-          take.map((r) => r.id),
-          { tab },
-        ))
-      )
-        return;
-      for (const r of take) copies.current.set(r.id, "restoring");
-      holdWhileKept();
-      latest.current.onRestore(take.map(restoredFile));
-    });
+    void adopt.current(true);
+  }, [enabled, owner, album]);
+  // ★ AND ON ITS OWN LINE CHECKS (the head note): when the phone says it is online, when she comes back to the page (a
+  // hidden page's timers are frozen, so this is often the first moment it can look) and on the line's own cadence while
+  // the page is shown, for as long as it has someone to send as.
+  useEffect(() => {
+    if (!enabled || !owner) return;
+    const look = () => {
+      if (document.visibilityState === "visible") void adopt.current(false);
+    };
+    const timer = setInterval(look, LINE_EVERY_MS);
+    window.addEventListener("online", look);
+    document.addEventListener("visibilitychange", look);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("online", look);
+      document.removeEventListener("visibilitychange", look);
+    };
   }, [enabled, owner, album]);
 }
