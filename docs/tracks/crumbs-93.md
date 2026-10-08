@@ -9,6 +9,17 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/event-settings/
   - src/components/app/dashboard/
   - src/app/(guest)/e/[token]/card/
+  # Claimed at boot (no lane runs beside this one): the fixes below reach these, each for the item named.
+  - src/lib/guest/upload-refusal                          # 1: a send refused because the album paused is its own class
+  - src/lib/guest/camera/                                 # 5: the spent roll's pure rule beside the other camera rules
+  - src/lib/guest/event-card.ts                           # 6: the generic card's words, if the gap is theirs
+  - src/lib/db/queries/events.ts                          # 4: the cards' cover read (its WHY-comment)
+  - src/lib/disposable/migration-guards.test.ts           # 4: the seal's SQL guard (reshaped on purpose)
+  - supabase/migrations/20261008090000_crumbs_93          # 4: the cards' covers and stills read the seal as a guest does
+  - src/components/app/media-grid.tsx                     # 7: the one stand-in exported for the surfaces that draw a photograph
+  - docs/systems/guest-flow.md
+  - docs/systems/disposable-mode.md
+  - docs/systems/dashboard.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/disposable-mode.md
@@ -57,7 +68,21 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Does a file the album refused because the host paused wait on her phone for the reopen (no-signal's keep)?**
+  Recommended: **no; built that way**. The send says plainly that the host paused uploads, offers no Retry (none could
+  pass), and says her photo is still on her phone; the cover hears the pause within a round trip (a refusal asks the
+  album for its word afresh) and offers Add again the moment the album says open. A camera album's shots already wait
+  for that word (`album-camera.tsx`'s `LIFTABLE_REFUSALS`), the one place a shot has no other home. Why not a keep for
+  the rest: a pause is the host's deliberate stop, and a kept file would go up on its own later (days, after a stop she
+  meant) with no press of the guest's; the keep would need a state with no end and a word of its own in her stack; and a
+  photograph in her library re-adds in two taps once Add is back. Overrule if you want her late shots to ride a reopen.
+- **How do the dashboard's cards stop drawing a Disposable's sealed shots: in SQL, or in the app?** Recommended: **in
+  SQL, at the read**: `event_covers` and `event_stills` drop the host's exemption, so a card reads as a guest does (the
+  one rule, `disposable-mode.md`'s), proven in a rolled-back run on the live schema and shipped as
+  `supabase/migrations/20261008090000_crumbs_93.sql` for the Orchestrator to apply with the merge (no signature or grant
+  moves, so the build and the apply may land in either order; until it lands the cards behave as today). The app-only
+  alternative (skip the cover of any album with a develop time ahead) works before any apply but also hides a visible
+  earlier photograph of an album that was already running when its develop time was set.
 
 ## System-doc edits (in place, owned facts only)
 
