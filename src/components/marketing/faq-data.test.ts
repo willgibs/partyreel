@@ -8,7 +8,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  * THE HOME'S "HOW LONG DO YOU KEEP MY PHOTOS?" CARRIES THE WHOLE LIFECYCLE SENTENCE (crumbs-34; the help
  * guide's rule 7, `how-long-media-is-kept.mdx`). It reconciled only the Event Pass ("no expiry clock
  * counting down on your memories"), with no word of the Free plan's one rule: an event nobody touches for
- * about six months is warned about by email, then moved to Deleted, where it can be restored for thirty
+ * about N months is warned about by email, then moved to Deleted, where it can be restored for thirty
  * days. A FAQ is quoted back by assistants and search results verbatim (it feeds the FAQPage JSON-LD), so
  * the answer has to be true on its own. The numbers derive from the lifecycle constants.
  */

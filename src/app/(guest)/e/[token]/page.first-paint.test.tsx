@@ -16,7 +16,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 vi.mock("server-only", () => ({}));
 const jar = vi.hoisted(() => ({ cookies: new Map<string, string>() }));
-/** What the request carries beside its agent: Vercel's guess at the READER's zone, which the album's turn never reads. */
+/** What the request carries beside its agent: Vercel's guess at the READER's zone, which the album's order never reads. */
 const reader = vi.hoisted(() => ({ headers: {} as Record<string, string> }));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "user-agent": "test", ...reader.headers }),
@@ -51,7 +51,7 @@ const door = vi.hoisted(() => ({
 vi.mock("@/lib/events/closed-door.server", () => ({
   pageDoor: async () => ({ event: EVENT, decision: door.decision }),
 }));
-/** The party's own zone as `events.time_zone` holds it (event-zone), read once a render on the service role. */
+/** The party's own zone as `events.time_zone` holds it (event-zone), read once a render on the service role, for words. */
 const party = vi.hoisted(() => ({ zone: null as string | null }));
 const zoneRead = vi.hoisted(() =>
   vi.fn(async (_eventId: string) => party.zone),
@@ -204,6 +204,7 @@ beforeEach(() => {
   auth.user = null;
   owner.is = false;
   EVENT.develops_at = null;
+  EVENT.accepting_uploads = true;
   galleryStats.approvedTotal = 12;
   waitingAsk.mockResolvedValue(false);
 });
@@ -342,17 +343,21 @@ describe("★ an album with a develop time ahead: what she adds waits", () => {
   });
 });
 
-/* ★ ONE MOMENT FOR EVERY GUEST (event-zone; Will, 2026-10-05: "It feels unfair to unlock the album at different times for
-   certain guests based on geographical location"). The album turns at 9 am the morning after in the PARTY's zone, read
-   once by the page's server and handed to the browser as that instant: a reader's zone (Vercel's header, the old
-   input) moves nothing, and no zone reaches the browser. Red on the old page, which read the turn in the reader's zone
-   and handed the browser that zone. */
-describe("★ one moment for every guest: the album turns in the party's own zone", () => {
-  // A Saturday party in Auckland, on 12 September 2026: 9 am NZST (UTC+12) on Sunday the 13th.
-  const AUCKLAND_MORNING = Date.parse("2026-09-12T21:00:00Z");
+/* ★ ONE MOMENT FOR EVERY GUEST, AND NO DATE IN IT (album-order, AY1; event-zone's Will, 2026-10-05: "It feels unfair to
+   unlock the album at different times for certain guests based on geographical location"). The album's order is its own
+   state, read by the page's server off the row: in order once its host closes adding (or its develop has come), newest
+   first while it takes uploads, whatever its date and whoever reads it. No zone, the party's or the reader's, rides the
+   order; the party's rides once, for words alone, and only where a develop time is said.
+   RESHAPED ON PURPOSE (crumbs-91; scar kept: one moment for every reader, no reader's zone moving it, no zone in the
+   order, the party's for words alone, nothing named behind a lock). The expired reason: 9 am the morning after the date,
+   read in the party's zone, as the moment (`morningAfter`), which turned a week's trip dated on its first day mid-trip
+   (Will, 2026-10-07). */
+describe("★ one moment for every guest: the album turns at her close, never on a date", () => {
+  const AHEAD = () => new Date(Date.now() + 6 * 3_600_000).toISOString();
+  const PAST = () => new Date(Date.now() - 60_000).toISOString();
 
-  it("★ a party in Auckland, read from Los Angeles and from London: one instant, 9 am the morning after in Auckland", async () => {
-    party.zone = "Pacific/Auckland";
+  it("★ a closed album opens in order for every reader, wherever she reads it", async () => {
+    EVENT.accepting_uploads = false;
     const handed: unknown[] = [];
     for (const zone of ["America/Los_Angeles", "Europe/London", null]) {
       reader.headers = zone ? { "x-vercel-ip-timezone": zone } : {};
@@ -361,20 +366,26 @@ describe("★ one moment for every guest: the album turns in the party's own zon
       cleanup();
     }
     expect(handed).toEqual([
-      { morningAfter: AUCKLAND_MORNING, own: "oldest", chosen: null },
-      { morningAfter: AUCKLAND_MORNING, own: "oldest", chosen: null },
-      { morningAfter: AUCKLAND_MORNING, own: "oldest", chosen: null },
+      { own: "oldest", chosen: null },
+      { own: "oldest", chosen: null },
+      { own: "oldest", chosen: null },
     ]);
-    expect(zoneRead).toHaveBeenCalledWith(EVENT.id);
   });
 
-  /* ★ RESHAPED ON PURPOSE (crumbs-85; scar kept: the TURN is an instant, and no zone, the party's or the reader's, rides
-     the album's order; reason dropped: no zone rode the page at all, but a far party's develop time is now said in both
-     clocks, which names the party's place, so its zone rides once, as `partyZone`, for words alone). */
-  it("★ the browser is handed the turn as an instant: the party's zone rides for words alone, the reader's never", async () => {
+  it("★ an open album is newest first with its date long gone, and asks no zone: nothing waits on a day", async () => {
+    // Dated 12 September 2026, and read after it: the trip she keeps open is still the live feed.
+    const { experience } = await meet({ kind: "through", admitted: false });
+    expect(experience?.albumOrder).toEqual({ own: "newest", chosen: null });
+    expect(zoneRead).not.toHaveBeenCalled();
+    expect(experience?.partyZone).toBeNull();
+  });
+
+  it("★ the party's zone rides for a develop time's words alone, never in the order, and the reader's never", async () => {
+    EVENT.develops_at = AHEAD();
     party.zone = "Pacific/Auckland";
     reader.headers = { "x-vercel-ip-timezone": "America/Los_Angeles" };
     const { experience } = await meet({ kind: "through", admitted: false });
+    expect(zoneRead).toHaveBeenCalledWith(EVENT.id);
     const { partyZone, ...rest } = experience as Record<string, unknown>;
     expect(partyZone).toBe("Pacific/Auckland");
     const handed = JSON.stringify(rest);
@@ -382,42 +393,26 @@ describe("★ one moment for every guest: the album turns in the party's own zon
     expect(handed).not.toContain("America/Los_Angeles");
     expect(Object.keys(experience?.albumOrder as object).sort()).toEqual([
       "chosen",
-      "morningAfter",
       "own",
     ]);
+    // Her develop is ahead and the album open: newest first until it comes.
+    expect(experience?.albumOrder).toEqual({ own: "newest", chosen: null });
   });
 
-  it("a row with no zone, or one the runtime cannot read, turns in the one fallback (UTC), still one moment", async () => {
-    for (const zone of [null, "Mars/Olympus"]) {
-      party.zone = zone;
-      reader.headers = { "x-vercel-ip-timezone": "Asia/Tokyo" };
-      const { experience } = await meet({ kind: "through", admitted: false });
-      expect(
-        (experience?.albumOrder as { morningAfter: number }).morningAfter,
-        String(zone),
-      ).toBe(Date.parse("2026-09-13T09:00:00Z"));
-      cleanup();
-    }
+  it("a develop reached opens an open album in order", async () => {
+    EVENT.develops_at = PAST();
+    const { experience } = await meet({ kind: "through", admitted: false });
+    expect(experience?.albumOrder).toEqual({ own: "oldest", chosen: null });
   });
 
-  it("an undated album asks no zone and never turns; behind a gate the order knows no days", async () => {
-    EVENT.event_date = null;
-    const undated = await meet({ kind: "through", admitted: false });
-    expect(zoneRead).not.toHaveBeenCalled();
-    expect(undated.experience?.albumOrder).toEqual({
-      morningAfter: null,
-      own: "newest",
-      chosen: null,
-    });
-    cleanup();
-    EVENT.event_date = "2026-09-12";
+  it("behind a gate the order knows no develop, and nothing names where the party is", async () => {
+    EVENT.develops_at = PAST();
     party.zone = "Pacific/Auckland";
     const gated = await meet(
       { kind: "through", admitted: false },
       { visibility: "password", access: "none", gate: "password" },
     );
     expect(gated.experience?.albumOrder).toEqual({
-      morningAfter: null,
       own: "newest",
       chosen: null,
     });

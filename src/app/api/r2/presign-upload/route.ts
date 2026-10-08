@@ -5,6 +5,12 @@ import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { guestUploadsOpen } from "@/lib/jobs/spend-watch-switches";
 import { captureWarning } from "@/lib/observability/sentry";
+import {
+  checkAbuseRate,
+  recordAbuseEvent,
+  sessionAbuseHashes,
+} from "@/lib/security/abuse-rate-limit-store";
+import { splitBurst } from "@/lib/upload/burst";
 // ★ The album's cap sentences, one home with the complete's backstop: a guest's words name the album, never the plan.
 import {
   ALBUM_STORAGE_FULL,
@@ -28,20 +34,73 @@ function rollAfter(roll: RollCount | null, earlier: number): RollCount | null {
     : roll;
 }
 
+/** Her own budget's refusal: what happened, and the one way out (the meter's hourly sentence is its neighbour). */
+const BUDGET_SPENT =
+  "You've sent a lot of uploads this hour. Try again in a little while.";
+
+/**
+ * ★ HER OWN BUDGET (`presign`; abuse-rate-limit.ts says why its numbers are what they are): one read of her ticket's
+ * window and, under the line, every file of the burst counted in ONE insert before any of them is presigned (the
+ * account kinds' order), so a burst costs one read and one write whatever its size, and a burst sent beside another
+ * can miss the other's count only inside that one round trip, never across its whole presigning. A refused burst
+ * counts nothing, so the window drains while she waits. Fails OPEN on a limiter error, like every guest kind: her
+ * ticket and `create_media` are the real gates, and the meter's breaker stands behind it.
+ */
+async function spendPresignBudget(
+  sessionToken: string,
+  files: number,
+): Promise<{ allowed: boolean; retryAfterSec: number }> {
+  try {
+    const { ipHash, scopeHash } = sessionAbuseHashes("presign", sessionToken);
+    const gate = await checkAbuseRate("presign", ipHash, scopeHash);
+    if (!gate.allowed) return gate;
+    // Best-effort: a swallowed write only ever under-counts (fails open), and the store reports its own failures.
+    await recordAbuseEvent("presign", ipHash, scopeHash, files).catch(() => {});
+    return gate;
+  } catch {
+    captureWarning("security", "abuse_limiter_unavailable_fail_open", {
+      kind: "presign",
+    });
+    return { allowed: true, retryAfterSec: 0 };
+  }
+}
+
+/**
+ * ONE REQUEST'S BUDGET: how many files its burst carries (`burstFiles`), and the window its refusal quotes, which the
+ * engine has no seat for (a strategy's refusal carries no `Retry-After`), so `POST` puts it on the answer.
+ */
+type PresignBudget = { readonly files: number; retryAfterSec?: number };
+
+/**
+ * How many files this request carries, read off a clone before the engine reads the body, so her budget counts the
+ * burst whole at its one ask. A body the engine cannot read counts none: it is refused whole before any gate.
+ */
+async function burstFiles(request: Request): Promise<number> {
+  try {
+    const burst = splitBurst(await request.clone().json());
+    return burst === "malformed" ? 0 : burst.files.length;
+  } catch {
+    return 0;
+  }
+}
+
 // Issues presigned URLs for a guest's browser → R2 DIRECT upload. The pipeline
 // engine (lib/upload/server-pipeline.ts) owns the shared spine; this strategy
 // owns the GUEST gates: the capability session, whose ticket it is (an
 // account's row uploads only for that signed-in account), event state, video
-// gating, caps, and the host-configurable per-event size cap (which binds
-// GUESTS ONLY — the host route has no equivalent check). create_media (at
-// complete) remains authoritative for everything re-checked here, but for the
-// month, which the engine's meter counts and decides here at the presign.
+// gating, caps, the host-configurable per-event size cap (which binds
+// GUESTS ONLY — the host route has no equivalent check), and her own budget of
+// files an hour. create_media (at complete) remains authoritative for
+// everything re-checked here, but for the month, which the engine's meter
+// counts and decides here at the presign.
 //
-// ★ A BURST (the engine's head note) asks the switch, the ticket's context, the lock and the ticket's owner ONCE
-// (`burst.memo`, keyed by what each depends on), and every gate about who is sending and where is the burst's own
-// (`scope: "burst"`): one sentence answers the whole request, as it answered each file's. A video, a size, a shot and
-// the meter are each file's own.
-const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
+// ★ A BURST (the engine's head note) asks the switch, the ticket's context, the lock, the ticket's owner and her own
+// budget ONCE (`burst.memo`, keyed by what each depends on), and every gate about who is sending and where is the
+// burst's own (`scope: "burst"`): one sentence answers the whole request, as it answered each file's. A video, a size,
+// a shot and the meter are each file's own. Built per request, since her budget counts this request's files.
+const guestPresignStrategy = (
+  budget: PresignBudget,
+): PresignStrategy<typeof presignUploadSchema> => ({
   schema: presignUploadSchema,
   async resolveEvent(parsed, kind, burst) {
     const token = parsed.session_token;
@@ -229,6 +288,27 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
       parsed,
     );
     if (shot) return { ok: false, refusal: shot };
+    // ★ HER OWN BUDGET, LAST AND ONCE A BURST (`spendPresignBudget`): only a file past every gate above can go on to
+    // spend the host's hourly breaker, so the first such file asks, for the whole burst, and a burst the album cannot
+    // take at all (closed, full, every file refused for itself) spends nothing. Under every other burst gate on
+    // purpose: when they hold, their sentence is the truer one for everybody. No file is admitted before this answers,
+    // so its refusal is always the whole request's, its window in `Retry-After` (`POST`). At least the file in hand is
+    // counted, whatever the body's count said.
+    const spent = await burst.memo(`budget:${token}`, () =>
+      spendPresignBudget(token, Math.max(budget.files, 1)),
+    );
+    if (!spent.allowed) {
+      budget.retryAfterSec = spent.retryAfterSec;
+      return {
+        ok: false,
+        refusal: {
+          status: 429,
+          code: "rate_limited",
+          message: BUDGET_SPENT,
+          scope: "burst",
+        },
+      };
+    }
     return { ok: true, eventId };
   },
   // ★ THE METER'S REFUSALS, IN THE ALBUM'S WORDS (upload-meter): the meter judges THIS file (the context above only
@@ -264,8 +344,17 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         };
     }
   },
-};
+});
 
 export async function POST(request: Request) {
-  return runPresignPipeline(request, guestPresignStrategy);
+  const budget: PresignBudget = { files: await burstFiles(request) };
+  const response = await runPresignPipeline(
+    request,
+    guestPresignStrategy(budget),
+  );
+  // Her budget's refusal says when, as the meter's hourly one does (the engine sets that one's itself).
+  if (budget.retryAfterSec && response.status === 429) {
+    response.headers.set("Retry-After", String(budget.retryAfterSec));
+  }
+  return response;
 }

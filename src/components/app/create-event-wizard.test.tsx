@@ -11,28 +11,28 @@ import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CreateEventWizard } from "@/components/app/create-event-wizard";
+import {
+  BEAT_SUB,
+  CreateEventWizard,
+} from "@/components/app/create-event-wizard";
 import { DEVELOP_QUESTION } from "@/components/app/create-event-wizard/develop-step";
 import {
   HELD_DROPPED,
   HELD_QUESTION,
   heldFailure,
 } from "@/components/app/create-event-wizard/held";
-import { CODE_STILL_NEEDED } from "@/lib/events/readiness";
 
 /**
- * THE BEAT, DEVELOPED (create-wizard r2 `beat=develop`, Will 2026-10-03: "This is a beautiful screen and
- * allows everything to breathe, with lots of our aurora identity infused"), still handing over as
- * event-ready's `create=hand` made it: the code first and whole, then what guests still need in one line
- * (r4's `close=next`), then Get it ready into Settings' first step; and a failed Create held right there
- * (r4's `failed=held`). The room around it (the question in one place, Back, the carry, the close) is
+ * THE BEAT, DEVELOPED (create-wizard r2 `beat=develop`, Will 2026-10-03), CREATE'S PAYOFF (r5's `close=enter`, Will
+ * 2026-10-07): the code first and whole, the line under the question saying share it, her link as guests receive it
+ * and Print and Share under the code, then Go to your event, the room opening into it; and a failed Create held right
+ * there (r4's `failed=held`). The room around it (the question in one place, Back, the carry, the close) is
  * `room.test.tsx`'s; one field, the looks and the door at the cap are `create-flow.test.tsx`'s.
  *
- * What fails silently: a beat that shows the real code before the event exists (or the sample after),
- * a close that is not the checklist's own (Create telling a host something Settings then contradicts), a
- * Get it ready that lands anywhere but the first step, and a failed Create that strands her on a screen
- * that says her event is live, loses what she chose, or says so only in a toast. No word or class is
- * pinned but where the word is the fact.
+ * What fails silently: a beat that shows the real code before the event exists (or the sample after), a share that
+ * promises guests videos a Free album refuses, a link card that copies anything but the permanent link, a foot that
+ * leads anywhere but her event, and a failed Create that strands her on a screen that says her event is live, loses
+ * what she chose, or says so only in a toast. No word or class is pinned but where the word is the fact.
  */
 
 const push = vi.fn();
@@ -78,19 +78,22 @@ const REAL = `https://partyreel.com/e/${EVENT.qr_token}`;
 const SAMPLE = /\/e\/0{32}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-function renderWizard(storagePct = 10) {
+function renderWizard(storagePct = 10, tier: "free" | "pro" = "free") {
   return render(
     <CreateEventWizard
       siteUrl="https://partyreel.com"
-      planName="Free"
-      tier="free"
+      planName={tier === "free" ? "Free" : "Pro"}
+      tier={tier}
       atCap={false}
-      maxEvents={1}
+      maxEvents={tier === "free" ? 1 : null}
       cappedEvents={[]}
       storagePct={storagePct}
     />,
   );
 }
+
+/** The foot once the event exists: Go to your event, a link into it. */
+const goIn = () => screen.findByRole("link", { name: /^go to your event$/i });
 
 /** The name given and the album's style left as it opens (Live): the look stands, and she picks Rounded. */
 async function toTheLook() {
@@ -106,13 +109,13 @@ async function toTheAdd() {
   await screen.findByRole("radiogroup", { name: /album style/i });
 }
 
-async function createIt(storagePct?: number) {
-  renderWizard(storagePct);
+async function createIt(storagePct?: number, tier?: "free" | "pro") {
+  renderWizard(storagePct, tier);
   await toTheLook();
   await userEvent.click(
     screen.getByRole("button", { name: /^create event$/i }),
   );
-  await screen.findByRole("button", { name: /^get it ready$/i });
+  await goIn();
 }
 
 const beat = () => document.querySelector<HTMLElement>("[data-beat]")!;
@@ -151,7 +154,7 @@ describe("the code develops (beat=develop)", () => {
     // Nothing that needs the event yet: no doors out, no way on.
     expect(screen.queryByRole("link", { name: /print/i })).toBeNull();
     expect(
-      screen.queryByRole("button", { name: /^get it ready$/i }),
+      screen.queryByRole("link", { name: /^go to your event$/i }),
     ).toBeNull();
 
     await act(async () => answer({ ok: true, event: EVENT }));
@@ -179,13 +182,21 @@ describe("the code develops (beat=develop)", () => {
   });
 });
 
-describe("Print and Share stand as rounds", () => {
+describe("Print and Share stand as rounds, her link above them", () => {
   const realClipboard = navigator.clipboard;
+  const realShare = (navigator as { share?: unknown }).share;
   afterEach(() => {
     Object.defineProperty(navigator, "clipboard", {
       value: realClipboard,
       configurable: true,
     });
+    if (realShare === undefined)
+      delete (navigator as { share?: unknown }).share;
+    else
+      Object.defineProperty(navigator, "share", {
+        value: realShare,
+        configurable: true,
+      });
   });
 
   it("opens the table cards in a tab of their own", async () => {
@@ -195,55 +206,113 @@ describe("Print and Share stand as rounds", () => {
     expect(print).toHaveAttribute("target", "_blank");
   });
 
-  it("hands the link on, copying it where the browser has no share sheet of its own", async () => {
+  it("★ copies the permanent link from her link's card, in one press, confirmed in place", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText },
       configurable: true,
     });
     await createIt();
-    const share = within(beat()).getByRole("button", {
-      name: /^(share|copy link)$/i,
+    const link = within(beat()).getByRole("button", {
+      name: /^copy the link/i,
     });
-    await userEvent.click(share);
+    // The album's own share card, its title as a chat unfurls it, and the link.
+    expect(link.querySelector("img")?.getAttribute("src")).toBe(
+      `/e/${EVENT.qr_token}/card?add`,
+    );
+    expect(link).toHaveTextContent(`Add photos to ${EVENT.name}`);
+    expect(link).toHaveTextContent(`partyreel.com/e/${EVENT.qr_token}`);
+    await userEvent.click(link);
     expect(writeText).toHaveBeenCalledWith(REAL);
+    expect(link).toHaveTextContent("Copied");
   });
+
+  it("draws Share only where the device has its own sheet: where it has none, the link above is the copy", async () => {
+    delete (navigator as { share?: unknown }).share;
+    await createIt();
+    expect(
+      within(beat()).queryByRole("button", { name: /^(share|copy link)$/i }),
+    ).toBeNull();
+  });
+
+  it.each([
+    ["free", "Add your photos to Maya's 30th"],
+    ["pro", "Add your photos and videos to Maya's 30th"],
+  ] as const)(
+    "★ hands a %s album's message to the phone's sheet, saying only what the plan's album takes",
+    async (tier, text) => {
+      const share = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, "share", {
+        value: share,
+        configurable: true,
+      });
+      await createIt(10, tier);
+      await userEvent.click(
+        within(beat()).getByRole("button", { name: /^share$/i }),
+      );
+      expect(share).toHaveBeenCalledWith({
+        title: EVENT.name,
+        text,
+        url: REAL,
+      });
+    },
+  );
 });
 
 /**
- * ★ RESHAPED ON PURPOSE (create-wizard r4's `close=next`, Will 2026-10-07: "I do like the subtlety versus the steps";
- * scar kept: what the beat says is left is the checklist's own reading of the new event, under the code, room beside
- * it and never in it). Settings' five marks expired with the pick: the close is one line, what guests still need.
+ * ★ RESHAPED ON PURPOSE (create-wizard r5's `close=enter`, Will 2026-10-07: "Nailing this seamless creation and entry
+ * would be a huge win"; scar kept: the beat's words are true of the event she made, and room, where the account runs
+ * short, is the plan's, said under the doors and never as the event's debt). r4's one line, what guests still need,
+ * expired with `arrival=done`: a made event is ready, so the line under the question says share it.
  */
-describe("the close: one line, what guests still need (close=next)", () => {
-  const needs = () => beat().querySelector<HTMLElement>("[data-beat-needs]");
-
-  it("★ closes on the code, the one essential a new event has not done, and draws none of Settings' marks", async () => {
+describe("the payoff (close=enter)", () => {
+  it("★ says share it under the question, once the event is true, and nothing it still lacks", async () => {
     await createIt();
-    // Create sets the name alone: the door is Public and uploads open, so what guests still need is the code.
-    expect(needs()?.textContent).toBe(CODE_STILL_NEEDED);
-    expect(beat().querySelector("[data-beat-steps]")).toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 1, name: `${EVENT.name} is live` }),
+    ).toBeInTheDocument();
+    const sub = document.querySelector<HTMLElement>("[data-room-sub]")!;
+    expect(sub).toHaveTextContent(BEAT_SUB);
+    expect(sub).not.toHaveAttribute("data-held");
+    expect(beat().querySelector("[data-beat-needs]")).toBeNull();
     expect(within(beat()).queryAllByRole("listitem")).toEqual([]);
   });
 
-  it("keeps the code first: the line stands under it, under Print and Share", async () => {
-    await createIt();
-    const code = within(beat()).getAllByTestId("styled-qr")[0];
-    const print = within(beat()).getByRole("link", { name: /^print$/i });
-    expect(
-      code.compareDocumentPosition(needs()!) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    expect(
-      print.compareDocumentPosition(needs()!) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+  it("holds the line with the question while the code develops", async () => {
+    createEventInWizard.mockReturnValue(new Promise(() => {}));
+    renderWizard();
+    await toTheLook();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    const sub = document.querySelector<HTMLElement>("[data-room-sub]")!;
+    expect(sub).toHaveAttribute("data-held");
+    expect(sub).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("★ says room beside the line once the account runs short (the carried `room`), never in it", async () => {
+  it("keeps the code first: her link under it, then Print and Share", async () => {
+    await createIt();
+    const code = within(beat()).getAllByTestId("styled-qr")[0]!;
+    const link = beat().querySelector<HTMLElement>("[data-beat-link]")!;
+    const print = within(beat()).getByRole("link", { name: /^print$/i });
+    const after = (a: Node, b: Node) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(after(code, link)).toBe(true);
+    expect(after(link, print)).toBe(true);
+  });
+
+  it("★ lights the code once, in the event's own seed", async () => {
+    await createIt();
+    const light = beat().querySelector<HTMLElement>("[data-beat-light]")!;
+    expect(light.style.getPropertyValue("--cr-seed")).toMatch(
+      /^oklch\(0\.8 0\.085 \d+\)$/,
+    );
+  });
+
+  it("★ says room under the doors once the account runs short (the carried `room`), its way on the plans", async () => {
     await createIt(92);
     const room = beat().querySelector<HTMLElement>("[data-beat-room]");
     expect(room).toHaveTextContent(/92% of your storage is used/i);
-    expect(needs()?.textContent).toBe(CODE_STILL_NEEDED);
     await userEvent.click(
       within(room!).getByRole("button", { name: /plans/i }),
     );
@@ -259,15 +328,26 @@ describe("the close: one line, what guests still need (close=next)", () => {
 });
 
 describe("the way on", () => {
-  it("★ Get it ready opens Settings on its first step, over the new event", async () => {
+  // ★ RESHAPED ON PURPOSE (create-wizard r5's `close=enter`): Get it ready opened Settings on its first step, a made event
+  // met as "only halfway done". Its scar kept: the foot leads somewhere real and only once she presses. Go to your event
+  // opens her event itself (a real link, so a new tab is the browser's own), the room opening into it.
+  it("★ Go to your event opens her event, and only on her press", async () => {
     await createIt();
     expect(push).not.toHaveBeenCalled();
-    await userEvent.click(
-      screen.getByRole("button", { name: /^get it ready$/i }),
-    );
-    expect(push).toHaveBeenCalledWith(
-      `/dashboard/${EVENT.id}?room=settings&setting=door`,
-    );
+    const go = await goIn();
+    expect(go).toHaveAttribute("href", `/dashboard/${EVENT.id}`);
+    await userEvent.click(go);
+    // No view transition in this browser: the plain change of page, never a broken one.
+    expect(push).toHaveBeenCalledWith(`/dashboard/${EVENT.id}`);
+  });
+
+  it("★ leaves the head no second way out once the event exists (the carried `close-x`)", async () => {
+    await createIt();
+    const close = document.querySelector<HTMLElement>("[data-room-close]")!;
+    expect(close).toHaveAttribute("data-gone");
+    expect(close).toHaveAttribute("inert");
+    expect(close).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByRole("link", { name: /^close$/i })).toBeNull();
   });
 
   /**
@@ -301,7 +381,7 @@ describe("the way on", () => {
     expect(within(beat()).getByText(/^sample$/i)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /print/i })).toBeNull();
     expect(
-      screen.queryByRole("button", { name: /^get it ready$/i }),
+      screen.queryByRole("link", { name: /^go to your event$/i }),
     ).toBeNull();
     // What is kept and why, in the words under her code, and for a reader in the room's status.
     const { line } = heldFailure(refused, { planName: "Free", maxEvents: 1 });
@@ -316,9 +396,7 @@ describe("the way on", () => {
     // Try again is the same Create, and this time the line answers.
     createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
     await userEvent.click(again);
-    expect(
-      await screen.findByRole("button", { name: /^get it ready$/i }),
-    ).toBeInTheDocument();
+    expect(await goIn()).toBeInTheDocument();
     expect(beat().dataset.beat).toBe("arrived");
     expect(codes()).toContainEqual({ value: REAL, dots: "rounded" });
     expect(createEventInWizard).toHaveBeenCalledTimes(2);
@@ -342,9 +420,7 @@ describe("the way on", () => {
     // And she can press it again: the one-create guard let go with the failure.
     createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
     await userEvent.click(screen.getByRole("button", { name: /^try again$/i }));
-    expect(
-      await screen.findByRole("button", { name: /^get it ready$/i }),
-    ).toBeInTheDocument();
+    expect(await goIn()).toBeInTheDocument();
   });
 
   /**
@@ -395,7 +471,7 @@ describe("the way on", () => {
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
     );
-    await screen.findByRole("button", { name: /^get it ready$/i });
+    await goIn();
     expect(createEventInWizard).toHaveBeenLastCalledWith(
       expect.objectContaining({ name: EVENT.name, qr_style: "dots" }),
       expect.stringMatching(UUID),
@@ -445,7 +521,7 @@ describe("the key of one Create (a retry returns the event the first try made)",
     await userEvent.click(
       screen.getByRole("button", { name: /^create event$/i }),
     );
-    await screen.findByRole("button", { name: /^get it ready$/i });
+    await goIn();
     const [first, second] = keysSent();
     expect(first).toMatch(UUID);
     expect(second).toBe(first);
@@ -494,7 +570,7 @@ describe("the album's style at birth (add=styles)", () => {
     await userEvent.click(
       await screen.findByRole("button", { name: /^create event$/i }),
     );
-    await screen.findByRole("button", { name: /^get it ready$/i });
+    await goIn();
     return createEventInWizard.mock.calls[0]![0] as {
       capture: string;
       moderation_mode: string;
@@ -677,5 +753,102 @@ describe("the album's style at birth (add=styles)", () => {
     await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
     await userEvent.click(screen.getByRole("button", { name: /^back$/i }));
     expect(style(/^review\./i)).toHaveAttribute("aria-checked", "true");
+  });
+});
+
+/* ── Make one like this (after-party r1's `bridge=end`) ─────────────────────────────────────────────────────── */
+
+/**
+ * ★ CREATE, OPENED IN AN ALBUM'S STYLE, ASKS ONLY HER NAME (`like.ts`): the album's style and its code's look answer
+ * Create's two style screens, a chip says what was carried with Change beside it, and the foot under her name is Create
+ * event. What fails silently: a carried style that never reaches the create, a Change that loses the album's answers,
+ * and a Disposable made with the album's develop time (a time that is not hers) or with no screen to set her own.
+ */
+describe("Make one like this: Create in an album's style (bridge=end)", () => {
+  function renderLike(like: {
+    style: "live" | "approval" | "disposable";
+    look: "classic" | "bold" | "rounded" | "dots";
+    roll: number | null;
+  }) {
+    return render(
+      <CreateEventWizard
+        siteUrl="https://partyreel.com"
+        planName="Free"
+        tier="free"
+        atCap={false}
+        maxEvents={1}
+        cappedEvents={[]}
+        like={like}
+      />,
+    );
+  }
+  const stepSaid = () =>
+    document.querySelector("[data-room-head] .sr-only")?.textContent;
+  const sent = () => createEventInWizard.mock.calls.at(-1)?.[0];
+
+  it("★ asks only her name, says what it carried, and makes the event from the name's own foot", async () => {
+    renderLike({ style: "approval", look: "dots", roll: null });
+    expect(stepSaid()).toBe("Step 1 of 2");
+    expect(
+      document.querySelector("[data-room-carried-words]")?.textContent,
+    ).toBe("Review · Dots code");
+    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await goIn();
+    expect(sent()).toMatchObject({
+      name: EVENT.name,
+      qr_style: "dots",
+      capture: "upload",
+      moderation_mode: "hold_for_approval",
+      develops_at: null,
+    });
+  });
+
+  it("★ Change puts the two style screens back, the album's answers picked on them", async () => {
+    renderLike({ style: "approval", look: "dots", roll: null });
+    await userEvent.click(screen.getByRole("button", { name: /^change$/i }));
+    expect(stepSaid()).toBe("Step 1 of 4");
+    expect(document.querySelector("[data-room-carried]")).toBeNull();
+    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(screen.getByRole("radio", { name: /^review\./i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(screen.getByRole("radio", { name: /dots/i })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("★ keeps a Disposable's own screen, its time hers and never the album's, its roll the album's", async () => {
+    renderLike({ style: "disposable", look: "classic", roll: 36 });
+    expect(stepSaid()).toBe("Step 1 of 3");
+    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+    await userEvent.click(screen.getByRole("button", { name: /^continue$/i }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: DEVELOP_QUESTION }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "36 shots" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    await goIn();
+    const made = sent()!;
+    expect(made).toMatchObject({
+      capture: "camera",
+      moderation_mode: "live",
+      roll_size: 36,
+    });
+    // Her own 9 am tomorrow, offered by Create, never a time the album carried.
+    const at = new Date(made.develops_at);
+    expect(at.getTime()).toBeGreaterThan(Date.now());
+    expect(at.getHours()).toBe(9);
   });
 });

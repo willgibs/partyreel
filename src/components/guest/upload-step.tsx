@@ -18,6 +18,11 @@
  * (`camera.onOpen`: the door owns it, since at "A photo first" the album's own slot, which carries its camera, is not
  * mounted yet), and nothing else asks for a file.
  *
+ * ★ A PICK THAT WAITS FOR THE LINE SAYS SO, IN PLACE (no-signal r1, `drop=standby`): the queue holds a dropped file
+ * `queued`, standing by (`waitsForLine`), so the step stays on its sending view and that pick's bar gives way to
+ * Standby's point and "Waiting for your connection"; with every pick waiting, the step's heading says it too. Nothing
+ * here sends it again: the line's return does (`unsent/line.ts`).
+ *
  * ★ THE FAIL-OPEN IS THE SERVER'S, NEVER A LOCAL SKIP. When a run ends with nothing completed and
  * every refusal is one the guest cannot fix, the step shows the server's own sentence and a primary
  * that REFRESHES. It does not set a local "skipped" flag, because the server would still answer
@@ -39,11 +44,14 @@ import {
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 import type { Pick } from "@/components/guest/upload/review-step";
+import { WaitPoint } from "@/components/guest/upload/wait-point";
 import { DoorHeading } from "@/components/guest/door/heading";
 import { Button } from "@/components/ui/button";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { type WaitClock, waitRule } from "@/lib/disposable/wait-words";
 import { classifyRefusal, type RefusalClass } from "@/lib/guest/upload-refusal";
+import { waitsForLine } from "@/lib/guest/unsent/standby";
+import { WAITING_FOR_CONNECTION } from "@/lib/guest/unsent/words";
 import { useRunSent, type QueueItem } from "@/lib/guest/use-upload-queue";
 
 /** The whole run's verdict: what the step should show once nothing is queued or uploading. */
@@ -150,10 +158,18 @@ export function UploadStep({
   }));
 
   if (sending) {
+    const onItsWay = queue.filter(
+      (it) => it.status === "queued" || it.status === "uploading",
+    );
+    // Every pick still on its way waits for the line: the step says what it waits for, never "Sending".
+    const allWait = onItsWay.length > 0 && onItsWay.every(waitsForLine);
     return (
       <div data-upload-step="sending" className="flex flex-col gap-4 pt-1">
         {/* The step's own views change in place, so their headings reveal (the text reveal). */}
-        <DoorHeading title="Sending your photos" hidden />
+        <DoorHeading
+          title={allWait ? WAITING_FOR_CONNECTION : "Sending your photos"}
+          hidden
+        />
         <ul className="flex flex-col gap-3">
           {queue
             .filter((it) => it.status !== "error")
@@ -162,17 +178,28 @@ export function UploadStep({
                 <span className="truncate text-reading text-muted-foreground">
                   {it.file.name}
                 </span>
-                {/* The strip is the progress: one bar a pick, no numbers. A
-                    percentage at a party is a thing to watch instead of a party. */}
-                <span
-                  data-upload-progress
-                  className="block h-1 overflow-hidden rounded-full bg-muted"
-                >
+                {waitsForLine(it) ? (
+                  // The bar gives way to Standby's point: a pick waiting for the line goes again from the start.
                   <span
-                    className="block h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
-                    style={{ width: `${uploadBarPercent(it)}%` }}
-                  />
-                </span>
+                    data-upload-waiting=""
+                    className="flex items-center gap-1.5 text-reading text-muted-foreground"
+                  >
+                    <WaitPoint />
+                    {WAITING_FOR_CONNECTION}
+                  </span>
+                ) : (
+                  // The strip is the progress: one bar a pick, no numbers. A percentage at a party is a thing to
+                  // watch instead of a party.
+                  <span
+                    data-upload-progress
+                    className="block h-1 overflow-hidden rounded-full bg-muted"
+                  >
+                    <span
+                      className="block h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
+                      style={{ width: `${uploadBarPercent(it)}%` }}
+                    />
+                  </span>
+                )}
               </li>
             ))}
         </ul>

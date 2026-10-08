@@ -49,7 +49,12 @@ import {
   type BurstFile,
   type UploadOutcome,
 } from "@/lib/upload/uploader";
-import { HEAL_AFTER_MS } from "@/lib/guest/use-upload-queue.heal";
+import {
+  LINE_EVERY_MS,
+  LINE_FIRST_MS,
+  LINE_TEXT,
+  LINE_URL,
+} from "@/lib/guest/unsent/line";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -125,6 +130,8 @@ vi.mock("@/components/guest/claim-handle-prompt", () => ({
 // What the camera was last handed of the album (its develop time, which the page's live reading decides).
 const camera = vi.hoisted(() => ({
   event: null as Record<string, unknown> | null,
+  /** Her roll as the slot read it ahead of the camera (`useRollAhead`), as the camera was handed it. */
+  ahead: null as { read: { roll: unknown } } | null,
 }));
 vi.mock("@/components/guest/camera/album-camera", () => ({
   AlbumCamera: ({
@@ -132,13 +139,16 @@ vi.mock("@/components/guest/camera/album-camera", () => ({
     onAddFiles,
     onOpenChange,
     event,
+    ahead,
   }: {
     open: boolean;
     onAddFiles: (files: File[]) => void;
     onOpenChange: (open: boolean) => void;
     event: Record<string, unknown>;
+    ahead?: { read: { roll: unknown } } | null;
   }) => {
     camera.event = event;
+    camera.ahead = ahead ?? null;
     return open ? (
       <div data-testid="album-camera">
         <button
@@ -220,6 +230,7 @@ function Harness({
   removedIds?: ReadonlySet<string>;
   capBytes?: number | null;
   uploadsWait?: { waits: boolean; developsAt: string | null };
+  isOwner?: boolean;
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
@@ -266,6 +277,7 @@ function Harness({
       removedIds={rest.removedIds}
       capBytes={rest.capBytes}
       uploadsWait={rest.uploadsWait}
+      isOwner={rest.isOwner}
     />
   );
 }
@@ -497,18 +509,27 @@ describe("GuestUpload: just-in-time join", () => {
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 
-  it("join network failure: the connection toast, stash cleared", async () => {
+  it("★ join network failure: her picks stand by for the line, never a toast, never put down", async () => {
+    // RESHAPED (no-signal-wiring): this pinned "the connection toast, stash cleared". The reason that expired: a join
+    // the line could not carry put her picks down, so a first Add in a dead zone lost them under a toast. They stand by
+    // now (the queue's `joinLostTheLine`), and go, the join asked again, once the line answers.
     vi.mocked(global.fetch).mockRejectedValue(new Error("offline"));
-
-    const { addFiles } = mount({ sessionToken: null });
+    const snapshots: QueueItem[][] = [];
+    const { addFiles } = mount({
+      sessionToken: null,
+      onQueueChange: (items: QueueItem[]) => snapshots.push(items),
+    });
     addFiles([makeFile()]);
 
     await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Couldn't start uploading", {
-        description: "Check your connection and try again.",
-      }),
+      expect(snapshots.at(-1)).toEqual([
+        expect.objectContaining({ status: "queued", cause: "dropped" }),
+      ]),
     );
+    expect(toast.error).not.toHaveBeenCalled();
     expect(mockUploadFile).not.toHaveBeenCalled();
+    // Nothing opens: a wait is never a failure.
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 });
 
@@ -787,7 +808,11 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
-  it("★ draws a dropped connection apart from a refusal: the queue's cause reaches the sheet, whatever the words", async () => {
+  it("★ a dropped connection never reaches the sheet: it stands by, and the sheet lists the refusal beside it once nothing is going", async () => {
+    // RESHAPED (no-signal-wiring): this pinned "★ draws a dropped connection apart from a refusal: the queue's cause
+    // reaches the sheet". The reason that expired: a drop is a wait now, never a failure (`drop=standby`), so the sheet
+    // never lists one. The scar kept: the cause, never the words, tells the line from a refusal, and the refusal beside
+    // it is still said, at once, with no wait behind the line's return.
     mockUploadFile
       .mockResolvedValueOnce({
         ok: false,
@@ -803,15 +828,14 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
 
     await waitFor(() =>
-      expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument(),
     );
-    const marked = document.querySelectorAll('[data-cause="dropped"]');
-    expect(marked).toHaveLength(1);
-    expect(marked[0]).toHaveTextContent("a.jpg");
-    expect(marked[0].querySelector("svg.lucide-wifi-off")).not.toBeNull();
-    expect(
-      screen.getByText("That upload failed.").closest("li"),
-    ).not.toHaveAttribute("data-cause");
+    expect(screen.getByText("b.jpg")).toBeInTheDocument();
+    expect(screen.queryByText("a.jpg")).toBeNull();
+    expect(screen.queryByText("The line went quiet.")).toBeNull();
+    expect(document.querySelectorAll('[data-cause="dropped"]')).toHaveLength(0);
+    // And nothing of the rest is said while one of them waits: it is not in the album.
+    expect(screen.queryByText(/Everything else/)).toBeNull();
   });
 
   it("stays shut when the run is clean", async () => {
@@ -858,15 +882,25 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
    reopen on it. ── */
 
 /**
- * ★ A SHEET THAT LISTS A LOST ANSWER LETS IT GO WHEN THE ROW ANSWERS (red-team 55's LOW). The complete's answer was lost
- * after the server wrote the row, so the album drew the photograph while this sheet still said "didn't upload" over it,
- * until the guest pressed Retry. The queue asks that kept complete again for her (`use-upload-queue.heal.ts`): the
- * moment it answers the file is landed, its row leaves the sheet, and the sheet with nothing left to list closes.
+ * ★ A LOST ANSWER NEVER STANDS ON THE SHEET (red-team 55's LOW, no-signal r1). The complete's answer was lost after the
+ * server wrote the row, so the album drew the photograph while the sheet still said "didn't upload" over it. RESHAPED
+ * (no-signal-wiring): these pinned the heal taking such a row down off a sheet that listed it. The reason that expired
+ * is the listing: a dropped file stands by now and never opens the sheet, and the line's return asks its kept complete
+ * again (the very same File). The scars kept: nothing says "didn't upload" over a photograph that may be in the album,
+ * the landing is told to the album once, and a line still down changes nothing she sees.
  */
 describe("GuestUpload: a lost answer settles as landed", () => {
   const DROPPED = "Your connection dropped. Check your signal, then try again.";
+  let lineUp = false;
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    lineUp = false;
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).startsWith(LINE_URL) && lineUp) {
+        return { ok: true, text: async () => LINE_TEXT } as Response;
+      }
+      throw new TypeError("Failed to fetch");
+    }) as typeof fetch;
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -875,7 +909,7 @@ describe("GuestUpload: a lost answer settles as landed", () => {
     vi.mocked(hasKeptComplete).mockReset();
   });
 
-  it("★ takes the row down, closes the sheet that had nothing else to list, and tells the album the photograph landed", async () => {
+  it("★ never says it didn't upload: it stands by, and is told to the album as landed once the line answers", async () => {
     const file = makeFile("lost.jpg");
     vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
     mockUploadFile
@@ -891,22 +925,22 @@ describe("GuestUpload: a lost answer settles as landed", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
-    // The failure as the guest is first shown it, over a photograph the album may already hold.
-    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
-    expect(screen.getByText(DROPPED)).toBeInTheDocument();
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
-    });
     expect(screen.queryByText(/didn't upload/)).toBeNull();
     expect(screen.queryByText(DROPPED)).toBeNull();
+
+    lineUp = true;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
+    });
+    expect(mockUploadFile.mock.calls[1]![0].file).toBe(file);
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
     expect(onUploaded).toHaveBeenCalledTimes(1);
     expect(onUploaded).toHaveBeenCalledWith(
       expect.objectContaining({ file, mediaId: "med-lost" }),
     );
   });
 
-  it("★ takes one row of several down and counts the rest by what landed: the sheet goes on listing what did not", async () => {
+  it("★ beside a refusal, the sheet lists the refusal alone, and says nothing of the rest until the waiting one lands", async () => {
     const lost = makeFile("lost.jpg");
     vi.mocked(hasKeptComplete).mockImplementation((f) => f === lost);
     mockUploadFile
@@ -923,22 +957,23 @@ describe("GuestUpload: a lost answer settles as landed", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
-    expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
+    expect(screen.queryByText("lost.jpg")).toBeNull();
     expect(screen.queryByText(/Everything else/)).toBeNull();
 
+    lineUp = true;
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS);
     });
-    // One of the two has landed, so the other stays listed under a count that says so, and the rest is in the album.
+    // The waiting one has landed, so the rest is in the album, and the refusal stays listed under its own count.
     expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument();
     expect(screen.getByText("b.jpg")).toBeInTheDocument();
-    expect(screen.queryByText("lost.jpg")).toBeNull();
     expect(
       screen.getByText("Everything else is in Maya’s album."),
     ).toBeInTheDocument();
   });
 
-  it("leaves the sheet as it was when the ask finds the line still down: nothing flickers away for good", async () => {
+  it("changes nothing she sees while the line is still down: no sheet, nothing sent again", async () => {
     const file = makeFile("lost.jpg");
     vi.mocked(hasKeptComplete).mockImplementation((f) => f === file);
     mockUploadFile.mockResolvedValue({
@@ -949,14 +984,10 @@ describe("GuestUpload: a lost answer settles as landed", () => {
     const { addFiles, onUploaded } = mount();
     addFiles([file]);
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(LINE_FIRST_MS + LINE_EVERY_MS);
     });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(HEAL_AFTER_MS[0]);
-    });
-    expect(mockUploadFile).toHaveBeenCalledTimes(2);
-    expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument();
-    expect(screen.getByText(DROPPED)).toBeInTheDocument();
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
     expect(onUploaded).not.toHaveBeenCalled();
   });
 });
@@ -1718,6 +1749,103 @@ describe("GuestUpload: the album's camera", () => {
     expect(screen.queryByText(/didn't upload/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Close the camera" }));
     expect(await screen.findByText("1 of 1 didn't upload")).toBeInTheDocument();
+  });
+});
+
+/* ── ★ HER ROLL, READ AS THE ALBUM OPENS (no-signal-wiring's own red-team, Will's `roll=taken`): the camera read her roll
+   only as it opened, so one first opened in a dead zone counted from the roll's size over shots an earlier visit spent,
+   and every shot past her real roll was refused as it landed. The slot reads it as a camera album opens, while the line
+   is up and nothing of hers is in the air, and hands it to the camera (`useRollAhead`). ── */
+
+describe("GuestUpload: her roll, read as a camera album opens", () => {
+  const TICKET = "t".repeat(64);
+  const ROLL = { used: 20, cap: 24, taken: 20, ceiling: 27 };
+  const mineCalls = () =>
+    vi
+      .mocked(global.fetch)
+      .mock.calls.filter(([url]) => String(url) === "/api/guests/mine");
+  beforeEach(() => {
+    localStorage.setItem("pr_session_qr-token-1", TICKET);
+    vi.mocked(global.fetch).mockImplementation(async (input) =>
+      String(input) === "/api/guests/mine"
+        ? Response.json({ ok: true, items: [], roll: ROLL })
+        : (undefined as unknown as Response),
+    );
+  });
+  afterEach(() => {
+    localStorage.removeItem("pr_session_qr-token-1");
+  });
+
+  it("★ reads it once, the ticket in the body and no news spent, and hands it to the camera at its first opening", async () => {
+    const { handleRef } = mount({ event: CAMERA_EVENT });
+    await waitFor(() => expect(mineCalls()).toHaveLength(1));
+    const init = mineCalls()[0]![1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({
+      qr_token: "qr-token-1",
+      session_token: TICKET,
+      statuses: true,
+    });
+    await openCamera(handleRef);
+    await waitFor(() => expect(camera.ahead?.read.roll).toEqual(ROLL));
+    // Answered, it is never asked again: the camera reads for itself from its opening.
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(mineCalls()).toHaveLength(1);
+  });
+
+  it("★ never while a file of hers is in the air: it waits for it to land, so the file is in its count", async () => {
+    let land: (outcome: UploadOutcome) => void = () => {};
+    mockUploadFile.mockReturnValueOnce(
+      new Promise<UploadOutcome>((resolve) => {
+        land = resolve;
+      }),
+    );
+    const handleRef = createRef<GuestUploadHandle>();
+    const queueRef = createRef<QueueApi>();
+    const page = (showSlot: boolean) => (
+      <Harness
+        handleRef={handleRef}
+        queueRef={queueRef}
+        showSlot={showSlot}
+        onSession={vi.fn()}
+        onUploaded={vi.fn()}
+        event={CAMERA_EVENT}
+      />
+    );
+    const view = render(page(false));
+    act(() => queueRef.current!.addFiles([makeFile("shot.jpg")]));
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(1));
+    view.rerender(page(true));
+    await act(async () => {});
+    expect(mineCalls()).toHaveLength(0);
+    await act(async () =>
+      land({ ok: true, status: "approved", mediaId: "m-1", kind: "photo" }),
+    );
+    await waitFor(() => expect(mineCalls()).toHaveLength(1));
+  });
+
+  it("asks again when the phone says the line is back, if the read could not reach the server", async () => {
+    vi.mocked(global.fetch).mockRejectedValueOnce(
+      new TypeError("Failed to fetch"),
+    );
+    mount({ event: CAMERA_EVENT });
+    await waitFor(() => expect(mineCalls()).toHaveLength(1));
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await waitFor(() => expect(mineCalls()).toHaveLength(2));
+  });
+
+  it("asks nothing with no ticket on this device, for the host, in the demo, or on an album with no camera", async () => {
+    localStorage.removeItem("pr_session_qr-token-1");
+    mount({ event: CAMERA_EVENT }).unmount();
+    localStorage.setItem("pr_session_qr-token-1", TICKET);
+    mount({ event: CAMERA_EVENT, isOwner: true }).unmount();
+    mount({ event: CAMERA_EVENT, isDemo: true }).unmount();
+    mount({ event: EVENT }).unmount();
+    await act(async () => {});
+    expect(mineCalls()).toHaveLength(0);
   });
 });
 

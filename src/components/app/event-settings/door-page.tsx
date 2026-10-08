@@ -15,6 +15,10 @@ import { toast } from "sonner";
 
 import { EventPasswordControl } from "@/components/app/event-password-control";
 import { LockChip } from "@/components/app/pricing/lock-chip";
+import {
+  RadioCard,
+  RadioCards,
+} from "@/components/app/event-settings/radio-cards";
 import { SettingsCard } from "@/components/app/event-settings/settings-furniture";
 import { useSettings } from "@/components/app/event-settings/settings-state";
 import { ConfirmSwitch } from "@/components/ui/confirm-switch";
@@ -423,70 +427,35 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                   awake={shownStep === "private"}
                   summary="Anyone with the link. Private keeps a gate: a password, letting each person in, your invite list, or only people already in."
                 >
-                  <div
-                    role="radiogroup"
+                  {/* One choice of four, one stop and the arrows between them (`radio-cards.tsx`): an arrow chooses as a
+                      press does, so a gate that asks first only asks, and its (i) keeps a stop of its own. */}
+                  <RadioCards
+                    value={shownGate}
                     aria-label="Who may join"
                     className="space-y-1.5"
                   >
                     {PRIVATE_GATES.map((g) => {
                       const on = shownGate === g;
-                      const candidate: Door = g;
                       return (
-                        <div
+                        <RadioCard
                           key={g}
+                          value={g}
                           data-door-gate={g}
-                          data-state={on ? "on" : "off"}
-                          // ★ A RADIO CARD IN THE HOUSE SET (identity r5): a flat tone that waits, the chosen
-                          // one afloat, its lift kept tight under it, since the dormant step's wrapper clips.
-                          className={cn(
-                            "relative rounded-xl px-3 py-2.5 transition-[background-color] duration-150 motion-reduce:transition-none",
-                            on
-                              ? "afloat afloat-card"
-                              : "bg-(--choice) hover:bg-(--choice-up)",
-                          )}
+                          label={GATE_LABELS[g]}
+                          line={GATE_LINES[g]}
+                          note={
+                            g === "invite" && !on && listedLine ? (
+                              <span
+                                data-door-listed=""
+                                className="mt-0.5 block text-caption text-pretty text-muted-foreground"
+                              >
+                                {listedLine}
+                              </span>
+                            ) : null
+                          }
+                          aside={<GateHelp gate={g} />}
+                          onChoose={() => choose(g)}
                         >
-                          <div className="flex items-start gap-2.5">
-                            <button
-                              type="button"
-                              role="radio"
-                              aria-checked={on}
-                              onClick={() => choose(candidate)}
-                              className="absolute inset-0 focus-halo rounded-xl outline-none halo-inset"
-                            >
-                              <span className="sr-only">{GATE_LABELS[g]}</span>
-                            </button>
-                            <span
-                              aria-hidden
-                              // A radio waits as a ring of tone and fills with ink (identity r5).
-                              className={cn(
-                                "pointer-events-none relative mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full",
-                                on
-                                  ? "bg-primary"
-                                  : "inset-ring-2 inset-ring-foreground/45",
-                              )}
-                            >
-                              {on ? (
-                                <span className="size-1.5 rounded-full bg-primary-foreground" />
-                              ) : null}
-                            </span>
-                            <span className="pointer-events-none relative min-w-0 flex-1">
-                              <span className="block text-sm font-medium">
-                                {GATE_LABELS[g]}
-                              </span>
-                              <span className="block text-caption text-pretty text-muted-foreground">
-                                {GATE_LINES[g]}
-                              </span>
-                              {g === "invite" && !on && listedLine ? (
-                                <span
-                                  data-door-listed=""
-                                  className="mt-0.5 block text-caption text-pretty text-muted-foreground"
-                                >
-                                  {listedLine}
-                                </span>
-                              ) : null}
-                            </span>
-                            <GateHelp gate={g} />
-                          </div>
                           {pending === g && consequence ? (
                             <ConsequenceLine
                               className="relative z-10 mt-2.5"
@@ -538,7 +507,7 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               {`Only people you invite · ${formatCount(counts.invited)} invited · `}
                               <Link
                                 href={`${guestsHref}#invited`}
-                                className="font-medium text-foreground underline underline-offset-4"
+                                className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
                               >
                                 Manage in Guests
                               </Link>
@@ -549,16 +518,16 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               {`${people(counts.waiting, "person is", "people are")} waiting at the door · `}
                               <Link
                                 href={`${guestsHref}#at-the-door`}
-                                className="font-medium text-foreground underline underline-offset-4"
+                                className="focus-halo rounded-sm font-medium text-foreground underline underline-offset-4 outline-none"
                               >
                                 Let them in from Guests
                               </Link>
                             </p>
                           ) : null}
-                        </div>
+                        </RadioCard>
                       );
                     })}
-                  </div>
+                  </RadioCards>
                   {/* The field's in-line says it while a first password is being typed: never twice. */}
                   {gate && counts.in > 0 && !typingFirst ? (
                     <p

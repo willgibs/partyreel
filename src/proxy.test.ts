@@ -222,6 +222,8 @@ const NO_PROXY = [
   "/opengraph-image",
   "/demo",
   "/api/album/guest/sync",
+  // The CDN's ask (X5): a proxy run is an invocation before the CDN, which would undo the cache it exists for.
+  "/api/album/guest/sync/version",
   "/api/album/host/3f1c2a4e-0000-4000-8000-000000000000/sync",
   "/api/r2/presign-upload",
   "/api/guests/door",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -8,8 +8,20 @@ import {
   letBackInAction,
   letInAtDoorAction,
 } from "@/app/(app)/dashboard/[eventId]/guests/actions";
+import {
+  Address,
+  Face,
+  Hint,
+  nameOrAddress,
+} from "@/app/(app)/dashboard/[eventId]/guests/people";
+import {
+  ROW_LINE,
+  RoomGroup,
+  Words,
+} from "@/app/(app)/dashboard/[eventId]/guests/room-rows";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { GuestListItem } from "@/components/social/guest-list";
+import { GuestPeek, type CardStanding } from "@/components/social/guest-peek";
 import { Button } from "@/components/ui/button";
 import type { Door } from "@/lib/event/door/door";
 import { LET_IN, letBackInToast, letInToast } from "@/lib/events/event-blocks";
@@ -23,6 +35,11 @@ export type DoorPerson = {
   email: string | null;
   /** "5 minutes ago", said on the server so the first paint and the client agree. */
   asked: string;
+  /**
+   * How long she has waited, in the few characters a row has beside her name ("2 min", "now"), said on the server
+   * with `asked`. Left out (the Library's stand-ins), the row says `asked`.
+   */
+  waited?: string;
   /** Her face's seed (`seedFor`): her account's, else her own guest row's, never her name; null draws the plain disc. */
   seed: string | null;
 };
@@ -59,9 +76,15 @@ const SERVER_DOOR_ACTS: DoorActs = {
 const NONE: ReadonlySet<string> = new Set();
 
 /**
- * AT THE DOOR, AT THE HEAD OF THE GUESTS ROOM (event-settings r1, `queue=room`: "An At the door section
- * above the guests, Let in and Decline on each row"). The room is where the host already sees every
- * person, their address and Block, and letting someone in is the same kind of act as blocking someone.
+ * AT THE DOOR, AT THE HEAD OF THE GUESTS ROOM (event-settings r1, `queue=room`), in guests-room r1's calm rows
+ * (`rows=list`): each newcomer is one row, her face, her name with how long she has waited beside it, the address she
+ * confirmed under it as the proof, and ONE act at its end, Let in, the room's one solid key (attention earned: the one
+ * thing that waits on her). The section's count wears the tally the hub's Guests card wears (`needs`).
+ *
+ * ★ DECLINE LIVES IN HER CARD NOW (`card=standing`: "the door's Decline leaves the row, so each row keeps one act"):
+ * her name opens the card every name opens, where how long she has waited stands over Decline and Let in, and a
+ * decline, a block, is pressed where it is explained ("Declining blocks them: they can't ask again"). Two presses for
+ * a decline, one for the yes.
  *
  * ★ LET IN OPENS HER DOOR; DECLINE IS A BLOCK. Let in opens the album for her on every device (her held
  * door opens by itself at its next check-in); Decline puts her out as a block does, so she meets the one
@@ -184,60 +207,28 @@ export function AtTheDoor({
       <FeedSectionHeader
         label="At the door"
         count={Math.max(total - gone.size, shown.length)}
+        needs
       />
-      <p className="text-xs text-muted-foreground">
-        They confirmed an email and are waiting for you. Let in opens the album
-        for them; Decline blocks them.
-      </p>
-      <ul className="divide-y divide-border rounded-lg border bg-card">
-        {shown.map((person) => (
-          <li
-            key={person.guestId}
-            data-door-person={person.guestId}
-            className="flex flex-wrap items-center gap-3 px-3 py-2.5 sm:flex-nowrap sm:px-4"
-          >
-            <Avatar size="default" seed={person.seed ?? undefined}>
-              <AvatarFallback className="text-xs">
-                {nameOf(person).slice(0, 1).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{nameOf(person)}</p>
-              <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground">
-                {person.name && person.email ? (
-                  <>
-                    <span className="max-w-full min-w-0 truncate">
-                      {person.email}
-                    </span>
-                    <span aria-hidden className="px-1">
-                      ·
-                    </span>
-                    <span className="sr-only">, </span>
-                  </>
-                ) : null}
-                <span className="shrink-0">{`asked ${person.asked}`}</span>
-              </p>
-            </div>
-            <div className="flex w-full shrink-0 justify-end gap-2 sm:w-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => declineOne(person)}
-              >
-                Decline
-              </Button>
-              <Button type="button" size="sm" onClick={() => letIn(person)}>
-                {LET_IN}
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <RoomGroup>
+        <ul>
+          {shown.map((person) => (
+            <DoorRow
+              key={person.guestId}
+              person={person}
+              onLetIn={() => letIn(person)}
+              onDecline={() => declineOne(person)}
+            />
+          ))}
+        </ul>
+      </RoomGroup>
+      <Hint>
+        Let in opens the album for them. A name opens Decline, which blocks
+        them.
+      </Hint>
       {total > people.length ? (
-        <p className="text-xs text-muted-foreground">
+        <Hint>
           {`The ${people.length} who asked first; the rest follow as you answer.`}
-        </p>
+        </Hint>
       ) : null}
     </section>
   );
@@ -245,5 +236,167 @@ export function AtTheDoor({
 
 /** Her name, or her address where her profile has none. */
 function nameOf(person: DoorPerson): string {
-  return person.name?.trim() || person.email || "A guest";
+  return nameOrAddress(person.name, person.email);
+}
+
+/** A newcomer as the card every name opens takes a person: a confirmed account's face and name, no page yet. */
+function doorItem(person: DoorPerson): GuestListItem {
+  return {
+    id: person.userId ?? person.guestId,
+    displayName: nameOf(person),
+    slug: null,
+    avatarMarker: null,
+    avatarUrl: null,
+    seed: person.seed ?? undefined,
+  };
+}
+
+/**
+ * ONE NEWCOMER, ONE ROW: her face and name as the press that opens her card, how long she has waited beside the name,
+ * the address under it, and Let in at the end, on one line at 375.
+ */
+function DoorRow({
+  person,
+  onLetIn,
+  onDecline,
+}: {
+  person: DoorPerson;
+  onLetIn: () => void;
+  onDecline: () => void;
+}) {
+  const name = nameOf(person);
+  // How long she has waited, the row's few characters ("2 min"); a stand-in that says only when she asked keeps its words.
+  const waited = person.waited ?? null;
+  const at = person.email ? person.email.lastIndexOf("@") : -1;
+  const standing: CardStanding = {
+    tone: "door",
+    // How long she has waited is what the host weighs at the door.
+    line:
+      waited === null
+        ? `At the door, asked ${person.asked}`
+        : waited === "now"
+          ? "At the door, just now"
+          : `At the door for ${waited}`,
+    act: (close, size) => (
+      <DoorCardAct
+        name={name}
+        size={size}
+        onDecline={() => {
+          close();
+          onDecline();
+        }}
+        onLetIn={() => {
+          close();
+          onLetIn();
+        }}
+      />
+    ),
+  };
+  return (
+    <li
+      data-door-person={person.guestId}
+      className={`${ROW_LINE} flex min-h-14 items-center gap-2 px-3 py-2`}
+    >
+      <GuestPeek
+        item={doorItem(person)}
+        email={person.email}
+        canFollow={false}
+        standing={standing}
+      >
+        <button
+          type="button"
+          data-door-name={person.guestId}
+          className="flex min-w-0 flex-1 focus-halo items-center gap-3 rounded-lg text-left outline-none"
+        >
+          <Face name={name} seed={person.seed} className="size-10" />
+          {person.name?.trim() || at <= 0 ? (
+            <Words
+              name={name}
+              aside={waited ?? person.asked}
+              line={
+                person.name?.trim() && person.email ? (
+                  <Address email={person.email} chars={25} />
+                ) : undefined
+              }
+            />
+          ) : (
+            // ★ NO NAME YET, SO THE ADDRESS IS THE NAME, split at its @ as a named row is split between its name and
+            // its address: the part before stands where a name would, with how long ago beside it, the domain under
+            // it, whole. A screen reader hears the address once, whole.
+            <Words
+              name={
+                <>
+                  <span className="sr-only">{person.email}</span>
+                  <span aria-hidden title={person.email ?? undefined}>
+                    {person.email!.slice(0, at)}
+                  </span>
+                </>
+              }
+              aside={waited ?? person.asked}
+              line={<span aria-hidden>{person.email!.slice(at)}</span>}
+            />
+          )}
+        </button>
+      </GuestPeek>
+      <Button
+        type="button"
+        size="sm"
+        className="shrink-0"
+        aria-label={`${LET_IN} ${name}`}
+        onClick={onLetIn}
+      >
+        {LET_IN}
+      </Button>
+    </li>
+  );
+}
+
+/**
+ * THE DOOR'S TWO ACTS IN HER CARD: Decline and Let in, side by side, and what a decline is, said once under the pair.
+ * ★ BOTH ARE ONE PRESS, so each names whom (no confirm stands between the press and the act).
+ */
+function DoorCardAct({
+  name,
+  size,
+  onDecline,
+  onLetIn,
+}: {
+  name: string;
+  size: "sm" | "lg";
+  onDecline: () => void;
+  onLetIn: () => void;
+}) {
+  const noteId = useId();
+  return (
+    <div className="flex flex-col">
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size={size}
+          aria-label={`Decline ${name}`}
+          aria-describedby={noteId}
+          data-door-decline=""
+          onClick={onDecline}
+        >
+          Decline
+        </Button>
+        <Button
+          type="button"
+          size={size}
+          aria-label={`${LET_IN} ${name}`}
+          data-door-let-in=""
+          onClick={onLetIn}
+        >
+          {LET_IN}
+        </Button>
+      </div>
+      <p
+        id={noteId}
+        className="mt-2.5 text-caption text-pretty text-muted-foreground"
+      >
+        Declining blocks them: they can&rsquo;t ask again.
+      </p>
+    </div>
+  );
 }

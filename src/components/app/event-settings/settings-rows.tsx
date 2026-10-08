@@ -21,6 +21,7 @@ import {
   type WordChoice,
 } from "@/components/app/event-settings/setting-word";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   FILM_ROLLS,
   ROLL_MAX,
@@ -51,6 +52,7 @@ import {
   type ReadyFacts,
   type ReadyItemId,
   readyHead,
+  SETTINGS_STEP_ITEMS,
   settingsReadiness,
   stepWants,
 } from "@/lib/events/readiness";
@@ -65,23 +67,6 @@ import { cn } from "@/lib/utils";
  * ready, with the code as the fifth. The whole of it fits a phone's screen, and Delete is a quiet row at
  * the foot, never the thing between a host and a setting.
  */
-
-/** The four groups, in the order a guest meets them: the rail's first four steps. */
-const GROUPS: readonly SettingsGroup[] = ["door", "adds", "reel", "event"];
-
-/** The code's place on the rail: after the four groups. */
-const CODE_STEP = GROUPS.length + 1;
-
-/** Each group's step is the checklist item it finishes. */
-const STEP_ITEM: Record<
-  SettingsGroup,
-  Exclude<ReadyItemId, "code" | "room">
-> = {
-  door: "door",
-  adds: "adds",
-  reel: "photos",
-  event: "welcome",
-};
 
 /** The page each row opens: the group and its page share a name, the door's page its own. */
 export const PAGE_OF: Record<SettingsGroup, SettingsPage> = {
@@ -461,7 +446,7 @@ function SettingsStep({
           .filter(Boolean)
           .join(" ")}
         data-settings-open={group}
-        className="absolute inset-0 rounded-none outline-none focus-halo halo-inset"
+        className="absolute inset-0 focus-halo rounded-none outline-none halo-inset"
       />
       <span id={stateId} className="sr-only">
         {done ? `Step ${n}, done.` : `Step ${n}, to do.`}
@@ -520,13 +505,17 @@ function SettingsStep({
 /**
  * THE FIFTH STEP, THE CODE: Settings ends where guests begin. It has no page of its own; its door is the
  * code card, the hub's (the sheet closes Settings to open it), and while nobody has opened the code it
- * carries the checklist's own two doors, Invite and Print.
+ * carries the checklist's own two doors, Invite and Print. ★ Worth doing, never a need (create-wizard r5's
+ * `arrival=done`): its tick says the code was opened, and the head says ready without it.
  */
 function CodeStep({
+  n,
   done,
   line,
   onOpenCode,
 }: {
+  /** Its place on the rail: after the four groups. */
+  n: number;
   done: boolean;
   line: string;
   onOpenCode?: () => void;
@@ -551,13 +540,13 @@ function CodeStep({
           aria-label="The code"
           aria-describedby={`${stateId} ${lineId}`}
           data-settings-open="code"
-          className="absolute inset-0 rounded-none outline-none focus-halo halo-inset"
+          className="absolute inset-0 focus-halo rounded-none outline-none halo-inset"
         />
       ) : null}
       <span id={stateId} className="sr-only">
-        {done ? `Step ${CODE_STEP}, done.` : `Step ${CODE_STEP}, to do.`}
+        {done ? `Step ${n}, done.` : `Step ${n}, to do.`}
       </span>
-      <RailMark n={CODE_STEP} done={done} last />
+      <RailMark n={n} done={done} last />
       <span className="pointer-events-none relative min-w-0 flex-1">
         <span className="block text-sm font-medium">The code</span>
         <span
@@ -627,9 +616,9 @@ export function useSettingsReadiness(ready: ReadyFacts): {
  * controls and whose press opens its page, so nothing a host knew moved; the rail adds the order and the
  * ticks, and the head says whether guests can arrive. Delete stays a quiet row at the foot.
  *
- * ★ THE TICKS ARE THE CHECKLIST'S (`lib/events/readiness.ts`), in Settings' order: who can get in, what
- * guests can add, the reel's first photos, the welcome, the code. Room is the plan's and stays on the
- * hub (`settingsReadiness`).
+ * ★ THE TICKS ARE THE CHECKLIST'S (`lib/events/readiness.ts`), in Settings' order, its one map of steps to items
+ * (`SETTINGS_STEP_ITEMS`, the map the dashboard's stage reads too): who can get in, what guests can add, the reel's
+ * first photos, the welcome, the code. Room is the plan's and stays on the hub (`settingsReadiness`).
  */
 export function SettingsRows({
   onOpenPage,
@@ -647,7 +636,6 @@ export function SettingsRows({
   const { facts, r } = useSettingsReadiness(ready);
   const head = readyHead(r);
   const itemOf = (id: ReadyItemId) => r.items.find((i) => i.id === id)!;
-  const code = itemOf("code");
   return (
     <div className="space-y-6">
       <div className="space-y-1.5">
@@ -670,16 +658,17 @@ export function SettingsRows({
             {head.line}
           </p>
         </div>
-        <div
+        {/* The flat card (`ui/card.tsx`): its tone alone sets it off the sheet, no ring of its own. */}
+        <Card
+          size="sm"
           data-settings-rows=""
           role="list"
           aria-label="Steps"
-          className="divide-y divide-border overflow-hidden rounded-lg bg-card text-card-foreground ring-1 ring-foreground/10"
+          className="gap-0 divide-y divide-border py-0"
         >
-          {GROUPS.map((group, i) => {
-            const item = STEP_ITEM[group];
-            return (
-              <div key={group} role="listitem">
+          {SETTINGS_STEP_ITEMS.map(({ item, group }, i) => (
+            <div key={item} role="listitem">
+              {group ? (
                 <SettingsStep
                   group={group}
                   n={i + 1}
@@ -688,17 +677,17 @@ export function SettingsRows({
                   onOpen={() => onOpenPage(PAGE_OF[group])}
                   words={words}
                 />
-              </div>
-            );
-          })}
-          <div role="listitem">
-            <CodeStep
-              done={code.done}
-              line={code.line}
-              onOpenCode={onOpenCode}
-            />
-          </div>
-        </div>
+              ) : (
+                <CodeStep
+                  n={i + 1}
+                  done={itemOf(item).done}
+                  line={itemOf(item).line}
+                  onOpenCode={onOpenCode}
+                />
+              )}
+            </div>
+          ))}
+        </Card>
         <SettingsNote>{SAVES_NOTE}</SettingsNote>
       </div>
       <DeleteEventRow eventId={s.eventId} eventName={s.eventName} />

@@ -334,6 +334,49 @@ describe("the list", () => {
     expect(why[0]).toHaveAccessibleName(/why\? what not approved means/i);
   });
 
+  it("★ a photograph waiting for the line stands half-lit, 'Waiting for your connection', never a spinner (no-signal r1)", async () => {
+    statuses([]);
+    const file = new File([new Uint8Array([1])], "dance.jpg", {
+      type: "image/jpeg",
+    });
+    const queue: QueueItem[] = [
+      {
+        id: "q-wait",
+        file,
+        kind: "photo",
+        status: "queued",
+        progress: 0,
+        cause: "dropped",
+      },
+      {
+        id: "q-go",
+        file,
+        kind: "photo",
+        status: "uploading",
+        progress: 30,
+      },
+    ];
+    mount({ queue, open: true });
+    await waitFor(() =>
+      expect(screen.getByText("Your uploads")).toBeInTheDocument(),
+    );
+    const rows = [
+      ...document.querySelectorAll("[data-upload-tracker-row]"),
+    ].map((row) => row.getAttribute("data-upload-tracker-row"));
+    // Newest first: the one going up, then the one standing by.
+    expect(rows).toEqual(["sending", "waiting-line"]);
+    const waiting = document.querySelector(
+      '[data-upload-tracker-row="waiting-line"]',
+    ) as HTMLElement;
+    expect(waiting).toHaveTextContent("Waiting for your connection");
+    expect(waiting.querySelector("[data-wait-point]")).not.toBeNull();
+    expect(
+      waiting.querySelector(".animate-spin, .motion-safe\\:animate-spin"),
+    ).toBeNull();
+    // And it offers no Remove: that takes back a row of hers on the server, and this one never reached it.
+    expect(waiting.querySelector("[data-upload-tracker-remove]")).toBeNull();
+  });
+
   it("a signed-in guest's account speaks for its rows: no ticket needed to ask", async () => {
     statuses([{ id: "m1", status: "pending" }]);
     mount({ sessionToken: null, isAuthed: true });

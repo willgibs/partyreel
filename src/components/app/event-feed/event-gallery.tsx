@@ -37,7 +37,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 import { hubCovered, type HubDevelopFacts } from "@/lib/disposable/host-cover";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import type { HubSort } from "@/lib/event/hub-album";
-import { sortViewGroup } from "@/lib/shared/album-order";
+import { albumOwnSort, sortViewGroup } from "@/lib/shared/album-order";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { perRowFor, type RowStep } from "@/lib/shared/album-rows";
 import { useRowStep } from "@/lib/shared/use-tile-size";
@@ -90,6 +90,7 @@ export function EventGallery({
   initialStep,
   tier,
   develop,
+  acceptingUploads = true,
   children,
 }: {
   eventId: string;
@@ -104,13 +105,17 @@ export function EventGallery({
    * covered until she looks (the-wait r1, Will's `cover=guests`, `event-hub-head-cover.tsx`). Absent, the album is open.
    */
   develop?: HubDevelopFacts | null;
+  /**
+   * Whether her album takes uploads (`events.accepting_uploads`): closed, it opens in the night's order, as her guests'
+   * does (AY1). Absent, it is taking them, newest first.
+   */
+  acceptingUploads?: boolean;
   /** The album (`EventUploads`), handed down as an opaque slot. */
   children: React.ReactNode;
 }) {
   const album = useHostAlbum();
   const landed = useCallback(() => void album?.sync(), [album]);
   const [view, setView] = useState<View>("album");
-  const [sort, setSort] = useState<HubSort>("newest");
   const { step, setRowStep } = useRowStep(initialStep, setRowStepAction);
   // One identity for the page's life: the grid under this reads it from context, and a setter
   // that changed every render would re-render the album on every selection toggle up here.
@@ -137,6 +142,23 @@ export function EventGallery({
     hubCovered(develop, developClock ?? undefined);
   const [looking, setLooking] = useState(false);
   const coverShown = covered && !looking && view === "album";
+
+  /* ★ HER SORT FOLLOWS HER GUESTS' RULE (album-order's `albumOwnSort`, AY1): her album opens on the order her guests
+     meet, newest first while it takes uploads and the night in order once she closes adding or it develops (the
+     develop's clock above turns it at its moment), so a hub and a guest's phone never show one album two ways. Her own
+     Sort is a departure for the visit, forgotten the moment she chooses the album's own again, so a close she makes
+     while she looks turns her album too unless she chose otherwise. */
+  const ownSort = albumOwnSort(
+    { acceptingUploads, developsAt: develop?.develops_at ?? null },
+    // Before her clock is known (the server's render, the hydrating one), the render's own now, as the cover's.
+    developClock ?? undefined,
+  );
+  const [chosenSort, setChosenSort] = useState<HubSort | null>(null);
+  const sort = chosenSort ?? ownSort;
+  const setSort = useCallback(
+    (next: HubSort) => setChosenSort(next === ownSort ? null : next),
+    [ownSort],
+  );
 
   // The album's width, for the slider's words ("5 a row"): read off the box the
   // rows are laid in, and only while the album is the view (and not under her cover).

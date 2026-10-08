@@ -26,6 +26,11 @@ import {
 } from "@/components/app/event-settings/camera-settings-fresh-rolls";
 import { StylePicture } from "@/components/app/event-settings/camera-settings-style-picture";
 import {
+  RadioCard,
+  RadioCardHit,
+  RadioCards,
+} from "@/components/app/event-settings/radio-cards";
+import {
   RollControl,
   type RollChange,
 } from "@/components/app/event-settings/roll-control";
@@ -235,7 +240,7 @@ type ControlProps = {
   eventEndDate?: string | null;
   /**
    * The party's own zone as stored (`events.time_zone`), or null for none: the default develop's 9 am is read in it
-   * (event-zone), so it is the morning the album turns; a party with none reads hers (`hostPartyZone`). Absent where a
+   * (event-zone), so it is one morning for every guest; a party with none reads hers (`hostPartyZone`). Absent where a
    * frame mounts the control alone: hers.
    */
   partyZone?: string | null;
@@ -391,7 +396,11 @@ export function AlbumStyles({
         <p id={labelId} className="px-1 text-sm font-medium">
           Album style
         </p>
-        <div role="radiogroup" aria-labelledby={labelId} className="space-y-2">
+        <RadioCards
+          value={style}
+          aria-labelledby={labelId}
+          className="space-y-2"
+        >
           {ALBUM_STYLES.map((st) => (
             <StyleCard
               key={st}
@@ -402,7 +411,7 @@ export function AlbumStyles({
               onChoose={() => choose(st)}
             />
           ))}
-        </div>
+        </RadioCards>
         {pending && words ? (
           <ConsequenceLine
             confirmLabel={words.confirm}
@@ -472,7 +481,10 @@ export function AlbumStyles({
   );
 }
 
-/** One album style: its picture, its name and its line, the whole card the choice. */
+/**
+ * One album style: its picture, its name and its line, the whole card the choice. Its own look (a picture card), over the
+ * radio every Settings card shares (`RadioCardHit`: one stop a group, the arrows between the styles).
+ */
 function StyleCard({
   style,
   on,
@@ -496,16 +508,12 @@ function StyleCard({
         on ? "afloat afloat-card" : "bg-(--choice) hover:bg-(--choice-up)",
       )}
     >
-      <button
-        type="button"
-        role="radio"
-        aria-checked={on}
-        disabled={disabled && !on}
-        onClick={onChoose}
-        className="absolute inset-0 rounded-xl outline-none focus-halo halo-inset disabled:cursor-wait"
-      >
-        <span className="sr-only">{`${STYLE_NAMES[style]}. ${line}`}</span>
-      </button>
+      <RadioCardHit
+        value={style}
+        name={`${STYLE_NAMES[style]}. ${line}`}
+        disabled={disabled}
+        onChoose={onChoose}
+      />
       <StylePicture style={style} className="h-[72px] w-[88px]" />
       <span aria-hidden className="pointer-events-none relative min-w-0 flex-1">
         <span className="block font-heading text-base">
@@ -556,7 +564,7 @@ function Customize({
           aria-expanded={open}
           aria-controls={bodyId}
           onClick={() => onOpenChange(!open)}
-          className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-halo"
+          className="flex w-full focus-halo items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left text-sm text-muted-foreground transition-colors outline-none hover:text-foreground"
         >
           <span>Customize how guests add and when everyone sees</span>
           <ChevronDown
@@ -672,28 +680,32 @@ export function CaptureAndReveal({
         <p id={howId} className="text-sm font-medium">
           How guests add
         </p>
-        <div role="radiogroup" aria-labelledby={howId} className="space-y-1.5">
-          <Choice
-            on={value.capture === "upload"}
+        <RadioCards
+          value={value.capture}
+          aria-labelledby={howId}
+          className="space-y-1.5"
+        >
+          <RadioCard
+            value="upload"
+            data-choice="upload"
             label="Free uploads"
             line="Guests add as many photos as they like."
             onChoose={() =>
               value.capture !== "upload" && onSave({ capture: "upload" })
             }
             disabled={savingCapture}
-            data="upload"
           />
-          <Choice
-            on={value.capture === "camera"}
+          <RadioCard
+            value="camera"
+            data-choice="camera"
             label="The album's camera"
             line={cameraLine(roll)}
             onChoose={() =>
               value.capture !== "camera" && onSave({ capture: "camera" })
             }
             disabled={savingCapture}
-            data="camera"
           />
-        </div>
+        </RadioCards>
       </section>
 
       <section
@@ -703,44 +715,51 @@ export function CaptureAndReveal({
         <p id={whenId} className="text-sm font-medium">
           {"When everyone sees what's added"}
         </p>
-        <div role="radiogroup" aria-labelledby={whenId} className="space-y-1.5">
-          <Choice
-            on={reveal === "right-away"}
+        <RadioCards
+          value={reveal}
+          aria-labelledby={whenId}
+          className="space-y-1.5"
+        >
+          <RadioCard
+            value="right-away"
+            data-choice="right-away"
             label="Right away"
             line="Each photo shows the moment it's added."
             onChoose={() => chooseReveal("right-away")}
             disabled={savingReveal}
-            data="right-away"
           />
-          <Choice
-            on={reveal === "approve"}
+          <RadioCard
+            value="approve"
+            data-choice="approve"
             label="Once you approve each"
             line="Hold new photos until you approve or reject them, instead of showing them live."
             onChoose={() => chooseReveal("approve")}
             disabled={savingReveal}
-            data="approve"
           />
-          <Choice
-            on={reveal === "develop"}
+          <RadioCard
+            value="develop"
+            data-choice="develop"
             label="At a develop time"
             line="Hidden until then, and everyone sees them at once."
             onChoose={() => chooseReveal("develop")}
             disabled={savingReveal}
-            data="develop"
           >
             {reveal === "develop" && !timeElsewhere ? (
-              <DevelopTimeControl
-                time={time}
-                developsAt={value.developsAt}
-                review={value.review}
-                roll={roll}
-                hydrated={hydrated}
-                saving={savingReveal}
-                far={far}
-              />
+              // Under the words, past the radio. The field's keys are its own: its arrows step the time, never the group.
+              <div className="relative z-10 mt-2.5 pl-6.5">
+                <DevelopTimeControl
+                  time={time}
+                  developsAt={value.developsAt}
+                  review={value.review}
+                  roll={roll}
+                  hydrated={hydrated}
+                  saving={savingReveal}
+                  far={far}
+                />
+              </div>
             ) : null}
-          </Choice>
-        </div>
+          </RadioCard>
+        </RadioCards>
 
         {pending?.kind === "show-waiting" ? (
           <ConsequenceLine
@@ -785,71 +804,6 @@ export function CaptureAndReveal({
           </ConsequenceLine>
         ) : null}
       </section>
-    </div>
-  );
-}
-
-/** One radio card, the door page's own idiom: the whole card is the choice, its name and one line inside. */
-function Choice({
-  on,
-  label,
-  line,
-  onChoose,
-  disabled,
-  data,
-  children,
-}: {
-  on: boolean;
-  label: string;
-  line: string;
-  onChoose: () => void;
-  disabled?: boolean;
-  data: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      data-choice={data}
-      data-state={on ? "on" : "off"}
-      className={cn(
-        // A radio card in the house set (identity r5), as the door's gates are.
-        "relative rounded-xl px-3 py-2.5 transition-[background-color] duration-150 motion-reduce:transition-none",
-        on ? "afloat afloat-card" : "bg-(--choice) hover:bg-(--choice-up)",
-      )}
-    >
-      <div className="flex items-start gap-2.5">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={on}
-          disabled={disabled && !on}
-          onClick={onChoose}
-          className="absolute inset-0 rounded-xl outline-none focus-halo halo-inset disabled:cursor-wait"
-        >
-          <span className="sr-only">{label}</span>
-        </button>
-        <span
-          aria-hidden
-          className={cn(
-            // A radio waits as a ring of tone and fills with ink (identity r5).
-            "pointer-events-none relative mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full",
-            on ? "bg-primary" : "inset-ring-2 inset-ring-foreground/45",
-          )}
-        >
-          {on ? (
-            <span className="size-1.5 rounded-full bg-primary-foreground" />
-          ) : null}
-        </span>
-        <span className="pointer-events-none relative min-w-0 flex-1">
-          <span className="block text-sm font-medium">{label}</span>
-          <span className="block text-caption text-pretty text-muted-foreground">
-            {line}
-          </span>
-        </span>
-      </div>
-      {children ? (
-        <div className="relative z-10 mt-2.5 pl-6.5">{children}</div>
-      ) : null}
     </div>
   );
 }

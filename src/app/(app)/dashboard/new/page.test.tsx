@@ -9,7 +9,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *     count, and the names are read only when the door will say them;
  *   - ★ the account's storage reaches the beat (the carried `room`), and a failed read is never worth
  *     the page: room is left out and the failure is filed where failures are read;
- *   - the browser's own bar wears the room's dark, whatever the session's theme.
+ *   - the browser's own bar wears the room's dark, whatever the session's theme;
+ *   - ★ an album's like (the address's, else the one her sign-up carried in the like door's cookie) is read through
+ *     the album's door as the visitor she is, lends the style alone, and lends nothing where the door shuts her out,
+ *     where the read fails, or at the cap.
  */
 
 vi.mock("server-only", () => ({}));
@@ -70,6 +73,50 @@ vi.mock("@/lib/site-url", () => ({
 const captureError = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observability/sentry", () => ({ captureError }));
 
+// The like door's cookie, and the album's door as the visitor meets it (`pageDoor`, the guest page's own answer).
+const jar = vi.hoisted(() => ({ like: null as string | null }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: (name: string) =>
+      name === "pr_create_like" && jar.like !== null
+        ? { name, value: jar.like }
+        : undefined,
+  }),
+}));
+const door = vi.hoisted(() => ({
+  asked: [] as string[],
+  answer: null as
+    | null
+    | Error
+    | { shut: boolean; event: Record<string, unknown> },
+}));
+vi.mock("@/lib/events/closed-door.server", () => ({
+  pageDoor: async (token: string) => {
+    door.asked.push(token);
+    if (door.answer instanceof Error) throw door.answer;
+    if (!door.answer) return null;
+    return {
+      decision: { kind: door.answer.shut ? "shut" : "through" },
+      event: door.answer.event,
+    };
+  },
+  isShut: (d: { decision: { kind: string } }) => d.decision.kind === "shut",
+}));
+
+/** A Review album in Dots, with a name, a date and a host none of which may cross. */
+const ALBUM = {
+  id: "album_1",
+  name: "Priya's 30th",
+  event_date: "2026-11-02",
+  description: "Bring everything",
+  host_display_name: "Priya",
+  capture: "upload",
+  moderation_mode: "hold_for_approval",
+  develops_at: null,
+  qr_style: "dots",
+  roll_size: null,
+};
+
 const shown = vi.hoisted(() => ({
   props: null as Record<string, unknown> | null,
 }));
@@ -82,8 +129,12 @@ vi.mock("@/components/app/create-event-wizard", () => ({
 
 const { default: NewEventPage, viewport } = await import("./page");
 
-async function open() {
-  render(await NewEventPage());
+async function open(like?: string) {
+  render(
+    await NewEventPage({
+      searchParams: Promise.resolve(like === undefined ? {} : { like }),
+    }),
+  );
   return shown.props!;
 }
 
@@ -105,6 +156,9 @@ beforeEach(() => {
   };
   shown.props = null;
   captureError.mockClear();
+  jar.like = null;
+  door.asked = [];
+  door.answer = { shut: false, event: ALBUM };
 });
 
 describe("the cap, decided before the room opens", () => {
@@ -154,5 +208,69 @@ describe("the browser's bar", () => {
   it("wears the room's dark in both themes, as the room does", () => {
     // `#040405` is the sRGB of the room's --background (layout.tsx says so for the dark scheme).
     expect(viewport.themeColor).toBe("#040405");
+  });
+});
+
+describe("Make one like this: Create in an album's style (bridge=end)", () => {
+  const TOKEN = "7f3a9c2e5b8d4f1a9e6c3b7d2a5f8e1c";
+
+  it("opens as it always does with no like on the address or the device", async () => {
+    const props = await open();
+    expect(props.like).toBeNull();
+    expect(door.asked).toEqual([]);
+  });
+
+  it("★ lends the album's style and look alone, read through its door: nothing of the album crosses", async () => {
+    const props = await open(TOKEN);
+    expect(door.asked).toEqual([TOKEN]);
+    expect(props.like).toEqual({ style: "approval", look: "dots", roll: null });
+    expect(JSON.stringify(props.like)).not.toMatch(/Priya|2026|Bring|album_1/);
+  });
+
+  it("★ reads the like her sign-up carried when the address has none", async () => {
+    jar.like = TOKEN;
+    const props = await open();
+    expect(door.asked).toEqual([TOKEN]);
+    expect(props.like).toMatchObject({ style: "approval" });
+  });
+
+  it("★ lends nothing where the album's door shuts her out, or names no album", async () => {
+    door.answer = { shut: true, event: ALBUM };
+    expect((await open(TOKEN)).like).toBeNull();
+    door.answer = null;
+    expect((await open(TOKEN)).like).toBeNull();
+  });
+
+  it("asks nothing of a token of the wrong shape", async () => {
+    expect((await open("../../etc/passwd")).like).toBeNull();
+    expect((await open("a".repeat(200))).like).toBeNull();
+    expect(door.asked).toEqual([]);
+  });
+
+  it("is never worth the page: a failed read is no like, filed", async () => {
+    door.answer = new Error("rpc down");
+    const props = await open(TOKEN);
+    expect(props.like).toBeNull();
+    expect(captureError).toHaveBeenCalledWith(
+      "db",
+      door.answer,
+      expect.objectContaining({ seam: "create_like" }),
+    );
+  });
+
+  it("reads no album at the cap: the door stands there instead", async () => {
+    db.count = 1;
+    const props = await open(TOKEN);
+    expect(props.atCap).toBe(true);
+    expect(props.like).toBeNull();
+    expect(door.asked).toEqual([]);
+  });
+
+  it("lends nothing of a mix outside the three styles", async () => {
+    door.answer = {
+      shut: false,
+      event: { ...ALBUM, capture: "camera", develops_at: null },
+    };
+    expect((await open(TOKEN)).like).toBeNull();
   });
 });

@@ -348,13 +348,14 @@ export const TERMS_SECTIONS: LegalSection[] = [
     id: "storage-and-retention",
     title: "Storage and retention",
     summary:
-      "Albums do not expire. Deleted items get a 30-day safety net, over-cap accounts get a 45-day grace period, and idle free events get a warning and about six months.",
+      "Albums do not expire. Deleted items get a 30-day safety net, over-cap accounts get a 45-day grace period, and a free event left idle for a long time is warned about before it is removed.",
     blocks: [
       p(
         "Albums do not expire: events stay up until their host deletes them, subject only to the rules below. Deleted media and events sit in a recovery bin for 30 days before being permanently removed; a host can restore or purge them sooner. The bin holds at most as much as the account's storage allowance, so when it is over that budget the oldest deleted items are removed early.",
       ),
-      // Sources: OVER_CAP_GRACE_DAYS 45 + largest-first (lifecycle-recovery.md);
-      // INACTIVE_DAYS 180 + WARN_BEFORE_DAYS 14 (inactivity.ts); passes.ts 365.
+      // Sources: OVER_CAP_GRACE_DAYS 45 + largest-first (lifecycle-recovery.md); passes.ts 365.
+      // ★ The idle removal states NO figure, neither its window nor its warning's lead (inactivity.ts): the PRD's
+      // legal-text principle, a promise that would box out a later choice. `inactivity.test.ts` holds it.
       p(
         <>
           <strong className="text-foreground">Over-capacity accounts.</strong>{" "}
@@ -368,11 +369,11 @@ export const TERMS_SECTIONS: LegalSection[] = [
         <>
           <strong className="text-foreground">Inactive free events.</strong> To
           keep free accounts tidy, an event on a free account may be removed
-          after about six months with no activity. Signing in and opening the
-          event both count as activity. We email you a warning 14 days before
-          removal, and a removed event stays in the recovery bin for its 30-day
-          window. Keeping a paid plan, or simply using your event, prevents
-          removal.
+          after a long period with no activity, a period we may change. Signing
+          in and opening the event both count as activity. We email you a
+          warning before removal, and a removed event stays in the recovery bin
+          for its 30-day window. Keeping a paid plan, or simply using your
+          event, prevents removal.
         </>,
       ),
       p(

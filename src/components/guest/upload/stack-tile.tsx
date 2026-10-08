@@ -34,6 +34,14 @@
  * `stop-upload.ts`'s, drawn on the toast, because a tile this small has no room to ask on. Absent once the file
  * can no longer be stopped (its bytes are up and its complete is coming).
  *
+ * ★ THE LINE DROPPED: THE SEND STANDS BY WHERE IT IS (no-signal r1, Will's `drop=standby`). The photograph stays, and
+ * its bar gives way to Standby's half-lit point and "No connection", the promise in a few words under it ("Kept on this
+ * phone", or "Keep this page open" where the phone could not hold it: `standby`). A bar held at 38% would promise
+ * progress the line's return throws away (a photograph goes up as one PUT, so it goes again from the start) and read as
+ * stuck, so the pane says the state alone. The promise lives on the send because it stays there: a toast at a party is
+ * gone before a phone leaves a pocket. Nothing opens by itself; a press on the photograph opens what waits
+ * (`onOpenWaits`), and the x still stops one before it lands.
+ *
  * ★ THE TILE CARRIES `data-lit`, AND THAT IS THE WHOLE POINT OF BINDING IT TO
  * THE ALBUM'S RULE. A photograph must not gain or lose an edge at the moment it
  * finishes uploading, so this box wears the bright edge the landed tile wears
@@ -43,8 +51,14 @@ import type { CSSProperties, Ref } from "react";
 import { X } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
+import { WaitPoint } from "@/components/guest/upload/wait-point";
 import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
+import {
+  NO_CONNECTION,
+  SEE_WHAT_WAITS,
+  waitingCount,
+} from "@/lib/guest/unsent/words";
 import { STOP_COPY } from "@/lib/upload/stop-upload";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +94,8 @@ export function UploadStackTile({
   progress,
   remaining,
   onStop,
+  standby,
+  onOpenWaits,
   ref,
 }: {
   /** The file actually in the air (the queue runs one at a time). */
@@ -92,6 +108,10 @@ export function UploadStackTile({
   remaining: number;
   /** Her x on this file: ask whether to stop it. Absent where it can no longer be stopped, and then no x is drawn. */
   onStop?: () => void;
+  /** The line dropped and this file stands by for it: the promise in a few words (`paneNote`). Absent while it goes. */
+  standby?: { note: string };
+  /** Her press on a send that stands by: what waits, and its promise in full. */
+  onOpenWaits?: () => void;
   /** The stack's own box, for whoever watches whether she can see it (`gallery-rows.tsx`'s stand-in). */
   ref?: Ref<HTMLDivElement>;
 }) {
@@ -128,32 +148,74 @@ export function UploadStackTile({
           fit="cover"
           className="absolute inset-0"
         />
-        <div
-          style={READING_PANE}
-          className={cn(
-            GLASS_MARK,
-            "absolute inset-x-0 bottom-0 flex items-center gap-2 px-2 py-1.5",
-          )}
-        >
-          {remaining > 1 && (
+        {standby ? (
+          <div
+            role="status"
+            data-stack-standby=""
+            style={READING_PANE}
+            className={cn(
+              GLASS_MARK,
+              "absolute inset-x-0 bottom-0 flex flex-col gap-0.5 px-2 py-1.5",
+            )}
+          >
             <span
-              data-stack-count
               className={cn(
                 GLASS_MARK_LIT,
-                "shrink-0 text-reading font-medium text-white tabular-nums",
+                "flex items-center gap-1.5 text-reading font-medium text-white",
               )}
             >
-              {formatCount(remaining)} to go
+              <WaitPoint />
+              <span data-stack-state="">{NO_CONNECTION}</span>
             </span>
-          )}
-          <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
             <span
-              data-pending-progress
-              className="block h-full rounded-full bg-white transition-[width] duration-200 ease-emphasis"
-              style={{ width: `${progress}%` }}
-            />
-          </span>
-        </div>
+              data-stack-note=""
+              className={cn(GLASS_MARK_LIT, "text-working text-white/90")}
+            >
+              {standby.note}
+            </span>
+            {/* How many, for whoever cannot see the ghost edges and the Add's shoulder. */}
+            {remaining > 1 && (
+              <span className="sr-only">, {waitingCount(remaining)}</span>
+            )}
+          </div>
+        ) : (
+          <div
+            style={READING_PANE}
+            className={cn(
+              GLASS_MARK,
+              "absolute inset-x-0 bottom-0 flex items-center gap-2 px-2 py-1.5",
+            )}
+          >
+            {remaining > 1 && (
+              <span
+                data-stack-count
+                className={cn(
+                  GLASS_MARK_LIT,
+                  "shrink-0 text-reading font-medium text-white tabular-nums",
+                )}
+              >
+                {formatCount(remaining)} to go
+              </span>
+            )}
+            <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
+              <span
+                data-pending-progress
+                className="block h-full rounded-full bg-white transition-[width] duration-200 ease-emphasis"
+                style={{ width: `${progress}%` }}
+              />
+            </span>
+          </div>
+        )}
+        {standby && onOpenWaits && (
+          // The photograph is her way into what waits; the pane over it stays the state it says.
+          <button
+            type="button"
+            data-open-waits=""
+            onClick={onOpenWaits}
+            aria-label={SEE_WHAT_WAITS}
+            className="absolute inset-0 focus-halo rounded-tile outline-none"
+          />
+        )}
       </div>
       {onStop && (
         <button

@@ -29,7 +29,9 @@ import {
   revealFor,
   rollCount,
   rollDoneLine,
+  SHOT_WORDS,
   shotsCountLine,
+  shotsWaitingLine,
   TAKE_BACK,
   takeBackLine,
   takenBackLine,
@@ -304,6 +306,84 @@ describe("the lines", () => {
     expect(unsentLine(3)).toBe("3 shots didn’t send.");
     expect(reelLabel(6)).toBe("Your shots, 6 on the roll");
     expect(reelLabel(2, true)).toBe("Your shots, 2 taken");
+  });
+});
+
+/**
+ * ★ A ROLL IN A DEAD ZONE (no-signal r1, Will's `roll=taken`): every press spends a frame at once, sent or not, so the
+ * camera says what waits for the line in the state's own word, with no press, its caption counts what waits, its end
+ * says the wait first, and her list says each one waits, in the queue's own word.
+ */
+describe("the roll in a dead zone", () => {
+  it("★ the line under the shutter says the shots wait and go by themselves, never a press", () => {
+    expect(shotsWaitingLine(1)).toBe(
+      "No connection: your shot waits, and goes in once it’s back.",
+    );
+    expect(shotsWaitingLine(4)).toBe(
+      "No connection: 4 shots wait, and go in once it’s back.",
+    );
+    expect(shotsWaitingLine(4)).not.toMatch(/retry|try again|didn/i);
+  });
+
+  it("★ the caption counts what waits, said over anything still sending", () => {
+    const base = { cap: 24, done: false, host: false, sending: 0 };
+    expect(reelCaption({ ...base, frame: 23, waiting: 2 })).toBe(
+      "Frame 23 of 24 · 2 waiting",
+    );
+    expect(reelCaption({ ...base, frame: 24, done: true, waiting: 4 })).toBe(
+      "24 of 24 · 4 waiting",
+    );
+    expect(reelCaption({ ...base, frame: 9, sending: 1, waiting: 0 })).toBe(
+      "Frame 9 of 24 · sending 1",
+    );
+  });
+
+  it("★ the roll's end says the wait first, then how the roll comes back, in every album's truth", () => {
+    expect(
+      rollDoneLine({
+        held: 24,
+        reveal: "develop",
+        developsAt: NINE_AM,
+        nowMs: PARTY,
+        waiting: 4,
+      }),
+    ).toBe(
+      "24 shots; 4 wait for your connection, then develop with everyone’s. They’re back tomorrow at 9 am.",
+    );
+    expect(
+      rollDoneLine({
+        held: 24,
+        reveal: "develop",
+        developsAt: NINE_AM,
+        nowMs: PARTY,
+        waiting: 1,
+      }),
+    ).toBe(
+      "24 shots; 1 waits for your connection, then develops with everyone’s. They’re back tomorrow at 9 am.",
+    );
+    expect(
+      rollDoneLine({
+        held: 24,
+        reveal: "approve",
+        developsAt: null,
+        waiting: 2,
+      }),
+    ).toBe("24 shots; 2 wait for your connection, then wait for the host.");
+    expect(
+      rollDoneLine({ held: 12, reveal: "live", developsAt: null, waiting: 1 }),
+    ).toBe("12 shots; 1 waits for your connection, then goes into the album.");
+    // Nothing waits: the roll's own end, as ever.
+    expect(
+      rollDoneLine({ held: 24, reveal: "live", developsAt: null, waiting: 0 }),
+    ).toBe("24 shots, all in the album.");
+    // At the held door nothing is sent anyway: the door's own end.
+    expect(
+      rollDoneLine({ held: 3, reveal: "door", developsAt: null, waiting: 3 }),
+    ).toBe("3 shots. They go in once you’re let in.");
+  });
+
+  it("her list says a waiting shot in the state's own word, short enough for a tile of three across", () => {
+    expect(SHOT_WORDS.waiting).toBe("No connection");
   });
 });
 

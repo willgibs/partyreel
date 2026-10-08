@@ -24,7 +24,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  * THE FREE PLAN'S ONE EXCEPTION TO "STAYS UP UNTIL YOU DELETE IT" (help/AUTHORING.md rule 7): an event
  * nobody touches for `INACTIVE_MONTHS` is warned about by email, then moved to Deleted. Every line below
  * that says an event or an album stays up carries the exception, its months read from the lifecycle
- * constants (`events.test.ts` holds it), the way the help center words it: "about 6 months".
+ * constants (`events.test.ts` holds it), the way the help center words it: "about N months".
  */
 
 // Single source for the event-type umbrellas (the home section, the /events hub, and

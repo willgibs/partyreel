@@ -10,6 +10,10 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  LIKE_WORDS,
+  likeHref,
+} from "@/components/app/create-event-wizard/like";
 import { GuestAccountMenu } from "@/components/guest/guest-account-menu";
 import { useCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { GuestNameMenu } from "@/components/guest/guest-name-menu";
@@ -24,6 +28,7 @@ import {
   leaveAllGuestSessions,
   useStoredSession,
 } from "@/lib/guest/use-stored-session";
+import { trackAttrs } from "@/lib/analytics/events";
 import { fnv1a } from "@/lib/avatar/gradient";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -107,9 +112,16 @@ const DISC_FADE = cn(
   "motion-reduce:data-[disc]:**:data-[slot=avatar]:transition-none",
 );
 
-// The guest event-page header. Auth-aware: a LOGGED-OUT visitor sees the quiet "Start for free"
-// CTA (the host paid for this — it's their event, not a loud Partyreel page); a LOGGED-IN visitor
-// sees their account menu instead, so they feel signed in and can jump back into the app.
+// The guest event-page header. Auth-aware: a LOGGED-OUT visitor sees the quiet corner (the host paid for this — it's
+// their event, not a loud Partyreel page); a LOGGED-IN visitor sees their account menu instead, so they feel signed in
+// and can jump back into the app.
+//
+// ★ ON AN ALBUM, THE CORNER IS MAKE ONE LIKE THIS (after-party r1's `bridge=end`, Will 2026-10-07: "I love how easy
+// this makes it for guests to go straight into becoming a host rather than dropping them off in marketing"): the same
+// quiet ghost, the same size and place, its words speaking of the album she is in, never of our price, leading through
+// the like door (`create-event-wizard/like.ts`: sign-up first where she has no account) into Create already in this
+// album's style. Her name menu and her account menu carry the same row, so a guest who joined meets it too. Only
+// where an event's token is in hand: an event-less page (/u/[slug]) keeps Start for free, to the home page.
 //
 // ★ IT RUNS WITHOUT AN EVENT TOO, and /u/[slug] is why. A public profile is a guest-side page with
 // no event behind it, and a hand-rolled header of its own would drop a signed-in visitor's account
@@ -479,6 +491,7 @@ export function GuestHeader({
             ownsThisEvent={menu.ownsThisEvent}
             eventId={eventId ?? ""}
             onSignOut={handleSignOut}
+            likeHref={qrToken ? likeHref(qrToken) : null}
           />
         ) : qrToken && guestName ? (
           // Somebody, but not an account: the name they typed, marked, with the
@@ -492,7 +505,22 @@ export function GuestHeader({
             seed={ownSeed}
             emailAttached={emailAttached}
             onRenamed={() => router.refresh()}
+            likeHref={likeHref(qrToken)}
           />
+        ) : qrToken ? (
+          // A plain link, never a prefetch: the door is a route of its own, asked only on the press.
+          <Button asChild variant="ghost" size="sm">
+            <a
+              href={likeHref(qrToken)}
+              data-guest-like=""
+              {...trackAttrs("cta_click", {
+                cta: "make-one-like-this",
+                location: "guest-header",
+              })}
+            >
+              {LIKE_WORDS}
+            </a>
+          </Button>
         ) : (
           <Button asChild variant="ghost" size="sm">
             <ChromeLink

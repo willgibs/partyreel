@@ -3,6 +3,8 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { contrast } from "@/lib/avatar/gradient"
+
 import {
   floatingDisplay,
   floatingDisplayPanel,
@@ -136,6 +138,78 @@ describe("the warning's words", () => {
     expect(read("src/app/theme.css")).toMatch(
       /--text-color-warning:\s*var\(--warning-ink\)/,
     )
+  })
+})
+
+describe("the states' tiers (brand-marks r1, status=amber)", () => {
+  // ★ A set that moves a light without its words leaves paper's AA green or
+  // bronze on a near-black screen, or the light itself as text on white, so
+  // Ready's words ride their own token on every ground, as the warning's do;
+  // and Standby has no hue of its own, so it is every ground's own muted ink,
+  // restated where that ground declares it (a var() resolves where declared).
+  const sets = [...globals.matchAll(/\n([^\n{}@]+)\{([^{}]*)\}/g)]
+
+  it("gives Ready's words their own token on every ground that declares the green, and `text-success` reads them", () => {
+    const greens = sets.filter(([, , body]) => declares(body, "--success"))
+    expect(greens.length, "no set declares --success").toBeGreaterThan(2)
+    for (const [, selector, body] of greens)
+      expect(
+        declares(body, "--success-ink"),
+        `${selector.trim()} moves --success without --success-ink`,
+      ).toBe(true)
+    expect(read("src/app/theme.css")).toMatch(
+      /--text-color-success:\s*var\(--success-ink\)/,
+    )
+  })
+
+  it("keeps Standby unhued: every ground's --info is its own muted ink", () => {
+    const standbys = sets.filter(([, , body]) => declares(body, "--info"))
+    expect(standbys.length, "no set declares --info").toBeGreaterThan(2)
+    for (const [selector, body] of standbys.map(([, sel, b]) => [sel.trim(), b]))
+      expect(body, `${selector} gives Standby a value of its own`).toMatch(
+        /--info:\s*var\(--muted-foreground\)/,
+      )
+  })
+
+  /** A colour token's value in a block, as OKLCH. */
+  const tone = (body: string, token: string) => {
+    const m = new RegExp(`${token}:\\s*oklch\\(([\\d.]+) ([\\d.]+) ([\\d.]+)\\)`).exec(body)
+    expect(m, `${token} is not an oklch literal`).not.toBeNull()
+    return { l: Number(m![1]), c: Number(m![2]), h: Number(m![3]) }
+  }
+  const paper = () => block(":root,\n.surface-paper")
+
+  it("stands every lit point at 3:1 and every state's words at 4.5:1 on paper's three grounds", () => {
+    const body = paper()
+    const grounds = {
+      body: tone(body, "--background"),
+      card: tone(body, "--card"),
+      mat: tone(block(".surface-mat"), "--background"),
+    }
+    for (const [name, ground] of Object.entries(grounds)) {
+      for (const point of ["--success", "--warning", "--destructive"])
+        expect(
+          contrast(tone(body, point), ground),
+          `${point} as a point on paper's ${name}`,
+        ).toBeGreaterThanOrEqual(3)
+      for (const words of ["--success-ink", "--warning-ink"])
+        expect(
+          contrast(tone(body, words), ground),
+          `${words} as words on paper's ${name}`,
+        ).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it("lights every state as its own words in the room and on a piece of it on paper", () => {
+    for (const selector of [".dark", ".surface-ink"]) {
+      const ground = block(selector)
+      const room = tone(ground, "--background")
+      for (const light of ["--success", "--warning", "--destructive"])
+        expect(
+          contrast(tone(ground, light), room),
+          `${light} in ${selector}`,
+        ).toBeGreaterThanOrEqual(4.5)
+    }
   })
 })
 

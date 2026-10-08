@@ -184,14 +184,42 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
   // The RPC returns a 0/1-row set; empty = missing/deleted (don't leak existence).
   const row = data?.[0];
   if (!row) return { ok: false, code: "not_found" };
+  return { ok: true, data: await rehydrateUnlockedDetails(guestEventOf(row)) };
+});
 
+/**
+ * THE SAME READ WITH NO IDENTITY (`anon.ts`): what everyone holding the link reads, for a response the CDN
+ * shares between viewers (an open album's version, `api/album/guest/sync/version`). The request read above
+ * carries the viewer's session, and the RPC answers a session personally (an account a block holds reads the
+ * event as private), so an answer built on it is one viewer's; this one has no session to answer, no block
+ * masks it and no owner unmasks it, and nothing is re-hydrated (no unlock is anyone's). Never cache()d: it
+ * is asked once, by a route no page shares a request with.
+ */
+export async function getEventByQrTokenForAnyone(
+  qrToken: string,
+): Promise<GuestEventResult> {
+  const { data, error } = await createAnonClient().rpc(
+    "get_event_by_qr_token",
+    { p_qr_token: qrToken },
+  );
+  if (error) throw error;
+  const row = data?.[0];
+  if (!row) return { ok: false, code: "not_found" };
+  return { ok: true, data: guestEventOf(row) };
+}
+
+type EventByTokenRow =
+  Database["public"]["Functions"]["get_event_by_qr_token"]["Returns"][number];
+
+/** The RPC's row as GuestEvent carries it: the one mapping, for the request read and the anonymous one. */
+function guestEventOf(row: EventByTokenRow): GuestEvent {
   // The generated types understate nullability (`description`/`event_date` are
   // typed non-null but the columns are nullable) — normalize defensively. `name` joins them
   // for a second reason (the private-name redaction): the RPC returns NULL for a PRIVATE
   // event's name to a non-owner, matching the page, which reveals nothing for private. Every
   // consumer already branches on `visibility === "private"` before reading the name (the page's
   // lock return, generateMetadata, the OG image, both gated API routes), so "" is never rendered.
-  const event: GuestEvent = {
+  return {
     id: row.id,
     qr_token: row.qr_token,
     name: row.name ?? "",
@@ -224,9 +252,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     // The develop and the camera (20261002200000), read through the seam until the types regenerate.
     ...developEventFields(row),
   };
-
-  return { ok: true, data: await rehydrateUnlockedDetails(event) };
-});
+}
 
 /** The read's develop and camera columns as GuestEvent carries them (`developFactsOf`, the seam's one parser). */
 function developEventFields(

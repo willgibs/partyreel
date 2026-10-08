@@ -22,6 +22,7 @@ import {
   type Reading,
 } from "@/lib/db/queries/accounts";
 import { readAccountPassCredits } from "@/lib/db/queries/pass-credits";
+import { readAccountUploadsCredits } from "@/lib/db/queries/uploads-credits";
 import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
 import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
@@ -49,11 +50,20 @@ import {
   usedOfLabel,
   windowLabel,
 } from "../uploads";
+import {
+  creditByline,
+  creditLine,
+  creditRoom,
+  creditTotal,
+  UPLOADS_CREDIT_MAX_LIVE,
+  windowEndWords,
+} from "../uploads-credit";
 import { CreditRetryControl } from "./credit-retry-control";
 import {
   CancelDeletionControl,
   DeleteAccountControl,
 } from "./delete-account-control";
+import { UploadsCreditControl } from "./uploads-credit-control";
 
 export const dynamic = "force-dynamic";
 
@@ -135,11 +145,12 @@ export default async function AdminAccountDetailPage({
   if (!account) return <AdminNotFoundPageScreen />;
   // Her uploads are read beside the deletion state, each its own read: one that fails says No reading and never
   // fails the page, so the operator who came to read something else (the delete below) still has it.
-  const [deletion, uploads, hour, credits] = await Promise.all([
+  const [deletion, uploads, hour, credits, lifts] = await Promise.all([
     getAccountDeletionState(id),
     readAccountUploads(account.profile),
     readAccountHourUploads(id),
     readAccountPassCredits(id),
+    readAccountUploadsCredits(id),
   ]);
   // Said once to Sentry (the read swallows its failure into No reading, so nothing else would), with the first reason.
   const unread = [uploads.used, hour].flatMap((r) => (r.ok ? [] : [r.message]));
@@ -147,6 +158,12 @@ export default async function AdminAccountDetailPage({
     captureWarning("admin", "account: credits read failed", {
       user_id: id,
       message: credits.message,
+    });
+  }
+  if (!lifts.ok) {
+    captureWarning("admin", "account: uploads credits read failed", {
+      user_id: id,
+      message: lifts.message,
     });
   }
   if (unread.length > 0) {
@@ -158,6 +175,12 @@ export default async function AdminAccountDetailPage({
   }
   const uploadsAt = uploadsState(uploads);
   const hourAt = hourState(hour);
+  // ★ What a new credit may still add (the plan's allowance less the credits she holds), known only while the credits
+  // were read: a credit pressed blind could not be told its room, and the page says so rather than guess.
+  const liveCredits = lifts.ok ? lifts.value : null;
+  const creditRoomBytes = liveCredits
+    ? creditRoom(uploads.allowanceBytes, creditTotal(liveCredits))
+    : null;
 
   const { profile } = account;
   const capText = capLabel(account.effectiveCapBytes);
@@ -304,7 +327,8 @@ export default async function AdminAccountDetailPage({
 
       {/* The refusals an upload meets before the room: the plan's allowance over its window (refused whole while a
           pass has lapsed) and the hour's breaker (the same reads the presign makes, `uploads_used` and the month's
-          ledger row). Read-only: nothing here lifts a count (admin-observability.md). */}
+          ledger row). Nothing here edits a count (admin-observability.md); the one lift is the audited credit, an
+          additive row beside the ledger the spend watch reads. */}
       <Card>
         <CardHeader>
           <CardTitle>Uploads</CardTitle>
@@ -337,9 +361,35 @@ export default async function AdminAccountDetailPage({
           {uploadsAt === "at" ? (
             <p className="text-caption text-muted-foreground">
               At her allowance: new uploads, hers and her guests&apos;, are
-              refused until the window turns.
+              refused until the window turns, or until you credit her below.
             </p>
           ) : null}
+          {/* ★ HER OPERATOR'S CREDITS (crumbs-92, X6): each live one with who made it, when and why; the count above has
+              them taken off. A read that failed says No reading and never an empty list. */}
+          {lifts.ok ? (
+            lifts.value.length > 0 ? (
+              <div className="space-y-2 border-t pt-2">
+                {lifts.value.map((credit) => (
+                  <div key={credit.id} className="space-y-0.5">
+                    <Row label="Credit">
+                      <span className="tabular-nums">{creditLine(credit)}</span>
+                    </Row>
+                    <p className="text-caption break-words text-muted-foreground">
+                      {creditByline(credit)}: {credit.reason}
+                    </p>
+                  </div>
+                ))}
+                <p className="text-caption text-muted-foreground">
+                  The count above has her credit taken off. Her files and the
+                  ledger the spend watch reads are untouched.
+                </p>
+              </div>
+            ) : null
+          ) : (
+            <Row label="Credit">
+              <NoReading reading={lifts} />
+            </Row>
+          )}
           <Row label="Started this hour">
             {hour.ok ? (
               <span className="inline-flex flex-wrap items-center justify-end gap-2">
@@ -358,6 +408,46 @@ export default async function AdminAccountDetailPage({
               hour.
             </p>
           ) : null}
+          {/* The one lift, audited: a credit with a reason, beside the refusals it answers. What it cannot do is said where
+              the control would stand, never left to a press that fails. */}
+          <div className="border-t pt-3">
+            {uploads.allowanceBytes === null ? (
+              <p className="text-caption text-muted-foreground">
+                No allowance to lift: no cap is on record for her plan yet, so
+                nothing refuses her.
+              </p>
+            ) : uploadsAt === "lapsed" ? (
+              <p className="text-caption text-muted-foreground">
+                {/* Said as the card's sentence above says it: a pass that became Pro credit waits on her Pro plan, an
+                    expired one on the nightly recompute. Neither is lifted by a credit. */}
+                {uploads.lapsed?.converted
+                  ? "A pass converted to Pro credit is lifted when her Pro plan lands, never by a credit."
+                  : "A lapsed pass is lifted when the nightly recompute moves her to Free, never by a credit."}
+              </p>
+            ) : liveCredits === null ? (
+              <p className="text-caption text-muted-foreground">
+                Her credits could not be read, so crediting waits until they
+                can.
+              </p>
+            ) : liveCredits.length >= UPLOADS_CREDIT_MAX_LIVE ? (
+              <p className="text-caption text-muted-foreground">
+                She holds the most live credits at once (
+                {UPLOADS_CREDIT_MAX_LIVE}); crediting waits for one to end.
+              </p>
+            ) : creditRoomBytes !== null && creditRoomBytes <= 0 ? (
+              <p className="text-caption text-muted-foreground">
+                Her live credits already add one more of her plan&apos;s
+                allowance, the most a window takes.
+              </p>
+            ) : creditRoomBytes !== null ? (
+              <UploadsCreditControl
+                userId={profile.id}
+                who={profile.display_name?.trim() || profile.email || "her"}
+                room={creditRoomBytes}
+                until={windowEndWords(uploads.window, serverNow())}
+              />
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 

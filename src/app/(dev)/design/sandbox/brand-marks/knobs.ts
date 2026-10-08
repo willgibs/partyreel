@@ -5,9 +5,10 @@ import type { Control } from "@/components/lab/exploration";
  * declares it without importing React into a module the registry hands to a
  * server page (`registry.test.ts`'s own rule).
  *
- * ★ A DESK FIRST, A PHONE ONE PRESS AWAY: the marks are judged where they
- * live, and every surface they live on is drawn at both widths, the room and
- * paper side by side at each.
+ * ★ A DESK FIRST, A PHONE ONE PRESS AWAY: the icon is judged where it lives,
+ * and the two frames that are pages rather than phones (its sizes, and the
+ * press kit beside the wordmark) are laid out at either width; a home screen
+ * and a launcher are always a phone.
  */
 export const SCREEN: Control = {
   id: "screen",

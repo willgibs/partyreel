@@ -22,7 +22,10 @@
  * WeakMap by the File, as the kept complete is): her own Retry does not give them back, and a line that stays down ends
  * in the sheet and her Retry, as before.
  *
- * Generic over the item it reads, so the host's panel (the same lost answer in its own rows) reads the same rule.
+ * Generic over the item it reads: the host's panel (`host-upload.tsx`, the same lost answer in its own rows) reads it.
+ * ★ THE GUEST'S QUEUE NO LONGER DOES (no-signal r1, `drop=standby`): a guest's file never fails as a dropped line now,
+ * it stands by for the line, and the line's return sends it again on that very File, kept complete and all
+ * (`use-upload-queue.ts`'s `sendWaiting`), so this has no failure of hers left to ask about.
  */
 import { useCallback, useEffect, useRef } from "react";
 

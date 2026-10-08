@@ -155,9 +155,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
 - **`events`:** hosts write the settings columns and `insert(host_id)`, `insert(create_key)` (a Create's retry key,
   written once at birth, never updated), `update(host_opened_at)` (the dashboard's open stamp, a finite instant that
   only orders her list) and `update(deleted_at)` for a soft delete only. `event_password_hash`, `custom_slug`,
-  `qr_token`, `purge_at` and `email_held` (written only by the `events_email_held` trigger, BEFORE UPDATE OF gate,
-  SECURITY INVOKER with no client EXECUTE) are RPC, trigger or default only. SELECT is table-level (RLS scopes the
-  rows), so a new column reads with no grant.
+  `qr_token`, `purge_at` and `email_held` (written only by the `events_email_held` trigger, BEFORE UPDATE OF `gate`
+  and `require_verified_email`, SECURITY INVOKER with no client EXECUTE; her own write of the step clears it) are RPC,
+  trigger or default only. SELECT is table-level (RLS scopes the rows), so a new column reads with no grant.
 - **`media`:** UPDATE `status` and `removed_at` only; `purge_at` and `let_in_at` (the approval toast's news) come
   from triggers; the removal provenance (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`,
   `status_before_removed`) is RPC, trigger or service role only; `reel_eligible` is readable and written once, by
@@ -214,10 +214,11 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   guest's withdrawal of a block-removed upload (`remove_my_upload`'s sneaky arm, 20261007022000) takes her row first,
   where her Restore and Let back in take it, then that media row NOWAIT (a holder, her Delete permanently, the purge or
   an operator's removal, is on its way to her row: 55P03, and the guest presses again), so it sits in no cycle; her
-  row first alone would only turn the cycle round. One of the class stands: `disown_guest_rows_by_email` re-marks a
-  row the host binned (media, then her row) against `restore_media` (her row, then the media), one side's 40P01 and a
-  retry, until the restores take their rows without waiting (a ROADMAP line; `let_back_in`'s from let_in's
-  three-argument body, 20261007020000).
+  row first alone would only turn the cycle round. So do the restores (20261008030000): `restore_media` takes the
+  item NOWAIT right after her row and before every read that decides (a guest's Not mine re-marking a row she binned,
+  `disown_guest_rows_by_email`, her Delete permanently or a takedown holding it: 55P03, her press hers to make again),
+  and Let back in takes the block's rows SKIP LOCKED, as `leave_deleted` takes her Deleted (a held row stays as its
+  holder leaves it, out of `restored`).
 - ★ **A write that bypasses triggers leaves the storage sums behind** (`session_replication_role = replica`, a
   data-only restore of `media` with its triggers off). A whole-database restore carries `event_storage_sums` and
   `host_storage_sums` in the same snapshot and stays exact; a partial restore of media rows runs
@@ -310,6 +311,9 @@ Gotchas). A new table starts with no client grant, so its migration grants exact
   insert share one database.
 - **The account kinds (`email_change`) key on the signed-in user's id** (HMAC'd, in its own domain), have no breadth,
   and fail CLOSED like the public forms: the limiter is the only bound on the `email_exists` oracle.
+- **A guest's own presigns (`presign`) key on her session token** (HMAC'd, in its own domain), have no breadth, and
+  count a burst's files in one insert before any is presigned, 1,000 an hour, so one ticket cannot spend the host's
+  hourly breaker (`meter_upload`) for every other guest; they fail OPEN like every guest kind.
 - Volumetric DoS is the Vercel edge firewall's job, not the app's; the guest OTP door is throttled only by Supabase
   Auth ([auth-accounts.md](auth-accounts.md)).
 

@@ -6,8 +6,10 @@ import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants/site";
 // screen, opening app-like (standalone, no browser chrome). Static + global -
 // it intentionally leaks nothing event-specific. NO service worker: presigned
 // URLs expire and the gallery is conditional-request driven, so offline caching
-// is a deliberate post-launch decision (not this phase). The icons are the ink
-// aperture mark; the maskable variant keeps it inside the safe zone.
+// is a deliberate post-launch decision (not this phase). The icons are the Ring
+// (`src/lib/brand/ring.ts`, drawn into public/icons/ by scripts/build-press-kit.mjs):
+// "any" in a home screen's corner, and the maskable one full bleed, its ring inside
+// the 80% circle every launcher's mask keeps.
 //
 // ★ THE ADMIN HOST SERVES IT TOO (crumbs-81). The shared root layout links it from every page of both deployments, so
 // the proxy's every-path rule for the admin host leaves this one path alone (`src/proxy.ts`'s matcher, as it leaves the

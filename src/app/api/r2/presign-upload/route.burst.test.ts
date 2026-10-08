@@ -4,11 +4,17 @@
  * order, field for field the one-file answer; a file refused never stops its siblings; who is sending is asked once
  * and, refused, refuses the whole request in the one-file words; the meter judges each file with its earlier
  * siblings' bytes and the roll counts its earlier shots, as one-at-a-time presigns saw them landed; the meter tallies
- * each file once; an entry can never name another ticket. The REAL route, pipeline and owner check run; the RPC
- * wrappers, R2 and the Supabase clients are the stubbed edges (`route.test.ts`'s).
+ * each file once; an entry can never name another ticket; her own budget is one check and one write a burst. The REAL
+ * route, pipeline and owner check run; the RPC wrappers, R2, the Supabase clients and the limiter's store are the
+ * stubbed edges (`route.test.ts`'s).
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  ABUSE_LIMITS,
+  abuseRateDecision,
+  type AbuseKind,
+} from "@/lib/security/abuse-rate-limit";
 import { MAX_BURST_FILES } from "@/lib/upload/burst";
 
 const getUploadContext = vi.fn();
@@ -19,8 +25,22 @@ const rowRead = vi.fn();
 const getUser = vi.fn();
 const meterUpload = vi.fn();
 const captureError = vi.fn();
+const sessionAbuseHashes = vi.fn();
+const checkAbuseRate = vi.fn();
+const recordAbuseEvent = vi.fn();
+
+/** Her ticket's key pair as the store would derive it, readable here: the requester is the ticket. */
+const ticketKeys = (kind: string, token: string) => ({
+  ipHash: `ticket:${token}`,
+  scopeHash: `scope:${kind}`,
+});
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
+  sessionAbuseHashes: (...args: unknown[]) => sessionAbuseHashes(...args),
+  checkAbuseRate: (...args: unknown[]) => checkAbuseRate(...args),
+  recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
+}));
 vi.mock("@/lib/upload/server-pipeline-meter", () => ({
   meterUpload: (...args: unknown[]) => meterUpload(...args),
 }));
@@ -127,7 +147,12 @@ async function presignBurst(
     message?: string;
     files?: FileAnswer[];
   };
-  return { status: res.status, body, files: body.files ?? [] };
+  return {
+    status: res.status,
+    body,
+    files: body.files ?? [],
+    retryAfter: res.headers.get("Retry-After"),
+  };
 }
 
 beforeEach(() => {
@@ -146,6 +171,9 @@ beforeEach(() => {
   getUser.mockResolvedValue({ data: { user: null } });
   claimRpc.mockResolvedValue({ data: 0, error: null });
   meterUpload.mockResolvedValue({ ok: true });
+  sessionAbuseHashes.mockImplementation(ticketKeys);
+  checkAbuseRate.mockResolvedValue({ allowed: true, retryAfterSec: 0 });
+  recordAbuseEvent.mockResolvedValue(undefined);
 });
 
 describe("one request presigns a burst", () => {
@@ -432,5 +460,140 @@ describe("a burst the route cannot read is refused whole", () => {
     );
     expect(files).toHaveLength(MAX_BURST_FILES);
     expect(files.every((f) => f.ok)).toBe(true);
+  });
+});
+
+/**
+ * ★ HER OWN BUDGET, ONCE A BURST (`presign`, abuse-rate-limit.ts): one check and one write a request whatever its size,
+ * every file counted up front, before the first is metered; spent, the whole request is refused at its first file, in
+ * her words with the window in `Retry-After`; each guest's hour is her own, never her album's or her venue's.
+ */
+describe("★ her own budget: one check and one write a burst", () => {
+  const clip = { content_type: "video/mp4", size_bytes: 5 * MB };
+
+  it.each([1, 3, MAX_BURST_FILES])(
+    "a burst of %i asks once and counts every file in one write, before the first is metered",
+    async (n) => {
+      const { files } = await presignBurst(
+        Array.from({ length: n }, () => photo()),
+      );
+      expect(files.every((f) => f.ok)).toBe(true);
+      expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+      expect(recordAbuseEvent).toHaveBeenCalledTimes(1);
+      expect(recordAbuseEvent).toHaveBeenCalledWith(
+        "presign",
+        `ticket:${TOKEN}`,
+        "scope:presign",
+        n,
+      );
+      expect(recordAbuseEvent.mock.invocationCallOrder[0]).toBeLessThan(
+        meterUpload.mock.invocationCallOrder[0]!,
+      );
+    },
+  );
+
+  it("a burst that mixes photographs and a clip asks once, though its context is read once a kind", async () => {
+    await presignBurst([photo(), clip, photo()]);
+    expect(getUploadContext).toHaveBeenCalledTimes(2);
+    expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+    expect(recordAbuseEvent.mock.calls[0]![3]).toBe(3);
+  });
+
+  it("★ a spent hour refuses the whole burst at its first file, in her words, the window in Retry-After", async () => {
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 3600 });
+    const res = await presignBurst([photo(), photo(), photo()]);
+    expect(res.status).toBe(429);
+    expect(res.body).toEqual({
+      ok: false,
+      code: "rate_limited",
+      message:
+        "You've sent a lot of uploads this hour. Try again in a little while.",
+    });
+    expect(res.retryAfter).toBe("3600");
+    expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+    expect(meterUpload).not.toHaveBeenCalled();
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("the first file the album's own gates pass asks, for the whole burst; a burst none of whose files could go spends nothing", async () => {
+    getUploadContext.mockImplementation(async (_t: string, kind: string) =>
+      context({ video_blocked: kind === "video" }),
+    );
+    const none = await presignBurst([clip, clip]);
+    expect(none.files.map((f) => f.code)).toEqual([
+      "video_not_allowed",
+      "video_not_allowed",
+    ]);
+    expect(checkAbuseRate).not.toHaveBeenCalled();
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+
+    const some = await presignBurst([clip, photo(), clip]);
+    expect(some.files.map((f) => f.ok)).toEqual([false, true, false]);
+    expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+    expect(recordAbuseEvent.mock.calls[0]![3]).toBe(3);
+  });
+
+  it("★ the hour is each guest's own: a ticket at her line is refused, another ticket in the same album goes on", async () => {
+    // The window as the store keeps it: each ticket's files, judged by the kind's own decision.
+    const counted = new Map<string, number>();
+    checkAbuseRate.mockImplementation(async (kind: AbuseKind, ticket: string) =>
+      abuseRateDecision(kind, 1, counted.get(ticket) ?? 0),
+    );
+    recordAbuseEvent.mockImplementation(
+      async (_kind: AbuseKind, ticket: string, _scope: string, count = 1) => {
+        counted.set(ticket, (counted.get(ticket) ?? 0) + count);
+      },
+    );
+    const LINE = ABUSE_LIMITS.presign.scopeMax;
+    const OTHER_TOKEN = "b".repeat(64);
+    counted.set(`ticket:${TOKEN}`, LINE - MAX_BURST_FILES);
+
+    const last = await presignBurst(
+      Array.from({ length: MAX_BURST_FILES }, () => photo()),
+    );
+    expect(last.files.every((f) => f.ok)).toBe(true);
+    expect(counted.get(`ticket:${TOKEN}`)).toBe(LINE);
+
+    const past = await presignBurst([photo()]);
+    expect(past.status).toBe(429);
+    expect(past.body.code).toBe("rate_limited");
+    // Refused, it counted nothing more: her window drains while she waits.
+    expect(counted.get(`ticket:${TOKEN}`)).toBe(LINE);
+
+    const other = await presignBurst([photo()], { session_token: OTHER_TOKEN });
+    expect(other.status).toBe(200);
+    expect(other.files[0]?.ok).toBe(true);
+    expect(counted.get(`ticket:${OTHER_TOKEN}`)).toBe(1);
+  });
+
+  it("a body the route cannot read never reaches her budget", async () => {
+    for (const files of [
+      [],
+      Array.from({ length: MAX_BURST_FILES + 1 }, () => photo()),
+      [{ content_type: "image/jpeg" }],
+    ]) {
+      const res = await presignBurst(files);
+      expect(res.body.ok === false || res.files[0]?.ok === false).toBe(true);
+    }
+    const res = await POST(
+      new Request("https://partyreel.com/api/r2/presign-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{ not json",
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(checkAbuseRate).not.toHaveBeenCalled();
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+  });
+
+  it("★ fails OPEN: a limiter that cannot answer lets the whole burst go, asked once for all of it", async () => {
+    checkAbuseRate.mockRejectedValue(new Error("action_rate: unavailable"));
+    const { status, files } = await presignBurst([photo(), photo(), photo()]);
+    expect(status).toBe(200);
+    expect(files.map((f) => f.ok)).toEqual([true, true, true]);
+    expect(checkAbuseRate).toHaveBeenCalledTimes(1);
+    expect(presignUpload).toHaveBeenCalledTimes(3);
   });
 });

@@ -55,6 +55,47 @@ describe("reelCells", () => {
     });
   });
 
+  it("★ marks a frame whose shot waits for the line as waiting, spent and with its minute, never sending (no-signal r1)", () => {
+    const cells = reelCells({
+      cap: 4,
+      used: 3,
+      recording: false,
+      recent: [
+        { key: "a", takenAt: at(23, 48), kind: "photo", sending: false },
+        {
+          key: "b",
+          takenAt: at(23, 49),
+          kind: "photo",
+          sending: false,
+          waiting: true,
+        },
+        // A caller that says both is read as waiting: nothing is on its way while the line is gone.
+        {
+          key: "c",
+          takenAt: at(23, 50),
+          kind: "photo",
+          sending: true,
+          waiting: true,
+        },
+      ],
+    });
+    expect(cells[1]).toEqual({
+      n: 2,
+      state: "exposed",
+      shotKey: "b",
+      minute: "11:49",
+      waiting: true,
+    });
+    expect(cells[2]).toEqual({
+      n: 3,
+      state: "exposed",
+      shotKey: "c",
+      minute: "11:50",
+      waiting: true,
+    });
+    expect(cells[3]).toEqual({ n: 4, state: "current" });
+  });
+
   it("turns the frame she is on red while a video rolls", () => {
     const cells = reelCells({ cap: 3, used: 1, recording: true, recent: [] });
     expect(cells[1].state).toBe("rolling");

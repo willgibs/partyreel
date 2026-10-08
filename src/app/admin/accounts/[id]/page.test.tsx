@@ -18,6 +18,11 @@ import {
  *
  * ★ AND HER PASS-TO-PRO CREDITS (credit-watch): what became of each credited Pro checkout of hers, a stuck one with
  * its Retry and only a stuck one; drawn only when she has one or the read failed (No reading, never none).
+ *
+ * ★ AND HER OPERATOR'S UPLOADS CREDITS (crumbs-92, X6): each live one with its amount, where it ends, who made it, when
+ * and why, beside the count it has been taken off; the control offered with exactly the room the bound leaves, and in its
+ * place a sentence when there is nothing to lift (unmetered, lapsed, the most live credits, no room left) or the credits
+ * could not be read. A read that failed says No reading and never an empty list.
  */
 
 const HOST = "22222222-2222-4222-8222-222222222222";
@@ -37,6 +42,8 @@ const state = vi.hoisted(() => ({
   reads: 0,
   /** Her credits' reading (credit-watch). */
   credits: { ok: true, value: [] } as unknown,
+  /** Her operator's uploads credits' reading (crumbs-92). */
+  lifts: { ok: true, value: [] } as unknown,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -69,6 +76,27 @@ vi.mock("./credit-retry-control", () => ({
       Retry the credit
     </button>
   ),
+}));
+vi.mock("./uploads-credit-control", () => ({
+  UploadsCreditControl: ({
+    room,
+    until,
+    who,
+  }: {
+    room: number;
+    until: string;
+    who: string;
+  }) => (
+    <button type="button" data-room={room} data-until={until} data-who={who}>
+      Credit…
+    </button>
+  ),
+}));
+vi.mock("@/lib/db/queries/uploads-credits", () => ({
+  readAccountUploadsCredits: async () => {
+    state.reads += 1;
+    return state.lifts;
+  },
 }));
 vi.mock("@/lib/db/queries/pass-credits", () => ({
   readAccountPassCredits: async () => {
@@ -173,6 +201,7 @@ beforeEach(() => {
   state.aal = "aal2";
   state.reads = 0;
   state.credits = { ok: true, value: [] };
+  state.lifts = { ok: true, value: [] };
   account({});
 });
 
@@ -306,6 +335,192 @@ describe("the uploads card", () => {
   it("raises nothing when both reads came back", async () => {
     await draw();
     expect(state.warnings).toEqual([]);
+  });
+});
+
+/** One live operator credit as the page reads it. */
+const lift = (over: Record<string, unknown> = {}) => ({
+  id: "c1",
+  bytes: 100 * MEGABYTE,
+  windowEndsAt: "2026-11-01T00:00:00+00:00",
+  grantedAt: "2026-10-04T12:03:00+00:00",
+  reason: "She wrote in: her guests were refused",
+  operator: "hi@willgibs.com",
+  ...over,
+});
+
+describe("her operator's uploads credits (crumbs-92, X6)", () => {
+  it("★ draws each live credit with its amount, its end, who made it, when and why, and says the count has it taken off", async () => {
+    state.used = { ok: true, value: 212 * MEGABYTE };
+    state.lifts = {
+      ok: true,
+      value: [
+        lift(),
+        lift({ id: "c2", bytes: 50 * MEGABYTE, reason: "again" }),
+      ],
+    };
+    await draw();
+    const uploads = within(card("Uploads"));
+    expect(uploads.getAllByText("Credit")).toHaveLength(2);
+    expect(
+      uploads.getByText("+100 MB until Nov 1, 2026 UTC"),
+    ).toBeInTheDocument();
+    expect(
+      uploads.getByText("+50 MB until Nov 1, 2026 UTC"),
+    ).toBeInTheDocument();
+    expect(
+      uploads.getByText(
+        "Granted Oct 4, 2026, 12:03 UTC by hi@willgibs.com: She wrote in: her guests were refused",
+      ),
+    ).toBeInTheDocument();
+    expect(uploads.getByText(/credit taken off/)).toBeInTheDocument();
+  });
+
+  it("draws nothing for an account with none, and is quiet", async () => {
+    await draw();
+    const uploads = within(card("Uploads"));
+    expect(uploads.queryByText("Credit")).toBeNull();
+    expect(state.warnings).toEqual([]);
+  });
+
+  it("★ a failed credits read says No reading and why, tells Sentry, holds the control back and leaves the rest of the card", async () => {
+    state.lifts = {
+      ok: false,
+      message: 'relation "uploads_credits" does not exist',
+    };
+    state.used = { ok: true, value: 212 * MEGABYTE };
+    await draw();
+    const uploads = within(card("Uploads"));
+    expect(
+      uploads.getByText("Credit").nextElementSibling?.textContent,
+    ).toContain("No reading");
+    expect(
+      uploads.getByText('relation "uploads_credits" does not exist'),
+    ).toBeInTheDocument();
+    expect(uploads.queryByRole("button", { name: /Credit/ })).toBeNull();
+    expect(
+      uploads.getByText(/could not be read, so crediting waits/),
+    ).toBeInTheDocument();
+    // The count she reads is still drawn.
+    expect(
+      uploads.getByText("This month").nextElementSibling?.textContent,
+    ).toBe("212 MB of 300 MB");
+    expect(state.warnings).toEqual([
+      [
+        "admin",
+        "account: uploads credits read failed",
+        { user_id: HOST, message: 'relation "uploads_credits" does not exist' },
+      ],
+    ]);
+  });
+
+  it("★ offers the control with the room the bound leaves: the plan's allowance less what she holds", async () => {
+    await draw();
+    const button = within(card("Uploads")).getByRole("button", {
+      name: "Credit…",
+    });
+    expect(button.dataset.room).toBe(String(300 * MEGABYTE));
+    // The month turns at the first instant of the next UTC month (the page's clock is fixed at 2026-10-05).
+    expect(button.dataset.until).toBe("Nov 1, 2026 UTC, when the month turns");
+    expect(button.dataset.who).toBe("A host");
+  });
+
+  it("the room shrinks by what she already holds", async () => {
+    state.lifts = { ok: true, value: [lift()] };
+    await draw();
+    expect(
+      within(card("Uploads")).getByRole("button", { name: "Credit…" }).dataset
+        .room,
+    ).toBe(String(200 * MEGABYTE));
+  });
+
+  it("★ a pass holder's credit ends with her soonest live pass, against her stack's allowance", async () => {
+    account({ tier: "event_pass", cap: 50 * GIGABYTE });
+    await draw();
+    const button = within(card("Uploads")).getByRole("button", {
+      name: "Credit…",
+    });
+    expect(button.dataset.room).toBe(String(100 * GIGABYTE));
+    expect(button.dataset.until).toBe("her soonest live pass ends");
+  });
+
+  it("★ says why there is no control instead of leaving a press that fails: unmetered, lapsed, the most live credits, no room left", async () => {
+    // A Pro with no cap on record has no allowance to lift.
+    account({ tier: "pro" });
+    await draw();
+    expect(
+      within(card("Uploads")).getByText(/No allowance to lift/),
+    ).toBeInTheDocument();
+    expect(
+      within(card("Uploads")).queryByRole("button", { name: "Credit…" }),
+    ).toBeNull();
+  });
+
+  it("a lapsed pass is lifted by the recompute, never by a credit", async () => {
+    account({
+      tier: "event_pass",
+      cap: 25 * GIGABYTE,
+      expires: "2026-10-03T14:05:00+00:00",
+    });
+    state.lapsedSince = "2026-10-03T14:05:00+00:00";
+    await draw();
+    expect(
+      within(card("Uploads")).getByText(/never by a credit/),
+    ).toBeInTheDocument();
+    expect(
+      within(card("Uploads")).queryByRole("button", { name: "Credit…" }),
+    ).toBeNull();
+  });
+
+  it("a pass converted to Pro credit waits on her Pro plan, not on the recompute, and no credit lifts that either", async () => {
+    account({ tier: "event_pass", cap: 25 * GIGABYTE });
+    state.lapsedSince = "2026-10-05T09:30:00+00:00";
+    state.converted = true;
+    await draw();
+    const uploads = within(card("Uploads"));
+    expect(
+      uploads.getByText(
+        "A pass converted to Pro credit is lifted when her Pro plan lands, never by a credit.",
+      ),
+    ).toBeInTheDocument();
+    expect(uploads.queryByRole("button", { name: "Credit…" })).toBeNull();
+  });
+
+  it("the most live credits, and no room left, are said in place of the control", async () => {
+    state.lifts = {
+      ok: true,
+      value: Array.from({ length: 10 }, (_, i) =>
+        lift({ id: `c${i}`, bytes: MEGABYTE }),
+      ),
+    };
+    await draw();
+    expect(
+      within(card("Uploads")).getByText(/the most live credits at once \(10\)/),
+    ).toBeInTheDocument();
+    expect(
+      within(card("Uploads")).queryByRole("button", { name: "Credit…" }),
+    ).toBeNull();
+  });
+
+  it("no room left: her credits already add one more of her allowance", async () => {
+    state.lifts = { ok: true, value: [lift({ bytes: 300 * MEGABYTE })] };
+    await draw();
+    expect(
+      within(card("Uploads")).getByText(
+        /already add one more of her plan.s\s+allowance/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(card("Uploads")).queryByRole("button", { name: "Credit…" }),
+    ).toBeNull();
+  });
+
+  it("★ at the allowance, the card says a credit lifts it sooner", async () => {
+    state.used = { ok: true, value: 300 * MEGABYTE };
+    await draw();
+    expect(
+      within(card("Uploads")).getByText(/or until you credit her below/),
+    ).toBeInTheDocument();
   });
 });
 

@@ -1,5 +1,6 @@
 /**
- * AT THE DOOR (event-settings r1, `queue=room`): Let in and Decline on each newcomer who waits.
+ * AT THE DOOR (event-settings r1, `queue=room`; guests-room r1, `rows=list` and `card=standing`): each newcomer who
+ * waits is one calm row with one act, Let in, and her name opens her card, where Decline stands beside Let in.
  * Held: a row leaves the moment it is answered and returns, with a sentence, if the answer fails; a
  * decline's toast carries Let in, which lifts it and lets her in (host-moments r1, `let-back=straight`); at
  * Only me a Let in never says the album opens; and the section is not drawn at all when nobody waits.
@@ -23,7 +24,21 @@ vi.mock("@/app/(app)/dashboard/[eventId]/guests/actions", () => ({
   letBackInAction: (...a: unknown[]) => letBackInAction(...a),
 }));
 
+// Her card is the one every name opens (`GuestPeek`), whose Follow reaches the profile's server actions (server-only).
+vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
+  followProfileAction: vi.fn(),
+  unfollowProfileAction: vi.fn(),
+}));
+
 const { AtTheDoor } = await import("./at-the-door");
+
+/** The decline, as she makes it now: her name opens her card, and Decline is pressed there (`card=standing`). */
+async function decline(name = "Wren") {
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${name}`) }));
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: `Decline ${name}` }));
+  });
+}
 
 const EVENT = "11111111-2222-4333-8444-555555555555";
 const WREN = {
@@ -32,6 +47,7 @@ const WREN = {
   name: "Wren",
   email: "wren@example.com",
   asked: "5 minutes ago",
+  waited: "5 min",
   seed: null,
 };
 
@@ -47,18 +63,50 @@ describe("at the door", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("names who waits, their address and when they asked", () => {
+  it("names who waits, how long beside the name, and the address she confirmed under it", () => {
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
     expect(screen.getByText("Wren")).toBeTruthy();
+    expect(screen.getByText("5 min")).toBeTruthy();
     expect(screen.getByText("wren@example.com")).toBeTruthy();
-    expect(screen.getByText("asked 5 minutes ago")).toBeTruthy();
+  });
+
+  it("★ the row keeps one act, Let in, naming whom; Decline is her card's, explained there (`card=standing`)", () => {
+    render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
+    expect(screen.getByRole("button", { name: "Let in Wren" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /decline/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /^Wren/ }));
+    const card = screen.getByRole("dialog", { name: "Wren" });
+    expect(card).toHaveTextContent("At the door for 5 min");
+    expect(screen.getByRole("button", { name: "Decline Wren" })).toBeTruthy();
+    expect(card).toHaveTextContent(/declining blocks them/i);
+  });
+
+  it("★ its count wears the tally the hub's Guests card wears: someone waits on her", () => {
+    render(<AtTheDoor eventId={EVENT} people={[WREN]} total={3} />);
+    expect(document.querySelector("[data-needs]")).toHaveTextContent("3");
+  });
+
+  it("a newcomer with no name stands under the address she confirmed, split at its @, read whole", () => {
+    render(
+      <AtTheDoor
+        eventId={EVENT}
+        people={[{ ...WREN, name: null, waited: "now" }]}
+        total={1}
+      />,
+    );
+    const row = document.querySelector("[data-door-name]");
+    expect(row).toHaveTextContent("wren@example.com");
+    expect(screen.getByText("@example.com")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Let in wren@example.com" }),
+    ).toBeTruthy();
   });
 
   it("★ Let in opens her door, and the row leaves at once", async () => {
     letInAtDoorAction.mockResolvedValue({ ok: true, admitted: 1 });
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Let in" }));
+      fireEvent.click(screen.getByRole("button", { name: "Let in Wren" }));
     });
     expect(letInAtDoorAction).toHaveBeenCalledWith({
       eventId: EVENT,
@@ -78,7 +126,7 @@ describe("at the door", () => {
     });
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Let in" }));
+      fireEvent.click(screen.getByRole("button", { name: "Let in Wren" }));
     });
     expect(screen.getByText("Wren")).toBeTruthy();
     expect(toast.error).toHaveBeenCalledWith(
@@ -100,9 +148,7 @@ describe("at the door", () => {
       admitted: 1,
     });
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
-    });
+    await decline();
     expect(declineAtDoorAction).toHaveBeenCalledWith({
       eventId: EVENT,
       guestId: WREN.guestId,
@@ -134,9 +180,7 @@ describe("at the door", () => {
     declineAtDoorAction.mockResolvedValue({ ok: true, blockId: "block-1" });
     letBackInAction.mockResolvedValue({ ok: false, message: "Nope." });
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
-    });
+    await decline();
     const [, options] = toast.mock.calls[0] as [
       string,
       { action: { onClick: () => void } },
@@ -173,11 +217,9 @@ describe("at the door", () => {
       />,
     );
     await act(async () => {
-      fireEvent.click(screen.getAllByRole("button", { name: "Let in" })[0]!);
+      fireEvent.click(screen.getByRole("button", { name: "Let in Wren" }));
     });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
-    });
+    await decline("Kit");
     const [, options] = toast.mock.calls[0] as [
       string,
       { action: { onClick: () => void } },
@@ -200,9 +242,7 @@ describe("at the door", () => {
     const view = render(
       <AtTheDoor eventId={EVENT} people={[WREN]} total={1} />,
     );
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
-    });
+    await decline();
     expect(screen.queryByText("Wren")).toBeNull();
     // The decline's own revalidation: nobody waits.
     view.rerender(<AtTheDoor eventId={EVENT} people={[]} total={0} />);

@@ -14,6 +14,8 @@ import {
   seamCoverage,
   worstCaseGround,
 } from "./glow-contrast";
+import { EMBER_LAMPS } from "@/lib/brand/ring";
+
 import { LAMP_SET } from "./lamp-set";
 
 /**
@@ -23,20 +25,17 @@ import { LAMP_SET } from "./lamp-set";
  * prose but never measures.
  */
 
-// The real production tokens (globals.css), retuned with the palette (Graphite,
-// 2026-09-17). They are .surface-ink's, NOT --gallery*'s any more: the ruling
-// split the footer slab (0.165) from the media well (0.065), and the seam these
-// numbers exist for is drawn on the footer.
-const SLAB = "oklch(0.165 0.0053 286)";
-const SLAB_FG = "oklch(0.965 0.0045 286)";
-const SLAB_MUTED = "oklch(0.715 0.0105 286)";
-const PALETTE = [
-  "oklch(0.72 0.17 25)",
-  "oklch(0.8 0.15 85)",
-  "oklch(0.72 0.14 155)",
-  "oklch(0.7 0.14 255)",
-  "oklch(0.68 0.16 305)",
-];
+// The real production tokens (globals.css). They are .surface-ink's, NOT
+// --gallery*'s: the slab is the room's own black (0.085) since brand-marks
+// r1's `plate=room` (it stood a step lifted, at 0.165), still a register above
+// the media well (0.065), and the seam these numbers exist for is drawn on the
+// footer, which wears it.
+const SLAB = "oklch(0.085 0.003 286)";
+const SLAB_FG = "oklch(0.97 0.002 286)";
+const SLAB_MUTED = "oklch(0.71 0.006 286)";
+// What the seam draws on the slab: the house ember's five (`.surface-ink`
+// relights its lamps with --ember-lamp-*, brand-marks r1), from their one home.
+const PALETTE = EMBER_LAMPS.map((l) => `oklch(${l.l} ${l.c} ${l.h})`);
 
 describe("colour maths", () => {
   it("round-trips the achromatic extremes", () => {
@@ -80,12 +79,13 @@ describe("colour maths", () => {
 
 describe("the ink slab's headroom", () => {
   it("reproduces the documented unlit ratios", () => {
-    // footer-contract.test.ts states these in prose: 17.9:1 body, 5.37:1 muted.
     const slab = parseOklch(SLAB)!;
     expect(contrastRatio(parseOklch(SLAB_FG)!, slab)).toBeGreaterThan(17);
-    // 7.60:1 since the palette's round eight: the slab lifted 0.010 and the
-    // second text step lifted 0.095, so the ruling BOUGHT headroom on the seam.
-    expect(contrastRatio(parseOklch(SLAB_MUTED)!, slab)).toBeCloseTo(7.6, 1);
+    // 8.06:1 since the slab went to the room's own black (brand-marks r1),
+    // from 7.60:1 on the lifted slab: the deeper ground BOUGHT the seam more
+    // headroom, which the ember's lighter lit end (0.87, the five's amber was
+    // 0.8) spends a little of (the floor below).
+    expect(contrastRatio(parseOklch(SLAB_MUTED)!, slab)).toBeCloseTo(8.06, 1);
   });
 
   it("models the mask falloff, not just the layer opacity", () => {
@@ -182,8 +182,9 @@ describe("the ink slab's headroom", () => {
 
   it("names the worst hue rather than averaging the palette", () => {
     const report = worstCaseGround(SLAB, SLAB_FG, SLAB_MUTED, PALETTE, 0.3)!;
-    // Amber is the lightest of the five, so it lifts a dark ground the most.
-    expect(report.worstColor).toBe("oklch(0.8 0.15 85)");
+    // The ember's lit end, its amber, is the lightest of the five, so it lifts
+    // a dark ground the most.
+    expect(report.worstColor).toBe("oklch(0.87 0.15 80)");
   });
 });
 

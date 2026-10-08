@@ -66,7 +66,8 @@ function afterPause<T>(value: T, ms: number, signal?: AbortSignal): Promise<T> {
 
 /**
  * A route that would answer Stripe's page: a round trip's wait, then the address it would have made. The real button is
- * pending ("Starting…", "Opening…") for exactly that wait, as it is for the real route, and then takes the way out.
+ * pending ("Opening billing" on Checkout's key, "Opening…" on the portal's and a plan change's) for exactly that wait,
+ * as it is for the real route, and then takes the way out.
  */
 function stripeAnswers() {
   return afterPause(

@@ -257,10 +257,9 @@
       "<SpendWatchDemo state=\"unreadable\" />"
     ],
     "event-card": [
-      "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
-      "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
-      "<EventCard\n  variant=\"guest\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n/>",
-      "<EventCard\n  variant=\"trash\"\n  href={null}\n  name=\"Old Test Event\"\n  coverUrl={SAMPLE.cover3}\n  dateLabel=\"Mar 11\"\n  statusLabel=\"6 days left\"\n/>"
+      "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  statusLabel=\"Password\"\n/>",
+      "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n/>",
+      "<EventCard\n  variant=\"guest\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n/>"
     ],
     "storage-meter": [
       "<InertStorage>\n  <StorageMeter\n    activeBytes={24 * 1024 ** 3}\n    deletedBytes={3 * 1024 ** 3}\n    storageCap={50 * 1024 ** 3}\n    makeRoom\n    passExpiry={null}\n    planName=\"Pro\"\n    hasBilling\n    isEventPass={false}\n  />\n</InertStorage>"
@@ -273,9 +272,6 @@
     ],
     "storage-list": [
       "<StorageListDemo />"
-    ],
-    "event-card-qr": [
-      "<div className=\"flex items-center gap-3\">\n  {qrSlot}\n  <span className=\"text-sm text-muted-foreground\">\n    Opens the share sheet\n  </span>\n</div>"
     ],
     "qr-preset-picker": [
       "<QrPresetPickerDemo />"

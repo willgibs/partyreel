@@ -12,6 +12,8 @@
  * ★ THE POLISH, AGAINST THE DRAWING: the minute stands at the type floor (10 px, the drawing's 7.5 was under it), the
  * live frame's ring is the frame itself, never a glow, a frame still on its way to the album wears a quiet dot, and the
  * live frame turns red with its own fill while a video rolls (its length, the shutter's ring at the thumb's own scale).
+ * ★ A frame waiting for the line wears that dot's place half-lit and still (no-signal r1, `roll=taken`; `camera-roll.css`):
+ * nothing is on its way while the line is gone, so it says it waits without moving.
  *
  * ★ THE LIVE MINIATURE NEVER MOVES. It is the reel's centre, where the frame she is on always stands; the track glides
  * under it, so a shot never re-mounts the picture (one stream, two elements: the picture and this).
@@ -28,6 +30,8 @@ import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
 
 import { newestCell, reelCentre, type ReelCell } from "@/lib/guest/camera/reel";
 import { cn } from "@/lib/utils";
+
+import "./camera-roll.css";
 
 /**
  * A frozen frame in its cell: the picture the shutter's own handler drew, copied onto the cell's canvas before the
@@ -127,6 +131,7 @@ export function CameraReel({
               className="cam-cell"
               data-state={cell.state}
               data-sending={cell.sending ? "" : undefined}
+              data-waiting={cell.waiting ? "" : undefined}
               style={{ "--n": cell.n } as CSSProperties}
             >
               {cell.shotKey && just.has(cell.shotKey) && (

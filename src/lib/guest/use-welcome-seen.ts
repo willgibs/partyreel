@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useSyncExternalStore } from "react";
 
-import { storedKeysWithPrefixes } from "@/lib/guest/session-tokens";
 import {
   WELCOME_COOKIE_MAX_AGE,
   WELCOME_COOKIE_PREFIX,
@@ -26,9 +25,6 @@ const listeners = new Set<() => void>();
 function emit() {
   for (const listener of listeners) listener();
 }
-
-/** The legacy localStorage flag (before the cookie): put down beside the cookie, never written. */
-const LEGACY_PREFIX = WELCOME_COOKIE_PREFIX;
 
 function readWelcome(qrToken: string): boolean {
   try {
@@ -80,28 +76,16 @@ export function markWelcomeSeen(qrToken: string): void {
  * album's welcome goes with it; when it puts every ticket down (`forgetGuestTickets`: every sign-out, the door's
  * "Use a different email"), every album's does. So the next person to join on a shared phone meets the welcome,
  * and its consent line, once. Every same-tab reader hears it at once; a door already showing its steps only gains
- * the welcome in front of them. The legacy localStorage flag goes with it.
+ * the welcome in front of them.
  */
 export function forgetWelcome(qrToken: string): void {
   writeCookie(welcomeCookieName(qrToken), "", 0);
-  try {
-    localStorage.removeItem(`${LEGACY_PREFIX}${qrToken}`);
-  } catch {
-    // Storage refused: there was no flag to forget.
-  }
   emit();
 }
 
 /** Every album's welcome on the device (`forgetWelcome`'s note): the sign-out's half. */
 export function forgetAllWelcomes(): void {
   for (const name of welcomeCookieNames()) writeCookie(name, "", 0);
-  try {
-    for (const key of storedKeysWithPrefixes([LEGACY_PREFIX])) {
-      localStorage.removeItem(key);
-    }
-  } catch {
-    // Storage refused: there were no flags to forget.
-  }
   emit();
 }
 

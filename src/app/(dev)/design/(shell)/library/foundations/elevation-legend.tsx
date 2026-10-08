@@ -189,7 +189,6 @@ function Scene({ size }: { size: "narrow" | "wide" }) {
                 name="The Ridgeway summer"
                 coverUrl={marketingImage("reception-table").src}
                 dateLabel="2 August"
-                itemsLabel="96 items"
                 statusLabel={size === "wide" ? "Open" : null}
               />
             </div>
@@ -205,7 +204,6 @@ function Scene({ size }: { size: "narrow" | "wide" }) {
                 name="Sam and Priya"
                 coverUrl={marketingImage("wedding-rings").src}
                 dateLabel="14 June"
-                itemsLabel="238 items"
                 statusLabel={size === "wide" ? "Open" : null}
               />
             </div>

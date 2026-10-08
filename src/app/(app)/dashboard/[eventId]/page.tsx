@@ -76,9 +76,11 @@ import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { legacyRoomAddress, resolveEventSheet } from "@/lib/event/sections";
 import {
+  CHECKLIST_OFF_COOKIE,
   checklistOver,
   type ReadyFacts,
   stepsLeft,
+  storageUsedPct,
 } from "@/lib/events/readiness";
 import { preferredEventUrl } from "@/lib/events/share-urls";
 import { captureError } from "@/lib/observability/sentry";
@@ -300,7 +302,7 @@ export default async function EventDetailPage({
   ]);
   const seed = seedFrom(event.id, plan, links);
   // The album's density step, painted from the cookie (`album-columns` r2: one
-  // index shared by host and guest, a legacy width mapped across), and the
+  // index shared by host and guest, anything else the default), and the
   // visit's seed for the rows' rhythm, dealt here so the first paint holds it.
   const rowStep = resolveRowStep(jar.get(TILE_SIZE_COOKIE)?.value);
   const rhythmSeed = dealVisitSeed();
@@ -330,19 +332,19 @@ export default async function EventDetailPage({
   // the real number on their OWN event, whatever its visibility.
   const guestsCount = guestCount(guests);
 
-  // ★ READY FOR GUESTS (event-ready, Will 2026-10-02): the checklist at the head of the hub, Settings'
-  // rail and the Settings card all read these facts through one function (`lib/events/readiness.ts`).
-  // Every one is state already read above; the album's two ride live on the client from here.
-  // ★ The code ticks at its first open, and "opened" is the header's own Views number, so "Opened 3
-  // times" and the eye's 3 never disagree. The storage percent is the dashboard meter's own math.
+  // ★ READY FOR GUESTS (event-ready, Will 2026-10-02; create-wizard r5's `arrival=done`): the checklist's line at
+  // the head of the hub, Settings' rail and the Settings card all read these facts through one function
+  // (`lib/events/readiness.ts`). Every one is state already read above; the album's two ride live on the client from
+  // here. ★ The code ticks at its first open (worth doing, never a need), and "opened" is the header's own Views
+  // number, so "Opened 3 times" and the eye's 3 never disagree. The storage percent is the dashboard meter's own math,
+  // in its one home (`storageUsedPct`).
   const storageCap = effectiveStorageCap(
     tier,
     profile?.storage_cap_bytes ?? null,
   );
-  const storagePct =
-    storage && storageCap && storageCap > 0
-      ? Math.min(100, Math.round((storage.storedBytes / storageCap) * 100))
-      : 0;
+  const storagePct = storage
+    ? storageUsedPct(storage.storedBytes, storageCap)
+    : 0;
   const readyFacts: ReadyFacts = {
     door: event.door,
     hasPassword: event.has_password,
@@ -363,9 +365,9 @@ export default async function EventDetailPage({
     opened: views,
     storagePct,
   };
-  // ★ "Before guests arrive" is moot once they have: from the day after the event's date the checklist
-  // steps aside, and the Settings card stops counting. The day is the VIEWER's (host-app.md: Vercel's
-  // UTC is already tomorrow from evening on west of it), read as the dashboard reads it.
+  // ★ Getting ready is moot once the party has happened: from the day after the event's date the checklist's line
+  // steps aside, and the Settings card stops counting. The day is the VIEWER's (host-app.md: Vercel's UTC is already
+  // tomorrow from evening on west of it), read as the dashboard reads it.
   const viewerZone = resolveViewerZone(
     headerList.get(VIEWER_ZONE_HEADER),
     serverZone(),
@@ -397,10 +399,10 @@ export default async function EventDetailPage({
     },
     {
       id: "settings" as const,
-      // ★ WHAT A GUEST STILL NEEDS, COUNTED, while Settings' steps are not all ticked (event-ready: the steps live in
-      // Settings, so its card says how many are left); then uploads paused in their own word (event-header r4's call G4,
-      // the code's corner keeping its pause); then the door, in the one function that words it everywhere (Public, Private
-      // and its gate, Only me).
+      // ★ WHAT A GUEST STILL NEEDS, COUNTED, while a door nobody can pass or paused uploads hold her back (event-ready:
+      // the steps live in Settings, so its card says how many are left; a new event's is none, r5's `arrival=done`);
+      // then uploads paused in their own word (event-header r4's call G4, the code's corner keeping its pause); then the
+      // door, in the one function that words it everywhere (Public, Private and its gate, Only me).
       ...settingsCardFace({
         left: guestNeeds,
         accepting: event.accepting_uploads,
@@ -542,6 +544,8 @@ export default async function EventDetailPage({
                     tier,
                     hasBilling: Boolean(profile?.stripe_customer_id),
                   }}
+                  // Put away for good in her browser (a cookie on this event's own pages): never drawn, never a flash.
+                  dismissed={jar.get(CHECKLIST_OFF_COOKIE)?.value === "1"}
                 />
                 <EventGallery
                   eventId={event.id}
@@ -549,6 +553,7 @@ export default async function EventDetailPage({
                   initialStep={rowStep}
                   tier={tier}
                   develop={develop}
+                  acceptingUploads={event.accepting_uploads}
                 >
                   <EventUploads
                     eventId={event.id}
