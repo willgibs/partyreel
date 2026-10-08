@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   failureSheetStands,
   UploadFailureSheet,
+  uploadFailurePaused,
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 
@@ -535,6 +536,52 @@ describe("a failure no retry could pass", () => {
     expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
     expect(screen.queryByText("Take another to add one.")).toBeNull();
     expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  /* ★ A SEND THE HOST'S PAUSE REFUSED (crumbs-93, red-team 58's MEDIUM): `uploads_closed` wore Retry (a refresh-class
+     refusal "can pass once the host reopens"), a button that is refused again for as long as the album is paused and
+     said only the server's bare sentence. Its own class now: what happened, that nothing is lost, the way on, once. */
+  const PAUSED = "This event isn't accepting uploads right now.";
+  const pausedRefused = (name: string) =>
+    failure(name, PAUSED, "uploads_closed");
+
+  it("★ a send the host's pause refused: no Retry, the server's sentence, and the plain reason with the way on", () => {
+    sheet([pausedRefused("a.jpg"), pausedRefused("b.jpg")], 2);
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    expect(screen.getAllByText(PAUSED)).toHaveLength(2);
+    const reason = uploadFailurePaused({ hostName: "Maya", count: 2 });
+    expect(reason).toContain("Maya has paused uploads");
+    expect(screen.getByRole("dialog")).toHaveAccessibleDescription(reason);
+    // The choose-again line is for the file's own refusals: a pause refuses every file alike.
+    expect(screen.queryByText("Pick something else to add.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+  });
+
+  it("says where the file is: on her phone, or in a camera album's camera, one or many", () => {
+    expect(uploadFailurePaused({ hostName: "Maya", count: 1 })).toMatch(
+      /It is still on your phone, so try it again/,
+    );
+    expect(uploadFailurePaused({ hostName: "Maya", count: 3 })).toMatch(
+      /They are still on your phone, so try them again/,
+    );
+    expect(
+      uploadFailurePaused({ hostName: "Maya", count: 1, camera: true }),
+    ).toMatch(/It is still in the camera/);
+  });
+
+  it("beside a dropped connection it says nothing of the pause as a whole, and Retry takes the dropped one alone", () => {
+    sheet(
+      [
+        pausedRefused("a.jpg"),
+        failure("b.jpg", "Your connection dropped.", undefined, "dropped"),
+      ],
+      2,
+    );
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    expect(
+      screen.getByText("a.jpg").closest("li")!.querySelector("button"),
+    ).toBeNull();
+    expect(screen.queryByText(/has paused uploads/)).toBeNull();
   });
 
   it("beside a dropped connection, Retry takes the dropped one alone and the roll's line keeps none", () => {

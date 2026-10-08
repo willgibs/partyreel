@@ -57,7 +57,6 @@ describe("the refusal ladder", () => {
   it("routes the four classes the step can act on", () => {
     // The event changed under the guest: only the server can answer.
     for (const code of [
-      "uploads_closed",
       "cap_reached",
       "event_gone",
       "event_deleted",
@@ -65,6 +64,9 @@ describe("the refusal ladder", () => {
     ]) {
       expect(classifyRefusal(code)).toBe("refresh");
     }
+    // The host paused (crumbs-93): its own class, since a Retry is refused again until she reopens. At the door it is
+    // the same fail-open as a full album (below), which has no exit but the server's.
+    expect(classifyRefusal("uploads_closed")).toBe("paused");
     // The capability is dead: never a Retry inside a sheet with no exit.
     expect(classifyRefusal("invalid_session")).toBe("session");
     // The host flipped the other switch mid-run: the email step is the way in.
@@ -80,6 +82,16 @@ describe("the refusal ladder", () => {
 
   it("a RUN is only unfixable when EVERY refusal in it is", () => {
     expect(classifyRun([item({ errorCode: "cap_reached" })])).toBe("refresh");
+    // A pause is the door's fail-open too: it lets her through once uploads are closed, so the step shows no Retry.
+    expect(classifyRun([item({ errorCode: "uploads_closed" })])).toBe(
+      "refresh",
+    );
+    expect(
+      classifyRun([
+        item({ id: "a", errorCode: "uploads_closed" }),
+        item({ id: "b", errorCode: "cap_reached" }),
+      ]),
+    ).toBe("refresh");
     // One retryable file among them means the run is not stuck.
     expect(
       classifyRun([

@@ -60,7 +60,12 @@ export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
   const classes = failures.map((f) => classifyRefusal(f.errorCode));
   if (classes.includes("verify")) return "verify";
   if (classes.includes("session")) return "session";
-  if (classes.length > 0 && classes.every((c) => c === "refresh")) {
+  // A paused album is the door's fail-open as a full one is (`paused` is its own class for the album's sheet, which
+  // offers no Retry; the door has no exit, and the server lets her through once uploads are closed).
+  if (
+    classes.length > 0 &&
+    classes.every((c) => c === "refresh" || c === "paused")
+  ) {
     return "refresh";
   }
   if (classes.includes("retry")) return "retry";
