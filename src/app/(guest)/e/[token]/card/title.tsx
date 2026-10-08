@@ -15,7 +15,9 @@ import type { ReactElement } from "react";
  *
  * The cost is Geist's kerning inside a word (a few px a word at this size, an open "Pa"); the card has no other opinion
  * of its text than being read at a glance in a chat, where one even gap is the better trade. The footer line stays one
- * text node: at 30 px the same error is a few px and no gap to read.
+ * text node: at 30 px the same error is a few px and no gap to read. Left to right only, by what the bundled font draws:
+ * it has no glyph for a script that runs the other way (such a name draws as its missing-glyph box either way), and a
+ * font that did would need its words ordered here.
  *
  * ★ THREE LINES, THEN CUT: the route clips a name to 70 characters, which three lines of this size hold; a name that
  * does not (a run of wide letters, a very long unbroken word) is cut at the third line, never run over the foot. The cut

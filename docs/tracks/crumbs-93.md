@@ -92,11 +92,33 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `guest-flow.md`: the view-only state's bullet now holds the one live word (`uploadsOpen`, every reader, the slot that stays
+  mounted, the refusal's ask and the `paused` class, no wait on the phone); the keep's bullet says the adoption also runs
+  on the open page's own line checks (locks required, never its own page's copies).
+- `disposable-mode.md`: the seal's rule for the host's dashboard (no surface that draws a photograph takes the exemption:
+  the cards' covers and stills carry the predicate with none, the counts stay hers) and the camera's refusal spending the roll.
+- `dashboard.md`: the stage's seal lines (cards included) and `PhotoImg`, the one image of every surface that draws a photograph.
+- `host-app.md`: Settings' "Straight into the album" note reads the album's live count.
+- `docs/ROADMAP.md`: crumbs-88's line (the three SQL homes exempt from the seal) is deleted, settled here (covers and stills
+  held to the guests' view, the count hers by rule).
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Media / host and guest surfaces: `PhotoImg` (crumbs-93) is the one image of the dashboard, the profile and Guest cards and
+  the cover cycle; the hub's own stills (`event-feed/event-cards-row.tsx`'s face, `hub-develop.tsx`,
+  `selectable-media-grid.tsx`), the reel's clip tray and order, and the lightbox's filmstrip still draw a bare `<img>` of a
+  stored photograph, broken where a browser cannot decode an un-previewed original (a HEIC from a desktop Chrome): adopt it
+  there.
+- Brand / OG cards: the marketing OG images (`lib/og/marketing-og-card.tsx`, `app/opengraph-image.tsx`, the blog and events
+  ones) draw a title as one Satori text node, whose gap after a long word opens by that word's own kerning (36 px against 23
+  on the share card, measured); crumbs-93's `e/[token]/card/title.tsx` (`CardTitle`) is the fix, to move to `lib/og/` and use
+  there.
+- Host / Settings: a photograph that reaches Review in the round trip between the picker's last live count and the press
+  still publishes unsaid; `updateEventAction` could return how many `approveAllPending` approved and Settings say it in a
+  toast.
+- Guest / uploads: a reopen reaches a quiet open page on its next version poll (up to a minute, 50 s measured), and the
+  cover's Add returns then; the doorbell could ring on `accepting_uploads` flips (a trigger, so a migration) for an
+  immediate Add.
 
 ## Handoff (replaces the chat report)
 
