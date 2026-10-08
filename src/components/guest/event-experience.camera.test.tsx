@@ -53,6 +53,7 @@ const seen = vi.hoisted(() => ({
   door: null as Record<string, unknown> | null,
   gallery: null as Record<string, unknown> | null,
   tracker: null as Record<string, unknown> | null,
+  reel: null as Record<string, unknown> | null,
   developsAtChange: null as ((developsAt: string | null) => void) | null,
   waitingChange: null as ((waits: boolean) => void) | null,
   countWordsChange: null as ((words: string) => void) | null,
@@ -112,7 +113,11 @@ vi.mock("@/components/guest/live-gallery", () => ({
   },
 }));
 vi.mock("@/components/guest/reel/live-reel", () => ({
-  LiveReel: ({ children }: { children?: ReactNode }) => children ?? null,
+  // A recorder too: its Add entries (the empty album's, a clip's) follow whether the album takes uploads (crumbs-93).
+  LiveReel: (props: { children?: ReactNode } & Record<string, unknown>) => {
+    seen.reel = props;
+    return props.children ?? null;
+  },
 }));
 vi.mock("@/components/guest/upload-tracker", () => ({
   createUploadTrackerStore: () => ({}),
@@ -310,6 +315,7 @@ beforeEach(() => {
   seen.door = null;
   seen.gallery = null;
   seen.tracker = null;
+  seen.reel = null;
   seen.developsAtChange = null;
   seen.waitingChange = null;
   seen.countWordsChange = null;
@@ -689,5 +695,143 @@ describe("the album's word on uploads, handed to the camera (guest-requests)", (
       (seen.upload?.onAskUploadsWord as () => void)();
     });
     expect(galleryHandle.askUploadsWord).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * ★ ONE WORD FEEDS EVERY READER OF WHETHER SHE CAN ADD (crumbs-93, red-team 58's MEDIUM): the album's sync carried the
+ * host's pause and reopen to the camera and the album's order alone, while the cover, its Add, the shutter, the empty
+ * album's Add and the door read the render's `accepting_uploads`: with her page open a pause left the cover offering Add
+ * over a send that meets a 403, and a reopen left "The host has closed uploads" until she reloaded. Every reader below is
+ * one `uploadsOpen`, so each turns on the word and turns back on the next, with the page open throughout.
+ *
+ * ★ AND THE SLOT NEVER GOES FROM UNDER HER: `GuestUpload` hosts the camera, the Add sheet and the failure sheet, so a pause
+ * with her page open leaves it standing (it draws nothing of its own) and only the cover's Add and the closed line turn.
+ */
+describe("the album's live word feeds every reader of whether she can add (crumbs-93)", () => {
+  const PAUSED = {
+    ...EVENT,
+    accepting_uploads: false,
+  } as unknown as GuestEvent;
+  const readers = () => ({
+    add: screen.queryByRole("button", { name: /^(Add|Take) / }) !== null,
+    closedLine: screen.queryByText(/The host has closed uploads/) !== null,
+    slot: screen.queryByTestId("guest-upload") !== null,
+    door: seen.door?.uploadsOpen,
+    shutter: typeof seen.dock?.onAdd,
+    albumAdd: typeof seen.reel?.onAddYours,
+    clip: typeof seen.reel?.addClipToAlbum,
+  });
+  const hear = (accepting: boolean) =>
+    act(() => seen.uploadsWordChange?.(accepting));
+
+  it("★ a pause with the page open turns every reader, and a reopen turns every one back, with no reload", async () => {
+    await page({ event: EVENT, approvedTotal: 3 });
+    expect(readers()).toEqual({
+      add: true,
+      closedLine: false,
+      slot: true,
+      door: true,
+      shutter: "function",
+      albumAdd: "function",
+      clip: "function",
+    });
+
+    hear(false);
+    expect(readers()).toEqual({
+      add: false,
+      closedLine: true,
+      // Standing, so the camera, the Add sheet and the failure sheet that will say why a send was refused stay put.
+      slot: true,
+      door: false,
+      shutter: "undefined",
+      albumAdd: "undefined",
+      clip: "object",
+    });
+
+    hear(true);
+    expect(readers()).toEqual({
+      add: true,
+      closedLine: false,
+      slot: true,
+      door: true,
+      shutter: "function",
+      albumAdd: "function",
+      clip: "function",
+    });
+  });
+
+  it("★ a page that RENDERS paused mounts no slot, shows the closed line, and mounts the slot when the album reopens", async () => {
+    await page({ event: PAUSED, approvedTotal: 3 });
+    expect(readers()).toMatchObject({
+      add: false,
+      closedLine: true,
+      slot: false,
+      door: false,
+    });
+    hear(true);
+    expect(readers()).toMatchObject({
+      add: true,
+      closedLine: false,
+      slot: true,
+      door: true,
+    });
+  });
+
+  it("the demo never closes: it has no sync to hear, and no closed line even from a paused word", async () => {
+    await page({ event: EVENT, isDemo: true, approvedTotal: 3 });
+    expect(readers()).toMatchObject({ add: true, closedLine: false });
+  });
+
+  it("★ a send the album refused as closed asks the album for its word afresh, once, so the cover hears the pause within a round trip", async () => {
+    await page({ event: EVENT, approvedTotal: 3 });
+    expect(galleryHandle.askUploadsWord).not.toHaveBeenCalled();
+    // The queue's item is replaced on every change, so a fresh refusal is a fresh object.
+    queueState.items = [
+      {
+        id: "q-1",
+        file: new File(["x"], "a.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "error",
+        progress: 0,
+        errorCode: "uploads_closed",
+        error: "This event isn't accepting uploads right now.",
+      },
+    ];
+    hear(true);
+    expect(galleryHandle.askUploadsWord).toHaveBeenCalledTimes(1);
+    // The same refusal, heard about again, is not asked again.
+    hear(true);
+    expect(galleryHandle.askUploadsWord).toHaveBeenCalledTimes(1);
+  });
+
+  it("a camera album's refusal is the camera's to ask for (`album-camera.tsx`), never doubled by the page", async () => {
+    queueState.items = [
+      {
+        id: "q-1",
+        file: new File(["x"], "a.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "error",
+        progress: 0,
+        errorCode: "uploads_closed",
+      },
+    ];
+    await page({ event: CAMERA, approvedTotal: 3 });
+    expect(galleryHandle.askUploadsWord).not.toHaveBeenCalled();
+  });
+
+  it("a page that already knows the album closed has nothing to ask", async () => {
+    queueState.items = [
+      {
+        id: "q-1",
+        file: new File(["x"], "a.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "error",
+        progress: 0,
+        errorCode: "uploads_closed",
+      },
+    ];
+    await page({ event: PAUSED, approvedTotal: 3 });
+    expect(galleryHandle.askUploadsWord).not.toHaveBeenCalled();
   });
 });

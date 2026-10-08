@@ -210,4 +210,34 @@ describe("her 3 re-shoots (guest-moments r1's `limit=three`)", () => {
       ROLL_RESHOOTS,
     );
   });
+  it("★ a roll_spent refusal no read has answered spends the roll at once: no frame is offered that the server just refused", () => {
+    // The camera thought two frames were left (another phone of hers used them): the refusal is the server's count.
+    const server = answer(21, 21);
+    expect(rollView({ server, rollSize: 24, pending: 0 })).toMatchObject({
+      used: 21,
+      left: 3,
+      refusal: null,
+    });
+    const refused = rollView({
+      server,
+      rollSize: 24,
+      pending: 0,
+      refused: true,
+    });
+    expect(refused).toMatchObject({
+      used: 24,
+      held: 24,
+      left: 0,
+      frame: 24,
+      refusal: rollSpentMessage(24),
+    });
+    // Before any read has answered at all (a camera first opened in a dead zone), it spends the roll at the event's size.
+    expect(
+      rollView({ server: null, rollSize: 12, pending: 0, refused: true }),
+    ).toMatchObject({ used: 12, left: 0, refusal: rollSpentMessage(12) });
+    // Absent or false is the count as it was.
+    expect(
+      rollView({ server, rollSize: 24, pending: 0, refused: false }),
+    ).toEqual(rollView({ server, rollSize: 24, pending: 0 }));
+  });
 });

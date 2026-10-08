@@ -295,7 +295,8 @@ function useWordChoices(openPage: (page: SettingsPage) => void): Record<
           label: "Straight into the album",
           note:
             v.review && s.pendingCount > 0
-              ? `The ${people(s.pendingCount, "photo", "photos")} under review appear at once.`
+              ? // The count is the album's live one (`SettingsProvider`'s `pendingCount`): what waits when she looks.
+                `The ${people(s.pendingCount, "photo under review appears", "photos under review appear")} at once.`
               : "Everyone sees it the moment it lands.",
           selected: !v.review,
         },

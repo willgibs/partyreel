@@ -1426,6 +1426,9 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
     // ★ Reshaped by disposable-foundation (20261002200000), which carries both bodies in place (`create or replace`,
     // the signatures untouched) with the seal's one predicate: the pins read the shape, never the verb (crumbs-21's
     // reshape of get_event_like_counts), and the covers' read keeps its gates with the predicate after them.
+    // ★ AND RESHAPED ON PURPOSE BY crumbs-93 (20261008090000; scar kept: the predicate stands after the covers' gates;
+    // reason dropped: the host's exemption `or exists (... e.host_id = (select auth.uid()))`, which let a Disposable's
+    // dashboard card draw a sealed shot before its develop): a card reads the seal as a guest does, the host included.
     it("event_card_stats is SECURITY INVOKER, answers every input id, and counts outside the bin", () => {
       const body = code("event_card_stats");
       expect(body).toContain(
@@ -1445,7 +1448,7 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
         "function public.event_covers(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
       );
       expect(body).toContain(
-        "select distinct on (m.event_id) m.event_id, m.preview_key, m.original_key from public.media m where m.event_id = any(p_event_ids) and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and (m.sealed_until is null or m.sealed_until <= now() or exists (select 1 from public.events e where e.id = m.event_id and e.host_id = (select auth.uid()))) order by m.event_id, m.created_at desc, m.id desc",
+        "select distinct on (m.event_id) m.event_id, m.preview_key, m.original_key from public.media m where m.event_id = any(p_event_ids) and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and (m.sealed_until is null or m.sealed_until <= now()) order by m.event_id, m.created_at desc, m.id desc",
       );
     });
 
@@ -2090,6 +2093,9 @@ describe("the host's reel defaults (20260925100000)", () => {
   describe("event_stills: the dashboard cards' stills, one jsonb", () => {
     // ★ Reshaped by disposable-foundation (20261002200000), which carries the body in place (`create or replace`) with
     // the seal's one predicate after the stills' own four conditions: the pins read the shape, never the verb.
+    // ★ AND RESHAPED ON PURPOSE BY crumbs-93 (20261008090000; scar kept: the predicate after the four conditions, the
+    // clamp and the order; reason dropped: the host's exemption `or e.host_id = (select auth.uid())`): a card's stills read
+    // the seal as a guest does, the host included.
     it("is SECURITY INVOKER with an empty search_path and answers one jsonb (the row cap cannot cut it)", () => {
       expect(code("event_stills")).toContain(
         "function public.event_stills(p_event_ids uuid[], p_per_event integer) returns jsonb language sql stable security invoker set search_path = ''",
@@ -2108,7 +2114,7 @@ describe("the host's reel defaults (20260925100000)", () => {
       // ★ A null or non-positive N answers nothing: `greatest` ignores the null, so the limit is 0,
       // never the unbounded read a null p_limit means on a paged function.
       expect(body).toContain(
-        "where m.event_id = e.id and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and m.preview_key is not null and (m.sealed_until is null or m.sealed_until <= now() or e.host_id = (select auth.uid())) order by m.created_at desc, m.id desc limit least(greatest(p_per_event, 0), 12)",
+        "where m.event_id = e.id and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and m.preview_key is not null and (m.sealed_until is null or m.sealed_until <= now()) order by m.created_at desc, m.id desc limit least(greatest(p_per_event, 0), 12)",
       );
       // An event with no previewed photo is absent; the ids are the caller's, scoped by RLS.
       expect(body).toContain(

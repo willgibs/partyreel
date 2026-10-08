@@ -9,6 +9,7 @@ import {
   PRIVATE_CARD_PARAM,
 } from "@/lib/guest/event-card";
 
+import { CardTitle } from "./title";
 import { ADD_CARD_PARAM, cardFoot } from "./words";
 
 /**
@@ -28,6 +29,10 @@ import { ADD_CARD_PARAM, cardFoot } from "./words";
  * blocked viewer got the named card while her page said private. A viewer the closed door masks is
  * never pointed here: her page names the private album's card (`?private`, generic by its address
  * alone), as a private album's page does (`privateEventCardPath`).
+ *
+ * ★ ITS TITLE IS DRAWN BY `CardTitle`, NEVER A TEXT NODE (crumbs-93): the renderer draws each word kerned inside the box it
+ * measured unkerned, so the gap after a long word opens ("A Partyreel  event"); a word drawn letter by letter keeps one
+ * gap (`title.tsx`).
  *
  * ★ ITS FOOT FOLLOWS THE ALBUM, BY ITS ADDRESS TOO (`?add`, crumbs-87): the plain card says what is true of every album
  * ("See the photos & videos"), and the address the page names for an album that takes photos right now invites ("Add
@@ -76,18 +81,7 @@ export async function GET(
         <path d={WORDMARK_DISPLAY.d} />
       </svg>
 
-      <div
-        style={{
-          display: "flex",
-          fontSize: "76px",
-          fontWeight: 700,
-          lineHeight: 1.05,
-          letterSpacing: "-0.02em",
-          maxWidth: "1000px",
-        }}
-      >
-        {heading}
-      </div>
+      <CardTitle text={heading} size={76} wrapWidth={1000} clipWidth={1024} />
 
       <div style={{ display: "flex", fontSize: "30px", color: "#a1a1aa" }}>
         {foot}

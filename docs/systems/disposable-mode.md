@@ -52,7 +52,8 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
 - ★ **Every SQL home a guest's view reaches carries it** (`get_event_media_by_qr_token`, `event_covers`, `event_stills`,
   `event_card_stats`, `like_media`, `create_report`, `get_public_profile`'s two attended arms, `album_changes_since`),
   pinned by `src/lib/disposable/migration-guards.test.ts`. A new home takes it too, in one of the three spellings
-  that test accepts.
+  that test accepts (the host's exemption after the visible half), or with none: `event_covers` and `event_stills`,
+  the cards' two reads, take the visible half alone.
 - ★ **Every guest-path PostgREST read carries its app half**, `.or(unsealedFilter(nowIso()))`
   (`lib/disposable/seal.ts`): the manifest page and the links read (`album-guest.ts`), the unlocked album, the teaser,
   the album's size, the uploader credits and the photo card (`guest-events-admin.ts`), the Guests list and the attended
@@ -61,9 +62,14 @@ m.status = 'approved' and (m.sealed_until is null or m.sealed_until <= now() or 
   Guests list's own cell in `social.test.ts`) runs them on the fake PostgREST and fails if one forgets.
 - ★ **The guest's page is the guests' view, its host's included**: no guest-path read takes the owner's exemption (the
   open album RPC is asked with no session, `createAnonClient`), so two viewers of one page never hold two albums under
-  one validator. The host's exemption is her dashboard's (her own session's INVOKER reads), so a dashboard surface
-  that draws a photograph a guest could be shown carries the filter itself: the stage's wall does
-  (`getStagePhotos`, [dashboard.md](dashboard.md)); a tile's cover and still and the stage's counts stay hers.
+  one validator. ★ **A photograph is a surprise to its host as to any guest, so no surface that draws one takes the
+  exemption** (crumbs-93, red-team 58's LOW): the cards' covers and stills read the seal as a guest does at the read itself
+  (`event_covers` and `event_stills` carry the predicate with no `auth.uid()`, so the THIS WEEK card, a tile, the stage's
+  lead and the Deleted tab show the newest photograph a guest could already see, or the no-cover surface), the stage's
+  wall takes the app half (`getStagePhotos`, `unsealedFilter`, [dashboard.md](dashboard.md)), and the hub's head covers
+  what waits (`hubCovered`). The exemption is for what is no photograph, her own session's INVOKER reads of counts and
+  scope: the stage's "in the album" count (`event_card_stats`) and the host scope of `album_changes_since` stay hers.
+  A new dashboard surface that draws a photograph reads one of those, never a read of her own session's media.
 - **Never a NOT of the visible predicate**: it is not null-safe. Where the sealed rows themselves are asked, write
   `m.sealed_until > now() and e.host_id is distinct from (select auth.uid())`, as `album_changes_since` does.
 - ★ **No writer seals a row a guest may have seen**, so a photo a guest has seen never goes back into the wait: every
@@ -185,7 +191,11 @@ phone's camera is let go whenever the page hides or the camera closes (`use-came
   account can still overrun it**: each counts its own shots off its own last read, so shots both took offline past the
   roll's end are refused when they land (`roll_spent`, "You've taken all 24 shots on your roll."), said on the album's
   failure sheet with no Retry, and her camera ends the roll; so is a shot the host's smaller roll no longer has room
-  for. The roll's 3 re-shoots are no shelter there: they are take-backs.
+  for. The roll's 3 re-shoots are no shelter there: they are take-backs. ★ **The refusal is the server's count, so it
+  spends the roll at once** (red-team 58's NIT): a refused shot is no pending shot of the camera's, so between the
+  refusal and the read it asks for the camera offered the refused frame as free for half a second; `rollView`'s `refused`
+  (a `roll_spent` refusal of a shot taken or sent again since the last read began) reads the roll spent until a read
+  answers, and that read then says what is true.
 - **Two doors take a shot back** (guest-moments r1's `where=reel`): a press on the reel's newest frame (this visit's
   newest shot, on an album that keeps it out of sight) lays it over the picture with Take it back and Keep it
   (`TakeBackPanel`; two keys, since a mis-press on the reel must not delete), waiting for a shot still on its way (one

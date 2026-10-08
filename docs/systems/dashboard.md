@@ -59,9 +59,19 @@ header holds its rule), the page only reads, and the composition is `components/
   (`lib/dashboard/stage-action.ts`) for its wall and counts on `useLivePoll`'s cadence, re-running the same pure rules.
   ★ The action proves the event is the caller's (`getEvent`, RLS) before it reads the door on the service role.
   ★ The wall draws only what her guests could see: `getStagePhotos` (the page's first read and the action's alike) takes
-  the seal's own filter (`unsealedFilter`, [disposable-mode.md](disposable-mode.md)), since her session is exempt from a
-  Disposable's seal at every SQL home and the stage would show the photographs her hub covers until the develop. A
-  covered album with nothing unsealed stands as one with no photograph yet (its lamp), its counts staying hers.
+  the seal's own filter (`unsealedFilter`, [disposable-mode.md](disposable-mode.md)), since her own session's read sees
+  every row and the stage would show the photographs her hub covers until the develop. A covered album with nothing
+  unsealed stands as one with no photograph yet (its lamp), its counts staying hers. ★ So do the cards' covers and stills:
+  `event_covers` and `event_stills` read the seal as a guest does, the host included (no exemption), so the THIS WEEK card,
+  a tile, a row and the stage's lead cover wear the newest photograph a guest could already see, or the no-cover surface,
+  until the develop. One rule for every surface that draws a photograph: a new one reads one of these, never her own
+  session's media.
+  ★ A photograph this browser cannot draw (a HEIC from a desktop Chrome has no preview, so a read falls back to the
+  original) is named, never a broken image, on every surface that draws one: `PhotoImg` (`components/app/photo-img.tsx`)
+  is the one `<img>` there and hands over to the album's own stand-in (`TileStandIn`: "Can't show here" and the format),
+  in the box the image filled; the stage's wall, a tile, a row, the table, the pill and the week's face wear it, the cover
+  cycle's dissolving stills too (`LivingStills`). A decoration (a row's 12 percent ground, the stage's blurred light) stays
+  a plain image: an ornament that cannot draw is nothing to name.
 - **One item an event** (`itemFor`, `attention.ts`): the queues in every phase, the day's own steps on its day, before
   it the first essential readiness leaves undone (`lib/events/readiness.ts`, never a copy: a door nobody can pass,
   paused uploads), then the code's share while nobody has opened it (worth doing since create-wizard r5's

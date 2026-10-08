@@ -214,9 +214,16 @@ export function standInFormat(src: string): string | null {
  * wherever that cannot draw either (Chrome, Firefox, an Android phone) the tile was a shimmer for ever, a photograph
  * that read as still loading. Once nothing is left to try (no rolled link, no preview to fall back from) the tile says
  * so in the box it keeps, quietly: a mark, the words, and the format where it is the reason. Its words show only where
- * the box has room (a storage row's 44px thumbnail keeps the mark alone).
+ * the box has room (a storage row's 44px thumbnail keeps the mark alone). ★ ONE STAND-IN FOR EVERY SURFACE THAT DRAWS A
+ * PHOTOGRAPH (crumbs-93): the dashboard's wall and covers wear this same one through `PhotoImg` (`photo-img.tsx`).
  */
-function TileStandIn({ kind, src }: { kind: GridMedia["type"]; src: string }) {
+export function TileStandIn({
+  kind,
+  src,
+}: {
+  kind: GridMedia["type"];
+  src: string;
+}) {
   const Mark = kind === "video" ? VideoOff : ImageOff;
   const format = standInFormat(src);
   return (

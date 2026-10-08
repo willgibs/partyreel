@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { PhotoImg } from "@/components/app/photo-img";
 import { RangeText } from "@/lib/format/range-text";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -119,10 +120,8 @@ export function EventCard({
   const surface = (
     <>
       {coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+        <PhotoImg
           src={coverUrl}
-          alt=""
           loading="lazy"
           className="absolute inset-0 size-full object-cover"
         />

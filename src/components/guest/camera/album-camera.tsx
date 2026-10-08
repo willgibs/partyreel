@@ -372,8 +372,18 @@ export function AlbumCamera({
   const outsideOnWay = elsewhereOnWay + unreadOnWay;
   /** Every shot of hers no read of her roll holds: on its way, or landed since the read began. */
   const outside = outsideOnWay + elsewhereLanded + unreadLanded;
+  // ★ A `roll_spent` REFUSAL NO READ HAS ANSWERED YET (crumbs-93): a refused shot is no pending shot (it never counted), so
+  // until the read the refusal asks for lands the count would still offer the frame the server just refused. A shot taken
+  // (or sent again) at or after the last read began is newer than that read; an older one is held in it.
+  const rollRefusedUnread = states.some(
+    ({ shot, state }) =>
+      state.status === "failed" &&
+      refusalOf(state.code) === "roll" &&
+      (shot.retriedAt ?? shot.takenAt) >= roll.readFrom,
+  );
   const guest = rollView({
     server: roll.server,
+    refused: rollRefusedUnread,
     rollSize: event.roll_size,
     pending: pendingSince(states, roll.readFrom) + outside,
     // ★ THE LEDGER KEEPS WHAT SHE TOOK BACK: a shot taken since the read and taken back since frees its frame and

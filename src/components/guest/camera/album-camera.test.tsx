@@ -98,6 +98,9 @@ let rolls: {
   period?: number;
 }[] = [];
 let ownItems: unknown[] = [];
+/** The next read of her roll waits until a test answers it (`releaseRead`): the round trip a refusal's re-read takes. */
+let holdNextRead = false;
+let releaseRead: ((roll: unknown) => void) | null = null;
 
 function mine() {
   return vi
@@ -255,6 +258,21 @@ function Page({
             prev.map((it) => ({
               ...it,
               status: "error" as const,
+              error: "You've taken all 24 shots on your roll.",
+              errorCode: "roll_spent",
+            })),
+          )
+        }
+      >
+        Refuse them as the roll
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setQueue((prev) =>
+            prev.map((it) => ({
+              ...it,
+              status: "error" as const,
               error: "This event is private.",
               errorCode: "unauthorized",
             })),
@@ -356,10 +374,19 @@ beforeEach(() => {
   vi.clearAllMocks();
   rolls = [{ used: 6, cap: 24, taken: 6, ceiling: 27 }];
   ownItems = [];
+  holdNextRead = false;
+  releaseRead = null;
   localStorage.clear();
   localStorage.setItem("pr_session_qr-token-1", "s".repeat(32));
   global.fetch = vi.fn(async (input: RequestInfo | URL) => {
     if (String(input) === "/api/guests/mine") {
+      if (holdNextRead) {
+        holdNextRead = false;
+        const held = await new Promise((resolve) => {
+          releaseRead = resolve;
+        });
+        return Response.json({ ok: true, items: ownItems, roll: held });
+      }
       const roll = rolls.length > 1 ? rolls.shift() : rolls[0];
       return Response.json({ ok: true, items: ownItems, roll });
     }
@@ -549,6 +576,45 @@ describe("the album's camera", () => {
       await new Promise((resolve) => setTimeout(resolve, 60));
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  /* ★ A ROLL_SPENT REFUSAL SPENDS THE ROLL AT ONCE (crumbs-93, red-team 58's NIT): for about half a second after the 409
+     the camera read "Frame 3 of 3 / 1 left / Tap for a photo" with the shutter live, the refused frame offered as free
+     until the re-read the refusal asks for had answered. The server's refusal is its count, so the roll reads spent
+     the moment it lands, and the read then says what is true (a roll with frames after all opens the shutter again). */
+  it("★ reads the roll spent the moment the server refuses a shot for it, before the read it asks for answers", async () => {
+    rolls = [{ used: 22, cap: 24, taken: 22, ceiling: 27 }];
+    render(<Page />);
+    await opened();
+    expect(screen.getByText("Frame 23 of 24")).toBeInTheDocument();
+    await act(async () => press());
+    holdNextRead = true;
+    const reads = mine().length;
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Refuse them as the roll",
+        hidden: true,
+      }),
+    );
+    // The re-read is in the air and unanswered; the camera already says the roll's end and the shutter is gone.
+    await screen.findByText("That’s your roll");
+    await waitFor(() => expect(mine().length).toBe(reads + 1));
+    expect(releaseRead).not.toBeNull();
+    expect(screen.queryByText("Tap for a photo.")).toBeNull();
+    expect(
+      (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    // The read, answered: the server's count is the camera's (this one says frames remain, so the shutter opens again).
+    await act(async () => {
+      releaseRead?.({ used: 20, cap: 24, taken: 20, ceiling: 27 });
+    });
+    await screen.findByText("Frame 21 of 24");
+    expect(screen.queryByText("That’s your roll")).toBeNull();
+    expect(
+      (document.querySelector("[data-cam-shutter]") as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
   });
 
   it("★ stops the shutter when the album itself refuses, in the server's own words", async () => {

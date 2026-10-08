@@ -30,6 +30,11 @@
  * (`retryCanPass`, the refusal ladder the door's step reads too), and so does a
  * shot the album's spent roll refused (crumbs-90, no-signal r1: "Retry both" stood
  * over two shots the roll refused again, under a Not now that promised a later go).
+ *
+ * ★ A SEND REFUSED BECAUSE THE HOST PAUSED IS ITS OWN CLASS TOO (crumbs-93, red-team 58's MEDIUM): `paused`, said in the
+ * sheet's reason line (`uploadFailurePaused`: what happened, that nothing is lost, the way on) over the server's own
+ * sentence, and with no Retry, since every send is refused alike until the host reopens (and the cover's Add is back the
+ * moment the album says it has).
  */
 import { useEffect, useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
@@ -97,6 +102,24 @@ export function uploadFailureElsewhere(input: {
   const clock = waitWords(waits, hostName, zone);
   if (clock) return restWaitLine(clock, nowMs);
   return `Everything else is in ${hostName}’s album.`;
+}
+
+/**
+ * ★ WHAT SHE IS TOLD WHEN THE HOST PAUSED UPLOADS UNDER A SEND (crumbs-93): what happened, that nothing is lost (the file is
+ * still with her: on her phone, or in the camera a shot was taken in), and the one way to put it right, said once for
+ * the whole run. No Retry stands under it (`retryCanPass`): it would be refused again until the host reopens.
+ */
+export function uploadFailurePaused(input: {
+  hostName: string;
+  /** How many files of the run were refused as paused. */
+  count: number;
+  camera?: boolean;
+}): string {
+  const { hostName, count, camera = false } = input;
+  const one = count === 1;
+  return `${hostName} has paused uploads for now. ${one ? "It is" : "They are"} still ${
+    camera ? "in the camera" : "on your phone"
+  }, so try ${one ? "it" : "them"} again once uploads reopen.`;
 }
 
 /**
@@ -318,8 +341,22 @@ export function UploadFailureSheet({
   const chooseAgain =
     nothingToRetry &&
     shown.failures.every((f) => classifyRefusal(f.code) === "choose");
+  // ★ A RUN THE HOST'S PAUSE REFUSED WHOLE says so, first: what happened and the way on, before the rest.
+  const pausedRun =
+    shown.failures.length > 0 &&
+    shown.failures.every((f) => classifyRefusal(f.code) === "paused");
   const reason =
-    [rest, chooseAgain ? uploadFailureChooseAgain(camera) : null]
+    [
+      pausedRun
+        ? uploadFailurePaused({
+            hostName,
+            count: shown.failures.length,
+            camera,
+          })
+        : null,
+      rest,
+      chooseAgain ? uploadFailureChooseAgain(camera) : null,
+    ]
       .filter(Boolean)
       .join(" ") || null;
 

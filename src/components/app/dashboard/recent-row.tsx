@@ -7,6 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { CoverCycleProvider } from "@/components/app/dashboard/cover-cycle";
 import { EventTile } from "@/components/app/dashboard/event-tile";
 import { useWide } from "@/components/app/dashboard/use-wide";
+import { PhotoImg } from "@/components/app/photo-img";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +27,8 @@ function Face({ row }: { row: EventListRow }) {
   return (
     <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
       {row.coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-        <img
+        <PhotoImg
           src={row.coverUrl}
-          alt=""
           loading="lazy"
           className="absolute inset-0 size-full object-cover"
         />
@@ -79,7 +78,7 @@ export function RecentRow({
                 <Link
                   href={row.href ?? "#"}
                   title={row.name}
-                  className="flex h-7 items-center gap-1.5 rounded-full bg-muted py-0.5 pr-2.5 pl-0.5 text-xs outline-none hover:bg-muted/70 focus-halo"
+                  className="flex h-7 focus-halo items-center gap-1.5 rounded-full bg-muted py-0.5 pr-2.5 pl-0.5 text-xs outline-none hover:bg-muted/70"
                 >
                   <Face row={row} />
                   <span className="max-w-32 truncate">{row.name}</span>
@@ -92,7 +91,7 @@ export function RecentRow({
           type="button"
           aria-expanded={!folded}
           onClick={() => onFold(!folded)}
-          className="ml-auto flex h-7 items-center gap-1 rounded-full px-2.5 text-xs text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-halo"
+          className="ml-auto flex h-7 focus-halo items-center gap-1 rounded-full px-2.5 text-xs text-muted-foreground outline-none hover:bg-muted hover:text-foreground"
         >
           {folded ? "Show" : "Hide"}
           <ChevronDown
