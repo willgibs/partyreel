@@ -7,9 +7,11 @@
  * PostgREST reads run on the service role, which has no session, so they read as a guest whoever is asking: this is
  * their column filter, `.or(unsealedFilter(nowIso()))`.
  *
- * ★ THE GUEST'S PAGE IS THE GUESTS' VIEW, ITS HOST'S INCLUDED. The host meets her sealed album under its cover on her
- * dashboard; on the album's own link she sees what a guest sees (the waiting room), so no guest-path read takes an
- * owner exemption, and two viewers of one page never hold two different albums under one validator.
+ * ★ THE GUEST'S PAGE IS THE GUESTS' VIEW, ITS HOST'S INCLUDED. On the album's own link she sees what a guest sees (the
+ * waiting room), so no guest-path read takes an owner exemption, and two viewers of one page never hold two different
+ * albums under one validator. ★ AND NO DASHBOARD SURFACE DRAWS A SEALED PHOTOGRAPH FOR HER EITHER (crumbs-93): the hub covers
+ * what waits, the stage's wall takes this filter, and the cards' covers and stills read the predicate with no exemption;
+ * her session's exemption is for counts and host-scoped reads, never a picture (disposable-mode.md).
  *
  * ★ LAZY, AND A WRITE CLOSES IT. Past the develop time a row reads visible here at once; `develop_due` (the album's
  * first read after it, the daily sweep) then clears the row, which moves the album's versions so every open page hears.

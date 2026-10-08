@@ -166,6 +166,12 @@ export async function countActiveEvents(): Promise<number> {
  * stable presign's 90 minutes, a leaked cover URL living a half hour past the old hour (the
  * trade-off `presign-bucket.ts` records for every album link).
  *
+ * ★ A SEALED SHOT NEVER COVERS A CARD, ITS HOST'S OWN INCLUDED (crumbs-93, red-team 58's LOW): `event_covers` and
+ * `event_stills` read the seal as a guest does (20261008090000: no exemption for `auth.uid()` in either), so a
+ * Disposable's card shows the newest photograph a guest could already see, or none (its no-cover surface) until the
+ * develop; the rule is the SQL's, at the read, so every card and every caller below inherits it. The counts
+ * (`event_card_stats`) stay hers: a number is no photograph.
+ *
  * PHOTO-only is load-bearing: the card renders the cover in an <img>, which
  * cannot display a video file, so a newest-upload-is-a-video event would get a
  * broken (0x0) cover if videos were eligible. (A video-poster cover for
@@ -224,7 +230,8 @@ export const CARD_STILLS = 4;
  * Two jsonb answers for any number of events, the ids in the POST body, run together; every key
  * is presigned here, once (a cover and a still of the same photo are one key), and `stable`, so a
  * refresh inside the half hour hands the card the same urls and the browser its cached images.
- * Keys never reach the browser.
+ * Keys never reach the browser. Neither RPC answers a sealed shot (see `readCoverUrls`): an album that waits for its
+ * develop has no stills here, whoever asks.
  */
 export async function getEventCardStills(
   eventIds: string[],

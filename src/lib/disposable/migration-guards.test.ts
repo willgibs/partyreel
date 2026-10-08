@@ -60,8 +60,6 @@ const HOST_ASKS = [
 describe("1. the one predicate in every SQL home a guest's view reaches", () => {
   const HOMES = [
     "get_event_media_by_qr_token",
-    "event_covers",
-    "event_stills",
     "event_card_stats",
     "like_media",
     "create_report",
@@ -78,6 +76,23 @@ describe("1. the one predicate in every SQL home a guest's view reaches", () => 
       expect(HOST_ASKS.some((spelling) => after.startsWith(spelling))).toBe(
         true,
       );
+    },
+  );
+
+  /* ★ THE CARDS' TWO READS TAKE IT WITH NO EXEMPTION (crumbs-93, 20261008090000; red-team 58's LOW). RESHAPED ON PURPOSE:
+     these two were pinned with the others as "the host exempt where her own session asks", which let a Disposable's
+     dashboard card wear a sealed shot as its cover before the develop (the hub's head and the stage's wall already covered
+     them). Scar kept: the predicate stands in both, after the cards' own gates. Reason dropped: the host's exemption
+     (her dashboard "meets her sealed album"): a photograph is a surprise to its host as to any guest, and a count
+     (`event_card_stats`, below) is not a photograph, so only the counts and the host-scoped homes keep the exemption. */
+  it.each(["event_covers", "event_stills"])(
+    "★ %s reads the seal as a guest does: the predicate, and no auth.uid() anywhere in the body",
+    (name) => {
+      const body = code(name);
+      expect(body).toContain(
+        "and (m.sealed_until is null or m.sealed_until <= now())",
+      );
+      expect(body).not.toContain("auth.uid()");
     },
   );
 
