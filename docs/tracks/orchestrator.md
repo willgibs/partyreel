@@ -27,16 +27,18 @@ model Will seats (Fable or Opus); nothing here depends on which.
 check on partyreel.com answered MISS, then HIT; the kit's screens retaken from partyreel.com). It holds desk 8's wave
 (gates 78 to 87) and crumbs-93 (gate 88: red-team 58's MEDIUM, three LOWs and three NITs; its migration applied on the
 Advisor's Q47 as 20261008050912); gate 89 is its FULL gate; red-teams 58 and 58b left nothing above NIT open; the
-compute model held six scenarios, its two hour scenarios a harness clock artifact. At 07:45Z the week reads 95%
-(resetting 2026-10-13 21:00Z) and the 5-hour window 0%: one small Sonnet lane runs on Immediate's six small lines; X1's
-develop time (with the two plan-limit readers) and the next boards wait for the reset or the other account's seat.
+compute model held six scenarios, its two hour scenarios a harness clock artifact. Since: crumbs-94 (gate 90, 09:30Z):
+the compute model asks on a true clock (a lone phone pays 27 calls an hour against 25 before cdn-version), Settings'
+verified-email patch pinned, red-team 58b's four NITs; the event-page board's premise re-read against its guest-flow
+edits (the door's upload step on a pause and reopen, one voice for a paused refusal: nothing the board draws). No lane
+runs. At 07:45Z the week read 95% (resetting 2026-10-13 21:00Z): X1's develop time (with the two plan-limit readers),
+Immediate's two photo-first door lines and the next boards wait for the reset or the other account's seat.
 Will's calls paste's first sections are routed; his Deletion and Safety sections are still to come (the Calls place
 holds 16: his eight, and eight new from lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted
 and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-94` | six of Immediate's small lines: the compute model's true clock, a verified-email test pin, red-team 58b's four NITs | running (cut 135a32e95, 07:50Z) | Sonnet, 3131 | `a1852da2d5b7f752f` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q47 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).

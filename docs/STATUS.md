@@ -20,8 +20,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   an open album's version at the CDN (MISS, then HIT, on partyreel.com). Red-teamed by 58 and 58b (nothing above NIT
   open); the kit's screens retaken from partyreel.com. `launch-prep` equals `main`; the next round forms there.
 - **Desk 9 waits on Will** (2026-10-08): the event-page board (the event page from the ground up, six whole designs, sky
-  recommended) and brand-marks r2's icon. ROADMAP's Immediate holds red-team 58b's four NITs and the compute model's
-  harness fix. The Orchestrator sits on Will's Mac; its lanes run in local worktrees, paced by the 5-hour window and the
+  recommended) and brand-marks r2's icon. crumbs-94 closed red-team 58b's four NITs and the compute model's clock
+  (gate 90). The Orchestrator sits on Will's Mac; its lanes run in local worktrees, paced by the 5-hour window and the
   week.
 - **Vercel stays on Hobby** (Will, 2026-10-07): about 3.86 of 4 CPU-hours over 30 days, under the REFUSE line around
   2026-10-16; nothing of ours runs on Vercel but what Will asks for by name (`CLAUDE.md`).

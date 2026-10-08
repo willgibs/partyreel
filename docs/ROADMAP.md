@@ -17,27 +17,13 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 
 ## Immediate
 
-### Platform, data and cost
-
-- Cost: the compute model cannot measure cdn-version's path in its hour scenarios: its clock shim (`--k`, 20) runs a phone's `Date` K times fast, so every version ask's window misses the server's, answers `clock`, and the store falls back to a full sync (milestone 40's run: guest-hour-live 43 calls against 26, guest-hour-down 127 against 74, each `GET .../sync/version` followed 5 ms later by a `POST .../sync`). On a true clock the answer is `version`, equal to the held ETag (checked on the desk 2026-10-08: no sync follows). The model asks with the server's window, as a phone's true clock would (a CDP rewrite of `w` in `scripts/compute-model/`), then both lines are re-measured and lowered; never raised to pass (budget.json's note).
-
-### Security and abuse
-
-- Settings: pin in a test that `eventPatch` and `updateEvent` name `require_verified_email` only when her switch provides it: `events_email_held`'s client arm (20261008030000) clears the gate's memory on any client write of the step, so a future whole-row save would undo a hold by a side door (the Advisor's Q45).
-
 ### Uploads, media and exports
 
 - Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
-- Reel: an undecodable HEIC plays as a black 3-second slide; leave it out of the reel or draw its named stand-in (red-team 58b).
 
 ### The guest's album
-
-- Guests: at the door's upload step one paused refusal is said twice, the step's server line and then the album's sheet about a second later, overlapping for about 200 ms: one voice (red-team 58b).
-- Guests: a reopen puts the door's upload step back up, unprompted, over the album she was already let into: the rule on a photo-first album, an interruption on an ordinary one (red-team 58b).
-
-### The host app
-
-- Dashboard: `PhotoImg` listens only for `onError`, so a cached undecodable HEIC that fails before hydration draws a broken image on the stage's wall on a reload (red-team 58b: 2 of 3 reloads headless, every load in Will's Chrome); read `img.complete` and `naturalWidth` in a callback ref, as the album tile does (red-team 58b).
+- Guests: a guest the pause let into a photo-first album never hears the reopen: the sync answers her a teaser at the `upload` gate, which carries no `accepting` (only a full answer does), so her cover keeps its closed line and the door's step never returns until a reload; carry the word on that teaser too, or read an `upload` gate as open (walked 2026-10-08: 100 s after the reopen, still closed; the sync's own answers were a manifest with `accepting: false`, then a teaser).
+- Guests: at a photo-first door a paused refusal's view stands after the host reopens inside one poll, with no way to try again (the queue's failure is stale, and the step's one button refreshes into the same view, walked 2026-10-08): lift a `paused` failure when the page hears the album open, as the camera's banner lifts (`uploadsWord.heard`); it needs the word to reach a teaser first (the line above), and a refresh that finds uploads open to count as a word.
 
 ## Upcoming
 
@@ -98,6 +84,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Camera: a roll of one is refused as "You've taken all 1 shots on your roll." (`create_media`'s raise, mirrored by `roll.ts`'s `rollSpentMessage` under `roll.test.ts`); say one shot as one the next time `create_media` is redefined (settings-wiring, crumbs-90; one line since no-signal-wiring).
 - Uploads: a file whose bytes went up but whose complete lost its answer waits in its page alone, so a reload there loses it ("Keep this page open" says so): the uploader's kept complete (`UNANSWERED`, by File) lives in memory; kept beside the copy, the next open could ask that complete again instead of sending the file whole (no-signal-wiring).
 - Media: `PhotoImg` (crumbs-93) is the one image of the dashboard, the profile and Guest cards and the cover cycle; the hub's own stills (`event-feed/event-cards-row.tsx`'s face, `hub-develop.tsx`, `selectable-media-grid.tsx`), the reel's clip tray and order, and the lightbox's filmstrip still draw a bare `<img>` of a stored photograph, broken where a browser cannot decode an un-previewed original (a HEIC from a desktop Chrome): adopt it there (crumbs-93).
+- Reel: the host's clip creator (`components/reel/clip-canvas.tsx`) and the clip's encode (`lib/reel/clip-encode.ts`) still draw a still this browser cannot decode as a theme-colour hold, and encode it into the file; `loadReelAssets` now names them (`undecodable`): leave them out of the selection, or say so before the encode (crumbs-94; a choice for the reel's next round, so not made here).
 
 ### The guest's album
 
@@ -293,6 +280,7 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 - Code hygiene: retire `blockedSince`, `blockedLineParts` and `LET_IN_LINE` (`lib/events/event-blocks.ts`), which the Guests room no longer calls (only their own tests do) (guests-room-wiring).
 - Code hygiene: `guest-look.ts`'s `readQuietCards` restates the four public card columns because `social.ts`'s `getProfileCards` is private; export it and read through it (guests-room-wiring).
 - Code hygiene: `EventCard`'s `variant` has no caller passing it (the profile hands its own marker as `action`; the marketing teaser draws its own card), and its `data-static` comment still says a host management card; fold the guest marker into the profile's action (crumbs-91).
+- Tests: a full `pnpm test` can exit 1 with every test green on two unhandled `Failed to resolve import "server-only"` rejections from `src/lib/db/mutations/my-uploads.ts`, attributed to `guest-upload.test.tsx` (one full run in three of crumbs-94's, never alone): find the lazy import that reaches it unmocked and mock it there (crumbs-94's gate).
 
 ## Before launch
 
