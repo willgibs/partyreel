@@ -26,6 +26,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { DoorDecision } from "@/lib/event/door/decide";
 
+/** The card's title as the markup carries it (`CardTitle`'s `data-card-title`: the letters themselves are one tile each). */
+const titled = (name: string) => `data-card-title="${name}"`;
+
 type PageDoor = {
   decision: DoorDecision;
   standing: Record<string, unknown>;
@@ -218,7 +221,7 @@ describe("the card route: one answer per address", () => {
     const { cacheControl, body } = await card(
       `https://partyreel.test/e/${QR}/card`,
     );
-    expect(body).toContain("Maya&#x27;s 30th");
+    expect(body).toContain(titled("Maya&#x27;s 30th"));
     expect(cacheControl).toBe("public, max-age=3600");
     expect(getEventCardName).toHaveBeenCalledWith(QR);
   });
@@ -226,7 +229,7 @@ describe("the card route: one answer per address", () => {
   it("draws the generic card for a private or unknown event", async () => {
     getEventCardName.mockResolvedValue(null);
     const { body } = await card(`https://partyreel.test/e/${QR}/card`);
-    expect(body).toContain("A Partyreel event");
+    expect(body).toContain(titled("A Partyreel event"));
     expect(body).not.toContain("Maya");
   });
 
@@ -235,7 +238,7 @@ describe("the card route: one answer per address", () => {
     const { cacheControl, body } = await card(
       `https://partyreel.test/e/${QR}/card?private`,
     );
-    expect(body).toContain("A Partyreel event");
+    expect(body).toContain(titled("A Partyreel event"));
     expect(body).not.toContain("Maya");
     expect(cacheControl).toBe("public, max-age=3600");
     expect(getEventCardName).not.toHaveBeenCalled();
@@ -250,14 +253,14 @@ describe("the card route: one answer per address", () => {
     expect(adding.body).toContain("Add your photos &amp; videos on Partyreel");
     expect(adding.body).not.toContain("See the photos");
     // The same album, the same name, the same hour at the edge: only the foot is the flag's.
-    expect(adding.body).toContain("Maya&#x27;s 30th");
+    expect(adding.body).toContain(titled("Maya&#x27;s 30th"));
     expect(adding.cacheControl).toBe(plain.cacheControl);
   });
 
   it("★ the flag is honoured only where a name is: a private, unknown or ?private card never invites", async () => {
     getEventCardName.mockResolvedValue(null);
     const unnamed = await card(`https://partyreel.test/e/${QR}/card?add`);
-    expect(unnamed.body).toContain("A Partyreel event");
+    expect(unnamed.body).toContain(titled("A Partyreel event"));
     expect(unnamed.body).not.toContain("Add your photos");
 
     getEventCardName.mockResolvedValue(NAME);
@@ -265,7 +268,7 @@ describe("the card route: one answer per address", () => {
     const privateAdd = await card(
       `https://partyreel.test/e/${QR}/card?private&add`,
     );
-    expect(privateAdd.body).toContain("A Partyreel event");
+    expect(privateAdd.body).toContain(titled("A Partyreel event"));
     expect(privateAdd.body).not.toContain("Add your photos");
     expect(privateAdd.body).not.toContain("Maya");
     expect(getEventCardName).not.toHaveBeenCalled();
