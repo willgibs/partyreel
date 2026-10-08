@@ -15,8 +15,13 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/guest/event-card.ts                           # 6: the generic card's words, if the gap is theirs
   - src/lib/db/queries/events.ts                          # 4: the cards' cover read (its WHY-comment)
   - src/lib/disposable/migration-guards.test.ts           # 4: the seal's SQL guard (reshaped on purpose)
+  - src/lib/db/migration-guards.test.ts                   # 4: the two cover bodies it pins, reshaped on purpose
+  - src/lib/disposable/seal.ts                            # 4: its header comment said the host meets a sealed album on her dashboard
+  - docs/ROADMAP.md                                       # 4: the one line (crumbs-88's) this lane settles, deleted
   - supabase/migrations/20261008090000_crumbs_93          # 4: the cards' covers and stills read the seal as a guest does
   - src/components/app/media-grid.tsx                     # 7: the one stand-in exported for the surfaces that draw a photograph
+  - src/components/app/photo-img                          # 7: PhotoImg, the one <img> that hands over to that stand-in (and its test)
+  - src/components/app/living-stills.tsx                  # 7: the cards' dissolving stills draw through PhotoImg
   - docs/systems/guest-flow.md
   - docs/systems/disposable-mode.md
   - docs/systems/dashboard.md

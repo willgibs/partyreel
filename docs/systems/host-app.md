@@ -507,8 +507,12 @@ so the profile's visitor-facing "Private" never collides. The six-door menu is `
   hand. An upload decided elsewhere or taken back leaves the grid; one the room acted on keeps its own write as its
   truth only until the album has answered the catch-up the room asks for once the write lands (`OwnWrites`,
   `review-queue.ts`), and from then on the album speaks for it again.
-- **Turning moderation off with a queue** confirms with the count, and on save `approveAllPending` runs: the modal is
-  the host's consent, the server the invariant (live mode never holds pending media).
+- **Turning moderation off with a queue** says the count first, and on save `approveAllPending` runs: the host's consent is
+  Settings' note under "Straight into the album" ("The 3 photos under review appear at once"), the server the invariant
+  (live mode never holds pending media). ★ The note's count is the album's LIVE one, the number the hub's Review door
+  shows beside the open sheet (`SettingsProvider` reads `useHubCounts`, the prop being the first paint's and the fallback
+  where no album store stands), never the page load's: photographs that reached Review after the sheet opened used to be
+  published under "Everyone sees it the moment it lands" (red-team 58's LOW).
 - **Clearing the last pending item plays the beat**, which preloads the just-approved photographs: their stable
   presigned URLs recur byte-identical in the album ([uploads-and-r2.md](uploads-and-r2.md)), so it paints from cache.
 - **The review pair `approveBulk` and `hideBulk` are scoped to `status='pending'`**, so a crafted call cannot flip

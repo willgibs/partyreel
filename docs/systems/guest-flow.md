@@ -249,13 +249,18 @@ read beside it so its Follow starts on Following; no card means no host row, nev
     `keepalive`, so it outlives a closed page, and a copy carried past it would go up again whole and land twice, so a
     file whose complete then lost its answer waits in its page alone (asking that complete again), never carried.
     Nothing is copied with no one to send as (a first pick on its join, a door that holds her: the held door keeps its
-    own choice, `door/wait-picks-store.ts`). Once, as a page opens with an identity, it takes back what an earlier page
-    kept and never sent (a page closed in a dead zone) and the queue sends it by itself under the same ids (`restore`),
-    the send's toast saying it landed; a record that is not this identity's, past `UNSENT_KEEP_DAYS` (14), or no whole
-    record, is put down unread, and a kept file the server then refuses as somebody else's ticket is put down, never
-    re-sent on a fresh one. ★ One page sends each: a page holds a Web Lock of its own while it keeps a copy, and an
-    opening page takes, under the album's lock, only records no live page holds (an iOS page frozen in the background
-    still holds its lock; a discarded one does not); where the browser has no Web Locks every record is taken. Safari's
+    own choice, `door/wait-picks-store.ts`). As a page opens with an identity, and again on its own line checks while it
+    stays open (the phone's `online`, her return to the page and the line's own 20 s cadence while it is shown: local
+    reads only, no request), it takes back what an earlier page kept and never sent (a page closed in a dead zone, a tab
+    closed beside this one: red-team 58's LOW) and the queue sends it by itself under the same ids (`restore`), the
+    stack saying them and the send's toast saying they landed; a record that is not this identity's, past
+    `UNSENT_KEEP_DAYS` (14), or no whole record, is put down unread, and a kept file the server then refuses as somebody
+    else's ticket is put down, never re-sent on a fresh one. ★ One page sends each: a page holds a Web Lock of its own
+    while it keeps a copy, and an adopting page takes, under the album's lock, only records no live page holds (an iOS
+    page frozen in the background still holds its lock; a discarded one does not). ★ Where the browser has no Web Locks
+    only the open takes (every record then), never the later look: it could not tell a closed page from an open one, and
+    a look every 20 s that took another open page's files would be the one case that sends a file twice; and no look ever
+    takes a record filed under its own page (that copy is being put down). Safari's
     7-day cap on script-written storage and a private tab's close bound what it keeps, which is why no word promises
     more than "kept on this phone".
   - **The send's toast** ([`upload/send-toast.ts`](../../src/components/guest/upload/send-toast.ts), guest-moments
@@ -455,8 +460,19 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   poster, a photograph whose only image is an original no unfurler draws (a HEIC with no preview: `CARD_DRAWS`) and a
   failed presign all keep the event card, with no sign the id exists. It is a route, not an
   `opengraph-image` file, because a file-based image outranks `generateMetadata` and the image depends on the query.
-- **`accepting_uploads=false`** = the view-only state of the one page: the upload panel is removed ("The host has
-  closed uploads. You can still browse the album."), leaving the action row and the gallery.
+- **`accepting_uploads=false`** = the view-only state of the one page: the cover's Add, the shutter and the empty album's
+  Add are gone and a line says "The host has closed uploads. You can still browse the album.", leaving the action row and
+  the gallery. ★ **One live word feeds every reader of whether she can add** (`useLiveUploadsWord`, `uploadsOpen` in
+  `event-experience.tsx`; red-team 58's MEDIUM): the server's reading at render, then each `accepting` the album's sync
+  carries, so a host's pause or reopen with her page open turns the cover and its Add, the shutter, the album's Add and a
+  clip's, the door's upload step, the camera, the album's order, the last-removal rule and the picks the held door kept,
+  with no reload. No reader takes `event.accepting_uploads`, which is the render's and goes stale. `GuestUpload` hosts what
+  she may be in the middle of (the camera, the Add sheet, the failure sheet), so once mounted it stays for the page's life
+  (a pause draws nothing of its own there); a page that renders closed never mounts it. A send the album refuses as closed
+  asks the album for its word afresh (a round trip, not the next poll; a camera album's camera asks for its own) and is
+  the ladder's own class, `paused` (`upload-refusal.ts`): said plainly with where the file is, no Retry (every send is
+  refused alike until the reopen, which the cover's Add then says), and no wait on the phone for the reopen: only a camera
+  album's shots wait for it, in the camera.
 
 ## Gallery access: `none` / `teaser` / `full` (the gated VIEW)
 
