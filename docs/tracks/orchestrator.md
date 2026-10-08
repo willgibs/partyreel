@@ -29,14 +29,13 @@ brand-marks-wiring, crumbs-91 (its migration applied on the Advisor's Q45 as 202
 crumbs-92 (on Q46 as 20261007233007, advisors 29/4/36, the types regenerated), cdn-version (86: X5's CDN cache, about
 30,000 to 9,600 calls at a lit 100-guest party; its call CL1), and the boards brand-marks-r2 (85: one ask, the icon) and
 event-page-r1 (87: one ask, six whole designs, sky recommended; presence, signature and after-party retired into it, their
-ledgers and create-wizard's deleted at its record). Red-team 58 walked the desk at `42ffd220d` (02:15Z to 03:55Z; ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`): one MEDIUM (a guest's cover deaf to the host's pause and reopen), three LOWs and three NITs, all fixed by crumbs-93 (gate 88, FULL: milestone 40's full gate at `fe46dbc6a`; its migration applied on the Advisor's Q47 as 20261008050912). The compute model (`$S/compute-40.log`): six scenarios within budget; the two hour scenarios over, the harness's clock shim defeating cdn-version's windows, never production (ROADMAP's Immediate "Cost: the compute model cannot measure" line). Running, its row below: red-team 58b on crumbs-93's fixes. Milestone 40 forms on `launch-prep`: crumbs-88,
+ledgers and create-wizard's deleted at its record). Red-team 58 walked the desk at `42ffd220d` (02:15Z to 03:55Z; ledger `../partyreel-wt/_scratch/redteam-58/ledger.txt`): one MEDIUM (a guest's cover deaf to the host's pause and reopen), three LOWs and three NITs, all fixed by crumbs-93 (gate 88, FULL: milestone 40's full gate at `fe46dbc6a`; its migration applied on the Advisor's Q47 as 20261008050912). The compute model (`$S/compute-40.log`): six scenarios within budget; the two hour scenarios over, the harness's clock shim defeating cdn-version's windows, never production (ROADMAP's Immediate "Cost: the compute model cannot measure" line). Red-team 58b walked crumbs-93's fixes (05:16Z to 06:00Z; ledger `../partyreel-wt/_scratch/redteam-58b/ledger.txt`): the MEDIUM fixed, the three LOWs pass, four NITs (ROADMAP's Immediate). No lane runs: milestone 40 waits on Will's yes. Milestone 40 forms on `launch-prep`: crumbs-88,
 crumbs-90, calls-desk and every merge above. Milestone 39 (`0333cd705`) is live. Will's calls paste's first sections
 are routed; his Deletion and Safety sections are still to come (the Calls place holds 16: his eight, and eight new from
 lanes: CH1, CI1, CI2, CJ1, CK1 to CK3, CL1). Both plan-limit tokens are minted and set.
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `redteam-58b` | crumbs-93's fixes on the desk at `ae16365c3` (brief `$S/redteam-58b-brief.txt`, ledger `../partyreel-wt/_scratch/redteam-58b/ledger.txt`) | running (05:16Z) | Opus, :3000 | `a26465e85395145fd` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `af9f31cb46a4e98aa`, this session; Q40 to
 Q47 answered (each APPLY, each applied); the next migration's read goes to it (from another session, respawn it).
@@ -48,10 +47,11 @@ Gate numbers continue at 89 (`$S/gate88.log` seeds a new scratchpad). The sessio
 
 ## Next, in order
 
-1. **Milestone 40:** red-team 58b on crumbs-93's fixes (brief `$S/redteam-58b-brief.txt`) and `pnpm compute:model --port
-   3132` beside it; gate 88 is its FULL gate; then his yes. After it ships: the kit's screens refresh from partyreel.com
-   (`usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens), and cdn-version's live check on his
-   word (an open album's sync answers `x-vercel-cache` MISS, then HIT).
+1. **Milestone 40 on his yes** (asked 2026-10-08 06:05Z): gate 88 (FULL, `fe46dbc6a`) green, red-teams 58 and 58b
+   (nothing above NIT open), the compute model read (the two hour scenarios a harness artifact); then the runbook's
+   "Milestone" from `launch-prep`'s tip, partyreel.com's pass kept small (Hobby at REFUSE), and on his word cdn-version's
+   live check (an open album's sync answers `x-vercel-cache` MISS, then HIT). After it ships: the kit's screens refresh
+   from partyreel.com (`usher/kit/kit-capture.mjs`: brand-marks-wiring changed the marks and tokens).
 2. **His desk** (:3000) serves the event-page-r1 record: event-page r1 (desk 4) opens first, brand-marks r2's icon
    beside it; his batch is kept verbatim, then transcribed; never refreshed while a red-team walks it. Then, as seats
    free (six to eight agents, `get_usage` at every cut): the event page's wiring once he picks its direction (one lane

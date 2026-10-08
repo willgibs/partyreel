@@ -28,6 +28,16 @@ to the surfaces built on them. A line marked `[unsure: …]` is real but its wan
 ### Uploads, media and exports
 
 - Disposable: an untouched develop time follows the party (Will's yes to X1, 2026-10-07): setting or moving the date moves an untouched develop time that falls before the party ends to 9 am the morning after (her zone), and a time she chose never moves. An undated Disposable's untouched time no longer lands at 9 am the day after Create: it waits for the party, 9 am the morning after the first day guests' shots land (a host's own test shot never starts it), so one made weeks ahead never develops before its party and a host who forgets never leaves guests hanging (the Orchestrator's answer to his "smarter ways, like media uploads", his to overrule).
+- Reel: an undecodable HEIC plays as a black 3-second slide; leave it out of the reel or draw its named stand-in (red-team 58b).
+
+### The guest's album
+
+- Guests: at the door's upload step one paused refusal is said twice, the step's server line and then the album's sheet about a second later, overlapping for about 200 ms: one voice (red-team 58b).
+- Guests: a reopen puts the door's upload step back up, unprompted, over the album she was already let into: the rule on a photo-first album, an interruption on an ordinary one (red-team 58b).
+
+### The host app
+
+- Dashboard: `PhotoImg` listens only for `onError`, so a cached undecodable HEIC that fails before hydration draws a broken image on the stage's wall on a reload (red-team 58b: 2 of 3 reloads headless, every load in Will's Chrome); read `img.complete` and `naturalWidth` in a callback ref, as the album tile does (red-team 58b).
 
 ## Upcoming
 
