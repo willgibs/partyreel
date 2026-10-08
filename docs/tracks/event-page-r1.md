@@ -1,6 +1,6 @@
 ---
 track: event-page-r1
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c04da309"            # the launch-prep SHA the branch was cut from
 board: event-page
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -77,25 +77,79 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **A Private album's card light** (the board's carried `private-light`): from its link alone (`linkLight(token)` in
+  `event-page/light.tsx`, a light seeded by the token), so a private album's card and a missing one's are drawn alike;
+  never the event's own seed, which takes a lookup a stranger could probe for whether an album stands behind a link.
+  Recommended as drawn, in every design.
+- **When a guest meets the one moment** (carried `guest-moment`): on a guest's next visit after Maya closes adding, once
+  on that device; Maya's the instant she closes; then the page as before. Recommended as drawn. No mail brings anyone
+  back for it (X11): each new design's `costs` says so, as the coordinator relayed; the creative director's pass found
+  the five identical clauses noise and would say it once in the opening, his to pick.
+- **What Live means on her page** (carried `live`): Live (the one red that breathes) only while photos are landing, the
+  hub strip's own quarter hour; an open album gone quiet says Open in Ready's green (production today wears Live
+  whenever the hub's socket is up). Recommended as drawn.
+- **The guestbook's door after her close** (X12, its own board settles it): drawn open in every design (a note to the
+  hosts often comes days after the photos stop), after the host's note, the host's count never a tally. Recommended
+  open.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a board lane; its wiring notes are in the Handoff)
 
 ## Deferred (ROADMAP one-liners, each naming its bucket and area)
 
-- none yet
+- Upcoming · The lab and the kit: a step keeps every option's frames mounted, so a whole-design board loads all its
+  options' pages at once (event-page r1: up to 30 iframes on one moment, each a full page of photographs); mount a
+  hidden option's frames on its first view (`src/components/lab/step.tsx`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls for Will: only a decision built in that he cannot see by using the product (plans, billing and renewals; lifecycle and timing; deletion, retention and privacy; safety and moderation; what the product does on its own), one line each, or none. A design, wording or flow choice is never one: production and the lab show it
-- Look at first: ...
+- Work commit `7197d73fa`, sync commit `90a885c48` (merge of origin/launch-prep at `136ba134c`: my reads moved, the
+  checklist and readiness from create-wizard-wiring-2, the card route and system docs from brand-marks-wiring,
+  crumbs-91, no-signal-wiring), and `a99b80610` (today redrawn as production now stands after the sync: the card signs
+  with the wordmark alone, a stranger's corner says Make one like this), pushed; the head is in the chat line.
+- Gates on the synced tree, the content of `a99b80610`, each on its own exit code (logs in
+  `../partyreel-wt/_scratch/event-page-r1/gate/`): `pnpm typecheck` 0 (`typecheck.log`), `pnpm lint` 0 with no warning
+  (`lint.log`), the board's tests (`registry.test.ts`) 0, 32 passed (`board-tests.log`), `pnpm test:rules` 0, 86 files
+  and 1,475 tests (`rules.log`), `pnpm lab:smoke --base http://localhost:3136 --board event-page` 0, 717 words of
+  1,200 (`smoke.log`), `pnpm lab:demo --board event-page --base http://localhost:3136` 0, "1 steps, 0 failing"
+  (`demo.log`); before the sync the same steps passed, and `lab:demo` also with `--state moment=reach` and with
+  `--state moment=after --state side=host` (`demo-reach.log`, `demo-after-host.log`). The light gate (PROGRAM's "Speed
+  over proof in exploration"): no full test run, no production build.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/event-page/` (23 new
+  files), `presence/`, `signature/` and `after-party/` deleted (all four owned), and this file.
+- The items:
+  - Board `event-page` r1 (desk 4): one ask, "Which event page should every party have, whole, on both sides?", six
+    whole designs, each a `Kit` (`kit.ts`) drawn in one set of frames (`whole.tsx`) at every moment the knobs pick
+    (before the first photo, photos landing, after her close, beyond the page), on both sides and both grounds:
+    today (the reference), rise, sky (recommended), corner, quiet ("the cover kept, lit only while empty") and
+    featured. Photos landing also draws a neon rooftop beside the wedding (`album.tsx`'s context), so each light shows
+    it varies by party; her arrival is drawn at a desk and a phone; beyond the page, Create's 68 px link (with a
+    34-character name), the chat (an open album's card and a Private one's), the dashboard's tiles, the door's sheet,
+    and the Add closer.
+  - Every design keeps the rules: each fact once, faces under the name on both sides, what needs her as her head's one
+    white press, the head's acts in the dock's order, her note on her head, the guestbook's door after it, Live only
+    while photos land, the moment's reward-first words (`PremiereWords`) with a centre, the card read by its light and
+    one mark at 68 px.
+  - Will's later inputs folded in: X10 (one gallery, no dividers), X12 (the guestbook's quiet door), X11 (no mail
+    drawn, its cost named), the card's second seat (create-wizard-wiring-2's `BeatLink`), Create's code landing on her
+    head at arrival (each design's own place for it).
+  - presence, signature and after-party retired into it: their folders deleted, their fixtures, light, frames and
+    production recompositions carried into `event-page/`; the Orchestrator deletes their ledgers at this record.
+  - Method: a helper per option on one context pack (`../partyreel-wt/_scratch/event-page-r1/helper-brief.md`, then
+    `helper-addendum.md` and `helper-addendum-2.md`), a creative director's fresh-eyes pass (its shots in
+    `_scratch/event-page-r1/cd/`; it picked sky, which the board recommends), one refinement on everything it named;
+    the final overview of every design in `_scratch/event-page-r1/ov3/` and one contact sheet per design in `sheets/`.
+  - Wiring notes for whichever design he picks: every card's light is drawn in CSS the card route's Satori cannot draw
+    (oklch, `color-mix`, blend modes), so its port precomputes rgba stops; rise's glow measures its reach in container
+    units because Chrome refuses a radial-gradient size that mixes a percentage and a length (`calc(66% - 42px)`); a
+    Private card's light reads its link's token, never the event.
+- Assets requested from Will: none (the stand-ins are the twelve marketing stills).
+- Board ideas: the round after his pick settles what this one swept in (where her tools sit: a row, the bar or cards;
+  the card's face; the photo-less tile's light); one album-light module (`lib/shared/album-light.ts`) feeding the
+  head's light, the card, the tile and the Ring from the album's own sampled reads, so they never disagree.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls for Will: none (a board builds nothing; its three carried calls hold the decisions it took).
+- Look at first: `/design/lab/event-page?key=…`, its one step on Photos landing, sky (recommended) beside rise: the
+  wedding's gold dusk and the rooftop's lavender in the last frame; then Before the first photo on Maya's side (her
+  arrival, where Create's code lands) and Beyond the page (the card at 68 px with the long name).
